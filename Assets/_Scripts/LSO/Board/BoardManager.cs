@@ -87,7 +87,7 @@ namespace _Scripts.LSO.Board
             return _board[row, col];
         }
 
-        public LSO_AnimalBase[] IsInRange(LSO_RangeType rangeType, LSO_AnimalBase attacker)
+        /*public LSO_AnimalBase[] IsInRange(LSO_RangeType rangeType, LSO_AnimalBase attacker)
         {
             switch (rangeType)
             {
@@ -101,6 +101,6 @@ namespace _Scripts.LSO.Board
                     Debug.LogError($"{rangeType} is not a valid range");
                     break;
             }
-        }
+        }*/
     }
 }
