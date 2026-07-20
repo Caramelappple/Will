@@ -5,49 +5,77 @@ using UnityEngine.InputSystem;
 
 public class WillSystem : MonoBehaviour, IWillActivation
 {
-    [SerializeField] private LSO_AnimalSO AnimalSo;
-    private Camera mainCamera;
+    public LSO_AnimalSO AnimalSo;
 
-    void Start()
-    {
-        mainCamera = Camera.main;
-    }
-
-    void Update()
-    {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            Vector2 mousePosition = Mouse.current.position.ReadValue();
-
-            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, 100f))
-            {
-                Renderer renderer = hit.collider.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.material.color = Color.gray;
-                    WillActivate();
-                }
-            }
-        }
-    }
-
+    private static WillSystem successionSource;
 
     public void WillActivate()
     {
+        if (AnimalSo == null)
+        {
+            Debug.LogError($"{name}: AnimalSo가 비어 있음", this);
+            return;
+        }
+
+        if (successionSource != null)
+        {
+            successionSource.CompleteSuccession(this);
+            successionSource = null;
+            return;
+        }
+
         switch (AnimalSo.willType)
         {
             case LSO_WillType.Curse:
-                Debug.Log("Curse Activated");
+                ActivateCurse();
                 break;
+
             case LSO_WillType.Rage:
-                Debug.Log("Rage Activated");
+                ActivateRage();
                 break;
+
             case LSO_WillType.Succession:
-                Debug.Log("Succession Activated");
+                BeginSuccession();
                 break;
         }
+    }
+
+    private void ActivateCurse()
+    {
+        Debug.Log("Curse Activated");
+    }
+
+    private void ActivateRage()
+    {
+        Debug.Log("Rage Activated");
+    }
+
+    private void BeginSuccession()
+    {
+        successionSource = this;
+        Debug.Log("Pick Target");
+    }
+
+    private void CompleteSuccession(WillSystem target)
+    {
+        if (target == this)
+        {
+            Debug.LogWarning("Failed");
+            return;
+        }
+
+        if (target.AnimalSo == null)
+        {
+            Debug.LogError("No Target");
+            return;
+        }
+
+        target.AnimalSo.maxHealth += AnimalSo.maxHealth;
+        target.AnimalSo.damage += AnimalSo.damage;
+
+        AnimalSo.maxHealth = 0;
+        AnimalSo.damage = 0;
+
+        Debug.Log("Succession Finished");
     }
 }
