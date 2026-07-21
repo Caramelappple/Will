@@ -2,12 +2,12 @@ using _Scripts.LSO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class WillTest : MonoBehaviour
+public class DLJ_WillTest : MonoBehaviour
 {
     private Camera mainCamera;
     
-    private WillSystem firstObj;
-    private WillSystem secondObj;
+    private DLJ_WillSystem firstObj;
+    private DLJ_WillSystem secondObj;
 
     private bool succession = false;
 
@@ -34,13 +34,13 @@ public class WillTest : MonoBehaviour
         if (Physics.Raycast(ray, out hit, 100f))
         {
             Renderer renderer = hit.collider.GetComponent<Renderer>();
-            IWillActivation will = hit.collider.GetComponent<IWillActivation>();
+            DLJ_IWillActivation dljIWill = hit.collider.GetComponent<DLJ_IWillActivation>();
             Debug.Log(1111111);
-            if (will == null) return;
+            if (dljIWill == null) return;
             if (renderer != null)
             {
                 renderer.material.color = Color.gray;
-                will.WillActivate();
+                dljIWill.WillActivate();
             }
         }
     }
