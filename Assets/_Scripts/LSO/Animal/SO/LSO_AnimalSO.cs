@@ -1,4 +1,4 @@
-using _Scripts.LSO;
+using _Scripts.LSO.Animal.Data;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewAnimalSO", menuName = "SO/AnimalSO")]
@@ -8,14 +8,15 @@ public class LSO_AnimalSO : ScriptableObject
     public string animalName;
     [TextArea(3, 10)]
     public string description;
-    
+    public GameObject prefab;
     
     [Header("Stats")]
     public int maxHealth;
     public int damage;
+    public int cost;
     
     [Header("Types")]
-    public LSO_RangeType rangeType;
-    public LSO_WillType willType;
-    public LSO_AbilityType abilityType;
+    public LSO_Range range;
+    public LSO_Ability ability;
+    public LSO_Will will;
 }
