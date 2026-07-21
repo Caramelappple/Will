@@ -36,6 +36,7 @@ public class WillTest : MonoBehaviour
             Renderer renderer = hit.collider.GetComponent<Renderer>();
             IWillActivation will = hit.collider.GetComponent<IWillActivation>();
             Debug.Log(1111111);
+            if (will == null) return;
             if (renderer != null)
             {
                 renderer.material.color = Color.gray;

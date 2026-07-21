@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
   animalName: CurseTest
   description: 
-  maxHealth: 1
-  damage: 1
+  maxHealth: 2
+  damage: 2
   rangeType: 0
   willType: 1
   abilityType: 0
