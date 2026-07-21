@@ -1,12 +1,13 @@
 using System;
 using _Scripts.LSO;
+using _Scripts.LSO.Animal;
 using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
-[RequireComponent(typeof(LSO_AnimalBase))]
+[RequireComponent(typeof(LSO_Animal))]
 public class LSO_HealthSystem : MonoBehaviour
 {
-    private LSO_AnimalBase _animalBase;
+    private LSO_Animal _animal;
     
     
     [field: SerializeField]
@@ -19,18 +20,18 @@ public class LSO_HealthSystem : MonoBehaviour
    
    private void Start()
    {
-       _animalBase = GetComponent<LSO_AnimalBase>();
-       maxHealth = _animalBase.animal.maxHealth;
+       _animal = GetComponent<LSO_Animal>();
+       maxHealth = _animal.animal.maxHealth;
        Health = maxHealth;
    }
    
-   public event Action<LSO_AnimalBase> OnDeath;
+   public event Action<LSO_Animal> OnDeath;
 
    public void Dead()
    {
        if (_isDead) return;
        _isDead = true;
-       OnDeath?.Invoke(_animalBase);
+       OnDeath?.Invoke(_animal);
    }
 
    private void OnEnable()
