@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: New ButtonSO 1
   m_EditorClassIdentifier: Assembly-CSharp::LSO_ButtonSO
   pos: {x: 6, y: 7}
-  buttonType: 0
-  targetAnimal: {fileID: 0}
+  buttonType: 1
   animal: {fileID: 0}

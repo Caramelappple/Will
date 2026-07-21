@@ -8,7 +8,6 @@ public class LSO_AnimalSO : ScriptableObject
     public string animalName;
     [TextArea(3, 10)]
     public string description;
-    public GameObject prefab;
     
     [Header("Stats")]
     public int maxHealth;
@@ -19,4 +18,5 @@ public class LSO_AnimalSO : ScriptableObject
     public LSO_Range range;
     public LSO_Ability ability;
     public LSO_Will will;
+    public bool isAlly;
 }

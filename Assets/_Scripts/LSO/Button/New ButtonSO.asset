@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LSO_ButtonSO
   pos: {x: 7, y: 7}
   buttonType: 0
+  animal: {fileID: 2755024680859303455, guid: 77dd95c9e066a9942b6a4e8e40985843, type: 3}

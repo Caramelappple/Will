@@ -24,7 +24,7 @@ public class WillSystem : MonoBehaviour, IWillActivation
             return;
         }
 
-        switch (AnimalSo.willType)
+        /*switch (AnimalSo.willType)
         {
             case LSO_WillType.Curse:
                 ActivateCurse();
@@ -37,7 +37,7 @@ public class WillSystem : MonoBehaviour, IWillActivation
             case LSO_WillType.Succession:
                 BeginSuccession();
                 break;
-        }
+        }*/
     }
 
     private void ActivateCurse()
