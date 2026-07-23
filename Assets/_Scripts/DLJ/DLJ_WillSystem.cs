@@ -1,25 +1,16 @@
+using System;
 using System.Collections;
 using _Scripts.LDY;
+using _Scripts.LSO;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.Serialization;
+using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(LDY_Animal))]
 public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 {
-    public enum WillType
-    {
-        Curse,
-        Rage,
-        Succession
-    }
-    
     [SerializeField] private LSO_AnimalSO animalSo;
     
     [SerializeField] private LDY_BoardManager board;
-    
-    [FormerlySerializedAs("Will")]
-    [SerializeField] private WillType willType;
 
     [Header("Rage")] 
     [SerializeField] private GameObject rageObject;
@@ -36,50 +27,39 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     private Sequence curseSequence;
 
     [Header("Succession")]
-    private static bool isWaitingForSuccessionTarget;
-    private static LDY_Team successionTeam;
-    private static int successionHealthBonus;
-    private static int successionAttackBonus;
-    private LDY_Animal animal;
+    private static DLJ_WillSystem successionSource;
     
     [SerializeField] private GameObject testObject;
 
-    private void Awake()
-    {
-        animal = GetComponent<LDY_Animal>();
-
-        if (board == null)
-            board = FindFirstObjectByType<LDY_BoardManager>();
-    }
-
     public void WillActivate()
     {
-        if (animalSo == null && willType == WillType.Succession)
+        if (animalSo == null)
         {
             Debug.LogError($"{name}: AnimalSo가 비어 있음", this);
             return;
         }
 
-        if (isWaitingForSuccessionTarget && animal != null && !animal.IsDead)
+        if (successionSource != null)
         {
-            CompleteSuccession(this);
+            successionSource.CompleteSuccession(this);
+            successionSource = null;
             return;
         }
 
-        switch (willType)
+        /*switch (animalSo.willType)
         {
-            case WillType.Curse:
+            case LSO_WillType.Curse:
                 ActivateCurse();
                 break;
 
-            case WillType.Rage:
+            case LSO_WillType.Rage:
                 ActivateRage();
                 break;
 
-            case WillType.Succession:
+            case LSO_WillType.Succession:
                 BeginSuccession();
                 break;
-        }
+        }*/
     }
 
     private void ActivateCurse()
@@ -186,31 +166,40 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
     private void BeginSuccession()
     {
-        successionTeam = animal.team;
-        successionHealthBonus = animalSo != null ? animalSo.maxHealth : 1;
-        successionAttackBonus = animalSo != null ? animalSo.damage : animal.baseAtk;
-        isWaitingForSuccessionTarget = true;
+        successionSource = this;
         Debug.Log("Pick Target");
     }
 
     private void CompleteSuccession(DLJ_WillSystem target)
     {
-        if (target == null || target.animal == null)
+        if (target == this || !target.CompareTag("Ally"))
         {
             Debug.LogWarning("Failed");
             return;
         }
 
-        if (target.animal.team != successionTeam)
+        if (target.animalSo == null)
         {
             Debug.LogError("No Target");
             return;
         }
 
-        target.animal.hp += successionHealthBonus;
-        target.animal.baseAtk += successionAttackBonus;
-        isWaitingForSuccessionTarget = false;
+        target.animalSo.maxHealth += animalSo.maxHealth;
+        target.animalSo.damage += animalSo.damage;
+
+        animalSo.maxHealth = 0;
+        animalSo.damage = 0;
 
         Debug.Log("Succession Finished");
+    }
+
+    private IEnumerator CurseAnimation()
+    {
+        GameObject effectObj = Instantiate(testObject, gameObject.transform.position, Quaternion.identity);
+        Renderer render = effectObj.GetComponent<Renderer>();
+        render.material.color = Color.purple;
+        testObject.transform.DOScale(new Vector3(4.3f, 0.12f, 4.3f), 0.5f);
+        yield return new WaitForSeconds(3f);
+        testObject.transform.DOScale(Vector3.zero, 0.5f);
     }
 }

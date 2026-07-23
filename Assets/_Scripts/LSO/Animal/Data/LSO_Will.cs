@@ -8,7 +8,7 @@ namespace _Scripts.LSO.Animal.Data
     {
         
         public LSO_HealthSystem healthSystem;
-        public virtual void InvokeWill(LSO_Animal animal)
+        public void InvokeWill(LSO_Animal animal)
         {
             Debug.Log(animal.name + "'s Will Invoked");
         }

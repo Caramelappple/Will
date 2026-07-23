@@ -37,11 +37,11 @@ public class DLJ_WillTest : MonoBehaviour
             DLJ_IWillActivation dljIWill = hit.collider.GetComponent<DLJ_IWillActivation>();
             Debug.Log(1111111);
             if (dljIWill == null) return;
-            /*if (renderer != null)
+            if (renderer != null)
             {
                 renderer.material.color = Color.gray;
                 dljIWill.WillActivate();
-            }*/
+            }
         }
     }
 }
