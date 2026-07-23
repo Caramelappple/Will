@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public interface IWillActivation
+public interface DLJ_IWillActivation
 {
     void WillActivate();
 }

@@ -6,7 +6,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class WillSystem : MonoBehaviour, IWillActivation
+public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 {
     [SerializeField] private LSO_AnimalSO animalSo;
     
@@ -27,7 +27,7 @@ public class WillSystem : MonoBehaviour, IWillActivation
     private Sequence curseSequence;
 
     [Header("Succession")]
-    private static WillSystem successionSource;
+    private static DLJ_WillSystem successionSource;
     
     [SerializeField] private GameObject testObject;
 
@@ -170,7 +170,7 @@ public class WillSystem : MonoBehaviour, IWillActivation
         Debug.Log("Pick Target");
     }
 
-    private void CompleteSuccession(WillSystem target)
+    private void CompleteSuccession(DLJ_WillSystem target)
     {
         if (target == this || !target.CompareTag("Ally"))
         {
