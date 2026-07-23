@@ -11,6 +11,7 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [SerializeField] private float attackDuration = 0.3f;
         [SerializeField] private float lungeRatio = 0.4f;
+        [SerializeField] private float willCleanupDelay = 4f;
 
         // 공격 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         public bool IsBusy => _activeCount > 0;
@@ -96,7 +97,9 @@ namespace _Scripts.LDY
         {
             // TODO: 여기서 유언(Will) 발동
             board.Remove(target);
-            Destroy(target.gameObject);
+            var will = target.GetComponent<DLJ_IWillActivation>();
+            will?.WillActivate();
+            Destroy(target.gameObject, will == null ? 0f : willCleanupDelay);
         }
     }
 }
