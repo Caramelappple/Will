@@ -1,47 +1,39 @@
-using _Scripts.LSO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class DLJ_WillTest : MonoBehaviour
 {
     private Camera mainCamera;
-    
-    private DLJ_WillSystem firstObj;
-    private DLJ_WillSystem secondObj;
 
-    private bool succession = false;
-
-    void Start()
+    private void Start()
     {
         mainCamera = Camera.main;
     }
 
-    void Update()
+    private void Update()
     {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
+        if (!DLJ_WillSystem.IsWaitingForSuccessionTarget)
+            return;
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             Click();
-        }
     }
     
     private void Click()
     {
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        if (mainCamera == null)
+            return;
+
         Vector2 mousePosition = Mouse.current.position.ReadValue();
-
         Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-        RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, 100f))
-        {
-            Renderer renderer = hit.collider.GetComponent<Renderer>();
-            DLJ_IWillActivation dljIWill = hit.collider.GetComponent<DLJ_IWillActivation>();
-            Debug.Log(1111111);
-            if (dljIWill == null) return;
-            /*if (renderer != null)
-            {
-                renderer.material.color = Color.gray;
-                dljIWill.WillActivate();
-            }*/
-        }
+        if (!Physics.Raycast(ray, out RaycastHit hit, 100f))
+            return;
+
+        DLJ_WillSystem target = hit.collider.GetComponentInParent<DLJ_WillSystem>();
+        target?.TrySelectSuccessionTarget();
     }
 }

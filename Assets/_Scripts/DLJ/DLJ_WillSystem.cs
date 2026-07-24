@@ -36,11 +36,18 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     private Sequence curseSequence;
 
     [Header("Succession")]
+    [SerializeField] private GameObject SuccesionObject;
     private static bool isWaitingForSuccessionTarget;
+    private static bool isCompletingSuccession;
     private static LDY_Team successionTeam;
     private static int successionHealthBonus;
     private static int successionAttackBonus;
+    private static float timeScaleBeforeSuccession = 1f;
+    private static DLJ_WillSystem successionSource;
     private LDY_Animal animal;
+
+    public static bool IsWaitingForSuccessionTarget =>
+        isWaitingForSuccessionTarget && !isCompletingSuccession;
     
     [SerializeField] private GameObject testObject;
 
@@ -60,9 +67,9 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
             return;
         }
 
-        if (isWaitingForSuccessionTarget && animal != null && !animal.IsDead)
+        if (isWaitingForSuccessionTarget)
         {
-            CompleteSuccession(this);
+            TrySelectSuccessionTarget();
             return;
         }
 
@@ -186,31 +193,71 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
     private void BeginSuccession()
     {
+        if (isWaitingForSuccessionTarget)
+            return;
+
+        successionSource = this;
         successionTeam = animal.team;
         successionHealthBonus = animalSo != null ? animalSo.maxHealth : 1;
         successionAttackBonus = animalSo != null ? animalSo.damage : animal.baseAtk;
+        timeScaleBeforeSuccession = Time.timeScale;
+        isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
+        Time.timeScale = 0f;
         Debug.Log("Pick Target");
     }
 
-    private void CompleteSuccession(DLJ_WillSystem target)
+    public bool TrySelectSuccessionTarget()
     {
-        if (target == null || target.animal == null)
+        if (!IsWaitingForSuccessionTarget || animal == null || animal.IsDead)
         {
             Debug.LogWarning("Failed");
-            return;
+            return false;
         }
 
-        if (target.animal.team != successionTeam)
+        if (animal.team != successionTeam)
         {
             Debug.LogError("No Target");
+            return false;
+        }
+
+        CompleteSuccession(this);
+        return true;
+    }
+
+    private static void CompleteSuccession(DLJ_WillSystem target)
+    {
+        isCompletingSuccession = true;
+
+        GameObject successionEffect =
+            successionSource != null ? successionSource.SuccesionObject : null;
+
+        if (successionEffect == null)
+        {
+            Debug.LogWarning("Succession effect is missing. Applying the bonus immediately.");
+            ApplySuccession(target);
             return;
         }
 
-        target.animal.hp += successionHealthBonus;
-        target.animal.baseAtk += successionAttackBonus;
-        isWaitingForSuccessionTarget = false;
+        successionEffect.transform.DOMove(target.transform.position, 1f)
+            .SetEase(Ease.Linear)
+            .SetUpdate(true)
+            .OnComplete(() => ApplySuccession(target));
 
         Debug.Log("Succession Finished");
+    }
+
+    private static void ApplySuccession(DLJ_WillSystem target)
+    {
+        if (target != null && target.animal != null && !target.animal.IsDead)
+        {
+            target.animal.hp += successionHealthBonus;
+            target.animal.baseAtk += successionAttackBonus;
+        }
+
+        isWaitingForSuccessionTarget = false;
+        isCompletingSuccession = false;
+        successionSource = null;
+        Time.timeScale = timeScaleBeforeSuccession;
     }
 }
