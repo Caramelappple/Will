@@ -48,7 +48,12 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
     public static bool IsWaitingForSuccessionTarget =>
         isWaitingForSuccessionTarget && !isCompletingSuccession;
-    
+
+    public bool ShouldDeferDestruction =>
+        willType == WillType.Succession &&
+        isWaitingForSuccessionTarget &&
+        successionSource == this;
+
     [SerializeField] private GameObject testObject;
 
     private void Awake()
@@ -57,6 +62,9 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
         if (board == null)
             board = FindFirstObjectByType<LDY_BoardManager>();
+
+        if (willType == WillType.Succession && SuccesionObject != null)
+            SuccesionObject.SetActive(false);
     }
 
     public void WillActivate()
@@ -203,6 +211,14 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         timeScaleBeforeSuccession = Time.timeScale;
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
+
+        if (SuccesionObject != null)
+        {
+            SuccesionObject.transform.DOKill();
+            SuccesionObject.transform.position = transform.position;
+            SuccesionObject.SetActive(true);
+        }
+
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
     }
@@ -249,15 +265,23 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
     private static void ApplySuccession(DLJ_WillSystem target)
     {
+        DLJ_WillSystem sourceToDestroy = successionSource;
+
         if (target != null && target.animal != null && !target.animal.IsDead)
         {
             target.animal.hp += successionHealthBonus;
             target.animal.baseAtk += successionAttackBonus;
         }
 
+        if (successionSource != null && successionSource.SuccesionObject != null)
+            successionSource.SuccesionObject.SetActive(false);
+
         isWaitingForSuccessionTarget = false;
         isCompletingSuccession = false;
         successionSource = null;
         Time.timeScale = timeScaleBeforeSuccession;
+
+        if (sourceToDestroy != null)
+            Destroy(sourceToDestroy.gameObject);
     }
 }

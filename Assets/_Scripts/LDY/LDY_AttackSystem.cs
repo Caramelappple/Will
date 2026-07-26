@@ -98,7 +98,9 @@ namespace _Scripts.LDY
             board.Remove(target);
             var will = target.GetComponent<DLJ_IWillActivation>();
             will?.WillActivate();
-            Destroy(target.gameObject);
+
+            if (will == null || !will.ShouldDeferDestruction)
+                Destroy(target.gameObject);
         }
     }
 }
