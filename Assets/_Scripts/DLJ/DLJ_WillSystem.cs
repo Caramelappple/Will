@@ -18,6 +18,10 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     
     [SerializeField] private LDY_BoardManager board;
     
+    [SerializeField] private LDY_TurnManager turnManager;
+
+    [SerializeField] private LDY_AttackSystem attackSystem;
+    
     [FormerlySerializedAs("Will")]
     [SerializeField] private WillType willType;
 
@@ -124,6 +128,12 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
         Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));
         
+        GameObject curseInstance = Instantiate(
+            curseObject,
+            centerWorld,
+            Quaternion.identity
+        );
+        
         //한칸의 크기 구하기
         float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
         float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
@@ -132,21 +142,23 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         Vector3 targetScale = new Vector3(cellWidth * 3, effectHeight, cellDepth * 3);
         
         //색 바꾸기
-        Renderer render = curseObject.GetComponent<Renderer>();
-        render.material.color = Color.purple;
+        //Renderer render = curseObject.GetComponent<Renderer>();
+        //render.material.color = Color.purple;
         
         //크기 초기화
-        curseObject.transform.position = centerWorld + Vector3.up * (effectHeight * 0.5f);
-        curseObject.transform.localScale = Vector3.zero;
+        curseInstance.transform.position = centerWorld + Vector3.up * (effectHeight * 0.5f);
+        curseInstance.transform.localScale = Vector3.zero;
         
         curseObject.SetActive(true);
         
+        DLJ_CurseSystem curseSystem = curseInstance.GetComponent<DLJ_CurseSystem>();
+        
+        if (turnManager != null)
+            curseSystem.Initialize(turnManager, board, center, attackSystem);
+        
         //이펙트
         curseSequence = DOTween.Sequence()
-            .Append(curseObject.transform.DOScale(targetScale, curseExpandTime).SetEase(Ease.Linear))
-            .AppendInterval(curseHoldTime)
-            .Append(curseObject.transform.DOScale(Vector3.zero, curseExpandTime).SetEase(Ease.Linear))
-            .OnComplete(() => curseObject.SetActive(false));
+            .Append(curseInstance.transform.DOScale(targetScale, curseExpandTime).SetEase(Ease.Linear));
         Debug.Log("Curse Activated");
     }
 
@@ -177,6 +189,12 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
         Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));
         
+        GameObject rageInstance = Instantiate(
+            rageObject,
+            centerWorld,
+            Quaternion.identity
+        );
+        
         //한칸의 크기 구하기
         float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
         float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
@@ -185,17 +203,22 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         Vector3 targetScale = new Vector3(cellWidth * 3, effectHeight, cellDepth * 3);
         
         //크기 초기화
-        rageObject.transform.position = centerWorld + Vector3.up * (effectHeight * 0.5f);
-        rageObject.transform.localScale = Vector3.zero;
+        rageInstance.transform.position = centerWorld + Vector3.up * (effectHeight * 0.5f);
+        rageInstance.transform.localScale = Vector3.zero;
         
-        rageObject.SetActive(true);
+        rageInstance.SetActive(true);
+        
+        DLJ_RageSystem curseSystem = rageInstance.GetComponent<DLJ_RageSystem>();
+        
+        if (turnManager != null)
+            curseSystem.Initialize(turnManager, board, center, attackSystem);
         
         //이펙트
         rageSequence = DOTween.Sequence()
-            .Append(rageObject.transform.DOScale(targetScale, rageExpandTime).SetEase(Ease.Linear))
+            .Append(rageInstance.transform.DOScale(targetScale, rageExpandTime).SetEase(Ease.Linear))
             .AppendInterval(rageHoldTime)
-            .Append(rageObject.transform.DOScale(Vector3.zero, rageExpandTime).SetEase(Ease.Linear))
-            .OnComplete(() => rageObject.SetActive(false));
+            .Append(rageInstance.transform.DOScale(Vector3.zero, rageExpandTime).SetEase(Ease.Linear))
+            .OnComplete(() => rageInstance.SetActive(false));
         Debug.Log("Rage Activated");
     }
 
@@ -284,4 +307,6 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         if (sourceToDestroy != null)
             Destroy(sourceToDestroy.gameObject);
     }
+    
+    
 }
