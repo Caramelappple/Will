@@ -1,4 +1,4 @@
-using _Scripts.LSO.Animal.Data;
+using _Scripts.LDY;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewAnimalSO", menuName = "SO/AnimalSO")]
@@ -15,8 +15,8 @@ public class LSO_AnimalSO : ScriptableObject
     public int cost;
     
     [Header("Types")]
-    public LSO_Range range;
-    public LSO_Ability ability;
-    public LSO_Will will;
+    public LDY_RangeType range;
+    //public LSO_Ability ability;
+    //public LSO_Will will;
     public bool isAlly;
 }
