@@ -8,6 +8,7 @@ public class LSO_AnimalSO : ScriptableObject
     public string animalName;
     [TextArea(3, 10)]
     public string description;
+    public Vector3Int pos;
     
     [Header("Stats")]
     public int maxHealth;
@@ -18,5 +19,4 @@ public class LSO_AnimalSO : ScriptableObject
     public LDY_RangeType range;
     //public LSO_Ability ability;
     //public LSO_Will will;
-    public bool isAlly;
 }
