@@ -84,7 +84,7 @@ namespace _Scripts.LDY
             if (targets == null || targets.Count == 0) return null;
 
             return targets
-                .OrderBy(t => Mathf.Abs(t.GetAtk() - t.hp))
+                .OrderBy(t => Mathf.Abs(t.GetAtk() - t.health.GetValue()))
                 .ThenByDescending(t => t.pos.z)
                 .First();
         }

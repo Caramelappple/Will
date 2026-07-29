@@ -1,3 +1,4 @@
+/*
 using System.Collections;
 using _Scripts.LDY;
 using DG.Tweening;
@@ -310,3 +311,4 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     
     
 }
+*/

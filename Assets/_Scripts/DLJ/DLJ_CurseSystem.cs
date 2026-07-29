@@ -1,5 +1,7 @@
+/*
 using System;
 using _Scripts.LDY;
+using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
 public class DLJ_CurseSystem : MonoBehaviour
@@ -82,7 +84,8 @@ public class DLJ_CurseSystem : MonoBehaviour
 
                 if (anim.team == target.team)
                     return;
-
+                
+                //LSO_DamageData data = LSO_DamageData.Create(,damage);
                 target.hp -= damage;
                 
                 if  (target.hp <= 0)
@@ -92,3 +95,4 @@ public class DLJ_CurseSystem : MonoBehaviour
         Debug.Log("damaged");
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 using _Scripts.LDY;
 using UnityEngine;
 
@@ -53,3 +54,4 @@ public class DLJ_RageSystem : MonoBehaviour
         Debug.Log("damaged");
     }
 }
+*/

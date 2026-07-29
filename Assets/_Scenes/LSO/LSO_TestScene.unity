@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 20154235}
   - component: {fileID: 20154234}
   - component: {fileID: 20154233}
+  - component: {fileID: 20154237}
   m_Layer: 0
   m_Name: Enemy_Jump
   m_TagString: Untagged
@@ -166,11 +167,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 0}
   pos: {x: 6, y: 0, z: 7}
   team: 1
   baseAtk: 3
-  hp: 4
   rangeType: 2
+  abilityType: 0
+  willType: 0
   modelTransform: {fileID: 20154232}
 --- !u!23 &20154234
 MeshRenderer:
@@ -250,6 +254,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 20154231}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &20154237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 20154231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &46483226
 GameObject:
   m_ObjectHideFlags: 0
@@ -7897,6 +7916,7 @@ GameObject:
   - component: {fileID: 1764463983}
   - component: {fileID: 1764463982}
   - component: {fileID: 1764463981}
+  - component: {fileID: 1764463985}
   m_Layer: 0
   m_Name: Player_Jump
   m_TagString: Untagged
@@ -7931,11 +7951,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 0}
   pos: {x: 5, y: 0, z: 1}
   team: 0
   baseAtk: 3
-  hp: 4
   rangeType: 2
+  abilityType: 0
+  willType: 0
   modelTransform: {fileID: 1764463980}
 --- !u!23 &1764463982
 MeshRenderer:
@@ -8015,6 +8038,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1764463979}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1764463985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764463979}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1792880713
 GameObject:
   m_ObjectHideFlags: 0
@@ -8476,6 +8514,7 @@ GameObject:
   - component: {fileID: 1958657208}
   - component: {fileID: 1958657207}
   - component: {fileID: 1958657206}
+  - component: {fileID: 1958657210}
   m_Layer: 0
   m_Name: Enemy_Melee
   m_TagString: Untagged
@@ -8510,11 +8549,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 0}
   pos: {x: 2, y: 0, z: 1}
   team: 1
   baseAtk: 2
-  hp: 5
   rangeType: 0
+  abilityType: 0
+  willType: 0
   modelTransform: {fileID: 1958657205}
 --- !u!23 &1958657207
 MeshRenderer:
@@ -8594,6 +8636,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1958657204}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1958657210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1958657204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1985140410
 GameObject:
   m_ObjectHideFlags: 0
@@ -8607,6 +8664,7 @@ GameObject:
   - component: {fileID: 1985140414}
   - component: {fileID: 1985140413}
   - component: {fileID: 1985140412}
+  - component: {fileID: 1985140416}
   m_Layer: 0
   m_Name: Player_Melee
   m_TagString: Untagged
@@ -8641,11 +8699,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 0}
   pos: {x: 1, y: 0, z: 0}
   team: 0
   baseAtk: 2
-  hp: 6
   rangeType: 0
+  abilityType: 0
+  willType: 0
   modelTransform: {fileID: 1985140411}
 --- !u!23 &1985140413
 MeshRenderer:
@@ -8725,6 +8786,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1985140410}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1985140416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985140410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1985411293
 GameObject:
   m_ObjectHideFlags: 0
@@ -8850,6 +8926,7 @@ GameObject:
   - component: {fileID: 1997053943}
   - component: {fileID: 1997053942}
   - component: {fileID: 1997053941}
+  - component: {fileID: 1997053945}
   m_Layer: 0
   m_Name: Player_Ranged
   m_TagString: Untagged
@@ -8884,11 +8961,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  pos: {x: 3, y: 0, z: 0}
+  data: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
+  health: {fileID: 1997053945}
+  pos: {x: 0, y: 0, z: 0}
   team: 0
   baseAtk: 2
-  hp: 5
-  rangeType: 1
+  rangeType: 0
+  abilityType: 3
+  willType: 0
   modelTransform: {fileID: 1997053940}
 --- !u!23 &1997053942
 MeshRenderer:
@@ -8968,6 +9048,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1997053939}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1997053945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1997053939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 2
+  <MinValue>k__BackingField: 0
+  _value: 2
 --- !u!1 &2003034059
 GameObject:
   m_ObjectHideFlags: 0
@@ -9205,6 +9300,7 @@ GameObject:
   - component: {fileID: 2030697137}
   - component: {fileID: 2030697136}
   - component: {fileID: 2030697135}
+  - component: {fileID: 2030697139}
   m_Layer: 0
   m_Name: Enemy_Ranged
   m_TagString: Untagged
@@ -9239,11 +9335,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 0}
   pos: {x: 4, y: 0, z: 5}
   team: 1
   baseAtk: 2
-  hp: 6
   rangeType: 1
+  abilityType: 0
+  willType: 0
   modelTransform: {fileID: 2030697134}
 --- !u!23 &2030697136
 MeshRenderer:
@@ -9323,6 +9422,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2030697133}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2030697139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030697133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &2123816479
 GameObject:
   m_ObjectHideFlags: 0

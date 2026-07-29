@@ -1,4 +1,6 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
+using _Scripts.LSO.Ability;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewAnimalSO", menuName = "SO/AnimalSO")]
@@ -17,6 +19,6 @@ public class LSO_AnimalSO : ScriptableObject
     
     [Header("Types")]
     public LDY_RangeType range;
-    //public LSO_Ability ability;
-    //public LSO_Will will;
+    public LSO_AbilityType ability;
+    public LSO_WillType willType;
 }

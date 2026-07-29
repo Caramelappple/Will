@@ -66,9 +66,18 @@ namespace _Scripts.LDY
                 // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
                 if (target != null)
                 {
-                    target.hp -= attacker.GetAtk();
-                    if (target.hp <= 0)
-                        HandleDeath(target);
+                    if (target.health != null && attacker.health != null)
+                    {
+
+                        DamageData data = DamageData.Create(attacker.health, target.GetAtk());
+                        target.health.GetDamage(data);
+                        if (target.health.GetValue() <= 0)
+                            HandleDeath(target);
+                    }
+                    else
+                    {
+                        Debug.Log("체력이 존재하지 않습니다");
+                    }
                 }
 
                 if (attacker != null)
