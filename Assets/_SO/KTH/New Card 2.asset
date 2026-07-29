@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bcfcadafbd16654db958833bc9a8c75, type: 3}
+  m_Name: New Card 2
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_CardData
+  cardId: 333
+  cardName: 333333
+  description: cccccccccc
+  icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  cost: 3
+  unitModelPrefab: {fileID: 4337957452496197285, guid: caaab4fd8563b364592b616c5c55fb1b, type: 3}
