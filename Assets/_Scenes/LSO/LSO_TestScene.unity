@@ -7952,11 +7952,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
-  pos: {x: 5, y: 0, z: 1}
+  health: {fileID: 1764463985}
+  pos: {x: 5, y: 0, z: 2}
   team: 0
-  baseAtk: 3
-  rangeType: 2
+  baseAtk: 1
+  rangeType: 0
   abilityType: 0
   willType: 0
   modelTransform: {fileID: 1764463980}
@@ -8050,9 +8050,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 0
+  <MaxValue>k__BackingField: 1
   <MinValue>k__BackingField: 0
-  _value: 0
+  _value: 1
 --- !u!1 &1792880713
 GameObject:
   m_ObjectHideFlags: 0
