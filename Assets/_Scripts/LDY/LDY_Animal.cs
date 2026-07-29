@@ -24,7 +24,7 @@ namespace _Scripts.LDY
         [Header("Stats")]
         public int baseAtk;
         public LDY_RangeType rangeType;
-        private List<LSO_IAbility> _abilities;
+        private List<LSO_IAbility> _abilities = new();
         public LSO_AbilityType abilityType;
         public LSO_WillType willType;
 
@@ -54,6 +54,9 @@ namespace _Scripts.LDY
                 Debug.LogWarning("LDY_Animal data is null");
                 return;
             }
+            
+            this._abilities.Clear();
+            this._abilities.Add(LSO_AbilityFactory.Get(data.ability));
 
             if (modelTransform == null)
                 modelTransform = transform;
@@ -63,8 +66,7 @@ namespace _Scripts.LDY
             this.abilityType = data.ability;
             this.health.Init(data.maxHealth);
        
-           // this._abilities.Clear();
-//            this._abilities.Add(LSO_AbilityFactory.Get(data.ability));
+            
         }
 
         // ATK는 항상 이 메서드를 통해서만 조회한다.
@@ -73,8 +75,8 @@ namespace _Scripts.LDY
         {
             int atk = baseAtk;
             
-            foreach(var min in _abilities.OfType<IStatModifier>())
-                atk= min.ModifyAttack(this, atk);
+            foreach(var mod in _abilities.OfType<IStatModifier>())
+                atk= mod.ModifyAttack(this, atk);
             
             return atk;
         }
