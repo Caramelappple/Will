@@ -838,16 +838,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55cbbd5511702064db51d0dc5766a855, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
-  cardDatabase:
-  - {fileID: 11400000, guid: deca1354605413a4a83760db25a89aa2, type: 2}
-  - {fileID: 11400000, guid: bde89f34374f7ea42b2dd3f667052b3a, type: 2}
-  - {fileID: 11400000, guid: 679761d7e8b6ff34b825dad315b73ec6, type: 2}
+  cardDatabase: []
   handCardPrefab: {fileID: 533164801239580158, guid: cf9ca3d86335be641b019d745eefab78, type: 3}
   placedUnitPrefab: {fileID: 9207913563554494052, guid: 142e3eb01c418cf4aa257b9a83632b8b, type: 3}
   handContainer: {fileID: 538811345}
   boardContainer: {fileID: 668281848}
-  handSpacing: 2.2
+  handSpacing: 1
   boardSpacing: 2.2
+  targetCardScale: {x: 5, y: 6, z: 1}
+  startScaleRatio: 0.4
+  moveDuration: 0.6
+  rotateDuration: 1.6
+  startYAngle: -180
   drawButton: {fileID: 2027754529}
   infoPanel: {fileID: 2105274283}
 --- !u!1 &1256789244
@@ -2047,13 +2049,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8bfb72d7e167984f976251b9cd42f84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_InfoPanelController
-  panelRoot: {fileID: 2105274282}
+  panelRoot: {fileID: 2105274284}
   iconImage: {fileID: 28454100}
   nameText: {fileID: 298256919}
   descText: {fileID: 1994955940}
   costText: {fileID: 1711604099}
   placeButton: {fileID: 1450754996}
   closeButton: {fileID: 1256789245}
+  animDuration: 0.7
+  startYOffset: -1016
+  startYRotation: -180
 --- !u!224 &2105274284
 RectTransform:
   m_ObjectHideFlags: 0
