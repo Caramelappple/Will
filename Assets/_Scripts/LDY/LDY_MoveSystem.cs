@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace _Scripts.LDY
 {
-    // 씬 배선: BoardManager를 연결할 것.
     public class LDY_MoveSystem : MonoBehaviour
     {
         [SerializeField] private LDY_BoardManager board;
