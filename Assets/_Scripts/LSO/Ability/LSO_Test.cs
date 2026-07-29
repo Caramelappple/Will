@@ -1,0 +1,21 @@
+using _Scripts.LDY;
+using _Scripts.LSO.DeathSystem;
+
+namespace _Scripts.LSO.Ability
+{
+    public class LSO_Test : IOnTurnStart, LSO_IAbility, IStatModifier
+    {
+        private int _baseAtk;
+        
+        public void OnTurnStart(LDY_Team team)//턴 지날때마다 공격력 증가략 1씩 증가
+        {
+            _baseAtk += 1;
+        }
+
+        public int ModifyAttack(LDY_Animal self, int atk)
+        {
+            //self.hp -= 1;
+            return atk + _baseAtk;
+        }
+    }
+}

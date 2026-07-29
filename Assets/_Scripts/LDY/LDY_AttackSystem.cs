@@ -66,9 +66,18 @@ namespace _Scripts.LDY
                 // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
                 if (target != null)
                 {
-                    target.hp -= attacker.GetAtk();
-                    if (target.hp <= 0)
-                        HandleDeath(target);
+                    if (target.health != null && attacker.health != null)
+                    {
+
+                        DamageData data = DamageData.Create(attacker.health, target.GetAtk());
+                        target.health.GetDamage(data);
+                        if (target.health.GetValue() <= 0)
+                            HandleDeath(target);
+                    }
+                    else
+                    {
+                        Debug.Log("체력이 존재하지 않습니다");
+                    }
                 }
 
                 if (attacker != null)
@@ -82,17 +91,26 @@ namespace _Scripts.LDY
 
         private static IEnumerator LerpPosition(Transform t, Vector3 from, Vector3 to, float duration)
         {
+            if (t == null)
+                yield break;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
+                // 유언으로 기물 사망시 예외처리
+                if (t == null)
+                    yield break;
+
                 elapsed += Time.deltaTime;
                 t.position = Vector3.Lerp(from, to, elapsed / duration);
                 yield return null;
             }
-            t.position = to;
+
+            if (t != null)
+                t.position = to;
         }
 
-        private void HandleDeath(LDY_Animal target)
+        public void HandleDeath(LDY_Animal target)
         {
             // TODO: 여기서 유언(Will) 발동
             board.Remove(target);

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3611571216735468140}
   - component: {fileID: 3681515084579897401}
   - component: {fileID: 503401911983841910}
+  - component: {fileID: -2728924391190757892}
   m_Layer: 10
   m_Name: EffecfTest
   m_TagString: Untagged
@@ -112,3 +113,16 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-2728924391190757892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7744833713677540377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f93fa2849b17c6d4894a5ee8c1c0be1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CurseSystem
+  remainingTurn: 2
