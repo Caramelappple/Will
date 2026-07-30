@@ -1,4 +1,3 @@
-/*
 using _Scripts.LDY;
 using DG.Tweening;
 using UnityEngine;
@@ -140,15 +139,17 @@ public class DLJ_RageSystem : MonoBehaviour
 
                 LDY_Animal target = effectBoard.Get(tile);
 
-                if (target == null || target.IsDead)
+                if (target == null ||
+                    target.health == null ||
+                    target.health.IsDestroyed)
                     continue;
 
-                target.hp -= damage;
+                DamageData damageData = DamageData.Create(null, damage);
+                target.health.GetDamage(damageData);
 
-                if (target.hp <= 0)
+                if (target.health.IsDestroyed)
                     effectAttackSystem.HandleDeath(target);
             }
         }
     }
 }
-*/
