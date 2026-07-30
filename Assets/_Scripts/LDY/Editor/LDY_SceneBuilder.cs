@@ -247,7 +247,7 @@ namespace _Scripts.LDY.Editor
             animal.team = team;
             animal.rangeType = rangeType;
             animal.baseAtk = atk;
-            animal.hp = hp;
+            animal.health.Init(hp);
             animal.modelTransform = go.transform;
 
             // 에디터에서 미리 보기용 배치. 실제 등록/정확한 스냅은 Play 시 LDY_BoardManager.Awake()가 수행한다.
