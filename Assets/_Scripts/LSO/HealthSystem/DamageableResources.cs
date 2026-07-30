@@ -35,11 +35,9 @@ public class DamageableResources : MonoBehaviour
     /// 외부에서 코드로 초기화할 때 사용.
     /// SO, 다른 컴포넌트, 팩토리 등 어디서든 호출 가능.
     /// </summary>
-    public void Init(int maxValue, int minValue = 0, int startValue = -1)
+    public void Init(int maxValue)
     {
         MaxValue = maxValue;
-        MinValue = minValue;
-        _value   = startValue < 0 ? maxValue : startValue;
     }
 
     public int  GetValue() => _value;

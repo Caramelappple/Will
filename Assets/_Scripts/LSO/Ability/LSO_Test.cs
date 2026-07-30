@@ -14,7 +14,8 @@ namespace _Scripts.LSO.Ability
 
         public int ModifyAttack(LDY_Animal self, int atk)
         {
-            //self.hp -= 1;
+            DamageData data = new DamageData(self.health, 1);
+            self.health.GetDamage(data);
             return atk + _baseAtk;
         }
     }

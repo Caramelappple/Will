@@ -71,7 +71,7 @@ namespace _Scripts.LDY
 
                         DamageData data = DamageData.Create(attacker.health, target.GetAtk());
                         target.health.GetDamage(data);
-                        if (target.health.GetValue() <= 0)
+                        if (target.health.IsDestroyed)
                             HandleDeath(target);
                     }
                     else

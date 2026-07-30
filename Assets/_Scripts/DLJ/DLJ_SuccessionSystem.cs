@@ -1,3 +1,4 @@
+using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using DG.Tweening;
 using UnityEngine;
@@ -97,7 +98,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour
         if (!IsWaitingForSuccessionTarget || successionSource == null)
             return false;
 
-        if (target == null || target.IsDead)
+        if (target == null || target.health.IsDestroyed)
         {
             Debug.LogWarning("Invalid succession target.");
             return false;
@@ -138,9 +139,13 @@ public class DLJ_SuccessionSystem : MonoBehaviour
     {
         DLJ_SuccessionSystem sourceToDestroy = successionSource;
 
-        if (target != null && !target.IsDead)
+        if (target != null && !target.health)
         {
-            target.hp += successionHealthBonus;
+            target.health.Init(target.health.MaxValue + successionHealthBonus);
+            
+            RecoverData data = new RecoverData(target.health, successionHealthBonus);
+            target.health.Recover(data);
+            
             target.baseAtk += successionAttackBonus;
         }
 
