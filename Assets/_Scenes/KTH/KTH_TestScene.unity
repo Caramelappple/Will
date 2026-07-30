@@ -838,7 +838,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55cbbd5511702064db51d0dc5766a855, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
-  cardDatabase: []
+  cardDatabase:
+  - {fileID: 11400000, guid: deca1354605413a4a83760db25a89aa2, type: 2}
+  - {fileID: 11400000, guid: bde89f34374f7ea42b2dd3f667052b3a, type: 2}
+  - {fileID: 11400000, guid: 679761d7e8b6ff34b825dad315b73ec6, type: 2}
   handCardPrefab: {fileID: 533164801239580158, guid: cf9ca3d86335be641b019d745eefab78, type: 3}
   placedUnitPrefab: {fileID: 9207913563554494052, guid: 142e3eb01c418cf4aa257b9a83632b8b, type: 3}
   handContainer: {fileID: 538811345}
