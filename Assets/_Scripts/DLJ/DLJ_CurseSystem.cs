@@ -161,15 +161,16 @@ public class DLJ_CurseSystem : MonoBehaviour
 
                 LDY_Animal target = effectBoard.Get(tile);
 
-                if (target == null || target.health.IsDestroyed)
+                if (target == null ||
+                    target.health == null ||
+                    target.health.IsDestroyed)
                     continue;
 
                 if (effectSourceTeam == target.team)
                     continue;
-                
-                DamageData data = new DamageData(target.health,damage);
-                
-                target.health.GetDamage(data);
+
+                DamageData damageData = DamageData.Create(null, damage);
+                target.health.GetDamage(damageData);
 
                 if (target.health.IsDestroyed)
                     effectAttackSystem.HandleDeath(target);
