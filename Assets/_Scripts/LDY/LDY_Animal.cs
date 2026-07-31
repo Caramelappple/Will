@@ -37,7 +37,6 @@ namespace _Scripts.LDY
         private void Awake()
         {
            Init();
-           health = GetComponent<Health>();
         }
         
         #if UNITY_EDITOR
@@ -49,6 +48,12 @@ namespace _Scripts.LDY
 
         private void Init()
         {
+            if (modelTransform == null)
+                modelTransform = transform;
+
+            if (health == null)
+                health = GetComponent<Health>();
+
             if (data == null)
             {
                 Debug.LogWarning("LDY_Animal data is null");
@@ -58,13 +63,13 @@ namespace _Scripts.LDY
             this._abilities.Clear();
             this._abilities.Add(LSO_AbilityFactory.Get(data.ability));
 
-            if (modelTransform == null)
-                modelTransform = transform;
             this.pos = data.pos;
             this.baseAtk = data.damage;
             this.rangeType = data.range;
             this.abilityType = data.ability;
-            this.health.Init(data.maxHealth);
+
+            if (health != null)
+                health.Init(data.maxHealth);
        
             
         }
