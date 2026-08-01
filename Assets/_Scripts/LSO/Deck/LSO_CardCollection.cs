@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Manager;
 
-namespace _Scripts.LSO
+namespace _Scripts.LSO.Deck
 {
-    public sealed class DeckModule
+    /// <summary>
+    /// 플레이어가 보유한 카드와 그 수량. 세이브/로드 대상이다.
+    /// 전투 중의 뽑을 더미/손패/버린 더미는 LSO_Deck이 따로 담당한다.
+    /// (이전 이름: DeckModule)
+    /// </summary>
+    public sealed class LSO_CardCollection
     {
         private readonly Dictionary<LSO_CardSO, int> _items = new Dictionary<LSO_CardSO, int>();
 
-        public event Action<LSO_CardSO, int> DeckChanged;
+        public event Action<LSO_CardSO, int> CollectionChanged;
 
-        public DeckModule(DeckCardsSaveData[] savedItems)
+        public LSO_CardCollection(DeckCardsSaveData[] savedItems)
         {
             if (savedItems == null)
                 return;
@@ -41,8 +46,22 @@ namespace _Scripts.LSO
             if (_items[itemId] <= 0)
                 _items.Remove(itemId);
 
-            DeckChanged?.Invoke(itemId, GetItemAmount(itemId));
+            CollectionChanged?.Invoke(itemId, GetItemAmount(itemId));
             return true;
+        }
+
+        /// <summary>보유 수량만큼 카드를 펼친 목록. 이걸로 전투용 LSO_Deck을 만든다.</summary>
+        public List<LSO_CardSO> ToCardList()
+        {
+            List<LSO_CardSO> result = new List<LSO_CardSO>();
+
+            foreach (KeyValuePair<LSO_CardSO, int> item in _items)
+            {
+                for (int i = 0; i < item.Value; i++)
+                    result.Add(item.Key);
+            }
+
+            return result;
         }
 
         public DeckCardsSaveData[] ToSaveData()
@@ -74,7 +93,7 @@ namespace _Scripts.LSO
             _items[itemId] = currentAmount + amount;
 
             if (notify)
-                DeckChanged?.Invoke(itemId, _items[itemId]);
+                CollectionChanged?.Invoke(itemId, _items[itemId]);
         }
     }
 }

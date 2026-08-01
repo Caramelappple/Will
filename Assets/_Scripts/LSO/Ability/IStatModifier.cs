@@ -1,6 +1,6 @@
 using _Scripts.LDY;
 
-namespace _Scripts.LSO.DeathSystem
+namespace _Scripts.LSO.Ability
 {
     public interface IStatModifier
     {
