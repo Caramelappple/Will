@@ -2313,8 +2313,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_TileHighlighter
   board: {fileID: 579526130}
-  moveHighlightPrefab: {fileID: 7921581351628025108, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
-  attackHighlightPrefab: {fileID: 6074491203827878912, guid: 8347fe02b9cad85429294651be512654, type: 3}
+  moveHighlightPrefab: {fileID: 978710914881041559, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
+  attackHighlightPrefab: {fileID: 3404202527546447194, guid: 8347fe02b9cad85429294651be512654, type: 3}
   attackHeightOffset: 0.05
   moveHeightOffset: 0.08
 --- !u!114 &579526128

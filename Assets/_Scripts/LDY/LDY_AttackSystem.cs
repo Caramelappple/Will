@@ -113,9 +113,9 @@ namespace _Scripts.LDY
         public void HandleDeath(LDY_Animal target)
         {
             // TODO: 여기서 유언(Will) 발동
-            board.Remove(target);
             var will = target.GetComponent<DLJ_IWillActivation>();
             will?.WillActivate();
+            board.Remove(target);
 
             if (will == null || !will.ShouldDeferDestruction)
                 Destroy(target.gameObject);
