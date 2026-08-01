@@ -21,12 +21,20 @@ public class KTH_DeckManager : MonoBehaviour
 
     [Header("카드 크기 설정")]
     public Vector3 targetCardScale = new Vector3(4f, 6f, 1f);  // 카드 목표 크기
-    public float startScaleRatio = 0.3f;                      // 시작 크기 비율
 
-    [Header("DOTween 연출 상세 설정")]
-    public float moveDuration = 0.6f;
-    public float rotateDuration = 0.5f;
-    public float startYAngle = -180f;
+    [Header("DOTween 기본 이동 연출")]
+    public float moveDuration = 0.5f;     // 손패로 이동하는 시간
+
+    // ★ [핵심] 회전 속도 및 시간을 인스펙터에서 개인적으로 관리하기 쉽게 분리!
+    [Header("카드 회전 속도/시간 설정")]
+    [Tooltip("카드가 뒤집히며 펼쳐지는 회전 지속 시간 (작을수록 빠르게 회전)")]
+    public float flipAnimDuration = 0.25f; // 기본값 0.25초 (빠른 회전)
+
+    [Tooltip("카드 등장 시 차례대로 회전하는 시차 (작을수록 연달아 빠르게 나옴)")]
+    public float cardAnimInterval = 0.08f;
+
+    [Tooltip("회전 시작 시 Y축 각도 (-180, 180 추천)")]
+    public float startYAngle = 180f;
 
     [Header("UI")]
     public Button drawButton;
@@ -40,7 +48,6 @@ public class KTH_DeckManager : MonoBehaviour
         if (drawButton) drawButton.onClick.AddListener(DrawCards);
         if (infoPanel) infoPanel.Hide();
 
-        // ★ [핵심 추가 부분] 1씬에서 DontDestroyOnLoad로 전달된 저장 데이터가 있다면 불러옵니다.
         if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
         {
             cardDatabase = new List<KTH_CardData>(KTH_DeckDataPersistent.Instance.savedInventory);
@@ -52,7 +59,7 @@ public class KTH_DeckManager : MonoBehaviour
         }
     }
 
-    /// <summary>드로우 버튼 위치에서 Y축 회전하며 손패로 이동</summary>
+    /// <summary>독립된 회전 수치(flipAnimDuration)를 반영하여 드로우</summary>
     public void DrawCards()
     {
         ClearHand();
@@ -64,13 +71,11 @@ public class KTH_DeckManager : MonoBehaviour
             return;
         }
 
-        // ★ [수정] 중복을 허용하여 무조건 2장의 카드를 뽑도록 설정
         List<KTH_CardData> drawn = new List<KTH_CardData>();
         int drawCount = 2; // 뽑을 카드 수
 
         for (int k = 0; k < drawCount; k++)
         {
-            // cardDatabase에서 무작위로 하나를 선택해 추가 (같은 카드가 또 뽑힐 수 있음)
             int randomIndex = Random.Range(0, cardDatabase.Count);
             drawn.Add(cardDatabase[randomIndex]);
         }
@@ -90,18 +95,20 @@ public class KTH_DeckManager : MonoBehaviour
 
             Transform cardTransform = view.transform;
 
-            // 3. 초기 상태 설정
+            // 3. 초기 상태 설정 (X축 Scale 0, Y축 startYAngle 회전)
             cardTransform.localPosition = buttonStartPosition;
-            cardTransform.localScale = targetCardScale * startScaleRatio;
+            cardTransform.localScale = new Vector3(0f, targetCardScale.y, targetCardScale.z);
             cardTransform.localRotation = Quaternion.Euler(0f, startYAngle, 0f);
 
-            // 4. DOTween 연출 실행
+            // 4. 연출 실행
             Sequence drawSequence = DOTween.Sequence();
 
-            drawSequence.Join(cardTransform.DOLocalMove(targetPosition, moveDuration).SetEase(Ease.OutCubic))
-                        .Join(cardTransform.DOLocalRotate(Vector3.zero, rotateDuration, RotateMode.Fast).SetEase(Ease.OutQuad))
-                        .Join(cardTransform.DOScale(targetCardScale, moveDuration).SetEase(Ease.OutBack))
-                        .SetDelay(i * 0.15f);
+            drawSequence.PrependInterval(i * cardAnimInterval);
+            drawSequence.Join(cardTransform.DOLocalMove(targetPosition, moveDuration).SetEase(Ease.OutCubic));
+
+            // ★ 설정한 flipAnimDuration 속도로 회전 및 커짐!
+            drawSequence.Join(cardTransform.DOScale(targetCardScale, flipAnimDuration).SetEase(Ease.OutBack));
+            drawSequence.Join(cardTransform.DOLocalRotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
         }
     }
 

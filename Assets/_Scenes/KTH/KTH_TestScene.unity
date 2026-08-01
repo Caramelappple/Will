@@ -757,7 +757,7 @@ Transform:
   m_GameObject: {fileID: 538811344}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.57, y: -3.92, z: 0}
+  m_LocalPosition: {x: 2.57, y: -3.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -843,13 +843,13 @@ MonoBehaviour:
   placedUnitPrefab: {fileID: 9207913563554494052, guid: 142e3eb01c418cf4aa257b9a83632b8b, type: 3}
   handContainer: {fileID: 538811345}
   boardContainer: {fileID: 668281848}
-  handSpacing: 1
+  handSpacing: 2
   boardSpacing: 2.2
-  targetCardScale: {x: 5, y: 6, z: 1}
-  startScaleRatio: 0.4
+  targetCardScale: {x: 5, y: 7, z: 1}
   moveDuration: 0.6
-  rotateDuration: 1.6
-  startYAngle: -180
+  flipAnimDuration: 2
+  cardAnimInterval: 2
+  startYAngle: 180
   drawButton: {fileID: 2027754529}
   infoPanel: {fileID: 2105274283}
 --- !u!1 &1256789244
