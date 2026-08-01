@@ -36,12 +36,23 @@ public class KTH_DeckManager : MonoBehaviour
     [Tooltip("회전 시작 시 Y축 각도 (-180, 180 추천)")]
     public float startYAngle = 180f;
 
+    [Header("손패 누적 설정")]
+    [Tooltip("드로우 시 한 번에 뽑는 카드 수")]
+    public int drawCountPerTurn = 2;
+
+    [Tooltip("손패에 쌓일 수 있는 최대 카드 수 (여기서 직접 설정)")]
+    public int maxHandSize = 6;
+
+    [Tooltip("기존에 손패에 있던 카드도 재정렬될 때 이동 연출 시간")]
+    public float rearrangeDuration = 0.25f;
+
     [Header("UI")]
     public Button drawButton;
     public KTH_InfoPanelController infoPanel;
 
     private readonly List<KTH_HandCardView> currentHand = new List<KTH_HandCardView>();
     private int placedCount = 0;
+    private bool isDrawing = false;
 
     private void Awake()
     {
@@ -59,10 +70,16 @@ public class KTH_DeckManager : MonoBehaviour
         }
     }
 
-    /// <summary>독립된 회전 수치(flipAnimDuration)를 반영하여 드로우</summary>
+    /// <summary>손패에 남은 자리 수 (maxHandSize - 현재 손패 수)</summary>
+    public int GetRemainingHandSlots()
+    {
+        return Mathf.Max(0, maxHandSize - currentHand.Count);
+    }
+
     public void DrawCards()
     {
-        ClearHand();
+        if (isDrawing) return; // ★ 연타 방지: 이미 드로우 중이면 무시
+
         if (infoPanel) infoPanel.Hide();
 
         if (cardDatabase == null || cardDatabase.Count == 0)
@@ -71,44 +88,122 @@ public class KTH_DeckManager : MonoBehaviour
             return;
         }
 
-        List<KTH_CardData> drawn = new List<KTH_CardData>();
-        int drawCount = 2; // 뽑을 카드 수
+        // ★ 손패가 이미 꽉 찼으면 드로우 자체를 막음
+        int remainingSlots = GetRemainingHandSlots();
+        if (remainingSlots <= 0)
+        {
+            Debug.Log("[KTH_DeckManager] 손패가 이미 최대치(" + maxHandSize + "장)입니다. 더 이상 드로우할 수 없습니다.");
+            return;
+        }
 
-        for (int k = 0; k < drawCount; k++)
+        // ★ 남은 자리만큼만 뽑음 (예: 5/6인 상태에서 2장 요청 → 1장만 드로우)
+        int actualDrawCount = Mathf.Min(drawCountPerTurn, remainingSlots);
+
+        isDrawing = true;
+        if (drawButton) drawButton.interactable = false; // ★ 버튼 비활성화
+
+        List<KTH_CardData> drawn = new List<KTH_CardData>();
+        for (int k = 0; k < actualDrawCount; k++)
         {
             int randomIndex = Random.Range(0, cardDatabase.Count);
             drawn.Add(cardDatabase[randomIndex]);
         }
 
-        // 1. 드로우 버튼 출발 위치 계산
         Vector3 buttonStartPosition = handContainer.InverseTransformPoint(drawButton.transform.position);
+
+        // ★ 새로 뽑을 카드를 먼저 리스트에 추가한 뒤, 전체 손패 기준으로 목표 위치를 계산
+        List<KTH_HandCardView> newlyDrawnViews = new List<KTH_HandCardView>();
 
         for (int i = 0; i < drawn.Count; i++)
         {
             var view = Instantiate(handCardPrefab, handContainer);
             view.Setup(drawn[i], this);
-            currentHand.Add(view);
-
-            // 2. 최종 손패 목표 위치 계산
-            float targetX = (i - (drawn.Count - 1) / 2f) * handSpacing;
-            Vector3 targetPosition = new Vector3(targetX, 0f, 0f);
 
             Transform cardTransform = view.transform;
-
-            // 3. 초기 상태 설정 (X축 Scale 0, Y축 startYAngle 회전)
             cardTransform.localPosition = buttonStartPosition;
             cardTransform.localScale = new Vector3(0f, targetCardScale.y, targetCardScale.z);
             cardTransform.localRotation = Quaternion.Euler(0f, startYAngle, 0f);
 
-            // 4. 연출 실행
-            Sequence drawSequence = DOTween.Sequence();
+            currentHand.Add(view);
+            newlyDrawnViews.Add(view);
+        }
 
-            drawSequence.PrependInterval(i * cardAnimInterval);
-            drawSequence.Join(cardTransform.DOLocalMove(targetPosition, moveDuration).SetEase(Ease.OutCubic));
+        int completedCount = 0;
+        int totalAnimCount = currentHand.Count; // ★ 기존 카드 재정렬 + 신규 카드 등장 전부 포함
 
-            // ★ 설정한 flipAnimDuration 속도로 회전 및 커짐!
-            drawSequence.Join(cardTransform.DOScale(targetCardScale, flipAnimDuration).SetEase(Ease.OutBack));
-            drawSequence.Join(cardTransform.DOLocalRotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
+        // ★ 손패 전체를 기준으로 목표 위치 재계산 및 이동/등장 연출
+        for (int i = 0; i < currentHand.Count; i++)
+        {
+            var view = currentHand[i];
+            Transform cardTransform = view.transform;
+
+            float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
+            Vector3 targetPosition = new Vector3(targetX, 0f, 0f);
+
+            bool isNewCard = newlyDrawnViews.Contains(view);
+
+            cardTransform.DOKill();
+
+            Sequence seq = DOTween.Sequence();
+            seq.SetTarget(cardTransform);
+            seq.SetLink(view.gameObject);
+
+            if (isNewCard)
+            {
+                // ★ 새 카드: 드로우 버튼 위치에서 회전하며 등장
+                int drawOrderIndex = newlyDrawnViews.IndexOf(view);
+                seq.PrependInterval(drawOrderIndex * cardAnimInterval);
+                seq.Join(cardTransform.DOLocalMove(targetPosition, moveDuration).SetEase(Ease.OutCubic));
+                seq.Join(cardTransform.DOScale(targetCardScale, flipAnimDuration).SetEase(Ease.OutBack));
+                seq.Join(cardTransform.DOLocalRotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
+            }
+            else
+            {
+                // ★ 기존 카드: 새 자리로 슬라이드 이동만
+                seq.Join(cardTransform.DOLocalMove(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic));
+            }
+
+            // ★ [버그 수정] DOTween은 정상 완료(OnComplete) 시 AutoKill로 인해
+            // 곧바로 OnKill도 함께 호출됩니다. 예전 코드는 두 콜백에 각각 completedCount++를
+            // 넣어서 카드 1장당 카운트가 2씩 올라갔고, 그 결과 다른 카드가 아직 회전 중인데도
+            // completedCount가 totalAnimCount에 조기 도달 → isDrawing이 너무 일찍 false가 되고
+            // 드로우 버튼이 실제로는 애니메이션이 안 끝났는데 다시 활성화되는 문제가 있었습니다.
+            // 이 상태에서 버튼을 한 번 더 누르면 DrawCards()가 재실행되며 아직 돌고 있는
+            // 카드의 트윈을 DOKill로 끊어버려 회전이 중간에 멈추는 현상으로 이어졌습니다.
+            // → 콜백이 어느 쪽으로 불리든 "완료 처리"는 딱 한 번만 실행되도록 가드를 둡니다.
+            bool finished = false;
+            void HandleSequenceFinished()
+            {
+                if (finished) return;
+                finished = true;
+
+                completedCount++;
+                if (completedCount >= totalAnimCount)
+                {
+                    isDrawing = false;
+                    if (drawButton) drawButton.interactable = (GetRemainingHandSlots() > 0);
+                }
+            }
+
+            seq.OnComplete(HandleSequenceFinished);
+            seq.OnKill(HandleSequenceFinished);
+        }
+    }
+
+    /// <summary>남아있는 손패 카드들을 현재 개수 기준으로 다시 가지런히 정렬</summary>
+    private void RearrangeHand()
+    {
+        for (int i = 0; i < currentHand.Count; i++)
+        {
+            var view = currentHand[i];
+            if (!view) continue;
+
+            Transform cardTransform = view.transform;
+            float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
+            Vector3 targetPosition = new Vector3(targetX, 0f, 0f);
+
+            cardTransform.DOKill();
+            cardTransform.DOLocalMove(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic).SetLink(view.gameObject);
         }
     }
 
@@ -118,7 +213,7 @@ public class KTH_DeckManager : MonoBehaviour
         {
             if (c)
             {
-                c.transform.DOKill();
+                c.transform.DOKill(); // SetTarget/SetLink 덕분에 시퀀스까지 안전하게 정리됨
                 Destroy(c.gameObject);
             }
         }
@@ -146,6 +241,12 @@ public class KTH_DeckManager : MonoBehaviour
         card.transform.DOKill();
         Destroy(card.gameObject);
         infoPanel.Hide();
+
+        // ★ 카드 하나가 손패에서 빠졌으니 남은 카드들을 재정렬
+        RearrangeHand();
+
+        // ★ 손패에 자리가 생겼으니 드로우 중이 아니라면 버튼 다시 활성화
+        if (!isDrawing && drawButton) drawButton.interactable = (GetRemainingHandSlots() > 0);
 
         var unit = Instantiate(placedUnitPrefab, boardContainer);
         unit.transform.localPosition = new Vector3(placedCount * boardSpacing, 0f, 0f);
