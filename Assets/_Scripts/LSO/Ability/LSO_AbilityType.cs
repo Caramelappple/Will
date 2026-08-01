@@ -5,6 +5,7 @@ namespace _Scripts.LSO.Ability
         None,
         Immune,
         Double,
-        Test
+        Test,
+        Sturdy
     }
 }

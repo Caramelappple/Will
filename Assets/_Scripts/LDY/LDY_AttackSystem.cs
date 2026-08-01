@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Scripts.LSO;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -21,7 +22,7 @@ namespace _Scripts.LDY
             if (attacker == null) return new List<Vector3Int>();
             if (actionPoints != null && !actionPoints.HasActionPoints) return new List<Vector3Int>();
 
-            var strategy = LDY_AttackRangeFactory.Get(attacker.rangeType);
+            var strategy = LDY_AttackRangeFactory.Create(attacker.RangeType);
             return strategy != null
                 ? strategy.GetAttackableTiles(attacker.pos, board)
                 : new List<Vector3Int>();
@@ -114,11 +115,26 @@ namespace _Scripts.LDY
         {
             // TODO: 여기서 유언(Will) 발동
             board.Remove(target);
+
+            RaiseEnemyDead(target);
+
             var will = target.GetComponent<DLJ_IWillActivation>();
             will?.WillActivate();
 
             if (will == null || !will.ShouldDeferDestruction)
                 Destroy(target.gameObject);
+        }
+
+        // 적이 죽었을 때만 알린다. 구독자가 없어도 무해하며, 매니저가 없으면 조용히 넘어간다.
+        private static void RaiseEnemyDead(LDY_Animal target)
+        {
+            if (target == null || target.team != LDY_Team.Enemy) return;
+            if (!GameManager.HasInstance) return;
+
+            GameEventDispatcher dispatcher = GameManager.Instance.EventDispatcher;
+            if (dispatcher == null) return;
+
+            dispatcher.RaiseEnemyDead(target);
         }
     }
 }

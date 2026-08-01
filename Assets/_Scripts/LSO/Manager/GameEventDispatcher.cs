@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO;
@@ -9,14 +8,44 @@ public class GameEventDispatcher : MonoBehaviour
     private readonly List<IOnTurnStart> _onTurnStart = new();
     private readonly List<IOnEnemyDead> _onEnemyDead = new();
 
+    private LDY_TurnManager _boundTurnManager;
+
     private void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        // GameManager의 자식/컴포넌트로 붙는 경우엔 부모가 이미 DontDestroyOnLoad 대상이다.
+        if (transform.parent == null)
+            DontDestroyOnLoad(gameObject);
     }
 
     private void OnEnable()
     {
-        GameManager.Instance.TurnManager.OnTurnChanged += RaiseTurnStart;
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null) return;
+
+        gameManager.TurnManagerChanged += BindTurnManager;
+        BindTurnManager(gameManager.TurnManager);
+    }
+
+    private void OnDisable()
+    {
+        if (GameManager.HasInstance)
+            GameManager.Instance.TurnManagerChanged -= BindTurnManager;
+
+        BindTurnManager(null);
+    }
+
+    /// <summary>씬마다 바뀌는 턴 매니저를 안전하게 갈아끼운다. 이전 구독은 반드시 해제한다.</summary>
+    private void BindTurnManager(LDY_TurnManager turnManager)
+    {
+        if (_boundTurnManager == turnManager) return;
+
+        if (_boundTurnManager != null)
+            _boundTurnManager.OnTurnChanged -= RaiseTurnStart;
+
+        _boundTurnManager = turnManager;
+
+        if (_boundTurnManager != null)
+            _boundTurnManager.OnTurnChanged += RaiseTurnStart;
     }
 
     public void Register(object obj)
@@ -38,7 +67,7 @@ public class GameEventDispatcher : MonoBehaviour
             l.OnTurnStart(team);
     }
 
-    public void RaiseEnemyDead(LSO_AnimalSO info)
+    public void RaiseEnemyDead(LDY_Animal info)
     {
         foreach (var l in _onEnemyDead.ToArray())
             l.OnEnemyDead(info);
