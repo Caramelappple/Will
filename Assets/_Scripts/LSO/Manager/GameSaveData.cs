@@ -15,18 +15,6 @@ namespace _Scripts.LSO.Manager
             this.amount = amount;
         }
     }
-    
-    public struct InventoryItemSaveData
-    {
-        public LSO_ItemSO itemId;
-        public int amount;
-
-        public InventoryItemSaveData(LSO_ItemSO itemId, int amount)
-        {
-            this.itemId = itemId;
-            this.amount = amount;
-        }
-    }
 
     [Serializable]
     public struct GameSaveData
