@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+
 using System.Linq;
+using System.Collections.Generic;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Deck.Data;
@@ -120,10 +121,9 @@ if (Application.isPlaying && isActiveAndEnabled)
 
 if (modelTransform == null)
     modelTransform = transform;
-this.pos = data.pos;
 this.baseAtk = data.damage;
-this.rangeType = data.range;
-this.abilityType = data.ability;
+//this.RangeType = data.range;
+        //this.AbilityType = data.ability;
 
 if (health != null)
     health.Init(data.maxHealth);
@@ -197,3 +197,5 @@ else
         }
     }
 }
+ 
+
