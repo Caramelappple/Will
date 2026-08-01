@@ -168,13 +168,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
+  health: {fileID: 20154237}
   pos: {x: 6, y: 0, z: 7}
   team: 1
   baseAtk: 3
-  rangeType: 2
-  abilityType: 0
-  willType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 20154232}
 --- !u!23 &20154234
 MeshRenderer:
@@ -7776,6 +7775,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3180663b2d9b4a979a1f39398a128b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.GameManager
+  eventDispatcher: {fileID: 0}
 --- !u!4 &1702265749
 Transform:
   m_ObjectHideFlags: 0
@@ -7952,13 +7952,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 1764463985}
-  pos: {x: 5, y: 0, z: 2}
+  health: {fileID: 0}
+  pos: {x: 5, y: 0, z: 1}
   team: 0
-  baseAtk: 1
-  rangeType: 0
-  abilityType: 0
-  willType: 0
+baseAtk: 3
+rangeType: 2
+abilityType: 0
+fallbackRangeType: 0
+willType: 0
   modelTransform: {fileID: 1764463980}
 --- !u!23 &1764463982
 MeshRenderer:
@@ -8050,9 +8051,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 1
+  <MaxValue>k__BackingField: 0
   <MinValue>k__BackingField: 0
-  _value: 1
+  _value: 0
 --- !u!1 &1792880713
 GameObject:
   m_ObjectHideFlags: 0
@@ -8550,13 +8551,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
+  health: {fileID: 1958657210}
   pos: {x: 2, y: 0, z: 1}
   team: 1
   baseAtk: 2
-  rangeType: 0
-  abilityType: 0
-  willType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1958657205}
 --- !u!23 &1958657207
 MeshRenderer:
@@ -8700,13 +8700,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
+  health: {fileID: 1985140416}
   pos: {x: 1, y: 0, z: 0}
-  team: 0
+  team: 1
   baseAtk: 2
-  rangeType: 0
-  abilityType: 0
-  willType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1985140411}
 --- !u!23 &1985140413
 MeshRenderer:
@@ -8961,14 +8960,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
+  data: {fileID: 0}
   health: {fileID: 1997053945}
-  pos: {x: 0, y: 0, z: 0}
-  team: 0
+  pos: {x: 3, y: 0, z: 0}
+  team: 1
   baseAtk: 2
-  rangeType: 0
-  abilityType: 3
-  willType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1997053940}
 --- !u!23 &1997053942
 MeshRenderer:
@@ -9060,9 +9058,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 2
+  <MaxValue>k__BackingField: 3
   <MinValue>k__BackingField: 0
-  _value: 2
+  _value: 3
 --- !u!1 &2003034059
 GameObject:
   m_ObjectHideFlags: 0
@@ -9336,13 +9334,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
+  health: {fileID: 2030697139}
   pos: {x: 4, y: 0, z: 5}
   team: 1
   baseAtk: 2
-  rangeType: 1
-  abilityType: 0
-  willType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 2030697134}
 --- !u!23 &2030697136
 MeshRenderer:

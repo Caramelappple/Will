@@ -1,21 +1,2 @@
 fileFormatVersion: 2
 guid: 53c3d4af849656c4cba833eedd7d9b19
-MonoImporter:
-  externalObjects: {}
-  serializedVersion: 2
-  defaultReferences:
-  - animalSo: {instanceID: 0}
-  - board: {instanceID: 0}
-  - turnManager: {instanceID: 0}
-  - attackSystem: {instanceID: 0}
-  - rageObject: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
-  - rageSystem: {instanceID: 0}
-  - curseObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
-  - curseSystem: {instanceID: 0}
-  - successionObject: {fileID: 3957086677548363848, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-  - successionSystem: {instanceID: 0}
-  executionOrder: 0
-  icon: {instanceID: 0}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 

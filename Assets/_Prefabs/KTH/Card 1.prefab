@@ -214,4 +214,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_CardDragUI
   iconImage: {fileID: 8687971361382688685}
-  customSize: {x: 0.8, y: 0.8}
+  frontUI: {fileID: 1796407459142249546}
+  backUI: {fileID: 6323644397786800221}

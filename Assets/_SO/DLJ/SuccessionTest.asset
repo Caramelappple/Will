@@ -14,10 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
   animalName: 
   description: 
-  pos: {x: 6, y: 0, z: 7}
-  maxHealth: 1
-  damage: 1
-  cost: 0
-  range: 0
-  ability: 0
+  maxHealth: 0
+  damage: 0
+  rangeType: 0
   willType: 2
+  abilityType: 0

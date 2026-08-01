@@ -251,7 +251,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: CardDraw
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -757,7 +757,7 @@ Transform:
   m_GameObject: {fileID: 538811344}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.57, y: -3.92, z: 0}
+  m_LocalPosition: {x: -0.3, y: -3.48, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -838,21 +838,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55cbbd5511702064db51d0dc5766a855, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
-  cardDatabase:
-  - {fileID: 11400000, guid: deca1354605413a4a83760db25a89aa2, type: 2}
-  - {fileID: 11400000, guid: bde89f34374f7ea42b2dd3f667052b3a, type: 2}
-  - {fileID: 11400000, guid: 679761d7e8b6ff34b825dad315b73ec6, type: 2}
+  cardDatabase: []
   handCardPrefab: {fileID: 533164801239580158, guid: cf9ca3d86335be641b019d745eefab78, type: 3}
   placedUnitPrefab: {fileID: 9207913563554494052, guid: 142e3eb01c418cf4aa257b9a83632b8b, type: 3}
   handContainer: {fileID: 538811345}
   boardContainer: {fileID: 668281848}
-  handSpacing: 1
+  handSpacing: 2
   boardSpacing: 2.2
-  targetCardScale: {x: 5, y: 6, z: 1}
-  startScaleRatio: 0.4
+  targetCardScale: {x: 8, y: 10, z: 1}
   moveDuration: 0.6
-  rotateDuration: 1.6
-  startYAngle: -180
+  flipAnimDuration: 2
+  cardAnimInterval: 2
+  startYAngle: 180
+  drawCountPerTurn: 2
+  maxHandSize: 5
+  rearrangeDuration: 0.25
   drawButton: {fileID: 2027754529}
   infoPanel: {fileID: 2105274283}
 --- !u!1 &1256789244
@@ -1033,7 +1033,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: Select
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1066,7 +1066,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1685,7 +1685,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: Cancel
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1718,7 +1718,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -2085,7 +2085,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 146}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2107665583

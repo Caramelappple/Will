@@ -3,7 +3,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using _Scripts.LDY;
 
 namespace _Scripts.LDY.Editor
 {
@@ -245,8 +244,7 @@ namespace _Scripts.LDY.Editor
             var animal = go.AddComponent<LDY_Animal>();
             animal.pos = pos;
             animal.team = team;
-            animal.rangeType = rangeType;
-            animal.baseAtk = atk;
+            animal.EditorSetupWithoutData(rangeType, atk);
             animal.health.Init(hp);
             animal.modelTransform = go.transform;
 
