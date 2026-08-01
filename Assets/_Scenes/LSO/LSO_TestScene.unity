@@ -7952,14 +7952,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 0}
-  health: {fileID: 0}
+  health: {fileID: 1764463985}
   pos: {x: 5, y: 0, z: 1}
   team: 0
-baseAtk: 3
-rangeType: 2
-abilityType: 0
-fallbackRangeType: 0
-willType: 0
+  baseAtk: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1764463980}
 --- !u!23 &1764463982
 MeshRenderer:
@@ -8702,7 +8700,7 @@ MonoBehaviour:
   data: {fileID: 0}
   health: {fileID: 1985140416}
   pos: {x: 1, y: 0, z: 0}
-  team: 1
+  team: 0
   baseAtk: 2
   fallbackRangeType: 0
   <WillType>k__BackingField: 0
@@ -8963,7 +8961,7 @@ MonoBehaviour:
   data: {fileID: 0}
   health: {fileID: 1997053945}
   pos: {x: 3, y: 0, z: 0}
-  team: 1
+  team: 0
   baseAtk: 2
   fallbackRangeType: 0
   <WillType>k__BackingField: 0
