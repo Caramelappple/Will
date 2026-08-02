@@ -1,9 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using _Scripts.LSO.UI; // ★ LSO 인터페이스 사용 (LSO 스크립트 자체는 수정하지 않음)
 
 [RequireComponent(typeof(CanvasGroup))]
-public class KTH_CardDragUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class KTH_CardDragUI : MonoBehaviour,
+    IBeginDragHandler, IDragHandler, IEndDragHandler,
+    LSO_IClickEffect, LSO_IHoverEffect // ★ 추가: LSO_ButtonClickHandler / LSO_ButtonHoverHandler 가
+                                       //         이 컴포넌트를 자동으로 찾아서 OnClick / OnHoverEnter / OnHoverExit 를 호출해줌
 {
     public Image iconImage;
     private KTH_CardData cardData;
@@ -18,6 +22,16 @@ public class KTH_CardDragUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
     [Header("카드 앞면 UI 오브젝트")]
     public GameObject frontUI; // Inspector 미지정 시 "Image" 자동 탐색
+
+    [Header("LSO 클릭/호버 연동 (선택 사항)")]
+    [Tooltip("카드에 LSO_ButtonHoverHandler를 붙였을 때, 호버 중 CanvasGroup 알파값")]
+    [Range(0f, 1f)]
+    public float hoverAlpha = 0.85f;
+
+    [Tooltip("클릭 시 선택 상태를 토글할지 여부")]
+    public bool toggleSelectedOnClick = true;
+
+    public bool IsSelected { get; private set; }
 
     private void Awake()
     {
@@ -108,6 +122,35 @@ public class KTH_CardDragUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         if (KTH_DeckBuilderManager.Instance != null)
         {
             KTH_DeckBuilderManager.Instance.RefreshPoolPage();
+        }
+    }
+
+    /// <summary>LSO_ButtonClickHandler가 호출 (좌클릭 시)</summary>
+    public void OnClick()
+    {
+        if (toggleSelectedOnClick)
+        {
+            IsSelected = !IsSelected;
+        }
+
+        // TODO: 실제 프로젝트에 맞는 클릭 반응(정보창 표시 등)을 여기에 연결하세요.
+    }
+
+    /// <summary>LSO_ButtonHoverHandler가 호출 (포인터 진입 시)</summary>
+    public void OnHoverEnter()
+    {
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = hoverAlpha;
+        }
+    }
+
+    /// <summary>LSO_ButtonHoverHandler가 호출 (포인터 이탈 시)</summary>
+    public void OnHoverExit()
+    {
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
         }
     }
 }
