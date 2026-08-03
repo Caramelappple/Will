@@ -13,25 +13,27 @@ public class KTH_DeckManager : MonoBehaviour
     public List<KTH_CardData> cardDatabase = new List<KTH_CardData>();
 
     [Header("프리팹")]
-    public KTH_HandCardView handCardPrefab;
+    public KTH_HandCardView handCardPrefab; // ★ 프리팹은 이제 RectTransform을 가진 UI 오브젝트여야 함
     public KTH_PlacedUnitView placedUnitPrefab;
 
-    [Header("배치 위치 (빈 오브젝트로 씬에 배치)")]
-    public Transform handContainer;
-    public Transform boardContainer;
-    public float handSpacing = 2.2f;
+    [Header("배치 위치")]
+    public RectTransform handContainer; // ★ Transform → RectTransform (Canvas 하위의 빈 UI 오브젝트)
+    public Transform boardContainer;    // 보드 배치는 기존 월드 스페이스 그대로 유지
+    public float handSpacing = 220f;    // ★ UI는 픽셀 단위이므로 기존 2.2f 같은 값 대신 픽셀값으로 조정
     public float boardSpacing = 2.2f;
 
+    [Header("UI 카메라 (Canvas Render Mode가 Screen Space - Overlay면 비워두세요)")]
+    public Camera uiCamera; // ★ Screen Space - Camera 또는 World Space Canvas라면 해당 카메라 연결
+
     [Header("카드 크기 설정")]
-    public Vector3 targetCardScale = new Vector3(4f, 6f, 1f);  // 카드 목표 크기
+    public Vector3 targetCardScale = new Vector3(1f, 1f, 1f);  // ★ UI는 보통 RectTransform 크기로 카드 크기를 잡으므로 스케일은 1 근처를 권장
 
     [Header("DOTween 기본 이동 연출")]
     public float moveDuration = 0.5f;     // 손패로 이동하는 시간
 
-    // ★ [핵심] 회전 속도 및 시간을 인스펙터에서 개인적으로 관리하기 쉽게 분리!
     [Header("카드 회전 속도/시간 설정")]
     [Tooltip("카드가 뒤집히며 펼쳐지는 회전 지속 시간 (작을수록 빠르게 회전)")]
-    public float flipAnimDuration = 0.25f; // 기본값 0.25초 (빠른 회전)
+    public float flipAnimDuration = 0.25f;
 
     [Tooltip("카드 등장 시 차례대로 회전하는 시차 (작을수록 연달아 빠르게 나옴)")]
     public float cardAnimInterval = 0.08f;
@@ -112,7 +114,11 @@ public class KTH_DeckManager : MonoBehaviour
             drawn.Add(cardDatabase[randomIndex]);
         }
 
-        Vector3 buttonStartPosition = handContainer.InverseTransformPoint(drawButton.transform.position);
+        // ★ [UI 변환] 월드 좌표 InverseTransformPoint 대신, 스크린 좌표 기준으로 handContainer 로컬 좌표를 구함
+        // (Canvas Render Mode가 Screen Space - Overlay면 uiCamera는 비워도 됨(null 전달), Camera/World면 연결 필요)
+        Vector2 buttonStartPosition;
+        Vector2 buttonScreenPoint = RectTransformUtility.WorldToScreenPoint(uiCamera, drawButton.transform.position);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(handContainer, buttonScreenPoint, uiCamera, out buttonStartPosition);
 
         // ★ 새로 뽑을 카드를 먼저 리스트에 추가한 뒤, 전체 손패 기준으로 목표 위치를 계산
         List<KTH_HandCardView> newlyDrawnViews = new List<KTH_HandCardView>();
@@ -122,8 +128,8 @@ public class KTH_DeckManager : MonoBehaviour
             var view = Instantiate(handCardPrefab, handContainer);
             view.Setup(drawn[i], this);
 
-            Transform cardTransform = view.transform;
-            cardTransform.localPosition = buttonStartPosition;
+            RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
+            cardTransform.anchoredPosition = buttonStartPosition; // ★ localPosition → anchoredPosition
             cardTransform.localScale = new Vector3(0f, targetCardScale.y, targetCardScale.z);
             cardTransform.localRotation = Quaternion.Euler(0f, startYAngle, 0f);
 
@@ -138,10 +144,10 @@ public class KTH_DeckManager : MonoBehaviour
         for (int i = 0; i < currentHand.Count; i++)
         {
             var view = currentHand[i];
-            Transform cardTransform = view.transform;
+            RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
 
             float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
-            Vector3 targetPosition = new Vector3(targetX, 0f, 0f);
+            Vector2 targetPosition = new Vector2(targetX, 0f);
 
             bool isNewCard = newlyDrawnViews.Contains(view);
 
@@ -156,24 +162,17 @@ public class KTH_DeckManager : MonoBehaviour
                 // ★ 새 카드: 드로우 버튼 위치에서 회전하며 등장
                 int drawOrderIndex = newlyDrawnViews.IndexOf(view);
                 seq.PrependInterval(drawOrderIndex * cardAnimInterval);
-                seq.Join(cardTransform.DOLocalMove(targetPosition, moveDuration).SetEase(Ease.OutCubic));
+                seq.Join(cardTransform.DOAnchorPos(targetPosition, moveDuration).SetEase(Ease.OutCubic)); // ★ DOLocalMove → DOAnchorPos
                 seq.Join(cardTransform.DOScale(targetCardScale, flipAnimDuration).SetEase(Ease.OutBack));
                 seq.Join(cardTransform.DOLocalRotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
             }
             else
             {
                 // ★ 기존 카드: 새 자리로 슬라이드 이동만
-                seq.Join(cardTransform.DOLocalMove(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic));
+                seq.Join(cardTransform.DOAnchorPos(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic)); // ★ DOLocalMove → DOAnchorPos
             }
 
-            // ★ [버그 수정] DOTween은 정상 완료(OnComplete) 시 AutoKill로 인해
-            // 곧바로 OnKill도 함께 호출됩니다. 예전 코드는 두 콜백에 각각 completedCount++를
-            // 넣어서 카드 1장당 카운트가 2씩 올라갔고, 그 결과 다른 카드가 아직 회전 중인데도
-            // completedCount가 totalAnimCount에 조기 도달 → isDrawing이 너무 일찍 false가 되고
-            // 드로우 버튼이 실제로는 애니메이션이 안 끝났는데 다시 활성화되는 문제가 있었습니다.
-            // 이 상태에서 버튼을 한 번 더 누르면 DrawCards()가 재실행되며 아직 돌고 있는
-            // 카드의 트윈을 DOKill로 끊어버려 회전이 중간에 멈추는 현상으로 이어졌습니다.
-            // → 콜백이 어느 쪽으로 불리든 "완료 처리"는 딱 한 번만 실행되도록 가드를 둡니다.
+            // 콜백이 어느 쪽으로 불리든 "완료 처리"는 딱 한 번만 실행되도록 가드
             bool finished = false;
             void HandleSequenceFinished()
             {
@@ -201,12 +200,12 @@ public class KTH_DeckManager : MonoBehaviour
             var view = currentHand[i];
             if (!view) continue;
 
-            Transform cardTransform = view.transform;
+            RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
             float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
-            Vector3 targetPosition = new Vector3(targetX, 0f, 0f);
+            Vector2 targetPosition = new Vector2(targetX, 0f);
 
             cardTransform.DOKill();
-            cardTransform.DOLocalMove(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic).SetLink(view.gameObject);
+            cardTransform.DOAnchorPos(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic).SetLink(view.gameObject); // ★ DOLocalMove → DOAnchorPos
         }
     }
 
@@ -251,6 +250,7 @@ public class KTH_DeckManager : MonoBehaviour
         // ★ 손패에 자리가 생겼으니 드로우 중이 아니라면 버튼 다시 활성화
         if (!isDrawing && drawButton) drawButton.interactable = (GetRemainingHandSlots() > 0);
 
+        // 보드에 배치되는 유닛은 기존처럼 월드 스페이스 그대로 유지
         var unit = Instantiate(placedUnitPrefab, boardContainer);
         unit.transform.localPosition = new Vector3(placedCount * boardSpacing, 0f, 0f);
         unit.Setup(data, this);

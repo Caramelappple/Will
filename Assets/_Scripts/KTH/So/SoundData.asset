@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57ee3e850ae1e0b42a72e866ce351f0b, type: 3}
   m_Name: SoundData
   m_EditorClassIdentifier: Assembly-CSharp::SoundData
-  id: 
-  clip: {fileID: 0}
-  volume: 1
-  loop: 0
+  id: 1
+  clip: {fileID: 8300000, guid: 2ad8734fbb1ed14478f02156fbfc723c, type: 3}
+  volume: 0.775
+  loop: 1
