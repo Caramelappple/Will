@@ -17,6 +17,7 @@ namespace _Scripts.LDY
         [SerializeField] private LayerMask boardLayerMask;
         [SerializeField] private Camera targetCamera;
         [SerializeField] private LDY_TurnManager turnManager;
+        [SerializeField] private LDY_CardPlacer cardPlacer;
 
         private LDY_Animal _selected;
 
@@ -29,6 +30,7 @@ namespace _Scripts.LDY
         private void Update()
         {
             if (turnManager != null && turnManager.CurrentTurn != LDY_Team.Player) return;
+            if (cardPlacer != null && cardPlacer.IsPlacing) return; // 카드 배치 위치 선택 중엔 이동/공격 클릭을 막는다.
             if (Mouse.current == null) return;
 
             bool leftClicked = Mouse.current.leftButton.wasPressedThisFrame;
