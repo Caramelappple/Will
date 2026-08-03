@@ -240,6 +240,13 @@ public class KTH_DeckManager : MonoBehaviour
     {
         var data = card.GetData();
 
+        // 코스트가 모자라면 카드를 손패에서 빼기 전에 막는다 (배치 자체가 시작되지 않음).
+        if (cardPlacer != null && data.animalCard != null && !cardPlacer.CanAfford(data.animalCard))
+        {
+            Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.cardName}을(를) 배치할 수 없습니다.");
+            return;
+        }
+
         currentHand.Remove(card);
         card.transform.DOKill();
         Destroy(card.gameObject);
