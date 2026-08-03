@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using _Scripts.LDY;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
 public class KTH_DeckManager : MonoBehaviour
 {
+    [Header("그리드 보드 연동 (없으면 기존 연출용 배치만 동작)")]
+    public LDY_CardPlacer cardPlacer;
     [Header("카드 데이터베이스 (1씬의 인벤토리 카드가 자동으로 불러와집니다)")]
     public List<KTH_CardData> cardDatabase = new List<KTH_CardData>();
 
@@ -256,5 +259,13 @@ public class KTH_DeckManager : MonoBehaviour
         unit.transform.DOScale(targetCardScale, 0.25f).SetEase(Ease.OutBack);
 
         placedCount++;
+
+        // 실제 전투에 참여하는 기물은 그리드 보드 쪽에 별도로 소환한다 (위 unit은 손패 카드의 연출용 배치).
+        if (cardPlacer != null && data.animalCard != null)
+        {
+            var animal = cardPlacer.PlaceCardAtNextAvailable(data.animalCard, LDY_Team.Player);
+            if (animal == null)
+                Debug.LogWarning($"[KTH_DeckManager] {data.cardName}을(를) 그리드 보드에 소환하지 못했습니다.");
+        }
     }
 }

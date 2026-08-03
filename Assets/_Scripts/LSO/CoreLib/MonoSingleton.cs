@@ -7,7 +7,7 @@ namespace _Scripts.LSO.CoreLib
         private static T _instance;
         private static bool _isQuitting;
         
-        public static bool HasInstance => _instance != null;
+        public static bool HasInstance => !_isQuitting && _instance != null;
 
         public static T Instance
         {
