@@ -14,13 +14,10 @@ public class KTH_DeckManager : MonoBehaviour
 
     [Header("프리팹")]
     public KTH_HandCardView handCardPrefab; // ★ 프리팹은 이제 RectTransform을 가진 UI 오브젝트여야 함
-    public KTH_PlacedUnitView placedUnitPrefab;
 
     [Header("배치 위치")]
     public RectTransform handContainer; // ★ Transform → RectTransform (Canvas 하위의 빈 UI 오브젝트)
-    public Transform boardContainer;    // 보드 배치는 기존 월드 스페이스 그대로 유지
     public float handSpacing = 220f;    // ★ UI는 픽셀 단위이므로 기존 2.2f 같은 값 대신 픽셀값으로 조정
-    public float boardSpacing = 2.2f;
 
     [Header("UI 카메라 (Canvas Render Mode가 Screen Space - Overlay면 비워두세요)")]
     public Camera uiCamera; // ★ Screen Space - Camera 또는 World Space Canvas라면 해당 카메라 연결
@@ -56,7 +53,6 @@ public class KTH_DeckManager : MonoBehaviour
     public KTH_InfoPanelController infoPanel;
 
     private readonly List<KTH_HandCardView> currentHand = new List<KTH_HandCardView>();
-    private int placedCount = 0;
     private bool isDrawing = false;
 
     private void Awake()
@@ -239,13 +235,43 @@ public class KTH_DeckManager : MonoBehaviour
     {
         var data = card.GetData();
 
-        // 코스트가 모자라면 카드를 손패에서 빼기 전에 막는다 (배치 자체가 시작되지 않음).
-        if (cardPlacer != null && data.animalCard != null && !cardPlacer.CanAfford(data.animalCard))
+        if (cardPlacer != null && data.animalCard != null)
         {
-            Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.cardName}을(를) 배치할 수 없습니다.");
+            // 코스트가 모자라면 카드를 손패에서 빼기 전에 막는다 (배치 자체가 시작되지 않음).
+            if (!cardPlacer.CanAfford(data.animalCard))
+            {
+                Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.cardName}을(를) 배치할 수 없습니다.");
+                return;
+            }
+
+            infoPanel.Hide();
+
+            // 보드에 배치 가능 칸이 하이라이트되고, 플레이어가 칸을 클릭해야 실제로 소환된다.
+            // 우클릭으로 취소하면 카드는 그대로 손패에 남는다.
+            bool started = cardPlacer.BeginPlacement(data.animalCard, LDY_Team.Player,
+                onPlaced: animal =>
+                {
+                    if (animal == null)
+                    {
+                        Debug.LogWarning($"[KTH_DeckManager] {data.cardName}을(를) 그리드 보드에 소환하지 못했습니다.");
+                        return;
+                    }
+                    FinalizeCardPlacement(card, data);
+                },
+                onCancelled: () => card.SetSelected(false));
+
+            if (!started)
+                Debug.Log($"[KTH_DeckManager] {data.cardName} 배치를 시작할 수 없습니다.");
+
             return;
         }
 
+        // cardPlacer/animalCard 연결이 없는 예전 경로: 그냥 즉시 연출용 배치만 한다.
+        FinalizeCardPlacement(card, data);
+    }
+
+    private void FinalizeCardPlacement(KTH_HandCardView card, KTH_CardData data)
+    {
         currentHand.Remove(card);
         card.transform.DOKill();
         Destroy(card.gameObject);
@@ -256,23 +282,5 @@ public class KTH_DeckManager : MonoBehaviour
 
         // ★ 손패에 자리가 생겼으니 드로우 중이 아니라면 버튼 다시 활성화
         if (!isDrawing && drawButton) drawButton.interactable = (GetRemainingHandSlots() > 0);
-
-        // 보드에 배치되는 유닛은 기존처럼 월드 스페이스 그대로 유지
-        var unit = Instantiate(placedUnitPrefab, boardContainer);
-        unit.transform.localPosition = new Vector3(placedCount * boardSpacing, 0f, 0f);
-        unit.Setup(data, this);
-
-        unit.transform.localScale = targetCardScale * 0.5f;
-        unit.transform.DOScale(targetCardScale, 0.25f).SetEase(Ease.OutBack);
-
-        placedCount++;
-
-        // 실제 전투에 참여하는 기물은 그리드 보드 쪽에 별도로 소환한다 (위 unit은 손패 카드의 연출용 배치).
-        if (cardPlacer != null && data.animalCard != null)
-        {
-            var animal = cardPlacer.PlaceCardAtNextAvailable(data.animalCard, LDY_Team.Player);
-            if (animal == null)
-                Debug.LogWarning($"[KTH_DeckManager] {data.cardName}을(를) 그리드 보드에 소환하지 못했습니다.");
-        }
     }
 }
