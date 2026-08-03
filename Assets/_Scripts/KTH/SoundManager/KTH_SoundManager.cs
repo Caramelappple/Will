@@ -27,4 +27,20 @@ public class KTH_SoundManager : MonoBehaviour
         if (data != null)
             bgmPlayer.Play(data);
     }
+
+    public void SetMasterVolume(float value)
+    {
+        sfxPlayer.SetMasterVolume(value);
+        bgmPlayer.SetMasterVolume(value);
+    }
+
+    public void SetSfxVolume(float value)
+    {
+        sfxPlayer.SetVolume(value);
+    }
+
+    public void SetBgmVolume(float value)
+    {
+        bgmPlayer.SetVolume(value);
+    }
 }
