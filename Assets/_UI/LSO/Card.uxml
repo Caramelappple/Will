@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_UI/LSO/Card.uss?fileID=7433441132597879392&amp;guid=ad661a307389baa4d8cf252cce364878&amp;type=3#Card"/>
+    <ui:VisualElement name="card-outer" class="card-outer" style="-unity-text-align: upper-left; justify-content: center; align-self: flex-start; align-items: flex-start; align-content: center; -unity-slice-type: sliced; bottom: auto; position: absolute; top: auto; left: auto; flex-direction: column;">
+        <ui:VisualElement name="card-inner" class="card-inner">
+            <ui:VisualElement name="art-area" class="art-area" style="background-color: rgba(34, 36, 39, 0); background-image: none;">
+                <ui:VisualElement name="image" class="art-area" style="background-color: rgba(0, 102, 255, 0); background-image: url(&quot;project://database/Assets/TutorialInfo/Icons/URP.png?fileID=2800000&amp;guid=727a75301c3d24613a3ebcec4a24c2c8&amp;type=3#URP&quot;); width: 100%; height: 100%; color: rgb(27, 27, 27);"/>
+                <ui:VisualElement name="cost-badge" class="cost-badge" style="background-image: none; -unity-material: url(&quot;&quot;); overflow: visible; visibility: visible; align-items: center; justify-content: flex-start; align-self: flex-start; align-content: flex-start; flex-direction: column;">
+                    <ui:Label name="cost-label" text="4" class="cost-label" style="align-items: stretch; align-self: auto; justify-content: flex-start; -unity-text-align: middle-center;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="name-plate" class="name-plate">
+                <ui:Label name="name-text" text="까마귀" class="name-text"/>
+            </ui:VisualElement>
+            <ui:Label name="type-label" text="근거리 · 분노" class="type-label"/>
+            <ui:Label name="description-text" text="어둠 속을 소리 없이 움직인다. 전투 시작 시 상대 유닛 하나에게 표식을 남긴다." class="description-text"/>
+            <ui:VisualElement name="stats-row" class="stats-row">
+                <ui:VisualElement name="stat-atk" class="stat-plate stat-atk">
+                    <ui:Label text="1" class="stat-value"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="stat-def" class="stat-plate stat-def">
+                    <ui:Label text="2" class="stat-value"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
