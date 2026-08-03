@@ -21,13 +21,12 @@ namespace _Scripts.LDY
         public Vector3Int pos;
         public LDY_Team team;
 
-        [Header("Stats")]
-        [Tooltip("data의 damage로 초기화된 뒤 버프/디버프로 변할 수 있는 값.")]
-        public int baseAtk;
-
         [Header("Test Only")]
         [Tooltip("data(AnimalSO)가 없을 때만 쓰이는 임시값. data가 있으면 data.range가 항상 우선한다.")]
         [SerializeField] private LDY_RangeType fallbackRangeType;
+        
+        [Tooltip("data의 damage로 초기화된 뒤 버프/디버프로 변할 수 있는 값.")]
+        public int baseAtk;
 
         [field: SerializeField] public LSO_WillType WillType { get; private set; }
 
@@ -114,7 +113,13 @@ _abilities.Clear();
 
 LSO_IAbility ability = LSO_AbilityFactory.Create(data.ability);
 if (ability != null)
+{
+    // 보드나 소유자 정보가 필요한 특성에만 컨텍스트를 넘긴다.
+    if (ability is LSO_IAbilityInitializable initializable)
+        initializable.Initialize(new LSO_AbilityContext(this));
+
     _abilities.Add(ability);
+}
 
 if (Application.isPlaying && isActiveAndEnabled)
     RegisterAbilities();
@@ -141,6 +146,10 @@ else
             foreach (LSO_IDamageModifier modifier in _abilities.OfType<LSO_IDamageModifier>())
                 health.AddDamageModifier(modifier);
 
+            // 피격 반응 특성이 하나라도 있으면 Health의 피격 신호를 받아 전달한다.
+            if (_abilities.OfType<LSO_IOnHit>().Any())
+                health.OnHit += HandleHit;
+
             GameEventDispatcher dispatcher = GameManager.Instance != null
                 ? GameManager.Instance.EventDispatcher
                 : null;
@@ -160,6 +169,8 @@ else
 
             foreach (LSO_IDamageModifier modifier in _abilities.OfType<LSO_IDamageModifier>())
                 health.RemoveDamageModifier(modifier);
+
+            health.OnHit -= HandleHit;
 
             // 종료 시점에는 매니저가 이미 사라졌을 수 있으므로 새로 만들지 않는다.
             GameEventDispatcher dispatcher = GameManager.HasInstance
@@ -183,6 +194,13 @@ else
             baseAtk = atk;
         }
         #endif
+
+        /// <summary>Health가 보낸 피격 신호를 피격 반응 특성들에게 전달한다.</summary>
+        private void HandleHit(DamageData data)
+        {
+            foreach (LSO_IOnHit ability in _abilities.OfType<LSO_IOnHit>().ToArray())
+                ability.OnHit(this, data);
+        }
 
         // ATK는 항상 이 메서드를 통해서만 조회한다.
         // 늑대/하이에나처럼 상황에 따라 공격력이 변하는 특성은 하위 클래스에서 이 메서드를 override해서 구현한다.

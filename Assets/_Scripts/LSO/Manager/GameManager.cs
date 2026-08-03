@@ -1,6 +1,7 @@
 using System;
 using _Scripts.LDY;
 using _Scripts.LSO.CoreLib;
+using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Deck;
 using _Scripts.LSO.Manager;
 using UnityEngine;
@@ -19,6 +20,12 @@ namespace _Scripts.LSO
         
         public LDY_TurnManager TurnManager { get; private set; }
         public event Action<LDY_TurnManager> TurnManagerChanged;
+
+        /// <summary>현재 전투의 보드. 씬마다 새로 생기므로 보드가 스스로 등록한다.</summary>
+        public LDY_BoardManager Board { get; private set; }
+
+        /// <summary>기물을 죽이는 창구. 특성이 스스로 죽거나 남을 죽일 때 쓴다.</summary>
+        public LSO_IDeathService DeathService { get; private set; }
 
         protected override void Awake()
         {
@@ -51,6 +58,34 @@ namespace _Scripts.LSO
 
             TurnManager = null;
             TurnManagerChanged?.Invoke(null);
+        }
+
+        public void RegisterBoard(LDY_BoardManager board)
+        {
+            if (board == null) return;
+
+            Board = board;
+        }
+
+        public void UnregisterBoard(LDY_BoardManager board)
+        {
+            if (Board != board) return;
+
+            Board = null;
+        }
+
+        public void RegisterDeathService(LSO_IDeathService service)
+        {
+            if (service == null) return;
+
+            DeathService = service;
+        }
+
+        public void UnregisterDeathService(LSO_IDeathService service)
+        {
+            if (!ReferenceEquals(DeathService, service)) return;
+
+            DeathService = null;
         }
     }
 }
