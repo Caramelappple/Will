@@ -1,17 +1,12 @@
+using System;
 using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
-using DG.Tweening;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [RequireComponent(typeof(LDY_Animal))]
 public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
 {
-    [Header("Succession")]
-    [FormerlySerializedAs("SuccesionObject")]
-    [SerializeField] private GameObject successionObject;
-
     private static bool isWaitingForSuccessionTarget;
     private static bool isCompletingSuccession;
     private static LDY_Team successionTeam;
@@ -29,6 +24,10 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
         isWaitingForSuccessionTarget &&
         successionSource == this;
 
+    public event Action<Vector3> OnSelectionStarted;
+    public event Action<Vector3, Action> OnTargetSelected;
+    public event Action OnSuccessionFinished;
+
     public static LSO_IWill Create(DLJ_WillContext context)
     {
         DLJ_SuccessionSystem system =
@@ -37,7 +36,14 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
         if (system == null)
             system = context.owner.AddComponent<DLJ_SuccessionSystem>();
 
-        system.Initialize(context.successionObject);
+        system.Initialize();
+
+        DLJ_SuccessionEffect effect =
+            context.owner.GetComponent<DLJ_SuccessionEffect>();
+        if (effect == null)
+            effect = context.owner.AddComponent<DLJ_SuccessionEffect>();
+
+        effect.Bind(system, context.successionObject);
 
         return system;
     }
@@ -50,21 +56,12 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
     private void Awake()
     {
         animal = GetComponent<LDY_Animal>();
-
-        if (successionObject != null)
-            successionObject.SetActive(false);
     }
 
-    public void Initialize(GameObject effectObject)
+    public void Initialize()
     {
-        if (effectObject != null)
-            successionObject = effectObject;
-
         if (animal == null)
             animal = GetComponent<LDY_Animal>();
-
-        if (successionObject != null)
-            successionObject.SetActive(false);
     }
 
     public bool Activate()
@@ -95,12 +92,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
 
-        if (successionObject != null)
-        {
-            successionObject.transform.DOKill();
-            successionObject.transform.position = transform.position;
-            successionObject.SetActive(true);
-        }
+        OnSelectionStarted?.Invoke(transform.position);
 
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
@@ -134,19 +126,15 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
     {
         isCompletingSuccession = true;
 
-        GameObject effect =
-            successionSource != null ? successionSource.successionObject : null;
-
-        if (effect == null)
+        if (successionSource.OnTargetSelected == null)
         {
             ApplySuccession(target);
             return;
         }
 
-        effect.transform.DOMove(target.transform.position, 1f)
-            .SetEase(Ease.Linear)
-            .SetUpdate(true)
-            .OnComplete(() => ApplySuccession(target));
+        successionSource.OnTargetSelected.Invoke(
+            target.transform.position,
+            () => ApplySuccession(target));
 
         Debug.Log("Succession Finished");
     }
@@ -173,11 +161,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
 
     private static void FinishSuccession()
     {
-        if (successionSource != null && successionSource.successionObject != null)
-        {
-            successionSource.successionObject.transform.DOKill();
-            successionSource.successionObject.SetActive(false);
-        }
+        successionSource?.OnSuccessionFinished?.Invoke();
 
         isWaitingForSuccessionTarget = false;
         isCompletingSuccession = false;
