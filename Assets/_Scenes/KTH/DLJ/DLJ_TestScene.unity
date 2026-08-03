@@ -3848,6 +3848,7 @@ GameObject:
   - component: {fileID: 898224045}
   - component: {fileID: 898224049}
   - component: {fileID: 898224050}
+  - component: {fileID: 898224051}
   m_Layer: 10
   m_Name: Enemy
   m_TagString: Enemy
@@ -3962,6 +3963,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
   animalSo: {fileID: 11400000, guid: b3ba56ef3f65bf048a78ae78a910f78d, type: 2}
   board: {fileID: 1761759759}
+  turnManager: {fileID: 579526124}
+  attackSystem: {fileID: 579526128}
   willType: 1
   rageObject: {fileID: 2030274820}
   rageExpandTime: 0.25
@@ -3969,10 +3972,8 @@ MonoBehaviour:
   effectHeight: 0.12
   curseObject: {fileID: 0}
   curseExpandTime: 0.25
-  curseHoldTime: 3
   curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 0}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  successionObject: {fileID: 0}
 --- !u!114 &898224050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3985,12 +3986,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 898224051}
   pos: {x: 1, y: 0, z: 5}
   team: 1
   baseAtk: 1
-  hp: 1
-  rangeType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 898224048}
+--- !u!114 &898224051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898224044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1037590258
 GameObject:
   m_ObjectHideFlags: 0
@@ -7258,6 +7276,7 @@ GameObject:
   - component: {fileID: 1749388457}
   - component: {fileID: 1749388461}
   - component: {fileID: 1749388462}
+  - component: {fileID: 1749388463}
   m_Layer: 10
   m_Name: Ally1
   m_TagString: Ally
@@ -7372,6 +7391,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
   animalSo: {fileID: 11400000, guid: 69d2227c9628c384d9268dcf4bc010bf, type: 2}
   board: {fileID: 1761759759}
+  turnManager: {fileID: 0}
+  attackSystem: {fileID: 0}
   willType: 0
   rageObject: {fileID: 0}
   rageExpandTime: 0.25
@@ -7379,10 +7400,8 @@ MonoBehaviour:
   effectHeight: 0.12
   curseObject: {fileID: 1566679144}
   curseExpandTime: 0.25
-  curseHoldTime: 3
   curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 1251919857}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  successionObject: {fileID: 1251919857}
 --- !u!114 &1749388462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7395,12 +7414,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1749388463}
   pos: {x: 5, y: 0, z: 4}
   team: 0
   baseAtk: 1
-  hp: 1
-  rangeType: 1
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1749388460}
+--- !u!114 &1749388463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749388456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1761759758
 GameObject:
   m_ObjectHideFlags: 0
@@ -8373,6 +8409,7 @@ GameObject:
   - component: {fileID: 1996722151}
   - component: {fileID: 1996722155}
   - component: {fileID: 1996722156}
+  - component: {fileID: 1996722157}
   m_Layer: 10
   m_Name: Ally2
   m_TagString: Ally
@@ -8487,6 +8524,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
   animalSo: {fileID: 11400000, guid: 198c5840683c9e64b9dfbd7e9bd63b2f, type: 2}
   board: {fileID: 1761759759}
+  turnManager: {fileID: 0}
+  attackSystem: {fileID: 0}
   willType: 2
   rageObject: {fileID: 0}
   rageExpandTime: 0.25
@@ -8494,10 +8533,8 @@ MonoBehaviour:
   effectHeight: 0.12
   curseObject: {fileID: 0}
   curseExpandTime: 0.25
-  curseHoldTime: 3
   curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 1251919857}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  successionObject: {fileID: 1251919857}
 --- !u!114 &1996722156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8510,12 +8547,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1996722157}
   pos: {x: 2, y: 0, z: 1}
   team: 0
   baseAtk: 1
-  hp: 1
-  rangeType: 2
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1996722154}
+--- !u!114 &1996722157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996722150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &2007069828
 GameObject:
   m_ObjectHideFlags: 0

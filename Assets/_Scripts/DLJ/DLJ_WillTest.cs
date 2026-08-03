@@ -1,4 +1,4 @@
-/*
+using _Scripts.LDY;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,13 +13,13 @@ public class DLJ_WillTest : MonoBehaviour
 
     private void Update()
     {
-        if (!DLJ_WillSystem.IsWaitingForSuccessionTarget)
+        if (!DLJ_SuccessionSystem.IsWaitingForSuccessionTarget)
             return;
 
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             Click();
     }
-    
+
     private void Click()
     {
         if (mainCamera == null)
@@ -34,8 +34,7 @@ public class DLJ_WillTest : MonoBehaviour
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f))
             return;
 
-        DLJ_WillSystem target = hit.collider.GetComponentInParent<DLJ_WillSystem>();
-        target?.TrySelectSuccessionTarget();
+        LDY_Animal target = hit.collider.GetComponentInParent<LDY_Animal>();
+        DLJ_SuccessionSystem.TrySelectSuccessionTarget(target);
     }
 }
-*/
