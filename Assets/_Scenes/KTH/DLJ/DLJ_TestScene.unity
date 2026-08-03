@@ -3964,14 +3964,7 @@ MonoBehaviour:
   board: {fileID: 1761759759}
   turnManager: {fileID: 579526124}
   attackSystem: {fileID: 579526128}
-  rageObject: {fileID: 2030274820}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 0}
-  curseExpandTime: 0.25
-  curseEffectHeight: 0.12
-  successionObject: {fileID: 0}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &898224050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7390,14 +7383,7 @@ MonoBehaviour:
   board: {fileID: 1761759759}
   turnManager: {fileID: 0}
   attackSystem: {fileID: 0}
-  rageObject: {fileID: 0}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 1566679144}
-  curseExpandTime: 0.25
-  curseEffectHeight: 0.12
-  successionObject: {fileID: 1251919857}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1749388462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8521,14 +8507,7 @@ MonoBehaviour:
   board: {fileID: 1761759759}
   turnManager: {fileID: 0}
   attackSystem: {fileID: 0}
-  rageObject: {fileID: 0}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 0}
-  curseExpandTime: 0.25
-  curseEffectHeight: 0.12
-  successionObject: {fileID: 1251919857}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1996722156
 MonoBehaviour:
   m_ObjectHideFlags: 0

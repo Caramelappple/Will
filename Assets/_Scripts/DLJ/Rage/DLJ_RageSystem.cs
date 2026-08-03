@@ -5,18 +5,17 @@ using UnityEngine;
 
 public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
 {
-    [Header("Rage")]
-    [SerializeField] private int damage = 1;
-    [SerializeField] private int range = 1;
+    private int damage;
+    private int range;
 
     private LDY_BoardManager activationBoard;
     private LDY_AttackSystem activationAttackSystem;
 
-    public bool ShouldDeferDestruction => false;
-
     public event Action<Vector3, Vector3> OnRageActivated;
 
-    public static LSO_IWill Create(DLJ_WillContext context)
+    public static LSO_IWill Create(
+        DLJ_WillContext context,
+        DLJ_WillData data)
     {
         DLJ_RageSystem system =
             context.owner.GetComponent<DLJ_RageSystem>();
@@ -24,7 +23,11 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
         if (system == null)
             system = context.owner.AddComponent<DLJ_RageSystem>();
 
-        system.Configure(context.board, context.attackSystem);
+        system.Configure(
+            data.damage,
+            data.range,
+            context.board,
+            context.attackSystem);
 
         DLJ_RageEffect effect = context.owner.GetComponent<DLJ_RageEffect>();
         if (effect == null)
@@ -32,10 +35,10 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
 
         effect.Bind(
             system,
-            context.rageObject,
-            context.rageExpandTime,
-            context.rageHoldTime,
-            context.effectHeight);
+            data.effectPrefab,
+            data.expandTime,
+            data.holdTime,
+            data.effectHeight);
 
         return system;
     }
@@ -46,9 +49,13 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
     }
 
     public void Configure(
+        int sourceDamage,
+        int sourceRange,
         LDY_BoardManager boardManager,
         LDY_AttackSystem attackSystem)
     {
+        damage = sourceDamage;
+        range = sourceRange;
         activationBoard = boardManager;
         activationAttackSystem = attackSystem;
     }

@@ -6,7 +6,9 @@ namespace _Scripts.LSO.Will
 {
     public class LSO_WillFactory
     {
-        private static readonly Dictionary<LSO_WillType, Func<DLJ_WillContext, LSO_IWill>> Creators =
+        private static readonly Dictionary<
+            LSO_WillType,
+            Func<DLJ_WillContext, DLJ_WillData, LSO_IWill>> Creators =
             new()
             {
                 { LSO_WillType.Curse, DLJ_CurseSystem.Create },
@@ -16,15 +18,24 @@ namespace _Scripts.LSO.Will
 
         public static LSO_IWill Create(
             LSO_WillType type,
-            DLJ_WillContext context)
+            DLJ_WillContext context,
+            DLJ_WillData data)
         {
-            if (!Creators.TryGetValue(type, out Func<DLJ_WillContext, LSO_IWill> creator))
+            if (!Creators.TryGetValue(
+                    type,
+                    out Func<DLJ_WillContext, DLJ_WillData, LSO_IWill> creator))
             {
                 Debug.LogError($"Unknown will type: {type}");
                 return null;
             }
 
-            return creator(context);
+            if (data == null)
+            {
+                Debug.LogError($"Will data is missing: {type}");
+                return null;
+            }
+
+            return creator(context, data);
         }
     }
 }

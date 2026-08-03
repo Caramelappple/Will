@@ -1,4 +1,3 @@
-using System;
 using DG.Tweening;
 using UnityEngine;
 
@@ -26,34 +25,31 @@ public class DLJ_CurseEffect : MonoBehaviour
             curseSystem.OnCurseActivated += Play;
     }
 
-    private void Play(
-        Vector3 center,
-        Vector3 areaSize,
-        Action<DLJ_CurseSystem> initializeSystem)
+    private void Play(DLJ_CurseActivationData data)
     {
+        if (data == null)
+            return;
+
         if (effectPrefab == null)
         {
             Debug.LogError($"{name}: Curse effect prefab is missing.", this);
             return;
         }
 
-        Vector3 position = center + Vector3.up * (effectHeight * 0.5f);
+        Vector3 position =
+            data.centerWorld + Vector3.up * (effectHeight * 0.5f);
         Vector3 targetScale =
-            new Vector3(areaSize.x, effectHeight, areaSize.z);
+            new Vector3(data.areaSize.x, effectHeight, data.areaSize.z);
 
         GameObject instance = Instantiate(effectPrefab, position, Quaternion.identity);
         instance.transform.localScale = Vector3.zero;
         instance.SetActive(true);
 
-        DLJ_CurseSystem activeCurse = instance.GetComponent<DLJ_CurseSystem>();
-        if (activeCurse == null)
-        {
-            Debug.LogError($"{instance.name}: CurseSystem is missing.", instance);
-            Destroy(instance);
-            return;
-        }
+        DLJ_CurseZone zone = instance.GetComponent<DLJ_CurseZone>();
+        if (zone == null)
+            zone = instance.AddComponent<DLJ_CurseZone>();
 
-        initializeSystem?.Invoke(activeCurse);
+        zone.Initialize(data);
 
         instance.transform
             .DOScale(targetScale, expandTime)
