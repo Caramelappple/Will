@@ -2,19 +2,45 @@ using UnityEngine;
 
 public class KTH_SoundManager : MonoBehaviour
 {
-    [SerializeField] private KTH_SoundLibrarySO library; // ISoundRepository로 주입받아도 됨
+    public static KTH_SoundManager Instance { get; private set; }
+
+    [SerializeField] private KTH_SoundLibrarySO library;
     [SerializeField] private KTH_SfxPlayer sfxPlayer;
     [SerializeField] private KTH_BgmPlayer bgmPlayer;
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public void PlaySfx(string id)
     {
         var data = library.GetSound(id);
-        if (data != null) sfxPlayer.Play(data);
+
+        if (data != null)
+            sfxPlayer.Play(data);
     }
 
     public void PlayBgm(string id)
     {
+
         var data = library.GetSound(id);
-        if (data != null) bgmPlayer.Play(data);
+        if (data != null)
+            bgmPlayer.Play(data);
+    }
+
+    public void SetMasterVolume(float value)
+    {
+        sfxPlayer.SetMasterVolume(value);
+        bgmPlayer.SetMasterVolume(value);
+    }
+
+    public void SetSfxVolume(float value)
+    {
+        sfxPlayer.SetVolume(value);
+    }
+
+    public void SetBgmVolume(float value)
+    {
+        bgmPlayer.SetVolume(value);
     }
 }
