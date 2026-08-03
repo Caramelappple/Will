@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
 public class DLJ_CurseZone : MonoBehaviour
@@ -66,7 +67,10 @@ public class DLJ_CurseZone : MonoBehaviour
                     target.team == sourceTeam)
                     continue;
 
-                DamageData damageData = DamageData.Create(null, damage);
+                DamageData damageData = DamageData.Create(
+                    null,
+                    damage,
+                    LSO_DamageSource.Curse);
                 target.health.GetDamage(damageData);
 
                 if (target.health.IsDestroyed)
