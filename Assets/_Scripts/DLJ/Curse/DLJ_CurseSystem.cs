@@ -44,7 +44,7 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
             data.effectPrefab,
             data.expandTime,
             data.effectHeight);
-
+        
         return system;
     }
 
