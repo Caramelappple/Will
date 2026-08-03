@@ -2484,6 +2484,7 @@ GameObject:
   - component: {fileID: 564237668}
   - component: {fileID: 564237667}
   - component: {fileID: 564237666}
+  - component: {fileID: 564237670}
   m_Layer: 0
   m_Name: Player_Jump
   m_TagString: Untagged
@@ -2518,11 +2519,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 564237670}
   pos: {x: 5, y: 0, z: 1}
   team: 0
   baseAtk: 3
-  hp: 4
-  rangeType: 2
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 564237665}
 --- !u!23 &564237667
 MeshRenderer:
@@ -2602,6 +2605,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 564237664}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &564237670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564237664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &569637926
 GameObject:
   m_ObjectHideFlags: 0
@@ -3060,6 +3078,51 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612205871}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &652784295
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 652784297}
+  - component: {fileID: 652784296}
+  m_Layer: 0
+  m_Name: CardPlacer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &652784296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652784295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27515db8aea4a124a84b4d34d8a1595b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_CardPlacer
+  board: {fileID: 454848418}
+--- !u!4 &652784297
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652784295}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 981.6132, y: 0.00005, z: -1248.0924}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &670263832
 GameObject:
   m_ObjectHideFlags: 0
@@ -4323,6 +4386,7 @@ GameObject:
   - component: {fileID: 1023335318}
   - component: {fileID: 1023335317}
   - component: {fileID: 1023335316}
+  - component: {fileID: 1023335320}
   m_Layer: 0
   m_Name: Enemy_Melee
   m_TagString: Untagged
@@ -4357,11 +4421,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1023335320}
   pos: {x: 2, y: 0, z: 1}
   team: 1
   baseAtk: 2
-  hp: 5
-  rangeType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1023335315}
 --- !u!23 &1023335317
 MeshRenderer:
@@ -4441,6 +4507,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1023335314}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1023335320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023335314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1034599035
 GameObject:
   m_ObjectHideFlags: 0
@@ -6117,6 +6198,7 @@ GameObject:
   - component: {fileID: 1439589872}
   - component: {fileID: 1439589871}
   - component: {fileID: 1439589870}
+  - component: {fileID: 1439589874}
   m_Layer: 0
   m_Name: Player_Melee
   m_TagString: Untagged
@@ -6151,11 +6233,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1439589874}
   pos: {x: 1, y: 0, z: 0}
   team: 0
   baseAtk: 2
-  hp: 6
-  rangeType: 0
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1439589869}
 --- !u!23 &1439589871
 MeshRenderer:
@@ -6235,6 +6319,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1439589868}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1439589874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1439589868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1460130368
 GameObject:
   m_ObjectHideFlags: 0
@@ -7154,6 +7253,7 @@ GameObject:
   - component: {fileID: 1611950789}
   - component: {fileID: 1611950788}
   - component: {fileID: 1611950787}
+  - component: {fileID: 1611950791}
   m_Layer: 0
   m_Name: Enemy_Ranged
   m_TagString: Untagged
@@ -7188,11 +7288,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1611950791}
   pos: {x: 4, y: 0, z: 5}
   team: 1
   baseAtk: 2
-  hp: 6
-  rangeType: 1
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1611950786}
 --- !u!23 &1611950788
 MeshRenderer:
@@ -7272,6 +7374,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1611950785}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1611950791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611950785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1675008330
 GameObject:
   m_ObjectHideFlags: 0
@@ -7733,6 +7850,7 @@ GameObject:
   - component: {fileID: 1880996842}
   - component: {fileID: 1880996841}
   - component: {fileID: 1880996840}
+  - component: {fileID: 1880996844}
   m_Layer: 0
   m_Name: Enemy_Jump
   m_TagString: Untagged
@@ -7767,11 +7885,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: 1880996844}
   pos: {x: 6, y: 0, z: 7}
   team: 1
   baseAtk: 3
-  hp: 4
-  rangeType: 2
+  fallbackRangeType: 0
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1880996839}
 --- !u!23 &1880996841
 MeshRenderer:
@@ -7851,6 +7971,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1880996838}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1880996844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1880996838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 0
+  <MinValue>k__BackingField: 0
+  _value: 0
 --- !u!1 &1931099128
 GameObject:
   m_ObjectHideFlags: 0
@@ -9300,3 +9435,4 @@ SceneRoots:
   - {fileID: 257224525}
   - {fileID: 435555730}
   - {fileID: 1000223918}
+  - {fileID: 652784297}
