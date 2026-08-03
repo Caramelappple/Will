@@ -1,0 +1,108 @@
+.card-outer {
+    width: 320px;
+    height: 458px;
+    background-color: rgb(74, 82, 92);
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.card-inner {
+    flex-grow: 1;
+    background-color: rgb(27, 29, 32);
+    border-width: 1px;
+    border-color: rgb(107, 113, 120);
+    position: relative;
+    overflow: hidden;
+}
+
+.cost-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 44px;
+    height: 44px;
+    background-color: rgb(59, 111, 224);
+    justify-content: center;
+    align-items: center;
+}
+
+.cost-label {
+    color: rgb(245, 245, 245);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.art-area {
+    height: 236px;
+    background-color: rgb(34, 36, 39);
+    justify-content: center;
+    align-items: center;
+}
+
+.art-placeholder {
+    color: rgb(120, 125, 130);
+    font-size: 12px;
+    -unity-text-align: middle-center;
+}
+
+.name-plate {
+    background-color: rgb(24, 26, 29);
+    border-top-width: 2px;
+    border-top-color: rgb(59, 111, 224);
+    padding: 10px 14px 3px 14px;
+}
+
+.name-text {
+    color: rgb(242, 242, 242);
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.type-label {
+    color: rgb(108, 147, 232);
+    font-size: 11px;
+    -unity-font-style: bold;
+    padding: 5px 14px 0 14px;
+    letter-spacing: 1px;
+}
+
+.description-text {
+    flex-grow: 1;
+    color: rgb(173, 176, 180);
+    font-size: 13px;
+    white-space: normal;
+    padding: 6px 14px 12px 14px;
+}
+
+.stats-row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 12px 12px 12px;
+}
+
+.stat-plate {
+    width: 56px;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+}
+
+.stat-atk {
+    background-color: rgb(46, 36, 34);
+    border-left-width: 3px;
+    border-left-color: rgb(217, 113, 63);
+}
+
+.stat-def {
+    background-color: rgb(33, 37, 46);
+    border-right-width: 3px;
+    border-right-color: rgb(92, 134, 217);
+}
+
+.stat-value {
+    color: rgb(245, 245, 245);
+    font-size: 17px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
