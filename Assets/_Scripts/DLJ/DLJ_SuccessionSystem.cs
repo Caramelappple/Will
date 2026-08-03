@@ -8,8 +8,6 @@ using UnityEngine.Serialization;
 [RequireComponent(typeof(LDY_Animal))]
 public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
 {
-    [SerializeField] private LSO_AnimalSO animalSo;
-
     [Header("Succession")]
     [FormerlySerializedAs("SuccesionObject")]
     [SerializeField] private GameObject successionObject;
@@ -39,9 +37,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
         if (system == null)
             system = context.owner.AddComponent<DLJ_SuccessionSystem>();
 
-        system.Initialize(
-            context.animalSo,
-            context.successionObject);
+        system.Initialize(context.successionObject);
 
         return system;
     }
@@ -59,11 +55,8 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
             successionObject.SetActive(false);
     }
 
-    public void Initialize(LSO_AnimalSO sourceAnimalSo, GameObject effectObject)
+    public void Initialize(GameObject effectObject)
     {
-        if (sourceAnimalSo != null)
-            animalSo = sourceAnimalSo;
-
         if (effectObject != null)
             successionObject = effectObject;
 
@@ -88,16 +81,16 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
             return false;
         }
 
-        if (animalSo == null)
+        if (animal.data == null)
         {
-            Debug.LogError($"{name}: AnimalSO is missing.", this);
+            Debug.LogError($"{name}: Animal data is missing.", this);
             return false;
         }
 
         successionSource = this;
         successionTeam = animal.team;
-        successionHealthBonus = animalSo.maxHealth;
-        successionAttackBonus = animalSo.damage;
+        successionHealthBonus = animal.data.maxHealth;
+        successionAttackBonus = animal.data.damage;
         timeScaleBeforeSuccession = Time.timeScale;
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;

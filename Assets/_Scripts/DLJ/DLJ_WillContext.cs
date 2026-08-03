@@ -5,7 +5,6 @@ public class DLJ_WillContext
 {
     public GameObject owner;
     public LDY_Animal animal;
-    public LSO_AnimalSO animalSo;
     public LDY_BoardManager board;
     public LDY_TurnManager turnManager;
     public LDY_AttackSystem attackSystem;

@@ -3961,11 +3961,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  animalSo: {fileID: 11400000, guid: b3ba56ef3f65bf048a78ae78a910f78d, type: 2}
   board: {fileID: 1761759759}
   turnManager: {fileID: 579526124}
   attackSystem: {fileID: 579526128}
-  willType: 1
   rageObject: {fileID: 2030274820}
   rageExpandTime: 0.25
   rageHoldTime: 0.3
@@ -3986,7 +3984,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: b3ba56ef3f65bf048a78ae78a910f78d, type: 2}
   health: {fileID: 898224051}
   pos: {x: 1, y: 0, z: 5}
   team: 1
@@ -7389,11 +7387,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  animalSo: {fileID: 11400000, guid: 69d2227c9628c384d9268dcf4bc010bf, type: 2}
   board: {fileID: 1761759759}
   turnManager: {fileID: 0}
   attackSystem: {fileID: 0}
-  willType: 0
   rageObject: {fileID: 0}
   rageExpandTime: 0.25
   rageHoldTime: 0.3
@@ -7414,7 +7410,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 69d2227c9628c384d9268dcf4bc010bf, type: 2}
   health: {fileID: 1749388463}
   pos: {x: 5, y: 0, z: 4}
   team: 0
@@ -8522,11 +8518,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  animalSo: {fileID: 11400000, guid: 198c5840683c9e64b9dfbd7e9bd63b2f, type: 2}
   board: {fileID: 1761759759}
   turnManager: {fileID: 0}
   attackSystem: {fileID: 0}
-  willType: 2
   rageObject: {fileID: 0}
   rageExpandTime: 0.25
   rageHoldTime: 0.3
@@ -8547,13 +8541,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 198c5840683c9e64b9dfbd7e9bd63b2f, type: 2}
   health: {fileID: 1996722157}
   pos: {x: 2, y: 0, z: 1}
   team: 0
   baseAtk: 1
   fallbackRangeType: 0
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1996722154}
 --- !u!114 &1996722157
 MonoBehaviour:

@@ -4,7 +4,6 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - animalSo: {instanceID: 0}
   - board: {instanceID: 0}
   - turnManager: {instanceID: 0}
   - attackSystem: {instanceID: 0}
