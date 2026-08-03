@@ -6,6 +6,12 @@ namespace _Scripts.LSO.Ability
         Immune,
         Double,
         Test,
-        Sturdy
+        Sturdy,
+        Dodge,
+        Bloodlust,
+        PackTactics,
+        Thorns,
+        Vengeance,
+        Frail
     }
 }

@@ -12,6 +12,12 @@ namespace _Scripts.LSO.Ability
             {
                 { LSO_AbilityType.Test, () => new LSO_Test() },
                 { LSO_AbilityType.Sturdy, () => new LSO_Sturdy() },
+                { LSO_AbilityType.Dodge, () => new LSO_Dodge() },
+                { LSO_AbilityType.Bloodlust, () => new LSO_Bloodlust() },
+                { LSO_AbilityType.PackTactics, () => new LSO_PackTactics() },
+                { LSO_AbilityType.Thorns, () => new LSO_Thorns() },
+                { LSO_AbilityType.Vengeance, () => new LSO_Vengeance() },
+                { LSO_AbilityType.Frail, () => new LSO_Frail() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

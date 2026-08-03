@@ -17,6 +17,5 @@ public class DLJ_WillContext
     public GameObject curseObject;
     public float curseExpandTime;
     public float curseEffectHeight;
-
     public GameObject successionObject;
 }

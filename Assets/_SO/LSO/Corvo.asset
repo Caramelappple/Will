@@ -20,5 +20,5 @@ MonoBehaviour:
   damage: 2
   cost: 0
   range: 0
-  ability: 0
+  ability: 4
   unitPrefab: {fileID: 4337957452496197285, guid: caaab4fd8563b364592b616c5c55fb1b, type: 3}

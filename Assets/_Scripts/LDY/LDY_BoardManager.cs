@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Scripts.LSO;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -19,10 +20,19 @@ namespace _Scripts.LDY
 
         private void Awake()
         {
+            // 특성 등 보드 조회가 필요한 쪽이 찾아올 수 있도록 스스로 등록한다.
+            GameManager.Instance?.RegisterBoard(this);
+
             // 씬에 이미 배치된 3D 기물들을 각자의 pos 필드(Inspector에서 미리 설정)를 기준으로 보드에 등록한다.
             var animals = FindObjectsByType<LDY_Animal>(FindObjectsSortMode.None);
             foreach (var animal in animals)
                 Place(animal, animal.pos);
+        }
+
+        private void OnDestroy()
+        {
+            if (GameManager.HasInstance)
+                GameManager.Instance.UnregisterBoard(this);
         }
 
         public bool IsInside(Vector3Int p)
