@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1d0f65a4684ca8a6d31f7db9e589a2, type: 3}
+  m_Name: DLJ_WillDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.DLJ_WillDatabaseSO
+  wills:
+  - willType: 0
+    damage: 1
+    range: 1
+    duration: 2
+    effectPrefab: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+    expandTime: 0.25
+    holdTime: 0.3
+    effectHeight: 0.12
+    moveDuration: 1
+  - willType: 1
+    damage: 1
+    range: 1
+    duration: 0
+    effectPrefab: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
+    expandTime: 0.25
+    holdTime: 0.3
+    effectHeight: 0.12
+    moveDuration: 1
+  - willType: 2
+    damage: 0
+    range: 0
+    duration: 0
+    effectPrefab: {fileID: 3957086677548363848, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
+    expandTime: 0.25
+    holdTime: 0.3
+    effectHeight: 0.12
+    moveDuration: 1

@@ -5,7 +5,7 @@ using _Scripts.LSO.Will;
 using UnityEngine;
 
 [RequireComponent(typeof(LDY_Animal))]
-public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
+public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestruction
 {
     private static bool isWaitingForSuccessionTarget;
     private static bool isCompletingSuccession;
@@ -28,7 +28,9 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
     public event Action<Vector3, Action> OnTargetSelected;
     public event Action OnSuccessionFinished;
 
-    public static LSO_IWill Create(DLJ_WillContext context)
+    public static LSO_IWill Create(
+        DLJ_WillContext context,
+        DLJ_WillData data)
     {
         DLJ_SuccessionSystem system =
             context.owner.GetComponent<DLJ_SuccessionSystem>();
@@ -43,7 +45,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill
         if (effect == null)
             effect = context.owner.AddComponent<DLJ_SuccessionEffect>();
 
-        effect.Bind(system, context.successionObject);
+        effect.Bind(system, data.effectPrefab, data.moveDuration);
 
         return system;
     }

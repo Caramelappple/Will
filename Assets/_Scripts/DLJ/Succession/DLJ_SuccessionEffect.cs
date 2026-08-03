@@ -5,17 +5,20 @@ using UnityEngine;
 public class DLJ_SuccessionEffect : MonoBehaviour
 {
     private DLJ_SuccessionSystem successionSystem;
-    private GameObject successionObject;
+    private GameObject effectPrefab;
+    private GameObject effectInstance;
+    private float moveDuration;
 
-    public void Bind(DLJ_SuccessionSystem system, GameObject effectObject)
+    public void Bind(
+        DLJ_SuccessionSystem system,
+        GameObject prefab,
+        float sourceMoveDuration)
     {
         Unbind();
 
         successionSystem = system;
-        successionObject = effectObject;
-
-        if (successionObject != null)
-            successionObject.SetActive(false);
+        effectPrefab = prefab;
+        moveDuration = sourceMoveDuration;
 
         if (successionSystem == null)
             return;
@@ -27,24 +30,29 @@ public class DLJ_SuccessionEffect : MonoBehaviour
 
     private void Show(Vector3 position)
     {
-        if (successionObject == null)
+        if (effectPrefab == null)
+        {
+            Debug.LogError($"{name}: Succession effect prefab is missing.", this);
             return;
+        }
 
-        successionObject.transform.DOKill();
-        successionObject.transform.position = position;
-        successionObject.SetActive(true);
+        if (effectInstance != null)
+            Destroy(effectInstance);
+
+        effectInstance = Instantiate(effectPrefab, position, Quaternion.identity);
+        effectInstance.SetActive(true);
     }
 
     private void MoveToTarget(Vector3 position, Action onComplete)
     {
-        if (successionObject == null)
+        if (effectInstance == null)
         {
             onComplete?.Invoke();
             return;
         }
 
-        successionObject.transform
-            .DOMove(position, 1f)
+        effectInstance.transform
+            .DOMove(position, moveDuration)
             .SetEase(Ease.Linear)
             .SetUpdate(true)
             .OnComplete(() => onComplete?.Invoke());
@@ -52,11 +60,12 @@ public class DLJ_SuccessionEffect : MonoBehaviour
 
     private void Hide()
     {
-        if (successionObject == null)
+        if (effectInstance == null)
             return;
 
-        successionObject.transform.DOKill();
-        successionObject.SetActive(false);
+        effectInstance.transform.DOKill();
+        Destroy(effectInstance);
+        effectInstance = null;
     }
 
     private void Unbind()
