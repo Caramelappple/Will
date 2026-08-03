@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_UI/LSO/MainMenu.uss?fileID=7433441132597879392&amp;guid=125c0f6a8f5584647967da4010adc75a&amp;type=3#MainMenu"/>
+    <ui:VisualElement name="menu-root" class="menu-root" style="background-color: rgba(23, 25, 28, 0);">
+        <ui:VisualElement name="top-accent" class="top-accent"/>
+        <ui:VisualElement name="menu-content" class="menu-content">
+            <ui:VisualElement name="title-block" class="title-block">
+                <ui:Label name="game-title" text="강철의 발톱" class="game-title"/>
+                <ui:VisualElement name="title-rule" class="title-rule"/>
+                <ui:Label name="game-subtitle" text="DECK BUILDING CARD GAME" class="game-subtitle"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="menu-buttons" class="menu-buttons">
+                <ui:Button name="start-button" text="시작하기" class="menu-button menu-button-primary"/>
+                <ui:Button name="settings-button" text="설정" class="menu-button menu-button-secondary"/>
+                <ui:Button name="quit-button" text="나가기" class="menu-button menu-button-secondary"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label name="version-label" text="v0.1.0" class="version-label"/>
+    </ui:VisualElement>
+</ui:UXML>

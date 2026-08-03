@@ -10,6 +10,10 @@ public class LDY_MapManager : MonoBehaviour
 {
     public static LDY_MapManager Instance { get; private set; }
 
+    [Header("테스트용")]
+    [SerializeField] private bool isTest = false;
+    private bool isWaitingSecondClick = false;
+
     [Header("별자리 노드 (좌표/타입)")]
     [SerializeField] private Vector2[] nodePositions;
     [SerializeField] private LDY_NodeType[] nodeTypes;
@@ -111,6 +115,24 @@ public class LDY_MapManager : MonoBehaviour
         {
             CurrentNodeIndex = index;
             onMapChanged?.Invoke();
+            return;
+        }
+
+        if (isTest)
+        {
+            if (!isWaitingSecondClick)
+            {
+                // 첫 클릭: 이동만 하고 끝. 클리어 처리 안 함
+                CurrentNodeIndex = index;
+                isWaitingSecondClick = true;
+                onMapChanged?.Invoke();
+                return;
+            }
+
+            // 두 번째 클릭: 씬 이동 없이 바로 클리어 처리
+            activeNodeIndex = index;
+            isWaitingSecondClick = false;
+            CompleteNode(index);
             return;
         }
 

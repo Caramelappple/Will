@@ -6,7 +6,7 @@ using TMPro;
 public class LDY_MapTheme : ScriptableObject
 {
     [Header("베이스 - 밤하늘")]
-    public Color navyBackground = Color.black;
+    public Color navyBackground = Color.white;
     public Color navyPanel = new Color32(0x22, 0x1D, 0x40, 0xFF);
     public Color navyLocked = new Color32(0x23, 0x22, 0x2B, 0xFF);
 
