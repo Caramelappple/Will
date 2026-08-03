@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45c8b79742e8fac4cb60a720be90fca6, type: 3}
   m_Name: LDY_MapTheme
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapTheme
-  navyBackground: {r: 0, g: 0, b: 0, a: 1}
+  navyBackground: {r: 1, g: 1, b: 1, a: 1}
   navyPanel: {r: 0.13333334, g: 0.11372549, b: 0.2509804, a: 1}
   navyLocked: {r: 0.13725491, g: 0.13333334, b: 0.16862746, a: 1}
   gold: {r: 0.8509804, g: 0.6666667, b: 0.29803923, a: 1}
@@ -25,8 +25,8 @@ MonoBehaviour:
   lockedOpacity: 0.5
   headerFont: {fileID: 0}
   bodyFont: {fileID: 0}
-  lineColor: {r: 1, g: 1, b: 1, a: 1}
-  lineThickness: 2
+  lineColor: {r: 0, g: 0, b: 0, a: 1}
+  lineThickness: 4.83
   lineAlpha: 0.85
   lineGlowAlpha: 0.35
   lineGlowWidthMultiplier: 6
@@ -39,8 +39,8 @@ MonoBehaviour:
   glowMaxAlpha: 0.75
   glowHdrIntensity: 1
   startGlow: {r: 0.92156863, g: 0.92156863, b: 0.9019608, a: 1}
-  battleGlow: {r: 0.8784314, g: 0.32156864, b: 0.32156864, a: 1}
+  battleGlow: {r: 1, g: 1, b: 1, a: 1}
   eventGlow: {r: 0.8784314, g: 0.627451, b: 0.32156864, a: 1}
   shopGlow: {r: 0.32156864, g: 0.7882353, b: 0.47843137, a: 1}
-  bossGlow: {r: 0.6901961, g: 0.32156864, b: 0.8784314, a: 1}
+  bossGlow: {r: 1, g: 1, b: 1, a: 1}
   playerGlow: {r: 0.3529412, g: 0.78431374, b: 0.9098039, a: 1}

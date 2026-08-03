@@ -15,10 +15,9 @@ public class LDY_MapNodeView : MonoBehaviour
     [SerializeField] private Image cornerStarImage;
 
     [Header("Type Icons (모양으로만 구분, 색은 사용하지 않음)")]
-    [SerializeField] private Sprite startIcon;
     [SerializeField] private Sprite battleIcon;
-    [SerializeField] private Sprite eventIcon;
-    [SerializeField] private Sprite shopIcon;
+    [SerializeField] private GameObject successObj;
+    [SerializeField] private GameObject curObj;
     [SerializeField] private Sprite bossIcon;
 
     [Header("아이콘 크기 (부모 대비 채우는 비율)")]
@@ -85,20 +84,27 @@ public class LDY_MapNodeView : MonoBehaviour
         bool isCurrent = nodeData.isUnlocked && !nodeData.isCleared;
         bool glowActive = nodeData.isCleared || isCurrent;
         bool ringActive = isCurrent; // "겉테두리가 빛나는" 표시는 지금 갈 수 있는 노드에만
+        bool playerHere = uiController != null && uiController.IsPlayerAt(NodeIndex);
+
+        // 클리어 오브젝트: 클리어된 노드에서만 활성화
+        if (successObj != null) successObj.SetActive(nodeData.isCleared);
+
+        // 현재 위치 오브젝트: 플레이어가 실제로 서 있는 노드에서만 활성화
+        if (curObj != null) curObj.SetActive(playerHere);
 
         Color iconColor;
         float iconAlpha;
 
         if (nodeData.isCleared || isCurrent)
         {
-            // 아이콘 자체가 이미 타입별로 색이 다르게 그려져 있으므로 흰색(무색 틴트)으로 원래 색 그대로 보여줌
             iconColor = Color.white;
-            iconAlpha = 1f; // 갈 수 있는 곳(완료 포함) = 불투명 100
+            iconAlpha = 1f;
         }
         else
         {
             iconColor = theme.textLocked;
-            iconAlpha = theme.lockedOpacity; // 못 가는 곳 = 반투명
+            // iconAlpha = theme.lockedOpacity; // 알파값 감소 비활성화
+            iconAlpha = 1f;
         }
 
         if (iconImage != null)
@@ -107,14 +113,12 @@ public class LDY_MapNodeView : MonoBehaviour
         if (borderImage != null)
             borderImage.gameObject.SetActive(ringActive);
 
-        SetPulse(glowActive, ringActive);
+        SetPulse(glowActive, ringActive, playerHere);
 
-        // 이미 클리어한 노드도 되돌아갈 수 있게 클릭 가능하게 둔다(잠긴 노드만 막음) -
-        // 실제로 눌렀을 때 효과가 다시 발동되는지는 LDY_MapManager.OnNodeClicked가 판단함.
         button.interactable = nodeData.isUnlocked;
     }
 
-    private void SetPulse(bool glowActive, bool ringActive)
+    private void SetPulse(bool glowActive, bool ringActive, bool playerHere)
     {
         isPulsing = glowActive || ringActive;
         isRingActive = ringActive;
@@ -122,7 +126,6 @@ public class LDY_MapNodeView : MonoBehaviour
         if (isPulsing)
         {
             float intensity = theme.glowHdrIntensity;
-            bool playerHere = uiController != null && uiController.IsPlayerAt(NodeIndex);
             Color baseColor = playerHere ? theme.playerGlow : theme.GetTypeGlowColor(nodeData.type);
             pulseBaseColor = new Color(baseColor.r * intensity, baseColor.g * intensity, baseColor.b * intensity, 1f);
         }
@@ -192,10 +195,7 @@ public class LDY_MapNodeView : MonoBehaviour
     {
         switch (type)
         {
-            case LDY_NodeType.Start: return startIcon;
             case LDY_NodeType.Battle: return battleIcon;
-            case LDY_NodeType.Event: return eventIcon;
-            case LDY_NodeType.Shop: return shopIcon;
             case LDY_NodeType.Boss: return bossIcon;
             default: return null;
         }
