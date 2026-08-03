@@ -18,3 +18,4 @@ MonoBehaviour:
   icon: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   cost: 2
   unitModelPrefab: {fileID: 4209428674623069864, guid: 6a1eb50b876bb9747bf4ae16d8d7dcde, type: 3}
+  animalCard: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
