@@ -732,37 +732,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1 &538811344
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 538811345}
-  m_Layer: 0
-  m_Name: ' HandContainer'
-  m_TagString: Untagged
-  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &538811345
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 538811344}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.3, y: -3.48, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &668281847
 GameObject:
   m_ObjectHideFlags: 0
@@ -838,14 +807,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55cbbd5511702064db51d0dc5766a855, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
+  cardPlacer: {fileID: 0}
   cardDatabase: []
-  handCardPrefab: {fileID: 533164801239580158, guid: cf9ca3d86335be641b019d745eefab78, type: 3}
+  handCardPrefab: {fileID: 5094566040124373414, guid: 4866ed4a06a7922409ff39120982d3d8, type: 3}
   placedUnitPrefab: {fileID: 9207913563554494052, guid: 142e3eb01c418cf4aa257b9a83632b8b, type: 3}
-  handContainer: {fileID: 538811345}
+  handContainer: {fileID: 1370604569}
   boardContainer: {fileID: 668281848}
-  handSpacing: 2
+  handSpacing: 150
   boardSpacing: 2.2
-  targetCardScale: {x: 8, y: 10, z: 1}
+  uiCamera: {fileID: 257224524}
+  targetCardScale: {x: 1, y: 1, z: 1}
   moveDuration: 0.6
   flipAnimDuration: 2
   cardAnimInterval: 2
@@ -976,6 +947,41 @@ RectTransform:
   m_AnchoredPosition: {x: 132, y: -324}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1370604568
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1370604569}
+  m_Layer: 5
+  m_Name: HandCard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1370604569
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370604568}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1807964142}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &1412719422
 GameObject:
   m_ObjectHideFlags: 0
@@ -1621,6 +1627,7 @@ RectTransform:
   m_Children:
   - {fileID: 2027754526}
   - {fileID: 2105274284}
+  - {fileID: 1370604569}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2129,5 +2136,4 @@ SceneRoots:
   - {fileID: 1807964142}
   - {fileID: 1726429253}
   - {fileID: 2107665584}
-  - {fileID: 538811345}
   - {fileID: 668281848}

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45c8b79742e8fac4cb60a720be90fca6, type: 3}
+  m_Name: LDY_MapTheme
+  m_EditorClassIdentifier: Assembly-CSharp::LDY_MapTheme
+  navyBackground: {r: 1, g: 1, b: 1, a: 1}
+  navyPanel: {r: 0.13333334, g: 0.11372549, b: 0.2509804, a: 1}
+  navyLocked: {r: 0.13725491, g: 0.13333334, b: 0.16862746, a: 1}
+  gold: {r: 0.8509804, g: 0.6666667, b: 0.29803923, a: 1}
+  goldDim: {r: 0.5411765, g: 0.42352942, b: 0.20784314, a: 1}
+  rose: {r: 0.72156864, g: 0.48235294, b: 0.49411765, a: 1}
+  roseDim: {r: 0.47843137, g: 0.33333334, b: 0.34509805, a: 1}
+  textOnDark: {r: 0.9137255, g: 0.8862745, b: 0.8392157, a: 1}
+  textOnGold: {r: 0.13725491, g: 0.10980392, b: 0.0627451, a: 1}
+  textLocked: {r: 0.43137255, g: 0.42352942, b: 0.47058824, a: 1}
+  lockedOpacity: 0.5
+  headerFont: {fileID: 0}
+  bodyFont: {fileID: 0}
+  lineColor: {r: 0, g: 0, b: 0, a: 1}
+  lineThickness: 4.83
+  lineAlpha: 0.85
+  lineGlowAlpha: 0.35
+  lineGlowWidthMultiplier: 6
+  starColorA: {r: 0.8509804, g: 0.6666667, b: 0.29803923, a: 1}
+  starColorB: {r: 0.9137255, g: 0.8862745, b: 0.8392157, a: 1}
+  maxStars: 60
+  starDriftSpeed: 3
+  glowPulseSpeed: 1.4
+  glowMinAlpha: 0.25
+  glowMaxAlpha: 0.75
+  glowHdrIntensity: 1
+  startGlow: {r: 0.92156863, g: 0.92156863, b: 0.9019608, a: 1}
+  battleGlow: {r: 1, g: 1, b: 1, a: 1}
+  eventGlow: {r: 0.8784314, g: 0.627451, b: 0.32156864, a: 1}
+  shopGlow: {r: 0.32156864, g: 0.7882353, b: 0.47843137, a: 1}
+  bossGlow: {r: 1, g: 1, b: 1, a: 1}
+  playerGlow: {r: 0.3529412, g: 0.78431374, b: 0.9098039, a: 1}

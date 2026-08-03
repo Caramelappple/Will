@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_UI/LSO/SettingsPanel.uss?fileID=7433441132597879392&amp;guid=d4f0cdf9f06e0ca4fb863f95666522f4&amp;type=3#SettingsPanel"/>
+    <ui:VisualElement name="settings-root" class="settings-root" style="border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0); border-top-color: rgba(0, 0, 0, 0); border-bottom-color: rgba(0, 0, 0, 0); background-color: rgba(23, 25, 28, 0);">
+        <ui:VisualElement name="settings-panel" class="settings-panel">
+            <ui:VisualElement name="panel-accent" class="panel-accent"/>
+            <ui:VisualElement name="panel-header" class="panel-header">
+                <ui:Label name="panel-title" text="설정" class="panel-title"/>
+                <ui:VisualElement name="panel-rule" class="panel-rule"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="panel-body" class="panel-body">
+                <ui:VisualElement name="row-master" class="setting-row">
+                    <ui:VisualElement name="row-master-label" class="setting-row-label">
+                        <ui:Label text="전체 볼륨" class="setting-name"/>
+                        <ui:Label name="master-value" text="80%" class="setting-value"/>
+                    </ui:VisualElement>
+                    <ui:Slider name="master-volume-slider" low-value="0" high-value="100" value="80" class="setting-slider"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="row-music" class="setting-row">
+                    <ui:VisualElement name="row-music-label" class="setting-row-label">
+                        <ui:Label text="배경음악" class="setting-name"/>
+                        <ui:Label name="music-value" text="70%" class="setting-value"/>
+                    </ui:VisualElement>
+                    <ui:Slider name="music-volume-slider" low-value="0" high-value="100" value="70" class="setting-slider"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="row-sfx" class="setting-row">
+                    <ui:VisualElement name="row-sfx-label" class="setting-row-label">
+                        <ui:Label text="효과음" class="setting-name"/>
+                        <ui:Label name="sfx-value" text="85%" class="setting-value"/>
+                    </ui:VisualElement>
+                    <ui:Slider name="sfx-volume-slider" low-value="0" high-value="100" value="85" class="setting-slider"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="panel-footer" class="panel-footer">
+                <ui:Button name="back-button" text="뒤로가기" class="back-button"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

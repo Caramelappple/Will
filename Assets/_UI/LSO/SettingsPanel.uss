@@ -1,0 +1,116 @@
+.settings-root {
+    width: 1920px;
+    height: 1080px;
+    background-color: rgb(23, 25, 28);
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-panel {
+    width: 760px;
+    background-color: rgb(37, 40, 45);
+}
+
+.panel-accent {
+    height: 8px;
+    background-color: rgb(59, 111, 224);
+}
+
+.panel-header {
+    padding: 44px 52px 12px 52px;
+}
+
+.panel-title {
+    font-size: 38px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(242, 242, 242);
+}
+
+.panel-rule {
+    width: 96px;
+    height: 3px;
+    background-color: rgb(59, 111, 224);
+    margin-top: 16px;
+}
+
+.panel-body {
+    padding: 28px 52px;
+}
+
+.setting-row {
+    margin-bottom: 34px;
+}
+
+.setting-row-label {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.setting-name {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(191, 194, 196);
+}
+
+.setting-value {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(108, 147, 232);
+}
+
+.setting-slider {
+    margin: 0;
+}
+
+.setting-slider .unity-base-slider__tracker {
+    background-color: rgb(59, 62, 67);
+    height: 9px;
+}
+
+.setting-slider .unity-base-slider__dragger {
+    width: 21px;
+    height: 21px;
+    background-color: rgb(242, 242, 242);
+    border-width: 3px;
+    border-color: rgb(59, 111, 224);
+    border-radius: 0;
+}
+
+.setting-row-inline {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.setting-toggle .unity-toggle__checkmark {
+    width: 68px;
+    height: 36px;
+    background-color: rgb(59, 111, 224);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.panel-footer {
+    padding: 12px 52px 44px 52px;
+}
+
+.back-button {
+    height: 72px;
+    background-color: rgb(32, 34, 38);
+    border-width: 1px;
+    border-left-width: 6px;
+    border-color: rgb(59, 111, 224);
+    border-radius: 0;
+    color: rgb(247, 247, 247);
+    font-size: 22px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    background-image: none;
+}
+
+.back-button:hover {
+    background-color: rgb(40, 44, 52);
+}
