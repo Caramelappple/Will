@@ -8815,7 +8815,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
   health: {fileID: 1910105708}
   pos: {x: 3, y: 0, z: 0}
   team: 0
@@ -8835,9 +8835,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 5
+  <MaxValue>k__BackingField: 2
   <MinValue>k__BackingField: 0
-  _value: 5
+  _value: 2
 --- !u!23 &1910105709
 MeshRenderer:
   m_ObjectHideFlags: 0

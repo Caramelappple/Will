@@ -20,6 +20,7 @@ namespace _Scripts.LSO.Manager
     public struct GameSaveData
     {
         public int stage;
+        public int maxCost;
         public DeckCardsSaveData[] inventoryItems;
         
         public static GameSaveData CreateDefault()
@@ -27,6 +28,7 @@ namespace _Scripts.LSO.Manager
             return new GameSaveData
             {
                stage = 0,
+               maxCost = 5,
                inventoryItems = Array.Empty<DeckCardsSaveData>(),
             };
         }
