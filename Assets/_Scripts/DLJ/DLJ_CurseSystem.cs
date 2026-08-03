@@ -1,18 +1,15 @@
+using System;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
-using DG.Tweening;
 using UnityEngine;
 
 public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
 {
-    [Header("Effect")]
+    [Header("Curse")]
     [SerializeField] private int remainingTurn = 2;
     [SerializeField] private int damage = 1;
     [SerializeField] private int range = 1;
 
-    private GameObject effectPrefab;
-    private float expandTime;
-    private float effectHeight;
     private LDY_TurnManager activationTurnManager;
     private LDY_BoardManager activationBoard;
     private LDY_AttackSystem activationAttackSystem;
@@ -27,6 +24,8 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
     public int RemainingTurn { get; private set; }
     public bool ShouldDeferDestruction => false;
 
+    public event Action<Vector3, Vector3, Action<DLJ_CurseSystem>> OnCurseActivated;
+
     public static LSO_IWill Create(DLJ_WillContext context)
     {
         DLJ_CurseSystem system =
@@ -36,13 +35,20 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
             system = context.owner.AddComponent<DLJ_CurseSystem>();
 
         system.Configure(
-            context.curseObject,
-            context.curseExpandTime,
-            context.curseEffectHeight,
             context.turnManager,
             context.board,
             context.attackSystem,
             context.animal.team);
+
+        DLJ_CurseEffect effect = context.owner.GetComponent<DLJ_CurseEffect>();
+        if (effect == null)
+            effect = context.owner.AddComponent<DLJ_CurseEffect>();
+
+        effect.Bind(
+            system,
+            context.curseObject,
+            context.curseExpandTime,
+            context.curseEffectHeight);
 
         return system;
     }
@@ -53,17 +59,11 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
     }
 
     public void Configure(
-        GameObject prefab,
-        float sourceExpandTime,
-        float sourceEffectHeight,
         LDY_TurnManager turnManager,
         LDY_BoardManager boardManager,
         LDY_AttackSystem attackSystem,
         LDY_Team sourceTeam)
     {
-        effectPrefab = prefab;
-        expandTime = sourceExpandTime;
-        effectHeight = sourceEffectHeight;
         activationTurnManager = turnManager;
         activationBoard = boardManager;
         activationAttackSystem = attackSystem;
@@ -72,35 +72,21 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
 
     public bool Activate()
     {
-        if (!TryGetEffectData(out Vector3Int center, out Vector3 centerWorld,
-                out Vector3 targetScale))
+        if (!TryGetActivationData(
+                out Vector3Int center,
+                out Vector3 centerWorld,
+                out Vector3 areaSize))
             return false;
 
-        GameObject instance = Instantiate(effectPrefab, centerWorld, Quaternion.identity);
-        instance.transform.position =
-            centerWorld + Vector3.up * (effectHeight * 0.5f);
-        instance.transform.localScale = Vector3.zero;
-        instance.SetActive(true);
-
-        DLJ_CurseSystem effectSystem = instance.GetComponent<DLJ_CurseSystem>();
-
-        if (effectSystem == null)
-        {
-            Debug.LogError($"{instance.name}: CurseSystem is missing.", instance);
-            Destroy(instance);
-            return false;
-        }
-
-        effectSystem.InitializeEffect(
-            activationTurnManager,
-            activationBoard,
-            center,
-            activationAttackSystem,
-            activationSourceTeam);
-
-        instance.transform
-            .DOScale(targetScale, expandTime)
-            .SetEase(Ease.Linear);
+        OnCurseActivated?.Invoke(
+            centerWorld,
+            areaSize,
+            effectSystem => effectSystem.InitializeEffect(
+                activationTurnManager,
+                activationBoard,
+                center,
+                activationAttackSystem,
+                activationSourceTeam));
 
         Debug.Log("Curse Activated");
         return true;
@@ -124,26 +110,20 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
         DamageAnimalsInArea();
     }
 
-    private bool TryGetEffectData(
+    private bool TryGetActivationData(
         out Vector3Int center,
         out Vector3 centerWorld,
-        out Vector3 targetScale)
+        out Vector3 areaSize)
     {
         center = default;
         centerWorld = default;
-        targetScale = default;
+        areaSize = default;
 
         if (activationTurnManager == null ||
             activationBoard == null ||
             activationAttackSystem == null)
         {
             Debug.LogError($"{name}: Curse dependencies are missing.", this);
-            return false;
-        }
-
-        if (effectPrefab == null)
-        {
-            Debug.LogError($"{name}: Curse effect prefab is missing.", this);
             return false;
         }
 
@@ -163,7 +143,8 @@ public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
 
         float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
         float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
-        targetScale = new Vector3(cellWidth * 3f, effectHeight, cellDepth * 3f);
+        float diameter = range * 2f + 1f;
+        areaSize = new Vector3(cellWidth * diameter, 0f, cellDepth * diameter);
         return true;
     }
 

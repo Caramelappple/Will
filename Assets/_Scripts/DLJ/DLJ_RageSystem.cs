@@ -1,26 +1,20 @@
+using System;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
-using DG.Tweening;
 using UnityEngine;
 
 public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
 {
-    [Header("Effect")]
+    [Header("Rage")]
     [SerializeField] private int damage = 1;
     [SerializeField] private int range = 1;
 
-    private GameObject effectPrefab;
-    private float expandTime;
-    private float holdTime;
-    private float effectHeight;
     private LDY_BoardManager activationBoard;
     private LDY_AttackSystem activationAttackSystem;
 
-    private LDY_BoardManager effectBoard;
-    private Vector3Int effectCenter;
-    private LDY_AttackSystem effectAttackSystem;
-
     public bool ShouldDeferDestruction => false;
+
+    public event Action<Vector3, Vector3> OnRageActivated;
 
     public static LSO_IWill Create(DLJ_WillContext context)
     {
@@ -30,13 +24,18 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
         if (system == null)
             system = context.owner.AddComponent<DLJ_RageSystem>();
 
-        system.Configure(
+        system.Configure(context.board, context.attackSystem);
+
+        DLJ_RageEffect effect = context.owner.GetComponent<DLJ_RageEffect>();
+        if (effect == null)
+            effect = context.owner.AddComponent<DLJ_RageEffect>();
+
+        effect.Bind(
+            system,
             context.rageObject,
             context.rageExpandTime,
             context.rageHoldTime,
-            context.effectHeight,
-            context.board,
-            context.attackSystem);
+            context.effectHeight);
 
         return system;
     }
@@ -47,90 +46,40 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
     }
 
     public void Configure(
-        GameObject prefab,
-        float sourceExpandTime,
-        float sourceHoldTime,
-        float sourceEffectHeight,
         LDY_BoardManager boardManager,
         LDY_AttackSystem attackSystem)
     {
-        effectPrefab = prefab;
-        expandTime = sourceExpandTime;
-        holdTime = sourceHoldTime;
-        effectHeight = sourceEffectHeight;
         activationBoard = boardManager;
         activationAttackSystem = attackSystem;
     }
 
     public bool Activate()
     {
-        if (!TryGetEffectData(out Vector3Int center, out Vector3 centerWorld,
-                out Vector3 targetScale))
+        if (!TryGetActivationData(
+                out Vector3Int center,
+                out Vector3 centerWorld,
+                out Vector3 areaSize))
             return false;
 
-        GameObject instance = Instantiate(effectPrefab, centerWorld, Quaternion.identity);
-        instance.transform.position =
-            centerWorld + Vector3.up * (effectHeight * 0.5f);
-        instance.transform.localScale = Vector3.zero;
-        instance.SetActive(true);
-
-        DLJ_RageSystem effectSystem = instance.GetComponent<DLJ_RageSystem>();
-
-        if (effectSystem == null)
-        {
-            Debug.LogError($"{instance.name}: RageSystem is missing.", instance);
-            Destroy(instance);
-            return false;
-        }
-
-        effectSystem.InitializeEffect(
-            activationBoard,
-            center,
-            activationAttackSystem);
-
-        DOTween.Sequence()
-            .Append(instance.transform
-                .DOScale(targetScale, expandTime)
-                .SetEase(Ease.Linear))
-            .AppendInterval(holdTime)
-            .Append(instance.transform
-                .DOScale(Vector3.zero, expandTime)
-                .SetEase(Ease.Linear))
-            .OnComplete(() => Destroy(instance));
+        DamageAnimalsInArea(center);
+        OnRageActivated?.Invoke(centerWorld, areaSize);
 
         Debug.Log("Rage Activated");
         return true;
     }
 
-    private void InitializeEffect(
-        LDY_BoardManager boardManager,
-        Vector3Int center,
-        LDY_AttackSystem attackSystem)
-    {
-        effectBoard = boardManager;
-        effectCenter = center;
-        effectAttackSystem = attackSystem;
-        DamageAnimalsInArea();
-    }
-
-    private bool TryGetEffectData(
+    private bool TryGetActivationData(
         out Vector3Int center,
         out Vector3 centerWorld,
-        out Vector3 targetScale)
+        out Vector3 areaSize)
     {
         center = default;
         centerWorld = default;
-        targetScale = default;
+        areaSize = default;
 
         if (activationBoard == null || activationAttackSystem == null)
         {
             Debug.LogError($"{name}: Rage dependencies are missing.", this);
-            return false;
-        }
-
-        if (effectPrefab == null)
-        {
-            Debug.LogError($"{name}: Rage effect prefab is missing.", this);
             return false;
         }
 
@@ -150,22 +99,23 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
 
         float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
         float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
-        targetScale = new Vector3(cellWidth * 3f, effectHeight, cellDepth * 3f);
+        float diameter = range * 2f + 1f;
+        areaSize = new Vector3(cellWidth * diameter, 0f, cellDepth * diameter);
         return true;
     }
 
-    private void DamageAnimalsInArea()
+    private void DamageAnimalsInArea(Vector3Int center)
     {
         for (int x = -range; x <= range; x++)
         {
             for (int z = -range; z <= range; z++)
             {
-                Vector3Int tile = effectCenter + new Vector3Int(x, 0, z);
+                Vector3Int tile = center + new Vector3Int(x, 0, z);
 
-                if (!effectBoard.IsInside(tile))
+                if (!activationBoard.IsInside(tile))
                     continue;
 
-                LDY_Animal target = effectBoard.Get(tile);
+                LDY_Animal target = activationBoard.Get(tile);
 
                 if (target == null ||
                     target.health == null ||
@@ -176,7 +126,7 @@ public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
                 target.health.GetDamage(damageData);
 
                 if (target.health.IsDestroyed)
-                    effectAttackSystem.HandleDeath(target);
+                    activationAttackSystem.HandleDeath(target);
             }
         }
     }
