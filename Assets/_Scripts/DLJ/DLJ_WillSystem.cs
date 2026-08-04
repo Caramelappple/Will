@@ -8,6 +8,7 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     [SerializeField] private LDY_BoardManager board;
     [SerializeField] private LDY_TurnManager turnManager;
     [SerializeField] private LDY_AttackSystem attackSystem;
+    [SerializeField] private LDY_ActionPointManager actionPoints;
     [SerializeField] private DLJ_WillDatabaseSO willDatabase;
 
     private LSO_IWill currentWill;
@@ -24,6 +25,8 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
             turnManager = FindFirstObjectByType<LDY_TurnManager>();
         if (attackSystem == null)
             attackSystem = FindFirstObjectByType<LDY_AttackSystem>();
+        if (actionPoints == null)
+            actionPoints = FindFirstObjectByType<LDY_ActionPointManager>();
     }
 
     private void Start()
@@ -36,6 +39,7 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         context.board = board;
         context.turnManager = turnManager;
         context.attackSystem = attackSystem;
+        context.actionPoints = actionPoints;
         DLJ_WillData willData =
             willDatabase != null ? willDatabase.Get(animal.WillType) : null;
 

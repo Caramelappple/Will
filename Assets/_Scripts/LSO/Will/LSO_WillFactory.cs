@@ -13,7 +13,9 @@ namespace _Scripts.LSO.Will
             {
                 { LSO_WillType.Curse, DLJ_CurseSystem.Create },
                 { LSO_WillType.Rage, DLJ_RageSystem.Create },
-                { LSO_WillType.Succession, DLJ_SuccessionSystem.Create }
+                { LSO_WillType.Succession, DLJ_SuccessionSystem.Create },
+                { LSO_WillType.Contract, DLJ_ContractSystem.Create },
+                { LSO_WillType.Sacrifice, DLJ_SacrificeSystem.Create }
             };
 
         public static LSO_IWill Create(

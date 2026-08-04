@@ -8,4 +8,5 @@ public class DLJ_WillContext
     public LDY_BoardManager board;
     public LDY_TurnManager turnManager;
     public LDY_AttackSystem attackSystem;
+    public LDY_ActionPointManager actionPoints;
 }
