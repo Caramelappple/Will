@@ -56,7 +56,7 @@ public class DLJ_ContractSystem : MonoBehaviour, LSO_IWill
             return;
         }
 
-        int refund = unitCost / 2;
+        int refund = Mathf.CeilToInt(unitCost / 2f);
         _refund.QueueRefund(refund);
     }
 }
