@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using System.Collections.Generic;
 using System.Linq;
 using _Scripts.LDY;
@@ -10,7 +11,7 @@ public class KTH_DeckManager : MonoBehaviour
     [Header("그리드 보드 연동 (없으면 기존 연출용 배치만 동작)")]
     public LDY_CardPlacer cardPlacer;
     [Header("카드 데이터베이스 (1씬의 인벤토리 카드가 자동으로 불러와집니다)")]
-    public List<KTH_CardData> cardDatabase = new List<KTH_CardData>();
+    public List<LSO_CardSO> cardDatabase = new List<LSO_CardSO>();
 
     [Header("프리팹")]
     public KTH_HandCardView handCardPrefab; // ★ 프리팹은 이제 RectTransform을 가진 UI 오브젝트여야 함
@@ -62,13 +63,44 @@ public class KTH_DeckManager : MonoBehaviour
 
         if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
         {
-            cardDatabase = new List<KTH_CardData>(KTH_DeckDataPersistent.Instance.savedInventory);
+            cardDatabase = new List<LSO_CardSO>(KTH_DeckDataPersistent.Instance.savedInventory);
             Debug.Log($"[KTH_DeckManager] 1씬으로부터 총 {cardDatabase.Count}장의 카드를 성공적으로 불러왔습니다!");
         }
         else
         {
             Debug.LogWarning("[KTH_DeckManager] 불러올 저장 데이터가 없어 기본 cardDatabase를 사용합니다.");
         }
+    }
+
+    /// <summary>
+    /// cardDatabase에서 실제로 뽑을 수 있는 카드만 추린다.
+    /// null(끊어진 참조)이거나 AnimalSO가 연결되지 않은 카드는 제외하고 어떤 항목이 문제인지 알린다.
+    /// </summary>
+    private List<LSO_CardSO> GetDrawableCards()
+    {
+        List<LSO_CardSO> result = new List<LSO_CardSO>();
+        if (cardDatabase == null) return result;
+
+        for (int i = 0; i < cardDatabase.Count; i++)
+        {
+            LSO_CardSO card = cardDatabase[i];
+
+            if (card == null)
+            {
+                Debug.LogWarning($"[KTH_DeckManager] cardDatabase[{i}]가 비어 있습니다.", this);
+                continue;
+            }
+
+            if (!card.IsValid)
+            {
+                Debug.LogWarning($"[KTH_DeckManager] {card.name}에 AnimalSO가 연결되지 않았습니다.", card);
+                continue;
+            }
+
+            result.Add(card);
+        }
+
+        return result;
     }
 
     /// <summary>손패에 남은 자리 수 (maxHandSize - 현재 손패 수)</summary>
@@ -83,9 +115,14 @@ public class KTH_DeckManager : MonoBehaviour
 
         if (infoPanel) infoPanel.Hide();
 
-        if (cardDatabase == null || cardDatabase.Count == 0)
+        // 비어 있거나 끊어진 참조는 걸러낸다.
+        // 카드 타입을 바꾼 뒤 인스펙터 재배선을 안 하면 여기에 null만 남아 뽑는 순간 터진다.
+        List<LSO_CardSO> drawableCards = GetDrawableCards();
+        if (drawableCards.Count == 0)
         {
-            Debug.LogError("[KTH_DeckManager] cardDatabase가 비어있습니다! 1씬에서 카드를 넣었는지 확인하세요.");
+            Debug.LogError(
+                "[KTH_DeckManager] 뽑을 수 있는 카드가 없습니다. " +
+                "cardDatabase에 LSO_CardSO가 들어있고 각 카드에 AnimalSO가 연결됐는지 확인하세요.", this);
             return;
         }
 
@@ -103,11 +140,11 @@ public class KTH_DeckManager : MonoBehaviour
         isDrawing = true;
         if (drawButton) drawButton.interactable = false; // ★ 버튼 비활성화
 
-        List<KTH_CardData> drawn = new List<KTH_CardData>();
+        List<LSO_CardSO> drawn = new List<LSO_CardSO>();
         for (int k = 0; k < actualDrawCount; k++)
         {
-            int randomIndex = Random.Range(0, cardDatabase.Count);
-            drawn.Add(cardDatabase[randomIndex]);
+            int randomIndex = Random.Range(0, drawableCards.Count);
+            drawn.Add(drawableCards[randomIndex]);
         }
 
         // ★ [UI 변환] 월드 좌표 InverseTransformPoint 대신, 스크린 좌표 기준으로 handContainer 로컬 좌표를 구함
@@ -226,7 +263,7 @@ public class KTH_DeckManager : MonoBehaviour
         infoPanel.Show(card.GetData(), true, () => PlaceCard(card));
     }
 
-    public void ShowPlacedUnitInfo(KTH_CardData data)
+    public void ShowPlacedUnitInfo(LSO_CardSO data)
     {
         infoPanel.Show(data, false, null);
     }
@@ -235,12 +272,18 @@ public class KTH_DeckManager : MonoBehaviour
     {
         var data = card.GetData();
 
-        if (cardPlacer != null && data.animalCard != null)
+        if (data == null || !data.IsValid)
+        {
+            Debug.LogWarning("[KTH_DeckManager] 카드에 동물 데이터가 없어 배치할 수 없습니다.", data);
+            return;
+        }
+
+        if (cardPlacer != null)
         {
             // 코스트가 모자라면 카드를 손패에서 빼기 전에 막는다 (배치 자체가 시작되지 않음).
-            if (!cardPlacer.CanAfford(data.animalCard))
+            if (!cardPlacer.CanAfford(data))
             {
-                Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.cardName}을(를) 배치할 수 없습니다.");
+                Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.AnimalName}을(를) 배치할 수 없습니다.");
                 return;
             }
 
@@ -248,12 +291,12 @@ public class KTH_DeckManager : MonoBehaviour
 
             // 보드에 배치 가능 칸이 하이라이트되고, 플레이어가 칸을 클릭해야 실제로 소환된다.
             // 우클릭으로 취소하면 카드는 그대로 손패에 남는다.
-            bool started = cardPlacer.BeginPlacement(data.animalCard, LDY_Team.Player,
+            bool started = cardPlacer.BeginPlacement(data, LDY_Team.Player,
                 onPlaced: animal =>
                 {
                     if (animal == null)
                     {
-                        Debug.LogWarning($"[KTH_DeckManager] {data.cardName}을(를) 그리드 보드에 소환하지 못했습니다.");
+                        Debug.LogWarning($"[KTH_DeckManager] {data.AnimalName}을(를) 그리드 보드에 소환하지 못했습니다.");
                         return;
                     }
                     FinalizeCardPlacement(card, data);
@@ -261,16 +304,17 @@ public class KTH_DeckManager : MonoBehaviour
                 onCancelled: () => card.SetSelected(false));
 
             if (!started)
-                Debug.Log($"[KTH_DeckManager] {data.cardName} 배치를 시작할 수 없습니다.");
+                Debug.Log($"[KTH_DeckManager] {data.AnimalName} 배치를 시작할 수 없습니다.");
 
             return;
         }
 
-        // cardPlacer/animalCard 연결이 없는 예전 경로: 그냥 즉시 연출용 배치만 한다.
+        // CardPlacer가 씬에 없는 경우: 그리드 소환 없이 손패에서만 카드를 소모한다.
+        Debug.LogWarning($"[KTH_DeckManager] CardPlacer가 없어 {data.AnimalName}을(를) 보드에 소환하지 않았습니다.", this);
         FinalizeCardPlacement(card, data);
     }
 
-    private void FinalizeCardPlacement(KTH_HandCardView card, KTH_CardData data)
+    private void FinalizeCardPlacement(KTH_HandCardView card, LSO_CardSO data)
     {
         currentHand.Remove(card);
         card.transform.DOKill();

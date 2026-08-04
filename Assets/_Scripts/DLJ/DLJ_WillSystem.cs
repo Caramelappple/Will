@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -19,12 +20,14 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
 
     private void Awake()
     {
-        if (board == null)
-            board = FindFirstObjectByType<LDY_BoardManager>();
-        if (turnManager == null)
-            turnManager = FindFirstObjectByType<LDY_TurnManager>();
+        //if (board == null)
+            //board = FindFirstObjectByType<LDY_BoardManager>();
+            board = GameManager.Instance.Board;
+        //if (turnManager == null)
+            //turnManager = FindFirstObjectByType<LDY_TurnManager>();
+            turnManager = GameManager.Instance.TurnManager;
         if (attackSystem == null)
-            attackSystem = FindFirstObjectByType<LDY_AttackSystem>();
+           attackSystem = FindFirstObjectByType<LDY_AttackSystem>();
         if (actionPoints == null)
             actionPoints = FindFirstObjectByType<LDY_ActionPointManager>();
     }

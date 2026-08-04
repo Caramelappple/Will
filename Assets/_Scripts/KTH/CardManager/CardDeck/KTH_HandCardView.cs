@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,7 +24,7 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
     [Tooltip("목표 높이까지 보간되는 속도 (클수록 빠르게 움직임)")]
     public float selectMoveSpeed = 10f;
 
-    private KTH_CardData data;
+    private LSO_CardSO data;
     private KTH_DeckManager manager;
     private RectTransform rectTransform; // ★ Transform 대신 RectTransform을 캐싱해서 사용
 
@@ -91,18 +92,25 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public void Setup(KTH_CardData cardData, KTH_DeckManager deckManager)
+    public void Setup(LSO_CardSO cardData, KTH_DeckManager deckManager)
     {
         data = cardData;
         manager = deckManager;
 
-        if (iconImage) iconImage.sprite = cardData.icon;
+        if (cardData == null)
+        {
+            Debug.LogWarning($"[KTH_HandCardView] {name}: 카드 데이터가 비어 있습니다. cardDatabase 배선을 확인하세요.", this);
+        }
+        else if (iconImage)
+        {
+            iconImage.sprite = cardData.Image;
+        }
 
         currentYOffset = 0f; // ★ 새 카드는 항상 들뜬 상태 없이 시작
         SetSelected(false);
     }
 
-    public KTH_CardData GetData() => data;
+    public LSO_CardSO GetData() => data;
 
     public void SetSelected(bool selected)
     {

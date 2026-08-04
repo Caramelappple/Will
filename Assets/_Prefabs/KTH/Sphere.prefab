@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 8627394705716459498}
   - component: {fileID: 5058862495784396664}
   - component: {fileID: 3319165843695797872}
+  - component: {fileID: -3513611147904419831}
+  - component: {fileID: 302959348458389738}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -112,3 +114,38 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-3513611147904419831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4337957452496197285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 2
+  <MinValue>k__BackingField: 0
+  _value: 2
+--- !u!114 &302959348458389738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4337957452496197285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
+  data: {fileID: 0}
+  health: {fileID: -3513611147904419831}
+  pos: {x: 0, y: 0, z: 0}
+  team: 0
+  fallbackRangeType: 0
+  baseAtk: 2
+  <WillType>k__BackingField: 0
+  modelTransform: {fileID: 3842136083555137402}

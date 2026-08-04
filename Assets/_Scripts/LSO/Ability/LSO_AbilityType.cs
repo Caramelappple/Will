@@ -12,6 +12,7 @@ namespace _Scripts.LSO.Ability
         PackTactics,
         Thorns,
         Vengeance,
-        Frail
+        Frail,
+        CurseImmunity
     }
 }

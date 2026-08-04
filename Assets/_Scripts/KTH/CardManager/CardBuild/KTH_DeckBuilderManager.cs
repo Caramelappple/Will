@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,8 +10,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     public static KTH_DeckBuilderManager Instance { get; private set; }
 
     [Header("카드 데이터 리스트")]
-    public List<KTH_CardData> cardDatabase = new List<KTH_CardData>();
-    public List<KTH_CardData> initialInventoryCards = new List<KTH_CardData>();
+    public List<LSO_CardSO> cardDatabase = new List<LSO_CardSO>();
+    public List<LSO_CardSO> initialInventoryCards = new List<LSO_CardSO>();
 
     [Header("UI 프리팹 및 컨테이너")]
     public KTH_CardDragUI cardUIPrefab;
@@ -115,9 +116,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     }
 
     /// <summary>현재 인벤토리에 들어있는 CardData 리스트 반환 (씬 저장용)</summary>
-    public List<KTH_CardData> GetCurrentInventoryCardData()
+    public List<LSO_CardSO> GetCurrentInventoryCardData()
     {
-        List<KTH_CardData> inventoryList = new List<KTH_CardData>();
+        List<LSO_CardSO> inventoryList = new List<LSO_CardSO>();
         if (inventoryContainer != null)
         {
             foreach (Transform child in inventoryContainer)
@@ -150,7 +151,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
         for (int i = startIndex; i < endIndex; i++)
         {
-            KTH_CardData card = cardDatabase[i];
+            LSO_CardSO card = cardDatabase[i];
             if (card == null) continue;
 
             // 이미 자기 고유 번호(i)가 인벤토리에 있다면 해당 자리는 생성 안 함 (빈자리 유지)
@@ -169,7 +170,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     }
 
     /// <summary>카드 UI 생성 함수 (databaseIndex 매개변수 포함, useFlipAnimation이 true일 때만 Y축 회전 연출)</summary>
-    private void CreateCardUI(KTH_CardData data, Transform parent, int databaseIndex, float delay = 0f, bool useFlipAnimation = false)
+    private void CreateCardUI(LSO_CardSO data, Transform parent, int databaseIndex, float delay = 0f, bool useFlipAnimation = false)
     {
         if (data == null) return;
 
@@ -304,7 +305,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     {
         if (completeButton) completeButton.interactable = false;
 
-        List<KTH_CardData> currentInventoryList = GetCurrentInventoryCardData();
+        List<LSO_CardSO> currentInventoryList = GetCurrentInventoryCardData();
 
         if (KTH_DeckDataPersistent.Instance != null)
         {
