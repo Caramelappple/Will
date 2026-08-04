@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO;
+using _Scripts.LSO.DeathSystem;
+using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -70,10 +72,16 @@ namespace _Scripts.LDY
                     if (target.health != null && attacker.health != null)
                     {
 
-                        DamageData data = DamageData.Create(attacker.health, target.GetAtk());
+                        // 피해량은 때리는 쪽의 공격력이다. 출처를 함께 실어 보내면
+                        // "근접 공격을 받으면 반격" 같은 특성이 판단할 수 있다.
+                        DamageData data = DamageData.Create(
+                            attacker.health,
+                            attacker.GetAtk(),
+                            ToDamageSource(attacker.RangeType));
+
                         target.health.GetDamage(data);
                         if (target.health.IsDestroyed)
-                            HandleDeath(target);
+                            HandleDeath(target, attacker);
                     }
                     else
                     {
@@ -113,9 +121,28 @@ namespace _Scripts.LDY
 
         public void HandleDeath(LDY_Animal target)
         {
-            // TODO: 여기서 유언(Will) 발동
-            board.Remove(target);
+            HandleDeath(target, null);
+        }
 
+        /// <summary>
+        /// 사망 처리는 LDY_DeathHandler에 위임한다.
+        /// 씬에 핸들러가 없으면 예전 방식으로 직접 처리해서 기존 씬이 깨지지 않게 한다.
+        /// </summary>
+        public void HandleDeath(LDY_Animal target, LDY_Animal killer)
+        {
+            if (target == null) return;
+
+            LSO_IDeathService deathService = GameManager.HasInstance
+                ? GameManager.Instance.DeathService
+                : null;
+
+            if (deathService != null)
+            {
+                deathService.Kill(target, killer);
+                return;
+            }
+
+            board.Remove(target);
             RaiseEnemyDead(target);
 
             var will = target.GetComponent<DLJ_IWillActivation>();
@@ -123,6 +150,17 @@ namespace _Scripts.LDY
 
             if (will == null || !will.ShouldDeferDestruction)
                 Destroy(target.gameObject);
+        }
+
+        private static LSO_DamageSource ToDamageSource(LDY_RangeType rangeType)
+        {
+            switch (rangeType)
+            {
+                case LDY_RangeType.Melee: return LSO_DamageSource.Melee;
+                case LDY_RangeType.Ranged: return LSO_DamageSource.Ranged;
+                case LDY_RangeType.Jump: return LSO_DamageSource.Jump;
+                default: return LSO_DamageSource.Unknown;
+            }
         }
 
         // 적이 죽었을 때만 알린다. 구독자가 없어도 무해하며, 매니저가 없으면 조용히 넘어간다.

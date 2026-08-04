@@ -5,6 +5,7 @@ namespace _Scripts.LSO
         Curse,
         Rage,
         Succession,
-        
+        Contract,
+        Sacrifice
     }
 }

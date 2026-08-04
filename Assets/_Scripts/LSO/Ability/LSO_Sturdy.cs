@@ -27,6 +27,7 @@ namespace _Scripts.LSO.Ability
             if (damage <= survivableDamage) return damage;
 
             HasTriggered = true;
+            Debug.Log($"특성 발동 {this.ToString()} {survivableDamage}");
             Triggered?.Invoke(target);
 
             return survivableDamage;

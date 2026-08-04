@@ -2226,6 +2226,7 @@ GameObject:
   - component: {fileID: 579526125}
   - component: {fileID: 579526124}
   - component: {fileID: 579526123}
+  - component: {fileID: 579526132}
   m_Layer: 0
   m_Name: LDY_GameSystems
   m_TagString: Untagged
@@ -2300,6 +2301,7 @@ MonoBehaviour:
     m_Bits: 256
   targetCamera: {fileID: 0}
   turnManager: {fileID: 579526124}
+  cardPlacer: {fileID: 0}
 --- !u!114 &579526127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2313,8 +2315,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_TileHighlighter
   board: {fileID: 579526130}
-  moveHighlightPrefab: {fileID: 7921581351628025108, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
-  attackHighlightPrefab: {fileID: 6074491203827878912, guid: 8347fe02b9cad85429294651be512654, type: 3}
+  moveHighlightPrefab: {fileID: 936661059025204846, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
+  attackHighlightPrefab: {fileID: 2991071489099755769, guid: 8347fe02b9cad85429294651be512654, type: 3}
   attackHeightOffset: 0.05
   moveHeightOffset: 0.08
 --- !u!114 &579526128
@@ -2378,6 +2380,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &579526132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579526122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27515db8aea4a124a84b4d34d8a1595b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_CardPlacer
+  board: {fileID: 579526130}
+  turnManager: {fileID: 579526124}
+  maxCost: 3
+  boardLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  highlighter: {fileID: 0}
+  targetCamera: {fileID: 0}
 --- !u!1 &626929117
 GameObject:
   m_ObjectHideFlags: 0
@@ -3848,6 +3870,7 @@ GameObject:
   - component: {fileID: 898224045}
   - component: {fileID: 898224049}
   - component: {fileID: 898224050}
+  - component: {fileID: 898224051}
   m_Layer: 10
   m_Name: Enemy
   m_TagString: Enemy
@@ -3963,16 +3986,8 @@ MonoBehaviour:
   board: {fileID: 579526130}
   turnManager: {fileID: 579526124}
   attackSystem: {fileID: 579526128}
-  rageObject: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 0}
-  curseExpandTime: 0.25
-  curseHoldTime: 3
-  curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 0}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  actionPoints: {fileID: 0}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &898224050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3986,13 +4001,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: b3ba56ef3f65bf048a78ae78a910f78d, type: 2}
-  <WillType>k__BackingField: 1
+  health: {fileID: 898224051}
   pos: {x: 1, y: 0, z: 5}
   team: 1
+  fallbackRangeType: 0
   baseAtk: 1
-  hp: 1
-  rangeType: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 898224048}
+--- !u!114 &898224051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898224044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 1
+  <MinValue>k__BackingField: 0
+  _value: 1
 --- !u!1 &1037590258
 GameObject:
   m_ObjectHideFlags: 0
@@ -4889,11 +4919,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1224735541}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1251919857 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3957086677548363848, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-  m_PrefabInstance: {fileID: 2655072534278387991}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1298120797
 GameObject:
   m_ObjectHideFlags: 0
@@ -7148,6 +7173,7 @@ GameObject:
   - component: {fileID: 1749388457}
   - component: {fileID: 1749388461}
   - component: {fileID: 1749388462}
+  - component: {fileID: 1749388463}
   m_Layer: 10
   m_Name: Ally1
   m_TagString: Ally
@@ -7263,16 +7289,8 @@ MonoBehaviour:
   board: {fileID: 579526130}
   turnManager: {fileID: 579526124}
   attackSystem: {fileID: 579526128}
-  rageObject: {fileID: 0}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
-  curseExpandTime: 0.25
-  curseHoldTime: 3
-  curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 1251919857}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  actionPoints: {fileID: 0}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1749388462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7286,13 +7304,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: 69d2227c9628c384d9268dcf4bc010bf, type: 2}
-  <WillType>k__BackingField: 0
+  health: {fileID: 1749388463}
   pos: {x: 5, y: 0, z: 4}
   team: 0
-  baseAtk: 1
-  hp: 1
-  rangeType: 1
+  fallbackRangeType: 0
+  baseAtk: 2
+  <WillType>k__BackingField: 4
   modelTransform: {fileID: 1749388460}
+--- !u!114 &1749388463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1749388456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 2
+  <MinValue>k__BackingField: 0
+  _value: 2
 --- !u!1 &1782467077
 GameObject:
   m_ObjectHideFlags: 0
@@ -8218,6 +8251,7 @@ GameObject:
   - component: {fileID: 1996722151}
   - component: {fileID: 1996722155}
   - component: {fileID: 1996722156}
+  - component: {fileID: 1996722157}
   m_Layer: 10
   m_Name: Ally2
   m_TagString: Ally
@@ -8333,16 +8367,8 @@ MonoBehaviour:
   board: {fileID: 579526130}
   turnManager: {fileID: 579526124}
   attackSystem: {fileID: 579526128}
-  rageObject: {fileID: 0}
-  rageExpandTime: 0.25
-  rageHoldTime: 0.3
-  effectHeight: 0.12
-  curseObject: {fileID: 0}
-  curseExpandTime: 0.25
-  curseHoldTime: 3
-  curseEffectHeight: 0.12
-  SuccesionObject: {fileID: 1251919857}
-  testObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
+  actionPoints: {fileID: 0}
+  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1996722156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8356,13 +8382,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: 198c5840683c9e64b9dfbd7e9bd63b2f, type: 2}
-  <WillType>k__BackingField: 2
+  health: {fileID: 1996722157}
   pos: {x: 2, y: 0, z: 1}
   team: 0
-  baseAtk: 1
-  hp: 1
-  rangeType: 2
+  fallbackRangeType: 0
+  baseAtk: 0
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1996722154}
+--- !u!114 &1996722157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996722150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
+  <MaxValue>k__BackingField: 7
+  <MinValue>k__BackingField: 0
+  _value: 7
 --- !u!1 &2007069828
 GameObject:
   m_ObjectHideFlags: 0

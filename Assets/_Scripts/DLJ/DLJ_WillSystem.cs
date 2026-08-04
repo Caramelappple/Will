@@ -1,7 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [RequireComponent(typeof(LDY_Animal))]
 public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
@@ -9,27 +8,14 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
     [SerializeField] private LDY_BoardManager board;
     [SerializeField] private LDY_TurnManager turnManager;
     [SerializeField] private LDY_AttackSystem attackSystem;
-
-    [Header("Rage")]
-    [SerializeField] private GameObject rageObject;
-    [SerializeField] private float rageExpandTime = 0.25f;
-    [SerializeField] private float rageHoldTime = 0.3f;
-    [SerializeField] private float effectHeight = 0.12f;
-
-    [Header("Curse")]
-    [SerializeField] private GameObject curseObject;
-    [SerializeField] private float curseExpandTime = 0.25f;
-    [SerializeField] private float curseEffectHeight = 0.12f;
-
-    [Header("Succession")]
-    [FormerlySerializedAs("SuccesionObject")]
-    [SerializeField] private GameObject successionObject;
+    [SerializeField] private LDY_ActionPointManager actionPoints;
+    [SerializeField] private DLJ_WillDatabaseSO willDatabase;
 
     private LSO_IWill currentWill;
 
     public bool ShouldDeferDestruction =>
-        currentWill != null &&
-        currentWill.ShouldDeferDestruction;
+        currentWill is DLJ_IDeferredDestruction deferredDestruction &&
+        deferredDestruction.ShouldDeferDestruction;
 
     private void Awake()
     {
@@ -39,6 +25,8 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
             turnManager = FindFirstObjectByType<LDY_TurnManager>();
         if (attackSystem == null)
             attackSystem = FindFirstObjectByType<LDY_AttackSystem>();
+        if (actionPoints == null)
+            actionPoints = FindFirstObjectByType<LDY_ActionPointManager>();
     }
 
     private void Start()
@@ -51,16 +39,14 @@ public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
         context.board = board;
         context.turnManager = turnManager;
         context.attackSystem = attackSystem;
-        context.rageObject = rageObject;
-        context.rageExpandTime = rageExpandTime;
-        context.rageHoldTime = rageHoldTime;
-        context.effectHeight = effectHeight;
-        context.curseObject = curseObject;
-        context.curseExpandTime = curseExpandTime;
-        context.curseEffectHeight = curseEffectHeight;
-        context.successionObject = successionObject;
+        context.actionPoints = actionPoints;
+        DLJ_WillData willData =
+            willDatabase != null ? willDatabase.Get(animal.WillType) : null;
 
-        currentWill = LSO_WillFactory.Create(animal.WillType, context);
+        currentWill = LSO_WillFactory.Create(
+            animal.WillType,
+            context,
+            willData);
     }
 
     public void WillActivate()

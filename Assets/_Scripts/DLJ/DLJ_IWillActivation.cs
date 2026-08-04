@@ -1,5 +1,4 @@
-public interface DLJ_IWillActivation
+public interface DLJ_IWillActivation : DLJ_IDeferredDestruction
 {
-    bool ShouldDeferDestruction { get; }
     void WillActivate();
 }

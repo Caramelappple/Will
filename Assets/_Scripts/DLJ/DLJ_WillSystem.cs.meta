@@ -7,9 +7,7 @@ MonoImporter:
   - board: {instanceID: 0}
   - turnManager: {instanceID: 0}
   - attackSystem: {instanceID: 0}
-  - rageObject: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
-  - curseObject: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
-  - successionObject: {fileID: 3957086677548363848, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
+  - willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData:

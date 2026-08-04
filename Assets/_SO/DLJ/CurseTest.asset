@@ -16,6 +16,7 @@ MonoBehaviour:
   description: 
   maxHealth: 2
   damage: 2
-  rangeType: 0
-  willType: 1
-  abilityType: 0
+  cost: 4
+  range: 0
+  ability: 0
+  unitPrefab: {fileID: 0}

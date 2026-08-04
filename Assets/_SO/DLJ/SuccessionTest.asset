@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
   animalName: 
   description: 
-  maxHealth: 0
+  maxHealth: 7
   damage: 0
-  rangeType: 0
-  willType: 2
-  abilityType: 0
+  cost: 3
+  range: 0
+  ability: 0
+  unitPrefab: {fileID: 0}
