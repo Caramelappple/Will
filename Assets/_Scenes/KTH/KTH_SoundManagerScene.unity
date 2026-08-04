@@ -531,7 +531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dedc7bae5029ef44865ecad7d40ad1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
-  library: {fileID: 11400000, guid: a3090367bf0d11b42bb87e2462a7fd40, type: 2}
+  soundLibrary: {fileID: 11400000, guid: a3090367bf0d11b42bb87e2462a7fd40, type: 2}
   sfxPlayer: {fileID: 1318037384}
   bgmPlayer: {fileID: 648320122}
 --- !u!1 &328570324

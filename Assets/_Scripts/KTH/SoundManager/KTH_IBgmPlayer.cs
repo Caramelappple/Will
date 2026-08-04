@@ -1,8 +1,10 @@
-public interface KTH_IAudioPlayer
+public interface KTH_IBgmPlayer
 {
-    void Play(KTH_SoundData data);
+    void Play(KTH_BgmData data);
+
     void Stop();
 
     void SetVolume(float volume);
+
     void SetMasterVolume(float volume);
 }

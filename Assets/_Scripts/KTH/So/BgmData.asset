@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57ee3e850ae1e0b42a72e866ce351f0b, type: 3}
-  m_Name: SoundData
-  m_EditorClassIdentifier: Assembly-CSharp::SoundData
+  m_Script: {fileID: 11500000, guid: 682b0caf1d5e7fb469944e3f56e23b0c, type: 3}
+  m_Name: BgmData
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_BgmData
   id: 1
   clip: {fileID: 8300000, guid: 2ad8734fbb1ed14478f02156fbfc723c, type: 3}
-  volume: 0.775
+  volume: 0.513
   loop: 1
