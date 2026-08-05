@@ -44,6 +44,18 @@ namespace _Scripts.LDY
             Current = maxActionPoints;
         }
 
+        /// <summary>
+        /// 스테이지마다 다른 행동력을 적용할 때 쓴다. 현재 값도 함께 채워서,
+        /// 턴 매니저가 이미 초기화를 마친 뒤에 호출돼도 옛 최대치가 남지 않게 한다.
+        /// </summary>
+        public void SetMax(int value)
+        {
+            if (value <= 0) return;
+
+            maxActionPoints = value;
+            ResetPoints();
+        }
+
         public bool TryConsume(int amount = 1)
         {
             if (Current < amount) return false;
