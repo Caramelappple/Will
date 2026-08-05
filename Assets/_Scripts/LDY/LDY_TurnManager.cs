@@ -48,7 +48,7 @@ namespace _Scripts.LDY
             return (moveSystem != null && moveSystem.IsBusy) || (attackSystem != null && attackSystem.IsBusy);
         }
 
-        private void EndPlayerTurn()
+        public void EndPlayerTurn()
         {
             _isProcessingTurn = true;
             CurrentTurn = LDY_Team.Enemy;

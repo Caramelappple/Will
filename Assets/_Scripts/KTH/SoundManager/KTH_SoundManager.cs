@@ -17,7 +17,8 @@ public class KTH_SoundManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        if (!Instance)
+            Instance = this;
 
         repository = soundLibrary;
 

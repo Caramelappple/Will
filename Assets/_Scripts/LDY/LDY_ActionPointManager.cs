@@ -8,30 +8,60 @@ namespace _Scripts.LDY
     public class LDY_ActionPointManager : MonoBehaviour
     {
         [SerializeField] private int maxActionPoints = 5;
-
+        private const int minActionPoints = 0;
+        
+        private int _current;
+    
         public int Max => maxActionPoints;
-        public int Current { get; private set; }
-        public bool HasActionPoints => Current > 0;
+        public int Min => minActionPoints;
+        
+        public int Current
+        {
+            get => _current;
+            private set
+            {
+                int clamped = Mathf.Clamp(value, minActionPoints, maxActionPoints);
+                if (clamped == _current) return;   // 값이 안 바뀌면 이벤트도 안 쏜다
 
+                _current = clamped;
+                OnActionPointsChanged?.Invoke(_current, maxActionPoints);
+            }
+        }
+
+        public bool HasActionPoints => Current > 0;
+        
+        //첫번째가 현재, 두번째가 최대
         public event System.Action<int, int> OnActionPointsChanged;
 
         private void Awake()
         {
             Current = maxActionPoints;
+            _current = Current;
         }
 
         public void ResetPoints()
         {
             Current = maxActionPoints;
-            OnActionPointsChanged?.Invoke(Current, maxActionPoints);
         }
 
         public bool TryConsume(int amount = 1)
         {
             if (Current < amount) return false;
             Current -= amount;
-            OnActionPointsChanged?.Invoke(Current, maxActionPoints);
             return true;
+        }
+
+        public void AddActionPoints(int amount = 1)
+        {
+            if (amount <= 0) return;
+            Current += amount;
+        }
+
+        public void MaxUpActionPoints(int amount = 1)
+        {
+            if (amount <= 0) return;
+            maxActionPoints += amount;
+            ResetPoints();
         }
     }
 }

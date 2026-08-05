@@ -47,7 +47,6 @@ public class KTH_InfoPanelController : MonoBehaviour
             return;
         }
         Debug.Log($"Show {data.Animal.animalName}");
-
         // 1. 데이터 세팅
         if (iconImage) iconImage.sprite = data.Image;
         if (nameText) nameText.text = data.AnimalName;
