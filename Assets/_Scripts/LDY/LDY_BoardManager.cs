@@ -76,6 +76,22 @@ namespace _Scripts.LDY
                 _grid[animal.pos.x, animal.pos.z] = null;
         }
 
+        /// <summary>보드 위의 모든 기물을 격자에서 지우고 오브젝트도 파괴한다. 스테이지를 갈아끼울 때 쓴다.</summary>
+        public void ClearAll()
+        {
+            for (int x = 0; x < Size; x++)
+            {
+                for (int z = 0; z < Size; z++)
+                {
+                    var animal = _grid[x, z];
+                    _grid[x, z] = null;
+
+                    if (animal != null)
+                        Destroy(animal.gameObject);
+                }
+            }
+        }
+
         public List<LDY_Animal> GetAllByTeam(LDY_Team team)
         {
             var result = new List<LDY_Animal>();
