@@ -7,6 +7,8 @@ namespace _Scripts.LDY
     // 씬 배선: TurnManager/MoveSystem/AttackSystem/EnemyAI가 전부 같은 인스턴스를 참조해야 한다.
     public class LDY_ActionPointManager : MonoBehaviour
     {
+        public static LDY_ActionPointManager instance;
+        
         [SerializeField] private int maxActionPoints = 5;
         private const int minActionPoints = 0;
         
@@ -35,6 +37,9 @@ namespace _Scripts.LDY
 
         private void Awake()
         {
+            if (instance == null)
+                instance = this;
+                
             Current = maxActionPoints;
             _current = Current;
         }
