@@ -35,7 +35,7 @@ public static class DLJ_WillRuntime
         if (willDatabase == null)
             return null;
 
-        DLJ_WillData data = willDatabase.Get(animal.WillType);
+        DLJ_WillDataSO data = willDatabase.Get(animal.WillType);
         if (data == null)
             return null;
 

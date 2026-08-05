@@ -7,7 +7,7 @@ using UnityEngine;
 [AddComponentMenu("")]
 public sealed class DLJ_RageSystem : MonoBehaviour
 {
-    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         return new DLJ_RageWill(context, data);
     }
@@ -18,9 +18,9 @@ internal sealed class DLJ_RageWill : LSO_IWill
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
-    private readonly DLJ_WillData data;
+    private readonly DLJ_WillDataSO data;
 
-    internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillData sourceData)
+    internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
         owner = context.animal;
         board = context.board;

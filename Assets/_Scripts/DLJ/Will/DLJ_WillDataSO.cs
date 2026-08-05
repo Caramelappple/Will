@@ -2,8 +2,9 @@ using UnityEngine;
 
 namespace _Scripts.LSO.Will
 {
-    /// <summary>Base data contract consumed by the will factory.</summary>
-    public abstract class DLJ_WillData : ScriptableObject
+    /// <summary>Standalone settings asset for one will type.</summary>
+    [CreateAssetMenu(fileName = "DLJ_WillData", menuName = "DLJ/Will/Data")]
+    public sealed class DLJ_WillDataSO : ScriptableObject
     {
         [Header("Type")]
         public LSO_WillType willType;
