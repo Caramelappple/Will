@@ -2301,7 +2301,7 @@ MonoBehaviour:
     m_Bits: 256
   targetCamera: {fileID: 0}
   turnManager: {fileID: 579526124}
-  cardPlacer: {fileID: 0}
+  cardPlacer: {fileID: 579526132}
 --- !u!114 &579526127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2315,8 +2315,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_TileHighlighter
   board: {fileID: 579526130}
-  moveHighlightPrefab: {fileID: 936661059025204846, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
-  attackHighlightPrefab: {fileID: 2991071489099755769, guid: 8347fe02b9cad85429294651be512654, type: 3}
+  moveHighlightPrefab: {fileID: 2202577059168248849, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
+  attackHighlightPrefab: {fileID: 5323414942771181339, guid: 8347fe02b9cad85429294651be512654, type: 3}
   attackHeightOffset: 0.05
   moveHeightOffset: 0.08
 --- !u!114 &579526128
@@ -2397,9 +2397,9 @@ MonoBehaviour:
   maxCost: 3
   boardLayerMask:
     serializedVersion: 2
-    m_Bits: 0
-  highlighter: {fileID: 0}
-  targetCamera: {fileID: 0}
+    m_Bits: 256
+  highlighter: {fileID: 579526127}
+  targetCamera: {fileID: 257224524}
 --- !u!1 &626929117
 GameObject:
   m_ObjectHideFlags: 0
@@ -7309,7 +7309,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   baseAtk: 2
-  <WillType>k__BackingField: 4
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1749388460}
 --- !u!114 &1749388463
 MonoBehaviour:
@@ -8387,7 +8387,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   baseAtk: 0
-  <WillType>k__BackingField: 2
+  <WillType>k__BackingField: 0
   modelTransform: {fileID: 1996722154}
 --- !u!114 &1996722157
 MonoBehaviour:
