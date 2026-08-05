@@ -1,16 +1,7 @@
 using UnityEngine;
 
-public class DLJ_SacrificeEffect : MonoBehaviour
+/// <summary>Legacy placeholder. Sacrifice has no per-animal effect component.</summary>
+[AddComponentMenu("")]
+public sealed class DLJ_SacrificeEffect : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

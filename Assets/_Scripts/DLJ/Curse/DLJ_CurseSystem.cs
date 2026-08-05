@@ -1,139 +1,76 @@
-using System;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
-public class DLJ_CurseSystem : MonoBehaviour, LSO_IWill
+/// <summary>Legacy component shim. Runtime wills no longer use animal components.</summary>
+[AddComponentMenu("")]
+public sealed class DLJ_CurseSystem : MonoBehaviour
 {
-    private int remainingTurn;
-    private int damage;
-    private int range;
-
-    private LDY_TurnManager activationTurnManager;
-    private LDY_BoardManager activationBoard;
-    private LDY_AttackSystem activationAttackSystem;
-    private LDY_Team activationSourceTeam;
-
-    public event Action<DLJ_CurseActivationData> OnCurseActivated;
-
-    public static LSO_IWill Create(
-        DLJ_WillContext context,
-        DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
     {
-        DLJ_CurseSystem system =
-            context.owner.GetComponent<DLJ_CurseSystem>();
+        return new DLJ_CurseWill(context, data);
+    }
+}
 
-        if (system == null)
-            system = context.owner.AddComponent<DLJ_CurseSystem>();
+internal sealed class DLJ_CurseWill : LSO_IWill
+{
+    private readonly LDY_Animal owner;
+    private readonly LDY_TurnManager turnManager;
+    private readonly LDY_BoardManager board;
+    private readonly LDY_AttackSystem attackSystem;
+    private readonly DLJ_WillData data;
 
-        system.Configure(
-            data.duration,
-            data.damage,
-            data.range,
-            context.turnManager,
-            context.board,
-            context.attackSystem,
-            context.animal.team);
-
-        DLJ_CurseEffect effect = context.owner.GetComponent<DLJ_CurseEffect>();
-        if (effect == null)
-            effect = context.owner.AddComponent<DLJ_CurseEffect>();
-
-        effect.Bind(
-            system,
-            data.effectPrefab,
-            data.expandTime,
-            data.effectHeight);
-        
-        return system;
+    internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillData sourceData)
+    {
+        owner = context.animal;
+        turnManager = context.turnManager;
+        board = context.board;
+        attackSystem = context.attackSystem;
+        data = sourceData;
     }
 
     public void InvokeWill()
     {
-        Activate();
-    }
+        if (owner == null || turnManager == null || board == null || attackSystem == null)
+        {
+            Debug.LogError("Curse dependencies are missing.");
+            return;
+        }
 
-    public void Configure(
-        int sourceDuration,
-        int sourceDamage,
-        int sourceRange,
-        LDY_TurnManager turnManager,
-        LDY_BoardManager boardManager,
-        LDY_AttackSystem attackSystem,
-        LDY_Team sourceTeam)
-    {
-        remainingTurn = sourceDuration;
-        damage = sourceDamage;
-        range = sourceRange;
-        activationTurnManager = turnManager;
-        activationBoard = boardManager;
-        activationAttackSystem = attackSystem;
-        activationSourceTeam = sourceTeam;
-    }
+        Vector3Int center = owner.pos;
+        if (!board.IsInside(center))
+        {
+            Debug.LogError("Curse owner is outside the board.");
+            return;
+        }
 
-    public bool Activate()
-    {
-        if (!TryGetActivationData(
-                out Vector3Int center,
-                out Vector3 centerWorld,
-                out Vector3 areaSize))
-            return false;
+        Vector3 centerWorld = board.GridToWorld(center);
+        Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
+        Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));
+        float diameter = data.range * 2f + 1f;
 
-        DLJ_CurseActivationData activationData =
-            new DLJ_CurseActivationData();
-        activationData.duration = remainingTurn;
-        activationData.damage = damage;
-        activationData.range = range;
-        activationData.center = center;
-        activationData.centerWorld = centerWorld;
-        activationData.areaSize = areaSize;
-        activationData.sourceTeam = activationSourceTeam;
-        activationData.turnManager = activationTurnManager;
-        activationData.board = activationBoard;
-        activationData.attackSystem = activationAttackSystem;
+        DLJ_CurseActivationData activation = new DLJ_CurseActivationData
+        {
+            duration = data.duration,
+            damage = data.damage,
+            range = data.range,
+            center = center,
+            centerWorld = centerWorld,
+            areaSize = new Vector3(
+                Vector3.Distance(centerWorld, verticalWorld) * diameter,
+                0f,
+                Vector3.Distance(centerWorld, horizontalWorld) * diameter),
+            sourceTeam = owner.team,
+            turnManager = turnManager,
+            board = board,
+            attackSystem = attackSystem
+        };
 
-        OnCurseActivated?.Invoke(activationData);
-
+        DLJ_CurseEffect.Play(
+            activation,
+            data.effectPrefab,
+            data.expandTime,
+            data.effectHeight);
         Debug.Log("Curse Activated");
-        return true;
     }
-
-    private bool TryGetActivationData(
-        out Vector3Int center,
-        out Vector3 centerWorld,
-        out Vector3 areaSize)
-    {
-        center = default;
-        centerWorld = default;
-        areaSize = default;
-
-        if (activationTurnManager == null ||
-            activationBoard == null ||
-            activationAttackSystem == null)
-        {
-            Debug.LogError($"{name}: Curse dependencies are missing.", this);
-            return false;
-        }
-
-        center = activationBoard.WorldToGrid(transform.position);
-
-        if (!activationBoard.IsInside(center))
-        {
-            Debug.LogError($"{name}: Animal is outside the board.", this);
-            return false;
-        }
-
-        centerWorld = activationBoard.GridToWorld(center);
-        Vector3 verticalWorld =
-            activationBoard.GridToWorld(center + new Vector3Int(0, 0, 1));
-        Vector3 horizontalWorld =
-            activationBoard.GridToWorld(center + new Vector3Int(1, 0, 0));
-
-        float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
-        float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
-        float diameter = range * 2f + 1f;
-        areaSize = new Vector3(cellWidth * diameter, 0f, cellDepth * diameter);
-        return true;
-    }
-
 }

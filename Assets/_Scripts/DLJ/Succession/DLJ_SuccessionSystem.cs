@@ -1,11 +1,28 @@
-using System;
 using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
+using DG.Tweening;
 using UnityEngine;
 
-[RequireComponent(typeof(LDY_Animal))]
-public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestruction
+/// <summary>Legacy component shim and the public succession-selection entry point.</summary>
+[AddComponentMenu("")]
+public sealed class DLJ_SuccessionSystem : MonoBehaviour
+{
+    public static bool IsWaitingForSuccessionTarget =>
+        DLJ_SuccessionWill.IsWaitingForSuccessionTarget;
+
+    public static bool TrySelectSuccessionTarget(LDY_Animal target)
+    {
+        return DLJ_SuccessionWill.TrySelectSuccessionTarget(target);
+    }
+
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
+    {
+        return new DLJ_SuccessionWill(context, data);
+    }
+}
+
+internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 {
     private static bool isWaitingForSuccessionTarget;
     private static bool isCompletingSuccession;
@@ -13,41 +30,35 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestr
     private static int successionHealthBonus;
     private static int successionAttackBonus;
     private static float timeScaleBeforeSuccession = 1f;
-    private static DLJ_SuccessionSystem successionSource;
+    private static DLJ_SuccessionWill successionSource;
 
-    private LDY_Animal animal;
+    private readonly LDY_Animal animal;
+    private readonly GameObject effectPrefab;
+    private readonly float moveDuration;
+    private GameObject effectInstance;
+
+    internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillData data)
+    {
+        animal = context.animal;
+        effectPrefab = data.effectPrefab;
+        moveDuration = data.moveDuration;
+    }
 
     public static bool IsWaitingForSuccessionTarget =>
         isWaitingForSuccessionTarget && !isCompletingSuccession;
 
     public bool ShouldDeferDestruction =>
-        isWaitingForSuccessionTarget &&
-        successionSource == this;
+        isWaitingForSuccessionTarget && successionSource == this;
 
-    public event Action<Vector3> OnSelectionStarted;
-    public event Action<Vector3, Action> OnTargetSelected;
-    public event Action OnSuccessionFinished;
-
-    public static LSO_IWill Create(
-        DLJ_WillContext context,
-        DLJ_WillData data)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
     {
-        DLJ_SuccessionSystem system =
-            context.owner.GetComponent<DLJ_SuccessionSystem>();
-
-        if (system == null)
-            system = context.owner.AddComponent<DLJ_SuccessionSystem>();
-
-        system.Initialize();
-
-        DLJ_SuccessionEffect effect =
-            context.owner.GetComponent<DLJ_SuccessionEffect>();
-        if (effect == null)
-            effect = context.owner.AddComponent<DLJ_SuccessionEffect>();
-
-        effect.Bind(system, data.effectPrefab, data.moveDuration);
-
-        return system;
+        isWaitingForSuccessionTarget = false;
+        isCompletingSuccession = false;
+        successionSource = null;
+        successionHealthBonus = 0;
+        successionAttackBonus = 0;
+        timeScaleBeforeSuccession = 1f;
     }
 
     public void InvokeWill()
@@ -55,34 +66,14 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestr
         Activate();
     }
 
-    private void Awake()
-    {
-        animal = GetComponent<LDY_Animal>();
-    }
-
-    public void Initialize()
-    {
-        if (animal == null)
-            animal = GetComponent<LDY_Animal>();
-    }
-
     public bool Activate()
     {
         if (isWaitingForSuccessionTarget || isCompletingSuccession)
             return false;
 
-        if (animal == null)
-            animal = GetComponent<LDY_Animal>();
-
-        if (animal == null)
+        if (animal == null || animal.data == null)
         {
-            Debug.LogError($"{name}: LDY_Animal component is missing.", this);
-            return false;
-        }
-
-        if (animal.data == null)
-        {
-            Debug.LogError($"{name}: Animal data is missing.", this);
+            Debug.LogError("Succession animal data is missing.");
             return false;
         }
 
@@ -94,7 +85,18 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestr
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
 
-        OnSelectionStarted?.Invoke(transform.position);
+        if (effectPrefab != null)
+        {
+            effectInstance = Object.Instantiate(
+                effectPrefab,
+                animal.transform.position,
+                Quaternion.identity);
+            effectInstance.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Succession effect prefab is missing.");
+        }
 
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
@@ -106,9 +108,7 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestr
         if (!IsWaitingForSuccessionTarget || successionSource == null)
             return false;
 
-        if (target == null ||
-            target.health == null ||
-            target.health.IsDestroyed)
+        if (target == null || target.health == null || target.health.IsDestroyed)
         {
             Debug.LogWarning("Invalid succession target.");
             return false;
@@ -120,60 +120,57 @@ public class DLJ_SuccessionSystem : MonoBehaviour, LSO_IWill, DLJ_IDeferredDestr
             return false;
         }
 
-        CompleteSuccession(target);
+        isCompletingSuccession = true;
+        successionSource.MoveEffectAndApply(target);
         return true;
     }
 
-    private static void CompleteSuccession(LDY_Animal target)
+    private void MoveEffectAndApply(LDY_Animal target)
     {
-        isCompletingSuccession = true;
-
-        if (successionSource.OnTargetSelected == null)
+        if (effectInstance == null)
         {
             ApplySuccession(target);
             return;
         }
 
-        successionSource.OnTargetSelected.Invoke(
-            target.transform.position,
-            () => ApplySuccession(target));
-
-        Debug.Log("Succession Finished");
+        effectInstance.transform
+            .DOMove(target.transform.position, moveDuration)
+            .SetEase(Ease.Linear)
+            .SetUpdate(true)
+            .OnComplete(() => ApplySuccession(target));
     }
 
     private static void ApplySuccession(LDY_Animal target)
     {
-        DLJ_SuccessionSystem sourceToDestroy = successionSource;
+        DLJ_SuccessionWill source = successionSource;
 
-        if (target != null &&
-            target.health != null &&
-            !target.health.IsDestroyed)
+        if (target != null && target.health != null && !target.health.IsDestroyed)
         {
-            RecoverData recoverData =
-                RecoverData.Create(null, successionHealthBonus);
-            target.health.Recover(recoverData);
+            target.health.Recover(RecoverData.Create(null, successionHealthBonus));
             target.baseAtk += successionAttackBonus;
         }
 
         FinishSuccession();
 
-        if (sourceToDestroy != null)
-            Destroy(sourceToDestroy.gameObject);
+        if (source != null && source.animal != null)
+            Object.Destroy(source.animal.gameObject);
+
+        Debug.Log("Succession Finished");
     }
 
     private static void FinishSuccession()
     {
-        successionSource?.OnSuccessionFinished?.Invoke();
+        DLJ_SuccessionWill source = successionSource;
+        if (source != null && source.effectInstance != null)
+        {
+            source.effectInstance.transform.DOKill();
+            Object.Destroy(source.effectInstance);
+            source.effectInstance = null;
+        }
 
         isWaitingForSuccessionTarget = false;
         isCompletingSuccession = false;
         successionSource = null;
         Time.timeScale = timeScaleBeforeSuccession;
-    }
-
-    private void OnDestroy()
-    {
-        if (successionSource == this)
-            FinishSuccession();
     }
 }

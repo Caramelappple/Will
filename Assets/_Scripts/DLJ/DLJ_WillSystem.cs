@@ -1,62 +1,91 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
-[RequireComponent(typeof(LDY_Animal))]
-public class DLJ_WillSystem : MonoBehaviour, DLJ_IWillActivation
+/// <summary>
+/// Legacy component kept only so existing scenes do not gain a missing-script entry.
+/// LDY_DeathHandler now invokes wills directly from LDY_Animal.WillType.
+/// </summary>
+[AddComponentMenu("")]
+public sealed class DLJ_WillSystem : MonoBehaviour
 {
-    [SerializeField] private LDY_BoardManager board;
-    [SerializeField] private LDY_TurnManager turnManager;
-    [SerializeField] private LDY_AttackSystem attackSystem;
-    [SerializeField] private LDY_ActionPointManager actionPoints;
-    [SerializeField] private DLJ_WillDatabaseSO willDatabase;
+}
 
-    private LSO_IWill currentWill;
+/// <summary>Creates and invokes a will directly from an animal's WillType.</summary>
+public static class DLJ_WillRuntime
+{
+    private const string DatabasePath = "DLJ/DLJ_WillDatabase";
+    private static DLJ_WillDatabaseSO database;
 
-    public bool ShouldDeferDestruction =>
-        currentWill is DLJ_IDeferredDestruction deferredDestruction &&
-        deferredDestruction.ShouldDeferDestruction;
-
-    private void Awake()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
     {
-        if (board == null)
-            board = FindFirstObjectByType<LDY_BoardManager>();
-        if (turnManager == null)
-            turnManager = FindFirstObjectByType<LDY_TurnManager>();
-        if (attackSystem == null)
-            attackSystem = FindFirstObjectByType<LDY_AttackSystem>();
+        database = null;
+    }
+
+    public static LSO_IWill Invoke(LDY_Animal animal, LDY_BoardManager knownBoard = null)
+    {
+        if (animal == null)
+            return null;
+
+        DLJ_WillDatabaseSO willDatabase = GetDatabase();
+        if (willDatabase == null)
+            return null;
+
+        DLJ_WillData data = willDatabase.Get(animal.WillType);
+        if (data == null)
+            return null;
+
+        LDY_TurnManager turnManager = FindTurnManager();
+        LDY_AttackSystem attackSystem = Object.FindFirstObjectByType<LDY_AttackSystem>();
+        LDY_ActionPointManager actionPoints = turnManager != null
+            ? turnManager.ActionPoints
+            : null;
+        if (actionPoints == null && attackSystem != null)
+            actionPoints = attackSystem.ActionPoints;
         if (actionPoints == null)
-            actionPoints = FindFirstObjectByType<LDY_ActionPointManager>();
-    }
+            actionPoints = Object.FindFirstObjectByType<LDY_ActionPointManager>();
 
-    private void Start()
-    {
-        LDY_Animal animal = GetComponent<LDY_Animal>();
-
-        DLJ_WillContext context = new DLJ_WillContext();
-        context.owner = gameObject;
-        context.animal = animal;
-        context.board = board;
-        context.turnManager = turnManager;
-        context.attackSystem = attackSystem;
-        context.actionPoints = actionPoints;
-        DLJ_WillData willData =
-            willDatabase != null ? willDatabase.Get(animal.WillType) : null;
-
-        currentWill = LSO_WillFactory.Create(
-            animal.WillType,
-            context,
-            willData);
-    }
-
-    public void WillActivate()
-    {
-        if (currentWill == null)
+        DLJ_WillContext context = new DLJ_WillContext
         {
-            Debug.LogError($"{name}: Will is not initialized.", this);
-            return;
-        }
+            owner = animal.gameObject,
+            animal = animal,
+            board = knownBoard != null ? knownBoard : FindBoard(),
+            turnManager = turnManager,
+            attackSystem = attackSystem,
+            actionPoints = actionPoints
+        };
 
-        currentWill.InvokeWill();
+        LSO_IWill will = LSO_WillFactory.Create(animal.WillType, context, data);
+        will?.InvokeWill();
+        return will;
+    }
+
+    private static DLJ_WillDatabaseSO GetDatabase()
+    {
+        if (database == null)
+            database = Resources.Load<DLJ_WillDatabaseSO>(DatabasePath);
+
+        if (database == null)
+            Debug.LogError($"Will database is missing at Resources/{DatabasePath}.");
+
+        return database;
+    }
+
+    private static LDY_BoardManager FindBoard()
+    {
+        if (GameManager.HasInstance && GameManager.Instance.Board != null)
+            return GameManager.Instance.Board;
+
+        return Object.FindFirstObjectByType<LDY_BoardManager>();
+    }
+
+    private static LDY_TurnManager FindTurnManager()
+    {
+        if (GameManager.HasInstance && GameManager.Instance.TurnManager != null)
+            return GameManager.Instance.TurnManager;
+
+        return Object.FindFirstObjectByType<LDY_TurnManager>();
     }
 }

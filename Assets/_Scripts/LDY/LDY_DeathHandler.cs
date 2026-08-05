@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using _Scripts.LSO;
 using _Scripts.LSO.DeathSystem;
+using _Scripts.LSO.Will;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -46,10 +47,10 @@ namespace _Scripts.LDY
             NotifyOwnDeathAbilities(victim, killer);
             RaiseEnemyDead(victim);
 
-            var will = victim.GetComponent<DLJ_IWillActivation>();
-            will?.WillActivate();
+            LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
 
-            if (will == null || !will.ShouldDeferDestruction)
+            if (!(will is DLJ_IDeferredDestruction deferred) ||
+                !deferred.ShouldDeferDestruction)
                 Destroy(victim.gameObject);
         }
 
