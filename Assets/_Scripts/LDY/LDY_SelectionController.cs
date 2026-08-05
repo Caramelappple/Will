@@ -92,15 +92,15 @@ namespace _Scripts.LDY
         private void Select(LDY_Animal animal)
         {
             _selected = animal;
-            highlighter.ClearHighlights();
-            highlighter.ShowMoveHighlights(moveSystem.GetMovableTiles(animal));
-            highlighter.ShowAttackHighlights(attackSystem.GetAttackableTiles(animal));
+            highlighter.ClearHighlights(this);
+            highlighter.ShowMoveHighlights(this, moveSystem.GetMovableTiles(animal));
+            highlighter.ShowAttackHighlights(this, attackSystem.GetAttackableTiles(animal));
         }
 
         private void Deselect()
         {
             _selected = null;
-            highlighter.ClearHighlights();
+            highlighter.ClearHighlights(this);
         }
 
         private bool TryRaycastToGrid(out Vector3Int gridPos)

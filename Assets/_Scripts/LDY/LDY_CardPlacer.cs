@@ -175,14 +175,14 @@ namespace _Scripts.LDY
                 }
             }
 
-            highlighter.ClearHighlights();
-            highlighter.ShowMoveHighlights(tiles);
+            highlighter.ClearHighlights(this);
+            highlighter.ShowMoveHighlights(this, tiles);
         }
 
         private void ClearPlacementHighlights()
         {
             if (highlighter != null)
-                highlighter.ClearHighlights();
+                highlighter.ClearHighlights(this);
         }
 
         // 배치 가능 구역은 자기 진영 절반으로 제한한다 (Player=z 낮은 절반, Enemy=z 높은 절반).
