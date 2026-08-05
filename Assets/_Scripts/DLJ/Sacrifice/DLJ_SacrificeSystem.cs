@@ -6,7 +6,7 @@ using UnityEngine;
 [AddComponentMenu("")]
 public sealed class DLJ_SacrificeSystem : MonoBehaviour
 {
-    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         return new DLJ_SacrificeWill(context.animal, context.board);
     }

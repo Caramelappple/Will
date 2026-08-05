@@ -16,7 +16,7 @@ public sealed class DLJ_SuccessionSystem : MonoBehaviour
         return DLJ_SuccessionWill.TrySelectSuccessionTarget(target);
     }
 
-    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         return new DLJ_SuccessionWill(context, data);
     }
@@ -37,7 +37,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly float moveDuration;
     private GameObject effectInstance;
 
-    internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillData data)
+    internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         animal = context.animal;
         effectPrefab = data.effectPrefab;

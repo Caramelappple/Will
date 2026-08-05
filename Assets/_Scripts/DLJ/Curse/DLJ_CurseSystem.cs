@@ -6,7 +6,7 @@ using UnityEngine;
 [AddComponentMenu("")]
 public sealed class DLJ_CurseSystem : MonoBehaviour
 {
-    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         return new DLJ_CurseWill(context, data);
     }
@@ -18,9 +18,9 @@ internal sealed class DLJ_CurseWill : LSO_IWill
     private readonly LDY_TurnManager turnManager;
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
-    private readonly DLJ_WillData data;
+    private readonly DLJ_WillDataSO data;
 
-    internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillData sourceData)
+    internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
         owner = context.animal;
         turnManager = context.turnManager;

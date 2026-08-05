@@ -3868,7 +3868,6 @@ GameObject:
   - component: {fileID: 898224047}
   - component: {fileID: 898224046}
   - component: {fileID: 898224045}
-  - component: {fileID: 898224049}
   - component: {fileID: 898224050}
   - component: {fileID: 898224051}
   m_Layer: 10
@@ -3971,23 +3970,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &898224049
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 898224044}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  board: {fileID: 579526130}
-  turnManager: {fileID: 579526124}
-  attackSystem: {fileID: 579526128}
-  actionPoints: {fileID: 0}
-  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &898224050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7171,7 +7153,6 @@ GameObject:
   - component: {fileID: 1749388459}
   - component: {fileID: 1749388458}
   - component: {fileID: 1749388457}
-  - component: {fileID: 1749388461}
   - component: {fileID: 1749388462}
   - component: {fileID: 1749388463}
   m_Layer: 10
@@ -7274,23 +7255,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1749388461
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1749388456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  board: {fileID: 579526130}
-  turnManager: {fileID: 579526124}
-  attackSystem: {fileID: 579526128}
-  actionPoints: {fileID: 0}
-  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1749388462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8249,7 +8213,6 @@ GameObject:
   - component: {fileID: 1996722153}
   - component: {fileID: 1996722152}
   - component: {fileID: 1996722151}
-  - component: {fileID: 1996722155}
   - component: {fileID: 1996722156}
   - component: {fileID: 1996722157}
   m_Layer: 10
@@ -8352,23 +8315,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1996722155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1996722150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53c3d4af849656c4cba833eedd7d9b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WillSystem
-  board: {fileID: 579526130}
-  turnManager: {fileID: 579526124}
-  attackSystem: {fileID: 579526128}
-  actionPoints: {fileID: 0}
-  willDatabase: {fileID: 11400000, guid: 61c32ad962164fd2b0eae10d4bf3b34a, type: 2}
 --- !u!114 &1996722156
 MonoBehaviour:
   m_ObjectHideFlags: 0

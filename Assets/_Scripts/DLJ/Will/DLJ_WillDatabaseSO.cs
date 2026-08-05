@@ -8,7 +8,7 @@ namespace _Scripts.LSO.Will
     {
         [SerializeField] private List<DLJ_WillDataSO> wills = new();
 
-        public DLJ_WillData Get(LSO_WillType willType)
+        public DLJ_WillDataSO Get(LSO_WillType willType)
         {
             foreach (DLJ_WillDataSO will in wills)
             {
