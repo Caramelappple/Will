@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class KTH_SfxPlayer : MonoBehaviour, KTH_IAudioPlayer
+public class KTH_SfxPlayer : MonoBehaviour, KTH_ISfxPlayer
 {
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField]
+    private AudioSource audioSource;
 
     private float sfxVolume = 1f;
     private float masterVolume = 1f;
 
-    public void Play(KTH_SoundData data)
+    public void Play(KTH_SfxData data)
     {
-        float finalVolume = data.volume * sfxVolume * masterVolume;
-        audioSource.PlayOneShot(data.clip, finalVolume);
+        audioSource.PlayOneShot(data.clip, data.volume * sfxVolume * masterVolume);
     }
 
     public void Stop()

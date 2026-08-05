@@ -2,5 +2,7 @@ using UnityEngine;
 
 public interface KTH_ISoundRepository
 {
-    KTH_SoundData GetSound(string id);
+    KTH_SfxData GetSfx(SfxID id);
+
+    KTH_BgmData GetBgm(BgmID id);
 }

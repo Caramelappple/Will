@@ -4,43 +4,84 @@ public class KTH_SoundManager : MonoBehaviour
 {
     public static KTH_SoundManager Instance { get; private set; }
 
-    [SerializeField] private KTH_SoundLibrarySO library;
+    [Header("Repository")]
+    [SerializeField] private KTH_SoundLibrarySO soundLibrary;
+
+    [Header("Players")]
     [SerializeField] private KTH_SfxPlayer sfxPlayer;
     [SerializeField] private KTH_BgmPlayer bgmPlayer;
+
+    private KTH_ISoundRepository repository;
+    private KTH_ISfxPlayer sfx;
+    private KTH_IBgmPlayer bgm;
+
     private void Awake()
     {
         Instance = this;
+
+        repository = soundLibrary;
+
+        sfx = sfxPlayer;
+        bgm = bgmPlayer;
     }
 
-    public void PlaySfx(string id)
+    #region Play
+
+    public void PlaySfx(SfxID id)
     {
-        var data = library.GetSound(id);
+        var data = repository.GetSfx(id);
 
-        if (data != null)
-            sfxPlayer.Play(data);
+        if (data == null)
+        {
+            Debug.LogWarning($"SFX를 찾을 수 없습니다 : {id}");
+            return;
+        }
+
+        sfx.Play(data);
     }
 
-    public void PlayBgm(string id)
+    public void PlayBgm(BgmID id)
     {
+        var data = repository.GetBgm(id);
 
-        var data = library.GetSound(id);
-        if (data != null)
-            bgmPlayer.Play(data);
+        if (data == null)
+        {
+            Debug.LogWarning($"BGM을 찾을 수 없습니다 : {id}");
+            return;
+        }
+
+        bgm.Play(data);
     }
+
+    public void StopBgm()
+    {
+        bgm.Stop();
+    }
+
+    public void StopSfx()
+    {
+        sfx.Stop();
+    }
+
+    #endregion
+
+    #region Volume
 
     public void SetMasterVolume(float value)
     {
-        sfxPlayer.SetMasterVolume(value);
-        bgmPlayer.SetMasterVolume(value);
+        sfx.SetMasterVolume(value);
+        bgm.SetMasterVolume(value);
     }
 
     public void SetSfxVolume(float value)
     {
-        sfxPlayer.SetVolume(value);
+        sfx.SetVolume(value);
     }
 
     public void SetBgmVolume(float value)
     {
-        bgmPlayer.SetVolume(value);
+        bgm.SetVolume(value);
     }
+
+    #endregion
 }
