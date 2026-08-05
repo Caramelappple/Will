@@ -24,7 +24,9 @@ public static class DLJ_WillRuntime
         database = null;
     }
 
-    public static LSO_IWill Invoke(LDY_Animal animal, LDY_BoardManager knownBoard = null)
+    public static LSO_IWill Invoke(
+        LDY_Animal animal,
+        LDY_BoardManager legacyBoard = null)
     {
         if (animal == null)
             return null;
@@ -37,21 +39,24 @@ public static class DLJ_WillRuntime
         if (data == null)
             return null;
 
-        LDY_TurnManager turnManager = FindTurnManager();
-        LDY_AttackSystem attackSystem = Object.FindFirstObjectByType<LDY_AttackSystem>();
-        LDY_ActionPointManager actionPoints = turnManager != null
-            ? turnManager.ActionPoints
-            : null;
-        if (actionPoints == null && attackSystem != null)
-            actionPoints = attackSystem.ActionPoints;
-        if (actionPoints == null)
-            actionPoints = Object.FindFirstObjectByType<LDY_ActionPointManager>();
+        if (!GameManager.HasInstance)
+        {
+            Debug.LogError("GameManager is missing. Will cannot be invoked.");
+            return null;
+        }
+
+        GameManager gameManager = GameManager.Instance;
+        LDY_TurnManager turnManager = gameManager.TurnManager;
+        LDY_AttackSystem attackSystem =
+            Object.FindFirstObjectByType<LDY_AttackSystem>();
+        LDY_ActionPointManager actionPoints =
+            Object.FindFirstObjectByType<LDY_ActionPointManager>();
 
         DLJ_WillContext context = new DLJ_WillContext
         {
             owner = animal.gameObject,
             animal = animal,
-            board = knownBoard != null ? knownBoard : FindBoard(),
+            board = gameManager.Board,
             turnManager = turnManager,
             attackSystem = attackSystem,
             actionPoints = actionPoints
@@ -73,19 +78,4 @@ public static class DLJ_WillRuntime
         return database;
     }
 
-    private static LDY_BoardManager FindBoard()
-    {
-        if (GameManager.HasInstance && GameManager.Instance.Board != null)
-            return GameManager.Instance.Board;
-
-        return Object.FindFirstObjectByType<LDY_BoardManager>();
-    }
-
-    private static LDY_TurnManager FindTurnManager()
-    {
-        if (GameManager.HasInstance && GameManager.Instance.TurnManager != null)
-            return GameManager.Instance.TurnManager;
-
-        return Object.FindFirstObjectByType<LDY_TurnManager>();
-    }
 }

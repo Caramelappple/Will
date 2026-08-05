@@ -12,9 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c1d0f65a4684ca8a6d31f7db9e589a2, type: 3}
   m_Name: DLJ_WillDatabase
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.DLJ_WillDatabaseSO
-  wills:
-  - {fileID: 11400000, guid: 1f01234567894abcdef0123456789abc, type: 2}
-  - {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
-  - {fileID: 11400000, guid: 3f01234567894abcdef0123456789abc, type: 2}
-  - {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
-  - {fileID: 11400000, guid: 5f01234567894abcdef0123456789abc, type: 2}
+  wills: []
