@@ -1,140 +1,85 @@
-using System;
 using _Scripts.LDY;
+using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
-public class DLJ_RageSystem : MonoBehaviour, LSO_IWill
+/// <summary>Legacy component shim. Runtime wills no longer use animal components.</summary>
+[AddComponentMenu("")]
+public sealed class DLJ_RageSystem : MonoBehaviour
 {
-    private int damage;
-    private int range;
-
-    private LDY_BoardManager activationBoard;
-    private LDY_AttackSystem activationAttackSystem;
-
-    public event Action<Vector3, Vector3> OnRageActivated;
-
-    public static LSO_IWill Create(
-        DLJ_WillContext context,
-        DLJ_WillData data)
+    public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        DLJ_RageSystem system =
-            context.owner.GetComponent<DLJ_RageSystem>();
+        return new DLJ_RageWill(context, data);
+    }
+}
 
-        if (system == null)
-            system = context.owner.AddComponent<DLJ_RageSystem>();
+internal sealed class DLJ_RageWill : LSO_IWill
+{
+    private readonly LDY_Animal owner;
+    private readonly LDY_BoardManager board;
+    private readonly LDY_AttackSystem attackSystem;
+    private readonly DLJ_WillDataSO data;
 
-        system.Configure(
-            data.damage,
-            data.range,
-            context.board,
-            context.attackSystem);
-
-        DLJ_RageEffect effect = context.owner.GetComponent<DLJ_RageEffect>();
-        if (effect == null)
-            effect = context.owner.AddComponent<DLJ_RageEffect>();
-
-        effect.Bind(
-            system,
-            data.effectPrefab,
-            data.expandTime,
-            data.holdTime,
-            data.effectHeight);
-
-        return system;
+    internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
+    {
+        owner = context.animal;
+        board = context.board;
+        attackSystem = context.attackSystem;
+        data = sourceData;
     }
 
     public void InvokeWill()
     {
-        Activate();
-    }
+        if (owner == null || board == null || attackSystem == null)
+        {
+            Debug.LogError("Rage dependencies are missing.");
+            return;
+        }
 
-    public void Configure(
-        int sourceDamage,
-        int sourceRange,
-        LDY_BoardManager boardManager,
-        LDY_AttackSystem attackSystem)
-    {
-        damage = sourceDamage;
-        range = sourceRange;
-        activationBoard = boardManager;
-        activationAttackSystem = attackSystem;
-    }
-
-    public bool Activate()
-    {
-        if (!TryGetActivationData(
-                out Vector3Int center,
-                out Vector3 centerWorld,
-                out Vector3 areaSize))
-            return false;
+        Vector3Int center = owner.pos;
+        if (!board.IsInside(center))
+        {
+            Debug.LogError("Rage owner is outside the board.");
+            return;
+        }
 
         DamageAnimalsInArea(center);
-        OnRageActivated?.Invoke(centerWorld, areaSize);
 
+        Vector3 centerWorld = board.GridToWorld(center);
+        Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
+        Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));
+        float diameter = data.range * 2f + 1f;
+        Vector3 areaSize = new Vector3(
+            Vector3.Distance(centerWorld, verticalWorld) * diameter,
+            0f,
+            Vector3.Distance(centerWorld, horizontalWorld) * diameter);
+
+        DLJ_RageEffect.Play(
+            centerWorld,
+            areaSize,
+            data.effectPrefab,
+            data.expandTime,
+            data.holdTime,
+            data.effectHeight);
         Debug.Log("Rage Activated");
-        return true;
-    }
-
-    private bool TryGetActivationData(
-        out Vector3Int center,
-        out Vector3 centerWorld,
-        out Vector3 areaSize)
-    {
-        center = default;
-        centerWorld = default;
-        areaSize = default;
-
-        if (activationBoard == null || activationAttackSystem == null)
-        {
-            Debug.LogError($"{name}: Rage dependencies are missing.", this);
-            return false;
-        }
-
-        center = activationBoard.WorldToGrid(transform.position);
-
-        if (!activationBoard.IsInside(center))
-        {
-            Debug.LogError($"{name}: Animal is outside the board.", this);
-            return false;
-        }
-
-        centerWorld = activationBoard.GridToWorld(center);
-        Vector3 verticalWorld =
-            activationBoard.GridToWorld(center + new Vector3Int(0, 0, 1));
-        Vector3 horizontalWorld =
-            activationBoard.GridToWorld(center + new Vector3Int(1, 0, 0));
-
-        float cellWidth = Vector3.Distance(centerWorld, verticalWorld);
-        float cellDepth = Vector3.Distance(centerWorld, horizontalWorld);
-        float diameter = range * 2f + 1f;
-        areaSize = new Vector3(cellWidth * diameter, 0f, cellDepth * diameter);
-        return true;
     }
 
     private void DamageAnimalsInArea(Vector3Int center)
     {
-        for (int x = -range; x <= range; x++)
+        for (int x = -data.range; x <= data.range; x++)
+        for (int z = -data.range; z <= data.range; z++)
         {
-            for (int z = -range; z <= range; z++)
-            {
-                Vector3Int tile = center + new Vector3Int(x, 0, z);
+            Vector3Int tile = center + new Vector3Int(x, 0, z);
+            if (!board.IsInside(tile))
+                continue;
 
-                if (!activationBoard.IsInside(tile))
-                    continue;
+            LDY_Animal target = board.Get(tile);
+            if (target == null || target.health == null || target.health.IsDestroyed)
+                continue;
 
-                LDY_Animal target = activationBoard.Get(tile);
-
-                if (target == null ||
-                    target.health == null ||
-                    target.health.IsDestroyed)
-                    continue;
-
-                DamageData damageData = DamageData.Create(null, damage);
-                target.health.GetDamage(damageData);
-
-                if (target.health.IsDestroyed)
-                    activationAttackSystem.HandleDeath(target);
-            }
+            target.health.GetDamage(DamageData.Create(null, data.damage));
+            if (target.health.IsDestroyed)
+                attackSystem.HandleDeath(target);
         }
     }
 }

@@ -1,10 +1,10 @@
-using System;
 using UnityEngine;
 
 namespace _Scripts.LSO.Will
 {
-    [Serializable]
-    public class DLJ_WillData
+    /// <summary>Standalone settings asset for one will type.</summary>
+    [CreateAssetMenu(fileName = "DLJ_WillData", menuName = "DLJ/Will/Data")]
+    public sealed class DLJ_WillDataSO : ScriptableObject
     {
         [Header("Type")]
         public LSO_WillType willType;

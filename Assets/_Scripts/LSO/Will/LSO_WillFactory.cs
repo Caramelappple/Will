@@ -8,7 +8,7 @@ namespace _Scripts.LSO.Will
     {
         private static readonly Dictionary<
             LSO_WillType,
-            Func<DLJ_WillContext, DLJ_WillData, LSO_IWill>> Creators =
+            Func<DLJ_WillContext, DLJ_WillDataSO, LSO_IWill>> Creators =
             new()
             {
                 { LSO_WillType.Curse, DLJ_CurseSystem.Create },
@@ -21,11 +21,11 @@ namespace _Scripts.LSO.Will
         public static LSO_IWill Create(
             LSO_WillType type,
             DLJ_WillContext context,
-            DLJ_WillData data)
+            DLJ_WillDataSO data)
         {
             if (!Creators.TryGetValue(
                     type,
-                    out Func<DLJ_WillContext, DLJ_WillData, LSO_IWill> creator))
+                    out Func<DLJ_WillContext, DLJ_WillDataSO, LSO_IWill> creator))
             {
                 Debug.LogError($"Unknown will type: {type}");
                 return null;

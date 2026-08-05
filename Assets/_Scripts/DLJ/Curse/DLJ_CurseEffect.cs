@@ -1,47 +1,27 @@
 using DG.Tweening;
 using UnityEngine;
 
-public class DLJ_CurseEffect : MonoBehaviour
+[AddComponentMenu("")]
+public sealed class DLJ_CurseEffect : MonoBehaviour
 {
-    private DLJ_CurseSystem curseSystem;
-    private GameObject effectPrefab;
-    private float expandTime;
-    private float effectHeight;
-
-    public void Bind(
-        DLJ_CurseSystem system,
-        GameObject prefab,
-        float sourceExpandTime,
-        float sourceEffectHeight)
-    {
-        Unbind();
-
-        curseSystem = system;
-        effectPrefab = prefab;
-        expandTime = sourceExpandTime;
-        effectHeight = sourceEffectHeight;
-
-        if (curseSystem != null)
-            curseSystem.OnCurseActivated += Play;
-    }
-
-    private void Play(DLJ_CurseActivationData data)
+    public static void Play(
+        DLJ_CurseActivationData data,
+        GameObject effectPrefab,
+        float expandTime,
+        float effectHeight)
     {
         if (data == null)
             return;
 
         if (effectPrefab == null)
         {
-            Debug.LogError($"{name}: Curse effect prefab is missing.", this);
+            Debug.LogError("Curse effect prefab is missing.");
             return;
         }
 
-        Vector3 position =
-            data.centerWorld + Vector3.up * (effectHeight * 0.5f);
-        Vector3 targetScale =
-            new Vector3(data.areaSize.x, effectHeight, data.areaSize.z);
-
-        GameObject instance = Instantiate(effectPrefab, position, Quaternion.identity);
+        Vector3 position = data.centerWorld + Vector3.up * (effectHeight * 0.5f);
+        Vector3 targetScale = new Vector3(data.areaSize.x, effectHeight, data.areaSize.z);
+        GameObject instance = Object.Instantiate(effectPrefab, position, Quaternion.identity);
         instance.transform.localScale = Vector3.zero;
         instance.SetActive(true);
 
@@ -50,22 +30,6 @@ public class DLJ_CurseEffect : MonoBehaviour
             zone = instance.AddComponent<DLJ_CurseZone>();
 
         zone.Initialize(data);
-
-        instance.transform
-            .DOScale(targetScale, expandTime)
-            .SetEase(Ease.Linear);
-    }
-
-    private void Unbind()
-    {
-        if (curseSystem != null)
-            curseSystem.OnCurseActivated -= Play;
-
-        curseSystem = null;
-    }
-
-    private void OnDestroy()
-    {
-        Unbind();
+        instance.transform.DOScale(targetScale, expandTime).SetEase(Ease.Linear);
     }
 }
