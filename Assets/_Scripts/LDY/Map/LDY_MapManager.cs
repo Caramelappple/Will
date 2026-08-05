@@ -14,6 +14,9 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private bool isTest = false;
     private bool isWaitingSecondClick = false;
 
+    [Header("맵 씬 이름 (테스트 클리어 버튼 사용 후 복귀할 씬)")]
+    [SerializeField] private string mapSceneName = "MapScene";
+
     [Header("별자리 노드 (좌표/타입)")]
     [SerializeField] private Vector2[] nodePositions;
     [SerializeField] private LDY_NodeType[] nodeTypes;
@@ -164,6 +167,21 @@ public class LDY_MapManager : MonoBehaviour
     public void CompleteActiveNode()
     {
         if (activeNodeIndex >= 0) CompleteNode(activeNodeIndex);
+    }
+
+    // 테스트 씬의 버튼에서 호출: 활성 노드를 클리어 처리하고 곧바로 맵 씬으로 돌아간다.
+    // LDY_MapManager는 DontDestroyOnLoad라서 테스트 씬이 사라져도 이 매니저와 노드 상태는 그대로 유지된다.
+    public void CompleteActiveNodeAndReturnToMap()
+    {
+        CompleteActiveNode();
+
+        if (string.IsNullOrEmpty(mapSceneName))
+        {
+            Debug.LogWarning("[LDY_MapManager] mapSceneName이 비어 있어 맵 씬으로 돌아갈 수 없습니다.", this);
+            return;
+        }
+
+        SceneManager.LoadScene(mapSceneName);
     }
 
     // 특정 노드를 클리어 처리하고, 그 노드와 연결된 다음 노드들(분기면 여러 개)을 모두 unlock
