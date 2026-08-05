@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 
 namespace _Scripts.LSO.Will
 {
-    [Serializable]
-    public class DLJ_WillData
+    /// <summary>Base data contract consumed by the will factory.</summary>
+    public abstract class DLJ_WillData : ScriptableObject
     {
         [Header("Type")]
         public LSO_WillType willType;

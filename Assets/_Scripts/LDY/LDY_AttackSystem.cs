@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _Scripts.LSO;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.Will;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -17,6 +18,7 @@ namespace _Scripts.LDY
 
         // 공격 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         public bool IsBusy => _activeCount > 0;
+        public LDY_ActionPointManager ActionPoints => actionPoints;
         private int _activeCount;
 
         public List<Vector3Int> GetAttackableTiles(LDY_Animal attacker)
@@ -145,10 +147,10 @@ namespace _Scripts.LDY
             board.Remove(target);
             RaiseEnemyDead(target);
 
-            var will = target.GetComponent<DLJ_IWillActivation>();
-            will?.WillActivate();
+            LSO_IWill will = DLJ_WillRuntime.Invoke(target, board);
 
-            if (will == null || !will.ShouldDeferDestruction)
+            if (!(will is DLJ_IDeferredDestruction deferred) ||
+                !deferred.ShouldDeferDestruction)
                 Destroy(target.gameObject);
         }
 

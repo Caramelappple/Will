@@ -12,6 +12,7 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
 
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
+        public LDY_ActionPointManager ActionPoints => actionPoints;
         public event System.Action<LDY_Team> OnTurnChanged;
 
         private bool _isProcessingTurn;
