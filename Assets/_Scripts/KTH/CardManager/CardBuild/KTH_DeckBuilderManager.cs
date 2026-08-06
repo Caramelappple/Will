@@ -41,9 +41,25 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
     private bool isAnimating = false; // 연출 중 중복 클릭 방지 플래그
 
+    // 인벤토리에 담긴 카드의 고유 인덱스. 화면(하이라키)이 아니라 이 목록이 정답이다.
+    // UI는 이 목록을 그리기만 하므로, 정렬·필터·스크롤을 넣어도 상태가 흐트러지지 않는다.
+    private readonly List<int> _inventoryIndices = new List<int>();
+
     private void Awake()
     {
+        // 씬을 다시 열었을 때 이전 인스턴스를 덮어쓰지 않도록 먼저 자리를 잡은 쪽을 살린다.
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     private void Start()
@@ -78,59 +94,119 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     {
         currentPageIndex = 0;
 
-        ClearContainerImmediate(poolContainer);
-        ClearContainerImmediate(inventoryContainer);
+        BuildInitialInventory();
 
-        if (initialInventoryCards != null && cardUIPrefab != null && inventoryContainer != null)
-        {
-            for (int i = 0; i < initialInventoryCards.Count; i++)
-            {
-                // 초기 인벤토리 카드도 cardDatabase 내 고유 인덱스를 찾아서 함께 전달
-                // (동일 카드가 cardDatabase에 없으면 -1로 처리됨)
-                int dbIndex = cardDatabase.IndexOf(initialInventoryCards[i]);
-                CreateCardUI(initialInventoryCards[i], inventoryContainer, dbIndex, i * cardAnimInterval, true);
-            }
-            RefreshLayout(inventoryContainer);
-        }
+        ClearContainerImmediate(poolContainer);
+        RefreshInventoryView(true);
 
         // 시작 시 상단 풀 카드도 회전 연출 적용
         RefreshPoolPage(true);
     }
 
-    /// <summary>현재 인벤토리에 들어있는 카드의 고유 인덱스(DatabaseIndex) 목록 수집</summary>
-    public List<int> GetCurrentInventoryIndices()
+    /// <summary>인스펙터의 초기 인벤토리 카드를 고유 인덱스로 바꿔 목록에 담는다.</summary>
+    private void BuildInitialInventory()
     {
-        List<int> inventoryIndices = new List<int>();
-        if (inventoryContainer != null)
+        _inventoryIndices.Clear();
+
+        if (initialInventoryCards == null || cardDatabase == null) return;
+
+        foreach (LSO_CardSO card in initialInventoryCards)
         {
-            foreach (Transform child in inventoryContainer)
+            if (card == null) continue;
+
+            int index = ResolveUnclaimedIndex(card, _inventoryIndices);
+            if (index < 0)
             {
-                var cardUI = child.GetComponent<KTH_CardDragUI>();
-                if (cardUI != null && cardUI.DatabaseIndex != -1)
-                {
-                    inventoryIndices.Add(cardUI.DatabaseIndex);
-                }
+                Debug.LogWarning(
+                    $"[KTH_DeckBuilderManager] {card.name}가 cardDatabase에 없거나 수량이 모자라 인벤토리에 넣지 못했습니다.", card);
+                continue;
             }
+
+            _inventoryIndices.Add(index);
         }
-        return inventoryIndices;
     }
 
-    /// <summary>현재 인벤토리에 들어있는 CardData 리스트 반환 (씬 저장용)</summary>
+    /// <summary>인벤토리 목록대로 화면을 다시 그린다.</summary>
+    private void RefreshInventoryView(bool useFlipAnim = false)
+    {
+        if (inventoryContainer == null || cardUIPrefab == null) return;
+
+        ClearContainerImmediate(inventoryContainer);
+
+        for (int i = 0; i < _inventoryIndices.Count; i++)
+        {
+            int index = _inventoryIndices[i];
+            if (index < 0 || index >= cardDatabase.Count) continue;
+
+            CreateCardUI(cardDatabase[index], inventoryContainer, index, i * cardAnimInterval, useFlipAnim);
+        }
+
+        RefreshLayout(inventoryContainer);
+    }
+
+    /// <summary>현재 인벤토리에 담긴 카드의 고유 인덱스 목록. 읽기 전용.</summary>
+    public IReadOnlyList<int> GetCurrentInventoryIndices() => _inventoryIndices;
+
+    /// <summary>현재 인벤토리에 들어있는 카드 목록 (씬 저장용). 인덱스 목록에서 만들어낸다.</summary>
     public List<LSO_CardSO> GetCurrentInventoryCardData()
     {
         List<LSO_CardSO> inventoryList = new List<LSO_CardSO>();
-        if (inventoryContainer != null)
+
+        foreach (int index in _inventoryIndices)
         {
-            foreach (Transform child in inventoryContainer)
-            {
-                var cardUI = child.GetComponent<KTH_CardDragUI>();
-                if (cardUI != null && cardUI.CardData != null)
-                {
-                    inventoryList.Add(cardUI.CardData);
-                }
-            }
+            if (index < 0 || index >= cardDatabase.Count) continue;
+
+            LSO_CardSO card = cardDatabase[index];
+            if (card != null) inventoryList.Add(card);
         }
+
         return inventoryList;
+    }
+
+    /// <summary>
+    /// 카드 드래그가 끝났을 때 카드가 알려준다.
+    /// 인벤토리 목록을 먼저 갱신하고 나서 화면을 다시 그린다. 화면이 아니라 이 목록이 정답이다.
+    /// </summary>
+    private void HandleCardDropped(KTH_CardDragUI card, bool droppedInInventory)
+    {
+        if (card == null) return;
+
+        int index = card.DatabaseIndex;
+        if (index < 0)
+        {
+            Debug.LogWarning($"[KTH_DeckBuilderManager] {card.name}: cardDatabase에 없는 카드라 인벤토리에 반영할 수 없습니다.", card);
+            return;
+        }
+
+        if (droppedInInventory)
+        {
+            if (!_inventoryIndices.Contains(index)) _inventoryIndices.Add(index);
+        }
+        else
+        {
+            _inventoryIndices.Remove(index);
+        }
+
+        RefreshPoolPage();
+    }
+
+    /// <summary>
+    /// 카드가 cardDatabase에서 차지할 고유 인덱스를 찾는다.
+    /// 이미 다른 카드가 가져간 인덱스는 건너뛰므로, 같은 카드가 여러 장 있어도 서로 다른 자리를 잡는다.
+    /// </summary>
+    private int ResolveUnclaimedIndex(LSO_CardSO card, ICollection<int> claimed)
+    {
+        if (card == null || cardDatabase == null) return -1;
+
+        for (int i = 0; i < cardDatabase.Count; i++)
+        {
+            if (cardDatabase[i] != card) continue;
+            if (claimed.Contains(i)) continue;
+
+            return i;
+        }
+
+        return -1;
     }
 
     /// <summary>고유 인덱스 기반으로 상단 풀 페이지 새로고침 (중복 카드가 있어도 정확히 동작)</summary>
@@ -139,9 +215,6 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         if (poolContainer == null || cardUIPrefab == null || cardDatabase == null) return;
 
         ClearContainerImmediate(poolContainer);
-
-        // 현재 인벤토리에 들어간 카드들의 고유 DatabaseIndex 목록 확보
-        List<int> inventoryIndices = GetCurrentInventoryIndices();
 
         // 페이지별 고유 범위 계산 (1페이지 = 0~3, 2페이지 = 4~7 등)
         int startIndex = currentPageIndex * cardsPerPage;
@@ -155,7 +228,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
             if (card == null) continue;
 
             // 이미 자기 고유 번호(i)가 인벤토리에 있다면 해당 자리는 생성 안 함 (빈자리 유지)
-            if (inventoryIndices.Contains(i))
+            if (_inventoryIndices.Contains(i))
             {
                 continue;
             }
@@ -175,7 +248,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         if (data == null) return;
 
         var cardUI = Instantiate(cardUIPrefab, parent);
-        cardUI.Setup(data, databaseIndex); // ★ 고유 번호 전달
+        // 카드는 드롭이 끝났다는 사실만 알리고, 목록을 다시 그리는 건 매니저가 결정한다.
+        cardUI.Setup(data, databaseIndex, HandleCardDropped);
 
         RectTransform cardRect = cardUI.GetComponent<RectTransform>();
         if (cardRect != null)
@@ -205,8 +279,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     /// <summary>리셋 버튼 클릭: 인벤토리 카드가 상단으로 올라간 후 회전하며 재등장</summary>
     private void OnResetButtonClick()
     {
-        if (isAnimating || inventoryContainer.childCount == 0)
+        if (isAnimating || _inventoryIndices.Count == 0)
         {
+            _inventoryIndices.Clear();
             currentPageIndex = 0;
             RefreshPoolPage(true); // 카드가 없을 때도 리셋 회전 연출 적용
             return;
@@ -229,10 +304,10 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         // 올라가는 연출 완료 후, 'true'를 전달하여 상단 풀 카드가 회전하면서 짠 하고 다시 생성됨
         resetSequence.OnComplete(() =>
         {
-            ClearContainerImmediate(inventoryContainer);
+            _inventoryIndices.Clear();          // 목록을 비우는 것이 먼저
+            RefreshInventoryView();             // 화면은 목록을 따라간다
             currentPageIndex = 0;
-            RefreshPoolPage(true); // ★ 리셋 후 생성 시 회전 연출 적용
-            RefreshLayout(inventoryContainer);
+            RefreshPoolPage(true);              // ★ 리셋 후 생성 시 회전 연출 적용
             isAnimating = false;
         });
     }
