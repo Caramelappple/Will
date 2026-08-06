@@ -1,84 +1,129 @@
+using System;
 using _Scripts.LSO.Deck.Data;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-// ★ [UI 변환] BoxCollider2D 필요 없음 (UI 클릭은 EventSystem + Graphic Raycaster로 처리됨)
-// ★ [UI 변환] IPointerClickHandler를 구현해서 OnMouseDown() 대신 UI 클릭 이벤트를 받음
+/// <summary>
+/// 손패 카드 한 장의 표시를 담당한다.
+///
+/// 위치는 두 값의 합으로 정해진다.
+///   BasePosition : 손패 어디에 놓일지. KTH_DeckManager가 트윈으로 움직인다.
+///   yOffset      : 선택됐을 때 떠오르는 높이. 이 스크립트가 매 프레임 보간한다.
+/// 둘을 분리해두지 않으면 매니저의 이동 연출과 서로 덮어써서 카드가 순간이동한다.
+/// </summary>
 [RequireComponent(typeof(RectTransform))]
 public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 {
     [Header("참조")]
-    public Image iconImage; // ★ SpriteRenderer → Image로 변경 (Raycast Target 켜져있어야 클릭 감지됨)
-    public GameObject selectionOutline; // 선택됐을 때만 활성화
+    [SerializeField] private Image iconImage;          // Raycast Target이 켜져 있어야 클릭이 잡힌다
+    [SerializeField] private GameObject selectionOutline;
 
-    [Header("카드 앞/뒷면 설정")]
-    public GameObject frontUI; // 앞면 요소를 하나로 묶은 자식 오브젝트 (없으면 iconImage 자동 제어)
-    public GameObject backUI;  // 카드 뒷면 이미지/오브젝트
+    [Header("카드 앞/뒷면")]
+    [Tooltip("앞면 요소를 묶은 자식. 비우면 iconImage를 직접 켜고 끈다.")]
+    [SerializeField] private GameObject frontUI;
+    [SerializeField] private GameObject backUI;
 
-    [Header("선택 시 위로 올라오는 연출")]
-    [Tooltip("선택됐을 때 카드가 위로 떠오르는 높이 (UI는 픽셀 단위입니다. 기존 0.6f 같은 월드 단위값은 그대로 쓰면 거의 안 보이니 40~80 정도로 조정하세요)")]
-    public float selectRiseHeight = 60f;
+    [Header("선택 시 떠오르는 연출")]
+    [Tooltip("선택됐을 때 위로 올라가는 높이(픽셀).")]
+    [SerializeField] private float selectRiseHeight = 60f;
 
-    [Tooltip("목표 높이까지 보간되는 속도 (클수록 빠르게 움직임)")]
-    public float selectMoveSpeed = 10f;
+    [Tooltip("목표 높이까지 보간되는 속도. 클수록 빠르다.")]
+    [SerializeField] private float selectMoveSpeed = 10f;
 
-    private LSO_CardSO data;
-    private KTH_DeckManager manager;
-    private RectTransform rectTransform; // ★ Transform 대신 RectTransform을 캐싱해서 사용
+    private const float OffsetSnapThreshold = 0.05f;
 
-    private bool isSelected = false;
-    private float currentYOffset = 0f; // ★ 매니저가 관리하는 X와는 별개로, 이 값만 독립적으로 Y를 제어
+    private LSO_CardSO _data;
+    private Action<KTH_HandCardView> _onClicked;
+    private RectTransform _rectTransform;
+
+    private Vector2 _basePosition;
+    private float _yOffset;
+    private bool _isSelected;
+    private bool _isOffsetSettled = true;
+    private float _lastCheckedYAngle = float.NaN;
+
+    public LSO_CardSO Data => _data;
+
+    /// <summary>
+    /// 손패에서의 기준 위치. 매니저가 이 값을 움직이면 선택 오프셋이 얹힌 채로 반영된다.
+    /// </summary>
+    public Vector2 BasePosition
+    {
+        get => _basePosition;
+        set
+        {
+            _basePosition = value;
+            ApplyPosition();
+        }
+    }
 
     private void Awake()
     {
-        rectTransform = (RectTransform)transform; // ★ UI 오브젝트는 항상 RectTransform을 가짐
+        _rectTransform = (RectTransform)transform;
 
-        // Inspector 연결을 안 했을 경우 자식 오브젝트 이름으로 자동 탐색
         if (frontUI == null)
         {
-            Transform frontTransform = transform.Find("Front");
-            if (frontTransform != null) frontUI = frontTransform.gameObject;
+            Transform found = transform.Find("Front");
+            if (found != null) frontUI = found.gameObject;
         }
 
         if (backUI == null)
         {
-            Transform backTransform = transform.Find("Back");
-            if (backTransform != null) backUI = backTransform.gameObject;
+            Transform found = transform.Find("Back");
+            if (found != null) backUI = found.gameObject;
         }
     }
 
     private void Update()
     {
-        // Y축 회전각 체크 (0 ~ 360도) - RectTransform도 동일하게 localEulerAngles 사용 가능
-        float yAngle = rectTransform.localEulerAngles.y;
-
-        // 90도 ~ 270도 사이일 때 (뒷면이 카메라를 향할 때)
-        if (yAngle > 90f && yAngle < 270f)
-        {
-            SetFrontActive(false);
-            if (backUI && !backUI.activeSelf) backUI.SetActive(true);
-        }
-        else // 앞면이 카메라를 향할 때
-        {
-            SetFrontActive(true);
-            if (backUI && backUI.activeSelf) backUI.SetActive(false);
-        }
-
-        // ★ 선택 시 위로 떠오르는 연출.
-        // KTH_DeckManager가 이 RectTransform의 X 위치(및 등장/재정렬 애니메이션)를 DOTween(DOAnchorPos)으로
-        // 직접 제어하므로, 여기서 또 DOTween으로 같은 RectTransform을 움직이면 매니저 쪽 DOKill()에 의해
-        // 트윈이 끊겨 카드가 중간에 멈추는 문제가 재발할 수 있습니다.
-        // 그래서 DOTween을 쓰지 않고 매 프레임 Y값만 별도로 보간해서 매니저의 트윈과 절대 충돌하지 않게 합니다.
-        float targetYOffset = isSelected ? selectRiseHeight : 0f;
-        currentYOffset = Mathf.Lerp(currentYOffset, targetYOffset, Time.deltaTime * selectMoveSpeed);
-
-        Vector2 pos = rectTransform.anchoredPosition; // ★ localPosition → anchoredPosition
-        rectTransform.anchoredPosition = new Vector2(pos.x, currentYOffset);
+        UpdateFacing();
+        UpdateSelectionOffset();
     }
 
-    /// <summary>앞면 요소 활성화/비활성화 제어</summary>
+    /// <summary>
+    /// Y축 회전이 뒤집힌 구간이면 뒷면을 보여준다.
+    /// 회전은 드로우 연출 때만 일어나므로, 각도가 변했을 때만 검사해서 평소에는 아무 일도 하지 않는다.
+    /// </summary>
+    private void UpdateFacing()
+    {
+        float yAngle = _rectTransform.localEulerAngles.y;
+        if (Mathf.Approximately(yAngle, _lastCheckedYAngle)) return;
+
+        _lastCheckedYAngle = yAngle;
+
+        bool showBack = yAngle > 90f && yAngle < 270f;
+        SetFrontActive(!showBack);
+        if (backUI && backUI.activeSelf != showBack) backUI.SetActive(showBack);
+    }
+
+    /// <summary>
+    /// 선택 오프셋을 목표값으로 보간한다.
+    /// 목표에 도달하면 스냅하고 멈춰서, 가만히 있는 카드가 매 프레임 위치를 다시 쓰지 않게 한다.
+    /// </summary>
+    private void UpdateSelectionOffset()
+    {
+        if (_isOffsetSettled) return;
+
+        float target = _isSelected ? selectRiseHeight : 0f;
+        _yOffset = Mathf.Lerp(_yOffset, target, Time.deltaTime * selectMoveSpeed);
+
+        if (Mathf.Abs(_yOffset - target) < OffsetSnapThreshold)
+        {
+            _yOffset = target;
+            _isOffsetSettled = true;
+        }
+
+        ApplyPosition();
+    }
+
+    private void ApplyPosition()
+    {
+        if (_rectTransform == null) _rectTransform = (RectTransform)transform;
+
+        _rectTransform.anchoredPosition = _basePosition + new Vector2(0f, _yOffset);
+    }
+
     private void SetFrontActive(bool active)
     {
         if (frontUI != null)
@@ -87,44 +132,45 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
         }
         else if (iconImage != null)
         {
-            // frontUI 묶음이 따로 없다면 iconImage를 직접 제어
             if (iconImage.enabled != active) iconImage.enabled = active;
         }
     }
 
-    public void Setup(LSO_CardSO cardData, KTH_DeckManager deckManager)
+    /// <param name="onClicked">클릭됐을 때 알릴 대상. 뷰는 누가 듣는지 알 필요가 없다.</param>
+    public void Setup(LSO_CardSO cardData, Action<KTH_HandCardView> onClicked)
     {
-        data = cardData;
-        manager = deckManager;
+        _data = cardData;
+        _onClicked = onClicked;
 
         if (cardData == null)
-        {
-            Debug.LogWarning($"[KTH_HandCardView] {name}: 카드 데이터가 비어 있습니다. cardDatabase 배선을 확인하세요.", this);
-        }
+            Debug.LogWarning($"[KTH_HandCardView] {name}: 카드 데이터가 비어 있습니다.", this);
         else if (iconImage)
-        {
             iconImage.sprite = cardData.Image;
-        }
 
-        currentYOffset = 0f; // ★ 새 카드는 항상 들뜬 상태 없이 시작
+        _yOffset = 0f;
+        _isOffsetSettled = true;
         SetSelected(false);
     }
 
-    public LSO_CardSO GetData() => data;
+    /// <summary>연출 없이 즉시 기준 위치로 옮긴다. 카드를 처음 만들 때 쓴다.</summary>
+    public void SnapToBasePosition(Vector2 position)
+    {
+        _yOffset = 0f;
+        _isOffsetSettled = true;
+        BasePosition = position;
+    }
 
     public void SetSelected(bool selected)
     {
-        isSelected = selected;
+        if (_isSelected == selected) return;
+
+        _isSelected = selected;
+        _isOffsetSettled = false;   // 보간을 다시 시작한다
         if (selectionOutline) selectionOutline.SetActive(selected);
-        // 실제 위로 떠오르는 이동은 Update()에서 currentYOffset 보간으로 처리됨
     }
 
-    // ★ OnMouseDown() → OnPointerClick()으로 변경
-    // 이 컴포넌트가 붙은 오브젝트(또는 자식)에 Raycast Target이 켜진 Graphic(Image 등)이 있어야
-    // 클릭이 감지됩니다. 씬에 EventSystem 오브젝트와 Canvas에 Graphic Raycaster가 있는지도 확인하세요.
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log("카드 클릭됨: " + gameObject.name);
-        if (manager != null) manager.SelectCard(this);
+        _onClicked?.Invoke(this);
     }
 }

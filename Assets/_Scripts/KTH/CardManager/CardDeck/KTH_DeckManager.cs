@@ -159,10 +159,10 @@ public class KTH_DeckManager : MonoBehaviour
         for (int i = 0; i < drawn.Count; i++)
         {
             var view = Instantiate(handCardPrefab, handContainer);
-            view.Setup(drawn[i], this);
+            view.Setup(drawn[i], SelectCard);
 
-            RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
-            cardTransform.anchoredPosition = buttonStartPosition; // ★ localPosition → anchoredPosition
+            RectTransform cardTransform = (RectTransform)view.transform;
+            view.SnapToBasePosition(buttonStartPosition);   // 드로우 버튼 자리에서 출발
             cardTransform.localScale = new Vector3(0f, targetCardScale.y, targetCardScale.z);
             cardTransform.localRotation = Quaternion.Euler(0f, startYAngle, 0f);
 
@@ -179,8 +179,7 @@ public class KTH_DeckManager : MonoBehaviour
             var view = currentHand[i];
             RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
 
-            float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
-            Vector2 targetPosition = new Vector2(targetX, 0f);
+            Vector2 targetPosition = GetHandSlotPosition(i, currentHand.Count);
 
             bool isNewCard = newlyDrawnViews.Contains(view);
 
@@ -195,14 +194,14 @@ public class KTH_DeckManager : MonoBehaviour
                 // ★ 새 카드: 드로우 버튼 위치에서 회전하며 등장
                 int drawOrderIndex = newlyDrawnViews.IndexOf(view);
                 seq.PrependInterval(drawOrderIndex * cardAnimInterval);
-                seq.Join(cardTransform.DOAnchorPos(targetPosition, moveDuration).SetEase(Ease.OutCubic)); // ★ DOLocalMove → DOAnchorPos
+                seq.Join(TweenBasePosition(view, targetPosition, moveDuration));
                 seq.Join(cardTransform.DOScale(targetCardScale, flipAnimDuration).SetEase(Ease.OutBack));
                 seq.Join(cardTransform.DOLocalRotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
             }
             else
             {
                 // ★ 기존 카드: 새 자리로 슬라이드 이동만
-                seq.Join(cardTransform.DOAnchorPos(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic)); // ★ DOLocalMove → DOAnchorPos
+                seq.Join(TweenBasePosition(view, targetPosition, rearrangeDuration));
             }
 
             // 콜백이 어느 쪽으로 불리든 "완료 처리"는 딱 한 번만 실행되도록 가드
@@ -233,13 +232,30 @@ public class KTH_DeckManager : MonoBehaviour
             var view = currentHand[i];
             if (!view) continue;
 
-            RectTransform cardTransform = (RectTransform)view.transform; // ★ RectTransform으로 캐스팅
-            float targetX = (i - (currentHand.Count - 1) / 2f) * handSpacing;
-            Vector2 targetPosition = new Vector2(targetX, 0f);
-
-            cardTransform.DOKill();
-            cardTransform.DOAnchorPos(targetPosition, rearrangeDuration).SetEase(Ease.OutCubic).SetLink(view.gameObject); // ★ DOLocalMove → DOAnchorPos
+            view.transform.DOKill();
+            TweenBasePosition(view, GetHandSlotPosition(i, currentHand.Count), rearrangeDuration);
         }
+    }
+
+    /// <summary>손패 i번째 카드가 놓일 자리. 가운데를 기준으로 좌우로 펼친다.</summary>
+    private Vector2 GetHandSlotPosition(int index, int handCount)
+    {
+        float targetX = (index - (handCount - 1) / 2f) * handSpacing;
+        return new Vector2(targetX, 0f);
+    }
+
+    /// <summary>
+    /// 카드의 기준 위치를 트윈한다.
+    /// RectTransform의 anchoredPosition을 직접 건드리지 않는 이유는,
+    /// 뷰가 선택 시 떠오르는 오프셋을 같은 값에 얹기 때문이다. 직접 움직이면 서로 덮어쓴다.
+    /// SetTarget으로 Transform을 묶어둬서 기존 DOKill(transform) 정리 방식이 그대로 동작한다.
+    /// </summary>
+    private Tween TweenBasePosition(KTH_HandCardView view, Vector2 target, float duration)
+    {
+        return DOTween.To(() => view.BasePosition, value => view.BasePosition = value, target, duration)
+            .SetEase(Ease.OutCubic)
+            .SetTarget(view.transform)
+            .SetLink(view.gameObject);
     }
 
     private void ClearHand()
@@ -260,7 +276,7 @@ public class KTH_DeckManager : MonoBehaviour
         foreach (var c in currentHand)
             c.SetSelected(c == card);
 
-        infoPanel.Show(card.GetData(), true, () => PlaceCard(card));
+        infoPanel.Show(card.Data, true, () => PlaceCard(card));
     }
 
     public void ShowPlacedUnitInfo(LSO_CardSO data)
@@ -270,7 +286,7 @@ public class KTH_DeckManager : MonoBehaviour
 
     private void PlaceCard(KTH_HandCardView card)
     {
-        var data = card.GetData();
+        var data = card.Data;
 
         if (data == null || !data.IsValid)
         {

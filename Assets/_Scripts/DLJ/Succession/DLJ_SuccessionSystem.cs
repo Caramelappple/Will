@@ -1,3 +1,4 @@
+using System.Collections;
 using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
@@ -33,13 +34,16 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private static DLJ_SuccessionWill successionSource;
 
     private readonly LDY_Animal animal;
+    private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
     private readonly float moveDuration;
     private GameObject effectInstance;
+    private bool isWaitingForAttackAnimation;
 
     internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         animal = context.animal;
+        attackSystem = context.attackSystem;
         effectPrefab = data.effectPrefab;
         moveDuration = data.moveDuration;
     }
@@ -48,7 +52,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         isWaitingForSuccessionTarget && !isCompletingSuccession;
 
     public bool ShouldDeferDestruction =>
-        isWaitingForSuccessionTarget && successionSource == this;
+        isWaitingForAttackAnimation ||
+        (isWaitingForSuccessionTarget && successionSource == this);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStaticState()
@@ -63,7 +68,23 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
     public void InvokeWill()
     {
+        if (attackSystem != null && attackSystem.IsBusy)
+        {
+            isWaitingForAttackAnimation = true;
+            attackSystem.StartCoroutine(WaitForAttackAnimation());
+            return;
+        }
+
         Activate();
+    }
+
+    private IEnumerator WaitForAttackAnimation()
+    {
+        yield return new WaitUntil(() => attackSystem == null || !attackSystem.IsBusy);
+
+        isWaitingForAttackAnimation = false;
+        if (!Activate() && animal != null)
+            Object.Destroy(animal.gameObject);
     }
 
     public bool Activate()

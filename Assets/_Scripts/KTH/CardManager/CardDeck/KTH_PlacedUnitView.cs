@@ -1,21 +1,27 @@
+using System;
 using _Scripts.LSO.Deck.Data;
-using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// 보드에 배치된 기물의 표시. 클릭되면 콜백으로 알리기만 한다.
+/// </summary>
 [RequireComponent(typeof(BoxCollider))]
 public class KTH_PlacedUnitView : MonoBehaviour
 {
     [Tooltip("3D 모델이 생성될 위치. 비워두면 이 오브젝트 자체를 부모로 사용")]
-    public Transform modelSpawnPoint;
+    [SerializeField] private Transform modelSpawnPoint;
 
-    private LSO_CardSO data;
-    private KTH_DeckManager manager;
-    private GameObject modelInstance;
+    private LSO_CardSO _data;
+    private Action<LSO_CardSO> _onClicked;
+    private GameObject _modelInstance;
 
-    public void Setup(LSO_CardSO cardData, KTH_DeckManager deckManager)
+    public LSO_CardSO Data => _data;
+
+    /// <param name="onClicked">클릭됐을 때 알릴 대상. 뷰는 누가 듣는지 알 필요가 없다.</param>
+    public void Setup(LSO_CardSO cardData, Action<LSO_CardSO> onClicked)
     {
-        data = cardData;
-        manager = deckManager;
+        _data = cardData;
+        _onClicked = onClicked;
 
         if (cardData == null || !cardData.IsValid)
         {
@@ -23,24 +29,21 @@ public class KTH_PlacedUnitView : MonoBehaviour
             return;
         }
 
-        if (cardData.UnitPrefab != null)
-        {
-            Transform parent = modelSpawnPoint != null ? modelSpawnPoint : transform;
-            modelInstance = Instantiate(cardData.UnitPrefab, parent);
-            modelInstance.transform.localPosition = Vector3.zero;
-            modelInstance.transform.localRotation = Quaternion.identity;
-        }
-        else
+        if (cardData.UnitPrefab == null)
         {
             Debug.LogWarning(
                 $"[KTH_PlacedUnitView] {cardData.AnimalName}의 AnimalSO에 unitPrefab이 비어있음", cardData);
+            return;
         }
-    }
 
-    public LSO_CardSO GetData() => data;
+        Transform parent = modelSpawnPoint != null ? modelSpawnPoint : transform;
+        _modelInstance = Instantiate(cardData.UnitPrefab, parent);
+        _modelInstance.transform.localPosition = Vector3.zero;
+        _modelInstance.transform.localRotation = Quaternion.identity;
+    }
 
     private void OnMouseDown()
     {
-        if (manager != null) manager.ShowPlacedUnitInfo(data);
+        _onClicked?.Invoke(_data);
     }
 }
