@@ -8422,6 +8422,103 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1307432157}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1336432046
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1145484064242629433, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: actionPoints
+      value: 
+      objectReference: {fileID: 944642608}
+    - target: {fileID: 2835441762936283171, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: board
+      value: 
+      objectReference: {fileID: 944642615}
+    - target: {fileID: 3946817691590983830, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: cardPlacer
+      value: 
+      objectReference: {fileID: 881993166}
+    - target: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_Name
+      value: StageDirector
+      objectReference: {fileID: 0}
+    - target: {fileID: 7812526902520188685, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: board
+      value: 
+      objectReference: {fileID: 944642615}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.87532
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.51023
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277733043537831517, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1336432048}
+  m_SourcePrefab: {fileID: 100100000, guid: 19a747f32b7491045b591a801491b512, type: 3}
+--- !u!1 &1336432047 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
+  m_PrefabInstance: {fileID: 1336432046}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1336432048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336432047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 377c9df8f0ea2a14ea0ff6d235f77479, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
+  nodeStages: []
+  typeStages:
+  - nodeType: 0
+    stage: {fileID: 0}
 --- !u!1 &1345992235
 GameObject:
   m_ObjectHideFlags: 0
@@ -12332,3 +12429,4 @@ SceneRoots:
   - {fileID: 881993167}
   - {fileID: 1141370531}
   - {fileID: 635901939}
+  - {fileID: 1336432046}
