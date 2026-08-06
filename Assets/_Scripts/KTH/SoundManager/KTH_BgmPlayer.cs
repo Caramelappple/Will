@@ -12,6 +12,7 @@ public class KTH_BgmPlayer : MonoBehaviour, KTH_IBgmPlayer
     {
         audioSource.clip = data.clip;
         audioSource.loop = data.loop;
+        audioSource.pitch = data.pitch;
         audioSource.volume = data.volume * bgmVolume * masterVolume;
         audioSource.Play();
     }

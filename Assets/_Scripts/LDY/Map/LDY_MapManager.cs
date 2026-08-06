@@ -32,8 +32,18 @@ public class LDY_MapManager : MonoBehaviour
     public LDY_MapNodeUnityEvent onShopNodeSelected;
     public LDY_MapNodeUnityEvent onEventNodeSelected;
 
+    [Header("스테이지 변경 이벤트")]
+    public UnityEvent onStageChanged = new UnityEvent();
+
     [Header("노드 상태가 바뀔 때마다 호출 (UI 갱신용)")]
     public UnityEvent onMapChanged;
+    
+
+    [SerializeField] private int currentChapter = 1;
+    [SerializeField] private int currentStage = 1;
+
+    public int CurrentChapter => currentChapter;
+    public int CurrentStage => currentStage;
 
     // 지금 플레이어가 진입해서 진행 중인 노드 (전투/상점/이벤트가 끝나면 CompleteActiveNode로 완료 처리)
     [SerializeField] private int activeNodeIndex = -1;
@@ -187,16 +197,66 @@ public class LDY_MapManager : MonoBehaviour
     // 특정 노드를 클리어 처리하고, 그 노드와 연결된 다음 노드들(분기면 여러 개)을 모두 unlock
     public void CompleteNode(int index)
     {
-        if (!IsValidIndex(index)) return;
+        if (!IsValidIndex(index))
+            return;
 
         Nodes[index].isCleared = true;
 
-        foreach (int next in Nodes[index].nextIndices)
+        // ===========================
+        // 스테이지 클리어 리워드 지급
+        // ===========================
+        if (KTH_Reward.Instance != null)
         {
-            if (IsValidIndex(next)) Nodes[next].isUnlocked = true;
+            KTH_UnlockResult result = KTH_Reward.Instance.UnlockByStage(currentStage);
+
+            if (result.HasAnyNewUnlock)
+            {
+                Debug.Log($"===== Stage {currentStage} Reward =====");
+
+                foreach (var piece in result.newlyUnlockedPieces)
+                    Debug.Log($"새 기물 해금 : {piece}");
+
+                foreach (var will in result.newlyUnlockedWills)
+                    Debug.Log($"새 유언 해금 : {will}");
+
+                Debug.Log("==============================");
+            }
+            else
+            {
+                Debug.Log($"Stage {currentStage} : 새로 해금된 리워드 없음");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("KTH_Reward가 존재하지 않습니다.");
         }
 
-        if (activeNodeIndex == index) activeNodeIndex = -1;
+        // 일반 전투
+        if (Nodes[index].type == LDY_NodeType.Battle)
+        {
+            currentStage++;
+            onStageChanged?.Invoke();
+        }
+
+        // 보스
+        if (Nodes[index].type == LDY_NodeType.Boss)
+        {
+            currentChapter++;
+            currentStage = 1;
+            onStageChanged?.Invoke();
+        }
+
+        // ===========================
+        // 다음 노드 해금
+        // ===========================
+        foreach (int next in Nodes[index].nextIndices)
+        {
+            if (IsValidIndex(next))
+                Nodes[next].isUnlocked = true;
+        }
+
+        if (activeNodeIndex == index)
+            activeNodeIndex = -1;
 
         onMapChanged?.Invoke();
     }
@@ -206,12 +266,10 @@ public class LDY_MapManager : MonoBehaviour
     // 씬 전환 연출(LDY_SceneTransition)이 씬에 있으면 그걸 거쳐서, 없으면 곧바로 씬을 로드
     private void RequestSceneLoad(string sceneName, Vector2 screenUV, LDY_NodeType nodeType)
     {
-        if (string.IsNullOrEmpty(sceneName)) return;
+        if (string.IsNullOrEmpty(sceneName))
+            return;
 
-        if (LDY_SceneTransition.Instance != null)
-            LDY_SceneTransition.Instance.PlayIrisCloseThenLoad(screenUV, sceneName, nodeType);
-        else
-            SceneManager.LoadScene(sceneName);
+        KTH_LoadingSceneController.LoadScene(sceneName);
     }
 
     // 상점/이벤트처럼 씬은 안 넘어가고 팝업만 여는 경우에도, 아이리스가 다 닫힌 뒤에 팝업 이벤트를 발생시킴.

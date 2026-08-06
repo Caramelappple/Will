@@ -3,7 +3,6 @@ using UnityEngine;
 
 /// <summary>
 /// 스테이지별 해금 데이터 (기물 / 유언)
-/// 인스펙터에서 스테이지마다 무엇이 해금되는지 지정
 /// </summary>
 [System.Serializable]
 public class KTH_StageRewardData
@@ -19,20 +18,20 @@ public class KTH_StageRewardData
 }
 
 /// <summary>
-/// 해금 요소 매니저 - 스테이지 클리어 시 새로운 기물 / 새로운 유언을 해금
+/// 해금 요소 매니저
 /// </summary>
 public class KTH_Reward : MonoBehaviour
 {
     public static KTH_Reward Instance { get; private set; }
 
-    [Header("스테이지별 해금 테이블 (고정 데이터)")]
-    public List<KTH_StageRewardData> stageRewardTable = new List<KTH_StageRewardData>();
+    [Header("스테이지별 해금 테이블")]
+    public List<KTH_StageRewardData> stageRewardTable = new();
 
-    [Header("현재까지 해금된 기물 ID")]
-    [SerializeField] private List<string> unlockedPieces = new List<string>();
+    [Header("현재까지 해금된 기물")]
+    [SerializeField] private List<string> unlockedPieces = new();
 
-    [Header("현재까지 해금된 유언 ID")]
-    [SerializeField] private List<string> unlockedWills = new List<string>();
+    [Header("현재까지 해금된 유언")]
+    [SerializeField] private List<string> unlockedWills = new();
 
     private void Awake()
     {
@@ -44,30 +43,33 @@ public class KTH_Reward : MonoBehaviour
         else
         {
             Destroy(gameObject);
-            return;
         }
     }
 
-    // ─────────────────────────────────────────────
-    // 스테이지 클리어 시 해금 처리
-    // ─────────────────────────────────────────────
+    //==================================================
+    // 스테이지 리워드 지급
+    //==================================================
 
-    /// <summary>
-    /// 해당 스테이지에 지정된 해금 요소(기물/유언)를 전부 해금 처리.
-    /// 새로 해금된 기물/유언 목록을 반환 (UI 알림 등에 사용).
-    /// </summary>
     public KTH_UnlockResult UnlockByStage(int stageNumber)
     {
-        KTH_UnlockResult result = new KTH_UnlockResult();
+        KTH_UnlockResult result = new();
 
-        KTH_StageRewardData data = stageRewardTable.Find(d => d.stageNumber == stageNumber);
-        if (data == null) return result; // 해당 스테이지에 정의된 해금 요소 없음
+        KTH_StageRewardData data = stageRewardTable.Find(x => x.stageNumber == stageNumber);
+
+        if (data == null)
+        {
+            Debug.Log($"[Reward] Stage {stageNumber}에 등록된 리워드가 없습니다.");
+            return result;
+        }
+
+        Debug.Log($"========== Stage {stageNumber} Reward ==========");
 
         foreach (string pieceId in data.unlockedPieceIds)
         {
             if (UnlockPiece(pieceId))
             {
                 result.newlyUnlockedPieces.Add(pieceId);
+                Debug.Log($"새 기물 해금 : {pieceId}");
             }
         }
 
@@ -76,90 +78,103 @@ public class KTH_Reward : MonoBehaviour
             if (UnlockWill(willId))
             {
                 result.newlyUnlockedWills.Add(willId);
+                Debug.Log($"새 유언 해금 : {willId}");
             }
         }
+
+        if (!result.HasAnyNewUnlock)
+        {
+            Debug.Log("새롭게 해금된 리워드가 없습니다.");
+        }
+
+        Debug.Log("==========================================");
 
         return result;
     }
 
-    // ─────────────────────────────────────────────
-    // 기물 해금
-    // ─────────────────────────────────────────────
+    //==================================================
+    // 기물
+    //==================================================
 
-    /// <summary>기물 해금. 새로 해금되면 true, 이미 해금되어 있으면 false</summary>
     public bool UnlockPiece(string pieceId)
     {
-        if (string.IsNullOrEmpty(pieceId)) return false;
-        if (unlockedPieces.Contains(pieceId)) return false;
+        if (string.IsNullOrEmpty(pieceId))
+            return false;
+
+        if (unlockedPieces.Contains(pieceId))
+            return false;
 
         unlockedPieces.Add(pieceId);
         return true;
     }
 
-    /// <summary>해당 기물이 해금되어 있는지 여부</summary>
     public bool IsPieceUnlocked(string pieceId)
     {
         return unlockedPieces.Contains(pieceId);
     }
 
-    /// <summary>해금된 기물 전체 목록 (읽기 전용)</summary>
     public IReadOnlyList<string> GetUnlockedPieces()
     {
         return unlockedPieces;
     }
 
-    // ─────────────────────────────────────────────
-    // 유언 해금
-    // ─────────────────────────────────────────────
+    //==================================================
+    // 유언
+    //==================================================
 
-    /// <summary>유언 해금. 새로 해금되면 true, 이미 해금되어 있으면 false</summary>
     public bool UnlockWill(string willId)
     {
-        if (string.IsNullOrEmpty(willId)) return false;
-        if (unlockedWills.Contains(willId)) return false;
+        if (string.IsNullOrEmpty(willId))
+            return false;
+
+        if (unlockedWills.Contains(willId))
+            return false;
 
         unlockedWills.Add(willId);
         return true;
     }
 
-    /// <summary>해당 유언이 해금되어 있는지 여부</summary>
     public bool IsWillUnlocked(string willId)
     {
         return unlockedWills.Contains(willId);
     }
 
-    /// <summary>해금된 유언 전체 목록 (읽기 전용)</summary>
     public IReadOnlyList<string> GetUnlockedWills()
     {
         return unlockedWills;
     }
 
-    // ─────────────────────────────────────────────
-    // 조회 헬퍼
-    // ─────────────────────────────────────────────
+    //==================================================
+    // 조회
+    //==================================================
 
-    /// <summary>특정 스테이지에서 해금될 예정인 데이터 조회 (미리보기 등에 사용)</summary>
     public KTH_StageRewardData GetStageRewardData(int stageNumber)
     {
-        return stageRewardTable.Find(d => d.stageNumber == stageNumber);
+        return stageRewardTable.Find(x => x.stageNumber == stageNumber);
     }
 
-    // ─────────────────────────────────────────────
-    // 초기화 (필요 시 사용)
-    // ─────────────────────────────────────────────
+    //==================================================
+    // 초기화
+    //==================================================
 
     public void ResetUnlocks()
     {
         unlockedPieces.Clear();
         unlockedWills.Clear();
+
+        Debug.Log("[Reward] 모든 해금 데이터 초기화");
     }
 }
 
-/// <summary>UnlockByStage 호출 결과 - 새로 해금된 항목만 담김</summary>
+/// <summary>
+/// Unlock 결과
+/// </summary>
 public class KTH_UnlockResult
 {
-    public List<string> newlyUnlockedPieces = new List<string>();
-    public List<string> newlyUnlockedWills = new List<string>();
+    public List<string> newlyUnlockedPieces = new();
+    public List<string> newlyUnlockedWills = new();
 
-    public bool HasAnyNewUnlock => newlyUnlockedPieces.Count > 0 || newlyUnlockedWills.Count > 0;
+    public bool HasAnyNewUnlock =>
+        newlyUnlockedPieces.Count > 0 ||
+        newlyUnlockedWills.Count > 0;
 }
