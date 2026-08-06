@@ -63,10 +63,15 @@ Init();
         }
 
         #if UNITY_EDITOR
+        /// <summary>
+        /// 에디터에서는 참조 캐싱까지만 한다.
+        /// Init()은 baseAtk와 Health의 직렬화 값을 덮어쓰는데, 이걸 OnValidate에서 하면
+        /// AnimalSO ↔ 프리팹이 서로를 참조할 때 "값 변경 → 재임포트 → 값 변경"이 끝없이 반복된다.
+        /// 실제 스탯 반영은 Awake와 Setup에서만 이뤄지므로 게임 동작에는 영향이 없다.
+        /// </summary>
         private void OnValidate()
         {
             CacheComponents();
-            Init();
         }
         #endif
 

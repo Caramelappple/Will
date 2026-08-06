@@ -18,6 +18,12 @@ namespace _Scripts.LSO.Animal
                 return null;
             }
 
+            if (!LDY_ActionPointManager.instance.TryConsume(card.Animal.cost))
+            {
+                Debug.Log($"<color=red>코스트가 부족합니다 : {LDY_ActionPointManager.instance.Current - card.Animal.cost}코스트 부족 </color>");
+                return null;
+            }
+
             GameObject prefab = card.Animal.unitPrefab;
             if (prefab == null)
             {

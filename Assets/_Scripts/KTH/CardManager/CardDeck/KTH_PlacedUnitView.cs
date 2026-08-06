@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using TMPro;
 using UnityEngine;
 
@@ -7,29 +8,36 @@ public class KTH_PlacedUnitView : MonoBehaviour
     [Tooltip("3D 모델이 생성될 위치. 비워두면 이 오브젝트 자체를 부모로 사용")]
     public Transform modelSpawnPoint;
 
-    private KTH_CardData data;
+    private LSO_CardSO data;
     private KTH_DeckManager manager;
     private GameObject modelInstance;
 
-    public void Setup(KTH_CardData cardData, KTH_DeckManager deckManager)
+    public void Setup(LSO_CardSO cardData, KTH_DeckManager deckManager)
     {
         data = cardData;
         manager = deckManager;
 
-        if (cardData.unitModelPrefab != null)
+        if (cardData == null || !cardData.IsValid)
+        {
+            Debug.LogWarning("[KTH_PlacedUnitView] 카드에 동물 데이터가 없습니다.", cardData);
+            return;
+        }
+
+        if (cardData.UnitPrefab != null)
         {
             Transform parent = modelSpawnPoint != null ? modelSpawnPoint : transform;
-            modelInstance = Instantiate(cardData.unitModelPrefab, parent);
+            modelInstance = Instantiate(cardData.UnitPrefab, parent);
             modelInstance.transform.localPosition = Vector3.zero;
             modelInstance.transform.localRotation = Quaternion.identity;
         }
         else
         {
-            Debug.LogWarning($"[KTH_PlacedUnitView] {cardData.cardName} 카드에 unitModelPrefab이 비어있음");
+            Debug.LogWarning(
+                $"[KTH_PlacedUnitView] {cardData.AnimalName}의 AnimalSO에 unitPrefab이 비어있음", cardData);
         }
     }
 
-    public KTH_CardData GetData() => data;
+    public LSO_CardSO GetData() => data;
 
     private void OnMouseDown()
     {

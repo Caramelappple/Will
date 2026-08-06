@@ -18,6 +18,7 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.Thorns, () => new LSO_Thorns() },
                 { LSO_AbilityType.Vengeance, () => new LSO_Vengeance() },
                 { LSO_AbilityType.Frail, () => new LSO_Frail() },
+                { LSO_AbilityType.CurseImmunity, () => new LSO_CurseImmunity() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

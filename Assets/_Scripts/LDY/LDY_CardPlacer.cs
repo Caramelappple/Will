@@ -26,6 +26,9 @@ namespace _Scripts.LDY
         public int CurrentCost { get; private set; }
         public bool IsPlacing { get; private set; }
 
+        /// <summary>턴 매니저가 연결돼 있으면 플레이어 턴에만 소환할 수 있다.</summary>
+        public bool IsPlayerTurn => turnManager == null || turnManager.CurrentTurn == LDY_Team.Player;
+
         public event Action<int, int> OnCostChanged;
 
         private LSO_CardSO _pendingCard;
@@ -83,13 +86,28 @@ namespace _Scripts.LDY
         private void HandleTurnChanged(LDY_Team team)
         {
             if (team == LDY_Team.Player)
+            {
                 ResetCost();
+                return;
+            }
+
+            // 상대 턴이 시작되면 고르던 중이던 배치를 취소한다(카드는 손패에 그대로 남는다).
+            CancelPlacement();
         }
 
         public void ResetCost()
         {
             CurrentCost = maxCost;
             OnCostChanged?.Invoke(CurrentCost, maxCost);
+        }
+
+        /// <summary>스테이지마다 다른 소환 코스트를 적용할 때 쓴다. 현재 값도 함께 채운다.</summary>
+        public void SetMaxCost(int value)
+        {
+            if (value <= 0) return;
+
+            maxCost = value;
+            ResetCost();
         }
 
         // 카드를 손패에서 실제로 빼기 전에 미리 코스트가 되는지 확인할 때 사용.
@@ -122,11 +140,12 @@ namespace _Scripts.LDY
         }
 
         // 플레이어가 보드 칸을 직접 클릭해서 배치 위치를 고르게 한다.
-        // 코스트가 부족하면 바로 false를 반환하고 아무것도 시작하지 않는다.
+        // 상대 턴이거나 코스트가 부족하면 바로 false를 반환하고 아무것도 시작하지 않는다.
         // onPlaced는 실제로 칸을 클릭해 소환이 끝난 뒤(성공/실패 모두) 호출되고,
         // onCancelled는 우클릭으로 취소했을 때만 호출된다.
         public bool BeginPlacement(LSO_CardSO card, LDY_Team team, Action<LDY_Animal> onPlaced, Action onCancelled = null)
         {
+            if (!IsPlayerTurn) return false;
             if (!CanAfford(card)) return false;
             if (IsPlacing) CancelPlacement();
 

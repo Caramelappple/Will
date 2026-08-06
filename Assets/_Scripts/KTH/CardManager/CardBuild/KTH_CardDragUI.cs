@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -10,14 +11,14 @@ public class KTH_CardDragUI : MonoBehaviour,
                                        //         이 컴포넌트를 자동으로 찾아서 OnClick / OnHoverEnter / OnHoverExit 를 호출해줌
 {
     public Image iconImage;
-    private KTH_CardData cardData;
+    private LSO_CardSO cardData;
     private int databaseIndex = -1; // ★ 추가: cardDatabase 내 고유 인덱스
 
     private Transform originalParent;
     private CanvasGroup canvasGroup;
     private Canvas mainCanvas;
 
-    public KTH_CardData CardData => cardData;
+    public LSO_CardSO CardData => cardData;
     public int DatabaseIndex => databaseIndex; // ★ 추가
 
     [Header("카드 앞면 UI 오브젝트")]
@@ -64,17 +65,17 @@ public class KTH_CardDragUI : MonoBehaviour,
     }
 
     /// <summary>기존 호출부 호환용 (인덱스 없이 세팅)</summary>
-    public void Setup(KTH_CardData data)
+    public void Setup(LSO_CardSO data)
     {
         Setup(data, -1);
     }
 
     /// <summary>고유 인덱스를 포함한 세팅 (★ 이 오버로드 추가)</summary>
-    public void Setup(KTH_CardData data, int index)
+    public void Setup(LSO_CardSO data, int index)
     {
         cardData = data;
         databaseIndex = index;
-        if (iconImage && data != null && data.icon != null) iconImage.sprite = data.icon;
+        if (iconImage && data != null && data.Image != null) iconImage.sprite = data.Image;
     }
 
     public void OnBeginDrag(PointerEventData eventData)

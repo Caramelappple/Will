@@ -11,7 +11,7 @@ namespace _Scripts.LSO.Ability
     /// </summary>
     public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable
     {
-        private const float DefaultDeathChance = 0.6f;
+        private const float DefaultDeathChance = 0.33f;
 
         public float DeathChance { get; private set; } = DefaultDeathChance;
 

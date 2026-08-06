@@ -1,3 +1,4 @@
+using _Scripts.LSO.Deck.Data;
 using System;
 using TMPro;
 using UnityEngine;
@@ -37,13 +38,20 @@ public class KTH_InfoPanelController : MonoBehaviour
     /// <summary>
     /// 카드 정보를 UI에 표시하며 Y축으로 회전하면서 올라오는 연출 실행
     /// </summary>
-    public void Show(KTH_CardData data, bool showPlaceButton, Action onPlace)
+    public void Show(LSO_CardSO data, bool showPlaceButton, Action onPlace)
     {
+        
+        if (data == null)
+        {
+            Debug.LogWarning("[KTH_InfoPanelController] 표시할 카드 데이터가 없습니다.", this);
+            return;
+        }
+        Debug.Log($"Show {data.Animal.animalName}");
         // 1. 데이터 세팅
-        if (iconImage) iconImage.sprite = data.icon;
-        if (nameText) nameText.text = data.cardName;
-        if (descText) descText.text = data.description;
-        if (costText) costText.text = $"Cost {data.cost}";
+        if (iconImage) iconImage.sprite = data.Image;
+        if (nameText) nameText.text = data.AnimalName;
+        if (descText) descText.text = data.Description;
+        if (costText) costText.text = $"Cost {data.Cost}";
 
         if (placeButton)
         {

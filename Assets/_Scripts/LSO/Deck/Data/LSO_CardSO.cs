@@ -32,5 +32,8 @@ namespace _Scripts.LSO.Deck.Data
         public int MaxHealth => IsValid ? animal.maxHealth : 0;
         public LSO_AbilityType Ability => IsValid ? animal.ability : LSO_AbilityType.None;
         public LDY_RangeType Range => IsValid ? animal.range : LDY_RangeType.Melee;
+
+        /// <summary>보드에 소환될 기물 프리팹. 동물 데이터가 원본이다.</summary>
+        public GameObject UnitPrefab => IsValid ? animal.unitPrefab : null;
     }
 }
