@@ -17,6 +17,13 @@ namespace _Scripts.LDY.Stage
         [TextArea(2, 4)]
         public string description;
 
+        [Header("이동할 씬")]
+        [Tooltip("이 스테이지를 진행할 씬 이름. 맵에서 이 스테이지를 고르면 여기 적힌 씬으로 이동한다. " +
+                 "Build Settings에 등록된 이름과 정확히 같아야 한다.")]
+        [SerializeField] private string sceneName;
+
+        public string SceneName => sceneName;
+
         [Header("적 배치")]
         public List<LDY_StageEnemyEntry> enemies = new List<LDY_StageEnemyEntry>();
 
