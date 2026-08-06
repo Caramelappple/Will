@@ -1,20 +1,47 @@
+using _Scripts.LSO;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// 스테이지별 해금 데이터 (기물 / 유언)
+/// 확률 뽑기용 항목 (기물/유언 공용)
+/// </summary>
+[System.Serializable]
+public class KTH_RewardPoolEntry
+{
+    [Tooltip("기물 ID 또는 유언 ID")]
+    public string id;
+
+    [Tooltip("가중치 (값이 클수록 뽑힐 확률 높음, 절대값 % 아님)")]
+    public float weight = 1f;
+}
+[System.Serializable]
+public class KTH_WillRewardPoolEntry
+{
+    [Tooltip("유언 타입")]
+    public LSO_WillType willType;
+
+    [Tooltip("가중치")]
+    public float weight = 1f;
+}
+
+/// <summary>
+/// 스테이지별 해금 데이터 (기물 / 유언) - 확률 기반 풀
 /// </summary>
 [System.Serializable]
 public class KTH_StageRewardData
 {
-    [Header("스테이지 번호")]
-    public int stageNumber;
+    [Header("챕터")]
+    public int chapter;
 
-    [Header("이 스테이지에서 해금되는 기물 ID 목록")]
-    public List<string> unlockedPieceIds = new List<string>();
+    [Header("스테이지")]
+    public int stage;
 
-    [Header("이 스테이지에서 해금되는 유언 ID 목록")]
-    public List<string> unlockedWillIds = new List<string>();
+    [Header("기물 후보")]
+    public List<KTH_RewardPoolEntry> possiblePieces = new();
+
+    [Header("유언 후보")]
+    public List<KTH_WillRewardPoolEntry> possibleWills = new();
 }
 
 /// <summary>
@@ -31,7 +58,7 @@ public class KTH_Reward : MonoBehaviour
     [SerializeField] private List<string> unlockedPieces = new();
 
     [Header("현재까지 해금된 유언")]
-    [SerializeField] private List<string> unlockedWills = new();
+    [SerializeField] private List<LSO_WillType> unlockedWills = new();
 
     private void Awake()
     {
@@ -47,39 +74,46 @@ public class KTH_Reward : MonoBehaviour
     }
 
     //==================================================
-    // 스테이지 리워드 지급
+    // 스테이지 리워드 지급 (확률 뽑기)
     //==================================================
 
-    public KTH_UnlockResult UnlockByStage(int stageNumber)
+    public KTH_UnlockResult UnlockByStage(int chapter, int stage)
     {
         KTH_UnlockResult result = new();
 
-        KTH_StageRewardData data = stageRewardTable.Find(x => x.stageNumber == stageNumber);
+        KTH_StageRewardData data =
+        stageRewardTable.Find(x => x.chapter == chapter && x.stage == stage);
 
         if (data == null)
         {
-            Debug.Log($"[Reward] Stage {stageNumber}에 등록된 리워드가 없습니다.");
+            Debug.Log($"[Reward] Stage {stage}에 등록된 리워드가 없습니다.");
             return result;
         }
 
-        Debug.Log($"========== Stage {stageNumber} Reward ==========");
-
-        foreach (string pieceId in data.unlockedPieceIds)
+        Debug.Log($"========== Stage {stage} Reward ==========");
+        // 기물 1개 뽑기
+        string pickedPieceId = PickWeightedRandom(data.possiblePieces, unlockedPieces);
+        if (pickedPieceId != null && UnlockPiece(pickedPieceId))
         {
-            if (UnlockPiece(pieceId))
-            {
-                result.newlyUnlockedPieces.Add(pieceId);
-                Debug.Log($"새 기물 해금 : {pieceId}");
-            }
+            result.newlyUnlockedPieces.Add(pickedPieceId);
+            Debug.Log($"새 기물 해금 : {pickedPieceId}");
+        }
+        else
+        {
+            Debug.Log("뽑을 수 있는 기물이 없습니다 (풀이 비었거나 모두 해금됨).");
         }
 
-        foreach (string willId in data.unlockedWillIds)
+        // 유언 1개 뽑기
+        LSO_WillType? pickedWill = PickWeightedRandomWill(data.possibleWills, unlockedWills);
+
+        if (pickedWill.HasValue && UnlockWill(pickedWill.Value))
         {
-            if (UnlockWill(willId))
-            {
-                result.newlyUnlockedWills.Add(willId);
-                Debug.Log($"새 유언 해금 : {willId}");
-            }
+            result.newlyUnlockedWills.Add(pickedWill.Value);
+            Debug.Log($"새 유언 해금 : {pickedWill.Value}");
+        }
+        else
+        {
+            Debug.Log("뽑을 수 있는 유언이 없습니다 (풀이 비었거나 모두 해금됨).");
         }
 
         if (!result.HasAnyNewUnlock)
@@ -90,6 +124,95 @@ public class KTH_Reward : MonoBehaviour
         Debug.Log("==========================================");
 
         return result;
+    }
+
+
+    private string PickWeightedRandom(
+    List<KTH_RewardPoolEntry> pool,
+    List<string> alreadyUnlocked)
+    {
+        if (pool == null || pool.Count == 0)
+            return null;
+
+        List<KTH_RewardPoolEntry> candidates = new();
+
+        foreach (var entry in pool)
+        {
+            if (entry == null || string.IsNullOrEmpty(entry.id))
+                continue;
+
+            if (alreadyUnlocked.Contains(entry.id))
+                continue;
+
+            if (entry.weight <= 0f)
+                continue;
+
+            candidates.Add(entry);
+        }
+
+        if (candidates.Count == 0)
+            return null;
+
+        float totalWeight = 0f;
+        foreach (var c in candidates)
+            totalWeight += c.weight;
+
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        foreach (var c in candidates)
+        {
+            cumulative += c.weight;
+
+            if (roll <= cumulative)
+                return c.id;
+        }
+
+        return candidates[candidates.Count - 1].id;
+    }
+    //==================================================
+    // 가중치 랜덤 뽑기 (이미 해금된 항목은 후보에서 제외)
+    //==================================================
+
+    private LSO_WillType? PickWeightedRandomWill(
+    List<KTH_WillRewardPoolEntry> pool,
+    List<LSO_WillType> alreadyUnlocked)
+    {
+        if (pool == null || pool.Count == 0)
+            return null;
+
+        List<KTH_WillRewardPoolEntry> candidates = new();
+
+        foreach (var entry in pool)
+        {
+            if (alreadyUnlocked.Contains(entry.willType))
+                continue;
+
+            if (entry.weight <= 0f)
+                continue;
+
+            candidates.Add(entry);
+        }
+
+        if (candidates.Count == 0)
+            return null;
+
+        float totalWeight = 0f;
+        foreach (var c in candidates)
+            totalWeight += c.weight;
+
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        foreach (var c in candidates)
+        {
+            cumulative += c.weight;
+
+            if (roll <= cumulative)
+                return c.willType;
+        }
+
+        return candidates[candidates.Count - 1].willType;
     }
 
     //==================================================
@@ -117,29 +240,25 @@ public class KTH_Reward : MonoBehaviour
     {
         return unlockedPieces;
     }
-
     //==================================================
     // 유언
     //==================================================
 
-    public bool UnlockWill(string willId)
+    public bool UnlockWill(LSO_WillType willType)
     {
-        if (string.IsNullOrEmpty(willId))
+        if (unlockedWills.Contains(willType))
             return false;
 
-        if (unlockedWills.Contains(willId))
-            return false;
-
-        unlockedWills.Add(willId);
+        unlockedWills.Add(willType);
         return true;
     }
 
-    public bool IsWillUnlocked(string willId)
+    public bool IsWillUnlocked(LSO_WillType willType)
     {
-        return unlockedWills.Contains(willId);
+        return unlockedWills.Contains(willType);
     }
 
-    public IReadOnlyList<string> GetUnlockedWills()
+    public IReadOnlyList<LSO_WillType> GetUnlockedWills()
     {
         return unlockedWills;
     }
@@ -148,9 +267,9 @@ public class KTH_Reward : MonoBehaviour
     // 조회
     //==================================================
 
-    public KTH_StageRewardData GetStageRewardData(int stageNumber)
+    public KTH_StageRewardData GetStageRewardData(int chapter, int stage)
     {
-        return stageRewardTable.Find(x => x.stageNumber == stageNumber);
+        return stageRewardTable.Find(x => x.chapter == chapter && x.stage == stage);
     }
 
     //==================================================
@@ -172,7 +291,7 @@ public class KTH_Reward : MonoBehaviour
 public class KTH_UnlockResult
 {
     public List<string> newlyUnlockedPieces = new();
-    public List<string> newlyUnlockedWills = new();
+    public List<LSO_WillType> newlyUnlockedWills = new();
 
     public bool HasAnyNewUnlock =>
         newlyUnlockedPieces.Count > 0 ||

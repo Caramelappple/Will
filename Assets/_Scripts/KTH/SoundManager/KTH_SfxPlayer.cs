@@ -13,9 +13,21 @@ public class KTH_SfxPlayer : MonoBehaviour, KTH_ISfxPlayer
     {
         AudioSource audioSource = audioSourcePool.Get();
 
-        audioSource.pitch = data.pitch;
-        audioSource.PlayOneShot(data.clip, data.volume * sfxVolume * masterVolume);
         audioSource.clip = data.clip;
+        audioSource.volume = data.volume * sfxVolume * masterVolume;
+        audioSource.loop = false;
+
+        if (data.randomPitch)
+        {
+            float min = Mathf.Min(data.minPitch, data.maxPitch);
+            float max = Mathf.Max(data.minPitch, data.maxPitch);
+
+            audioSource.pitch = Random.Range(min, max);
+        }
+        else
+        {
+            audioSource.pitch = data.pitch;
+        }
 
         audioSource.Play();
 

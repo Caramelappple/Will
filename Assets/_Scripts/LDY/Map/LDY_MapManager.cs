@@ -207,7 +207,8 @@ public class LDY_MapManager : MonoBehaviour
         // ===========================
         if (KTH_Reward.Instance != null)
         {
-            KTH_UnlockResult result = KTH_Reward.Instance.UnlockByStage(currentStage);
+            KTH_UnlockResult result =
+        KTH_Reward.Instance.UnlockByStage(currentChapter, currentStage);
 
             if (result.HasAnyNewUnlock)
             {
