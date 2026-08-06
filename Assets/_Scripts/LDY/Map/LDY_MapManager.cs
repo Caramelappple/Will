@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Scripts.LDY.Stage;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -24,9 +25,15 @@ public class LDY_MapManager : MonoBehaviour
     [Header("노드 연결 (분기 가능: 한 노드가 여러 연결을 가질 수 있음)")]
     [SerializeField] private LDY_NodeConnection[] connections;
 
-    [Header("씬 전환용 씬 이름")]
+    [Header("씬 전환용 씬 이름 (스테이지가 배정되지 않은 노드의 기본값)")]
     [SerializeField] private string battleSceneName = "BattleScene";
     [SerializeField] private string bossSceneName = "BossScene";
+
+    [Header("스테이지 배정 (연결하면 스테이지SO가 이동할 씬까지 결정)")]
+    [Tooltip("LDY_IStageRouter를 구현한 컴포넌트(기본 제공: LDY_StageRouter). 비워두면 위의 기본 씬 이름을 그대로 쓴다.")]
+    [SerializeField] private MonoBehaviour stageRouterSource;
+
+    private LDY_IStageRouter _stageRouter;
 
     [Header("Shop / Event 노드 진입 시 호출되는 이벤트")]
     public LDY_MapNodeUnityEvent onShopNodeSelected;
@@ -61,7 +68,19 @@ public class LDY_MapManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        ResolveStageRouter();
         BuildNodes();
+    }
+
+    private void ResolveStageRouter()
+    {
+        _stageRouter = stageRouterSource as LDY_IStageRouter;
+
+        if (_stageRouter == null && stageRouterSource != null)
+            Debug.LogError($"[LDY_MapManager] {stageRouterSource.GetType().Name}은(는) LDY_IStageRouter를 구현하지 않습니다.", this);
+
+        if (_stageRouter == null)
+            _stageRouter = GetComponent<LDY_IStageRouter>();
     }
 
     private void OnValidate()
@@ -146,10 +165,10 @@ public class LDY_MapManager : MonoBehaviour
         {
             case LDY_NodeType.Battle:
                 BattleEntryCount++;
-                RequestSceneLoad(battleSceneName, screenUV, node.type);
+                EnterStage(index, node, battleSceneName, screenUV);
                 break;
             case LDY_NodeType.Boss:
-                RequestSceneLoad(bossSceneName, screenUV, node.type);
+                EnterStage(index, node, bossSceneName, screenUV);
                 break;
             case LDY_NodeType.Shop:
                 RequestPopup(screenUV, node, onShopNodeSelected);
@@ -202,6 +221,29 @@ public class LDY_MapManager : MonoBehaviour
     }
 
     private bool IsValidIndex(int index) => index >= 0 && index < Nodes.Count;
+
+    // 이 노드에 배정된 스테이지를 골라 다음 씬에 넘겨주고, 스테이지가 지정한 씬으로 이동한다.
+    // 배정된 스테이지가 없으면 예전처럼 인스펙터에 적어둔 기본 씬 이름을 쓴다.
+    private void EnterStage(int index, LDY_MapNode node, string fallbackSceneName, Vector2 screenUV)
+    {
+        LDY_StageSO stage = _stageRouter?.Resolve(index, node.type);
+
+        if (stage != null)
+        {
+            // 다음 씬의 LDY_StageDirector가 이걸 집어서 스테이지를 시작한다.
+            LDY_StageSelection.Select(stage);
+
+            if (!string.IsNullOrEmpty(stage.SceneName))
+            {
+                RequestSceneLoad(stage.SceneName, screenUV, node.type);
+                return;
+            }
+
+            Debug.LogWarning($"[LDY_MapManager] 스테이지 '{stage.name}'에 씬 이름이 비어 있어 기본 씬으로 이동합니다.", stage);
+        }
+
+        RequestSceneLoad(fallbackSceneName, screenUV, node.type);
+    }
 
     // 씬 전환 연출(LDY_SceneTransition)이 씬에 있으면 그걸 거쳐서, 없으면 곧바로 씬을 로드
     private void RequestSceneLoad(string sceneName, Vector2 screenUV, LDY_NodeType nodeType)
