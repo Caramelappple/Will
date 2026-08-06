@@ -13,6 +13,7 @@ namespace _Scripts.LSO.Ability
         Thorns,
         Vengeance,
         Frail,
-        CurseImmunity
+        CurseImmunity,
+        Evolve
     }
 }
