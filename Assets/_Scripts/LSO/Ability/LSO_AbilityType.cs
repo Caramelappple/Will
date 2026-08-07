@@ -14,6 +14,9 @@ namespace _Scripts.LSO.Ability
         Vengeance,
         Frail,
         CurseImmunity,
-        Evolve
+        Evolve,
+        AllHeal,
+        LifeSteal,
+        CostRefund
     }
 }

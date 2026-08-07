@@ -2227,6 +2227,7 @@ GameObject:
   - component: {fileID: 579526124}
   - component: {fileID: 579526123}
   - component: {fileID: 579526132}
+  - component: {fileID: 579526133}
   m_Layer: 0
   m_Name: LDY_GameSystems
   m_TagString: Untagged
@@ -2400,6 +2401,19 @@ MonoBehaviour:
     m_Bits: 256
   highlighter: {fileID: 579526127}
   targetCamera: {fileID: 257224524}
+--- !u!114 &579526133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579526122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26882a978aa42e646aa303bc72d9a79d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_DeathHandler
+  board: {fileID: 579526130}
 --- !u!1 &626929117
 GameObject:
   m_ObjectHideFlags: 0
@@ -7422,7 +7436,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   baseAtk: 2
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1749388460}
 --- !u!114 &1749388463
 MonoBehaviour:
