@@ -85,9 +85,7 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
 
         Transform oldModel = owner.modelTransform;
         Renderer[] oldRenderers = owner.GetComponentsInChildren<Renderer>(true);
-
-        // unitPrefab is a complete board unit. Keep only its visual parts so the
-        // existing owner retains its board position, health and ability state.
+        
         GameObject evolvedVisual = Object.Instantiate(unitPrefab, owner.transform, false);
         evolvedVisual.name = $"{unitPrefab.name}_EvolvedVisual";
         evolvedVisual.SetActive(false);
@@ -100,9 +98,7 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
 
         foreach (Collider clonedCollider in evolvedVisual.GetComponentsInChildren<Collider>(true))
             clonedCollider.enabled = false;
-
-        // Destroy is delayed until the end of the frame. Do not activate the visual
-        // before the cloned board-unit components have been removed.
+        
         yield return null;
 
         if (owner == null)

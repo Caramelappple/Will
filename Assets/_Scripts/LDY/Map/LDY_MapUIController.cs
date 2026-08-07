@@ -16,10 +16,8 @@ public class LDY_MapUIController : MonoBehaviour
     [SerializeField] private LDY_MapNodeView nodeViewPrefab;
     [SerializeField] private Image linePrefab;
     [SerializeField] private Image backgroundPanel;
-    [SerializeField] private LDY_MapPlayerToken playerTokenPrefab;
 
     private readonly List<LDY_MapNodeView> nodeViews = new List<LDY_MapNodeView>();
-    private LDY_MapPlayerToken playerToken;
     private int currentPlayerNodeIndex = -1;
 
     private void Start()
@@ -39,38 +37,28 @@ public class LDY_MapUIController : MonoBehaviour
 
         mapManager.onMapChanged.AddListener(RefreshAll);
 
-        // 노드뷰가 참조를 들고 있어야 하므로 플레이어 토큰을 먼저 만들고,
-        // 노드들이 다 생긴 뒤에 형제 순서만 맨 뒤로 옮겨서 항상 위에 그려지게 함
-        SpawnPlayerToken();
+        InitPlayerPosition();
         SpawnNodeViews();
         DrawConnections();
-        if (playerToken != null) playerToken.transform.SetAsLastSibling();
         RefreshAll();
     }
 
-    private void SpawnPlayerToken()
+    private void InitPlayerPosition()
     {
-        if (playerTokenPrefab == null) return;
-
         List<LDY_MapNode> nodes = mapManager.Nodes;
         if (nodes.Count == 0) return;
 
         int startIndex = nodes.FindIndex(n => n.type == LDY_NodeType.Start);
         if (startIndex < 0) startIndex = 0;
 
-        // 전투 씬 등을 갔다 오면 이 컨트롤러(씬 로컬)는 통째로 새로 생기지만, LDY_MapManager는
-        // DontDestroyOnLoad라 CurrentNodeIndex에 "마지막으로 도착한 노드"가 그대로 남아있다 - 이게
-        // 없으면(-1, 최초 진입) 시작 노드를 기본값으로 쓴다.
-        int spawnIndex = (mapManager.CurrentNodeIndex >= 0 && mapManager.CurrentNodeIndex < nodes.Count)
+        // 전투 씬 등을 갔다 오면 CurrentNodeIndex에 "마지막으로 도착한 노드"가 그대로 남아있음
+        // 없으면(-1, 최초 진입) 시작 노드를 기본값으로 설정
+        currentPlayerNodeIndex = (mapManager.CurrentNodeIndex >= 0 && mapManager.CurrentNodeIndex < nodes.Count)
             ? mapManager.CurrentNodeIndex
             : startIndex;
-
-        playerToken = Instantiate(playerTokenPrefab, nodeContainer);
-        playerToken.SetPosition(nodes[spawnIndex].position);
-        currentPlayerNodeIndex = spawnIndex;
     }
 
-    // 노드 뷰가 플레이어 도착 시 알려주면, 글로우 색을 다시 계산하도록 전체 갱신
+    // 노드뷰가 클릭 또는 도착 시 알려주면 현재 위치 갱신
     public void OnPlayerArrivedAt(int nodeIndex)
     {
         currentPlayerNodeIndex = nodeIndex;
@@ -91,7 +79,8 @@ public class LDY_MapUIController : MonoBehaviour
         for (int i = 0; i < nodes.Count; i++)
         {
             LDY_MapNodeView view = Instantiate(nodeViewPrefab, nodeContainer);
-            view.Initialize(mapManager, nodes[i], i, theme, playerToken, this);
+            // playerToken 인자 전달 부분 제거
+            view.Initialize(mapManager, nodes[i], i, theme, this);
             nodeViews.Add(view);
         }
     }

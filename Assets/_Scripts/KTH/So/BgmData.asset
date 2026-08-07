@@ -15,4 +15,8 @@ MonoBehaviour:
   id: 1
   clip: {fileID: 8300000, guid: 2ad8734fbb1ed14478f02156fbfc723c, type: 3}
   volume: 0.513
+  randomPitch: 0
+  pitch: 1
+  minPitch: 0.95
+  maxPitch: 1.05
   loop: 1
