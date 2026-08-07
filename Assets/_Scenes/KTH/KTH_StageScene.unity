@@ -955,6 +955,8 @@ MonoBehaviour:
   battleSceneName: KTH_SoundManagerScene
   bossSceneName: KTH_SoundManagerScene
   stageRouterSource: {fileID: 1062778835}
+  playerTokenPrefab: {fileID: 5716994852695685956, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
+  ldy_play: {fileID: 5716994852695685956, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
   onShopNodeSelected:
     m_PersistentCalls:
       m_Calls: []
@@ -967,8 +969,8 @@ MonoBehaviour:
   onMapChanged:
     m_PersistentCalls:
       m_Calls: []
-  currentChapter: 2
-  currentStage: 2
+  currentChapter: 1
+  currentStage: 1
   activeNodeIndex: -1
 --- !u!4 &1062778834
 Transform:

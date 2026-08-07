@@ -26,5 +26,6 @@ public class KTH_DeckDataPersistent : MonoBehaviour
     public void SaveInventory(List<LSO_CardSO> newInventory)
     {
         savedInventory = new List<LSO_CardSO>(newInventory);
+        Debug.Log($"[KTH_DeckDataPersistent] 덱 데이터가 저장되었습니다. (총 {savedInventory.Count}장)");
     }
 }

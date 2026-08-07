@@ -767,7 +767,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckBuilderManager
   cardDatabase:
-  - {fileID: 11400000, guid: deca1354605413a4a83760db25a89aa2, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   - {fileID: 11400000, guid: bde89f34374f7ea42b2dd3f667052b3a, type: 2}
   - {fileID: 11400000, guid: 679761d7e8b6ff34b825dad315b73ec6, type: 2}
   - {fileID: 11400000, guid: 679761d7e8b6ff34b825dad315b73ec6, type: 2}

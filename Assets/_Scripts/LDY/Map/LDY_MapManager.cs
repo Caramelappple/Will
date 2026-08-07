@@ -1,3 +1,5 @@
+using System; // CS0246(Action) 에러 방지용
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -7,9 +9,6 @@ using _Scripts.LDY.Stage;
 [System.Serializable]
 public class LDY_MapNodeUnityEvent : UnityEvent<LDY_MapNode> { }
 
-/// <summary>
-/// 챕터별 맵 노드 구조 및 연결 정보 데이터
-/// </summary>
 [System.Serializable]
 public class LDY_ChapterMapData
 {
@@ -50,9 +49,6 @@ public class LDY_MapManager : MonoBehaviour
     [Header("맵 씬 이름")]
     [SerializeField] private string mapSceneName = "MapScene";
 
-    // =========================================================================
-    // [에디터 설정 & 하위 호환용 필드]
-    // =========================================================================
     [Header("에디터에서 편집할 챕터 번호")]
     [SerializeField] private int editorChapterIndex = 1;
     public int EditorChapterIndex => editorChapterIndex;
@@ -73,6 +69,10 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private MonoBehaviour stageRouterSource;
     private LDY_IStageRouter _stageRouter;
 
+    [Header("플레이어 토큰")]
+    [SerializeField] private LDY_MapPlayerToken playerTokenPrefab;
+    [SerializeField] private LDY_MapPlayerToken ldy_play;
+
     [Header("Shop / Event 노드 진입 시 호출되는 이벤트")]
     public LDY_MapNodeUnityEvent onShopNodeSelected;
     public LDY_MapNodeUnityEvent onEventNodeSelected;
@@ -92,6 +92,8 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private int activeNodeIndex = -1;
     public int ActiveNodeIndex => activeNodeIndex;
     public int CurrentNodeIndex { get; private set; } = -1;
+
+    private int previousNodeIndex = -1; // 이동 연출용 출발지 기록
 
     public List<LDY_MapNode> Nodes { get; private set; } = new List<LDY_MapNode>();
 
@@ -120,6 +122,30 @@ public class LDY_MapManager : MonoBehaviour
         ResolveStageRouter();
         LoadChapterToEditor(currentChapter);
         BuildNodes();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        EnsureNodeContainer();
+        if (nodeContainerRect != null && Nodes.Count > 0)
+        {
+            // 씬 진입 시 토큰을 '직전 노드' 위치에 배치해서 이동 애니메이션 준비
+            int spawnIndex = IsValidIndex(previousNodeIndex) ? previousNodeIndex : CurrentNodeIndex;
+            if (IsValidIndex(spawnIndex))
+            {
+                SetTokenPositionToNode(spawnIndex);
+            }
+        }
     }
 
     private void ResolveStageRouter()
@@ -206,6 +232,8 @@ public class LDY_MapManager : MonoBehaviour
         Nodes.Clear();
         activeNodeIndex = -1;
 
+        EnsureNodeContainer();
+
         LDY_ChapterMapData currentMapData = GetCurrentChapterData();
 
         Vector2[] posArray = (currentMapData != null && currentMapData.nodePositions != null) ? currentMapData.nodePositions : nodePositions;
@@ -239,20 +267,29 @@ public class LDY_MapManager : MonoBehaviour
 
         if (Nodes.Count == 0) return;
 
-        int startIndex = Nodes.FindIndex(n => n.type == LDY_NodeType.Start);
-        if (startIndex < 0) startIndex = 0;
-
-        Nodes[startIndex].isUnlocked = true;
-        CurrentNodeIndex = startIndex;
-
-        if (Nodes[startIndex].type == LDY_NodeType.Start)
+        if (!IsValidIndex(CurrentNodeIndex))
         {
-            CompleteNode(startIndex);
+            int startIndex = Nodes.FindIndex(n => n.type == LDY_NodeType.Start);
+            if (startIndex < 0) startIndex = 0;
+
+            Nodes[startIndex].isUnlocked = true;
+            CurrentNodeIndex = startIndex;
+
+            if (Nodes[startIndex].type == LDY_NodeType.Start)
+            {
+                CompleteNode(startIndex);
+                return;
+            }
         }
         else
         {
-            onMapChanged?.Invoke();
+            Nodes[CurrentNodeIndex].isUnlocked = true;
         }
+
+        onMapChanged?.Invoke();
+
+        int spawnIndex = IsValidIndex(previousNodeIndex) ? previousNodeIndex : CurrentNodeIndex;
+        SetTokenPositionToNode(spawnIndex);
     }
 
     public void OnNodeClicked(int index)
@@ -272,36 +309,33 @@ public class LDY_MapManager : MonoBehaviour
             return;
         }
 
-        if (node.isCleared)
-        {
-            CurrentNodeIndex = index;
-            onMapChanged?.Invoke();
-            return;
-        }
+        int prevIndex = CurrentNodeIndex;
+        CurrentNodeIndex = index;
 
-        if (isTest)
+        if (ldy_play != null && IsValidIndex(prevIndex))
         {
-            if (!isWaitingSecondClick)
+            List<Vector2> path = new List<Vector2>
             {
-                CurrentNodeIndex = index;
-                isWaitingSecondClick = true;
-                onMapChanged?.Invoke();
-                return;
-            }
+                Nodes[prevIndex].position,
+                Nodes[index].position
+            };
 
-            activeNodeIndex = index;
-            isWaitingSecondClick = false;
-            CompleteNode(index);
-            return;
+            ldy_play.MoveAlongPath(path, () =>
+            {
+                ExecuteNodeAction(index, node, screenUV);
+            }, 0.6f);
         }
-
-        ExecuteNodeAction(index, node, screenUV);
+        else
+        {
+            ExecuteNodeAction(index, node, screenUV);
+        }
     }
 
     private void ExecuteNodeAction(int index, LDY_MapNode node, Vector2 screenUV)
     {
         activeNodeIndex = index;
         CurrentNodeIndex = index;
+        SetTokenPositionToNode(index);
 
         Debug.Log($"[LDY_MapManager] 클릭된 노드 index: {index}, type: {node.type}");
 
@@ -331,6 +365,8 @@ public class LDY_MapManager : MonoBehaviour
         if (!IsValidIndex(nodeIndex)) return new Vector2(0.5f, 0.5f);
 
         Vector2 nodePos = Nodes[nodeIndex].position;
+
+        EnsureNodeContainer();
 
         if (nodeContainerRect != null)
         {
@@ -397,36 +433,105 @@ public class LDY_MapManager : MonoBehaviour
         {
             currentChapter++;
             currentStage = 1;
+            CurrentNodeIndex = -1;
+            previousNodeIndex = -1;
             onStageChanged?.Invoke();
 
             LoadChapterToEditor(currentChapter);
             BuildNodes();
+            return;
         }
-        else
-        {
-            int firstNextIndex = -1;
-            foreach (int next in Nodes[index].nextIndices)
-            {
-                if (IsValidIndex(next))
-                {
-                    Nodes[next].isUnlocked = true;
-                    if (firstNextIndex < 0) firstNextIndex = next;
-                }
-            }
 
-            // [수정] 클리어 후 현재 플레이어의 위치(CurrentNodeIndex)를 다음 해금된 노드로 자동으로 옮겨줍니다.
-            if (firstNextIndex >= 0)
+        // 연결된 다음 노드들 해금
+        int firstNextIndex = -1;
+        foreach (int next in Nodes[index].nextIndices)
+        {
+            if (IsValidIndex(next))
             {
-                CurrentNodeIndex = firstNextIndex;
+                Nodes[next].isUnlocked = true;
+                if (firstNextIndex < 0) firstNextIndex = next;
             }
         }
 
         if (activeNodeIndex == index)
             activeNodeIndex = -1;
 
-        onMapChanged?.Invoke();
+        // ★ [핵심] 자동으로 다음 노드로 부드럽게 이동 연출하는 로직
+        if (firstNextIndex >= 0)
+        {
+            previousNodeIndex = index;            // 출발지점 기억
+            CurrentNodeIndex = firstNextIndex;   // 목적지 설정
+
+            onMapChanged?.Invoke(); // UI 갱신 (선 및 노드 해금)
+
+            SetTokenPositionToNode(previousNodeIndex); // 출발점에 토큰 강제 고정
+
+            List<Vector2> path = new List<Vector2>
+            {
+                Nodes[previousNodeIndex].position,
+                Nodes[CurrentNodeIndex].position
+            };
+
+            if (ldy_play != null)
+            {
+                // 출발 노드에서 목적 노드로 0.8초간 이동 모션 실행
+                ldy_play.MoveAlongPath(path, () =>
+                {
+                    previousNodeIndex = CurrentNodeIndex; // 이동 완료 후 업데이트
+                }, 0.8f);
+            }
+        }
+        else
+        {
+            onMapChanged?.Invoke();
+            SetTokenPositionToNode(CurrentNodeIndex);
+        }
     }
+
+    private void SetTokenPositionToNode(int nodeIndex)
+    {
+        if (!IsValidIndex(nodeIndex)) return;
+
+        EnsureNodeContainer();
+
+        Transform targetParent = nodeContainerRect != null ? nodeContainerRect : FindFirstObjectByType<Canvas>()?.transform;
+        if (targetParent == null) return;
+
+        if (ldy_play == null || !ldy_play.gameObject.scene.IsValid())
+        {
+            ldy_play = FindFirstObjectByType<LDY_MapPlayerToken>();
+
+            if (ldy_play == null && playerTokenPrefab != null)
+            {
+                ldy_play = Instantiate(playerTokenPrefab, targetParent);
+            }
+        }
+
+        if (ldy_play != null)
+        {
+            if (ldy_play.transform.parent != targetParent)
+            {
+                ldy_play.transform.SetParent(targetParent, false);
+            }
+
+            ldy_play.SetPosition(Nodes[nodeIndex].position);
+            ldy_play.BringToFront();
+        }
+    }
+
     private bool IsValidIndex(int index) => index >= 0 && index < Nodes.Count;
+
+    private void EnsureNodeContainer()
+    {
+        if (nodeContainerRect == null || !nodeContainerRect.gameObject.scene.IsValid())
+        {
+            GameObject containerObj = GameObject.Find("NodeContainer");
+            if (containerObj != null)
+            {
+                nodeContainerRect = containerObj.GetComponent<RectTransform>();
+            }
+        }
+    }
 
     private void EnterStage(int index, LDY_MapNode node, string fallbackSceneName, Vector2 screenUV)
     {
