@@ -1,20 +1,23 @@
 using _Scripts.LSO;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// 확률 뽑기용 항목 (기물/유언 공용)
+/// 확률 뽑기용 기물 항목 (기물 이름 식별용)
 /// </summary>
 [System.Serializable]
 public class KTH_RewardPoolEntry
 {
-    [Tooltip("기물 ID 또는 유언 ID")]
-    public string id;
+    [Tooltip("기물의 animalName (예: Dog, Cat, Bear...)")]
+    public string animalName;
 
-    [Tooltip("가중치 (값이 클수록 뽑힐 확률 높음, 절대값 % 아님)")]
+    [Tooltip("가중치 (값이 클수록 뽑힐 확률 높음)")]
     public float weight = 1f;
 }
+
+/// <summary>
+/// 확률 뽑기용 유언 항목
+/// </summary>
 [System.Serializable]
 public class KTH_WillRewardPoolEntry
 {
@@ -37,7 +40,7 @@ public class KTH_StageRewardData
     [Header("스테이지")]
     public int stage;
 
-    [Header("기물 후보")]
+    [Header("기물 후보 (animalName 기준)")]
     public List<KTH_RewardPoolEntry> possiblePieces = new();
 
     [Header("유언 후보")]
@@ -54,10 +57,10 @@ public class KTH_Reward : MonoBehaviour
     [Header("스테이지별 해금 테이블")]
     public List<KTH_StageRewardData> stageRewardTable = new();
 
-    [Header("현재까지 해금된 기물")]
+    [Header("현재까지 해금된 기물 이름 목록")]
     [SerializeField] private List<string> unlockedPieces = new();
 
-    [Header("현재까지 해금된 유언")]
+    [Header("현재까지 해금된 유언 목록")]
     [SerializeField] private List<LSO_WillType> unlockedWills = new();
 
     private void Awake()
@@ -82,7 +85,7 @@ public class KTH_Reward : MonoBehaviour
         KTH_UnlockResult result = new();
 
         KTH_StageRewardData data =
-        stageRewardTable.Find(x => x.chapter == chapter && x.stage == stage);
+            stageRewardTable.Find(x => x.chapter == chapter && x.stage == stage);
 
         if (data == null)
         {
@@ -91,12 +94,13 @@ public class KTH_Reward : MonoBehaviour
         }
 
         Debug.Log($"========== Stage {stage} Reward ==========");
-        // 기물 1개 뽑기
-        string pickedPieceId = PickWeightedRandom(data.possiblePieces, unlockedPieces);
-        if (pickedPieceId != null && UnlockPiece(pickedPieceId))
+
+        // 기물 1개 뽑기 (animalName 기준)
+        string pickedPieceName = PickWeightedRandomPiece(data.possiblePieces, unlockedPieces);
+        if (!string.IsNullOrEmpty(pickedPieceName) && UnlockPiece(pickedPieceName))
         {
-            result.newlyUnlockedPieces.Add(pickedPieceId);
-            Debug.Log($"새 기물 해금 : {pickedPieceId}");
+            result.newlyUnlockedPieces.Add(pickedPieceName);
+            Debug.Log($"새 기물 해금 : {pickedPieceName}");
         }
         else
         {
@@ -105,7 +109,6 @@ public class KTH_Reward : MonoBehaviour
 
         // 유언 1개 뽑기
         LSO_WillType? pickedWill = PickWeightedRandomWill(data.possibleWills, unlockedWills);
-
         if (pickedWill.HasValue && UnlockWill(pickedWill.Value))
         {
             result.newlyUnlockedWills.Add(pickedWill.Value);
@@ -126,10 +129,13 @@ public class KTH_Reward : MonoBehaviour
         return result;
     }
 
+    //==================================================
+    // 가중치 랜덤 뽑기 (이미 해금된 항목은 후보에서 제외)
+    //==================================================
 
-    private string PickWeightedRandom(
-    List<KTH_RewardPoolEntry> pool,
-    List<string> alreadyUnlocked)
+    private string PickWeightedRandomPiece(
+        List<KTH_RewardPoolEntry> pool,
+        List<string> alreadyUnlocked)
     {
         if (pool == null || pool.Count == 0)
             return null;
@@ -138,10 +144,10 @@ public class KTH_Reward : MonoBehaviour
 
         foreach (var entry in pool)
         {
-            if (entry == null || string.IsNullOrEmpty(entry.id))
+            if (entry == null || string.IsNullOrEmpty(entry.animalName))
                 continue;
 
-            if (alreadyUnlocked.Contains(entry.id))
+            if (alreadyUnlocked.Contains(entry.animalName))
                 continue;
 
             if (entry.weight <= 0f)
@@ -165,18 +171,15 @@ public class KTH_Reward : MonoBehaviour
             cumulative += c.weight;
 
             if (roll <= cumulative)
-                return c.id;
+                return c.animalName;
         }
 
-        return candidates[candidates.Count - 1].id;
+        return candidates[candidates.Count - 1].animalName;
     }
-    //==================================================
-    // 가중치 랜덤 뽑기 (이미 해금된 항목은 후보에서 제외)
-    //==================================================
 
     private LSO_WillType? PickWeightedRandomWill(
-    List<KTH_WillRewardPoolEntry> pool,
-    List<LSO_WillType> alreadyUnlocked)
+        List<KTH_WillRewardPoolEntry> pool,
+        List<LSO_WillType> alreadyUnlocked)
     {
         if (pool == null || pool.Count == 0)
             return null;
@@ -216,30 +219,43 @@ public class KTH_Reward : MonoBehaviour
     }
 
     //==================================================
-    // 기물
+    // 기물 (animalName 기반)
     //==================================================
 
-    public bool UnlockPiece(string pieceId)
+    public bool UnlockPiece(string animalName)
     {
-        if (string.IsNullOrEmpty(pieceId))
+        if (string.IsNullOrEmpty(animalName))
             return false;
 
-        if (unlockedPieces.Contains(pieceId))
+        if (unlockedPieces.Contains(animalName))
             return false;
 
-        unlockedPieces.Add(pieceId);
+        unlockedPieces.Add(animalName);
         return true;
     }
 
-    public bool IsPieceUnlocked(string pieceId)
+    public bool UnlockPiece(LSO_AnimalSO animal)
     {
-        return unlockedPieces.Contains(pieceId);
+        if (animal == null) return false;
+        return UnlockPiece(animal.animalName);
+    }
+
+    public bool IsPieceUnlocked(string animalName)
+    {
+        return unlockedPieces.Contains(animalName);
+    }
+
+    public bool IsPieceUnlocked(LSO_AnimalSO animal)
+    {
+        if (animal == null) return false;
+        return IsPieceUnlocked(animal.animalName);
     }
 
     public IReadOnlyList<string> GetUnlockedPieces()
     {
         return unlockedPieces;
     }
+
     //==================================================
     // 유언
     //==================================================
@@ -264,17 +280,13 @@ public class KTH_Reward : MonoBehaviour
     }
 
     //==================================================
-    // 조회
+    // 조회 및 초기화
     //==================================================
 
     public KTH_StageRewardData GetStageRewardData(int chapter, int stage)
     {
         return stageRewardTable.Find(x => x.chapter == chapter && x.stage == stage);
     }
-
-    //==================================================
-    // 초기화
-    //==================================================
 
     public void ResetUnlocks()
     {

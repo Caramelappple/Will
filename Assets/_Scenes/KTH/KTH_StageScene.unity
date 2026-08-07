@@ -329,7 +329,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 657207879}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40419b1cc1139a440abc8003f9158534, type: 3}
   m_Name: 
@@ -600,13 +600,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_Reward
   stageRewardTable:
-  - stageNumber: 1
-    unlockedPieceIds:
-    - 11
-    unlockedWillIds:
-    - 222
+  - chapter: 1
+    stage: 1
+    possiblePieces:
+    - animalName: cat
+      weight: 1
+    - animalName: Dog
+      weight: 2
+    possibleWills:
+    - willType: 0
+      weight: 1
+    - willType: 0
+      weight: 1
   unlockedPieces: []
-  unlockedWills: []
+  unlockedWills: 
 --- !u!4 &713707820
 Transform:
   m_ObjectHideFlags: 0
@@ -857,6 +864,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1062778834}
   - component: {fileID: 1062778833}
+  - component: {fileID: 1062778835}
   m_Layer: 0
   m_Name: MapManager
   m_TagString: Untagged
@@ -877,14 +885,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapManager
   isTest: 0
+  nodeContainerRect: {fileID: 1671757774}
   mapSceneName: KTH_StageScene
+  editorChapterIndex: 2
   nodePositions:
-  - {x: -400, y: 100}
-  - {x: -300, y: -0.5}
-  - {x: -96.83331, y: 98.83331}
-  - {x: 105.16669, y: 202.83331}
-  - {x: 135.83337, y: 8.166626}
-  - {x: 31.166687, y: -129.83337}
+  - {x: -129.33331, y: 108.33331}
+  - {x: 47.333374, y: -32.333374}
+  - {x: 180, y: 119}
+  - {x: 183.33337, y: -23.666687}
+  - {x: 305.33337, y: 123}
+  - {x: 404.66675, y: 58.333313}
   nodeTypes: 010000000100000001000000010000000100000004000000
   connections:
   - fromIndex: 0
@@ -897,8 +907,54 @@ MonoBehaviour:
     toIndex: 4
   - fromIndex: 4
     toIndex: 5
+  chapterMaps:
+  - chapter: 1
+    nodePositions:
+    - {x: -129.33331, y: 108.33331}
+    - {x: 47.333374, y: -32.333374}
+    - {x: 180, y: 119}
+    - {x: 294, y: 9}
+    - {x: 262.6667, y: -97.66669}
+    - {x: 202, y: -195.66669}
+    nodeTypes: 010000000100000001000000010000000100000004000000
+    connections:
+    - fromIndex: 0
+      toIndex: 1
+    - fromIndex: 1
+      toIndex: 2
+    - fromIndex: 2
+      toIndex: 3
+    - fromIndex: 3
+      toIndex: 4
+    - fromIndex: 4
+      toIndex: 5
+  - chapter: 2
+    nodePositions:
+    - {x: -129.33331, y: 108.33331}
+    - {x: 47.333374, y: -32.333374}
+    - {x: 180, y: 119}
+    - {x: 183.33337, y: -23.666687}
+    - {x: 305.33337, y: 123}
+    - {x: 404.66675, y: 58.333313}
+    nodeTypes: 010000000100000001000000010000000100000004000000
+    connections:
+    - fromIndex: 0
+      toIndex: 1
+    - fromIndex: 1
+      toIndex: 2
+    - fromIndex: 2
+      toIndex: 3
+    - fromIndex: 3
+      toIndex: 4
+    - fromIndex: 4
+      toIndex: 5
+  - chapter: 0
+    nodePositions: []
+    nodeTypes: 
+    connections: []
   battleSceneName: KTH_SoundManagerScene
-  bossSceneName: BossScene
+  bossSceneName: KTH_SoundManagerScene
+  stageRouterSource: {fileID: 1062778835}
   onShopNodeSelected:
     m_PersistentCalls:
       m_Calls: []
@@ -911,8 +967,8 @@ MonoBehaviour:
   onMapChanged:
     m_PersistentCalls:
       m_Calls: []
-  currentChapter: 1
-  currentStage: 1
+  currentChapter: 2
+  currentStage: 2
   activeNodeIndex: -1
 --- !u!4 &1062778834
 Transform:
@@ -929,6 +985,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1062778835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062778832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 377c9df8f0ea2a14ea0ff6d235f77479, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
+  nodeStages:
+  - nodeIndex: 1
+    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
+  typeStages:
+  - nodeType: 1
+    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
 --- !u!114 &1071272902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1944,7 +2018,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1615184306}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38df2ca8db6d5db4d8d4c5cec81f6329, type: 3}
   m_Name: 
@@ -1963,7 +2037,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1615184306}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ec1303235877b4fbff968de12d5f53, type: 3}
   m_Name: 
@@ -2279,21 +2353,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e53dc837e3375f1478b5234c3653a190, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapCameraController
-  mapManager: {fileID: 1062778833}
   nodeContainer: {fileID: 1671757774}
   lineContainer: {fileID: 1536103101}
-  viewportRect: {fileID: 1902033370}
-  canvas: {fileID: 1902033369}
-  minZoom: 2
-  maxZoom: 4
-  introMaxZoom: 2
-  panBoundsPadding: 150
-  overviewPadding: 80
-  focusPadding: 220
-  autoZoomToFrontier: 1
-  overviewHoldTime: 1
-  zoomInDuration: 1.2
-  scrollZoomSpeed: 0.15
+  chapterCameraSettings:
+  - chapter: 1
+    zoomScale: 2
+    positionOffset: {x: 0, y: 0}
 --- !u!222 &2084838560
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2357,7 +2422,6 @@ MonoBehaviour:
   nodeViewPrefab: {fileID: 4602573340324321884, guid: 6db63d69bd8314b48bad021fc73d4d25, type: 3}
   linePrefab: {fileID: 3648804017643619440, guid: 3f982829c63573a4e95b9be91082c176, type: 3}
   backgroundPanel: {fileID: 2084838558}
-  playerTokenPrefab: {fileID: 7399001943102410221, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
 --- !u!4 &2121850231
 Transform:
   m_ObjectHideFlags: 0

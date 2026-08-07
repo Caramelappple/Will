@@ -177,7 +177,7 @@ public class KTH_RewardEditorWindow : EditorWindow
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    pool[i].id = EditorGUILayout.TextField(pool[i].id);
+                    pool[i].animalName = EditorGUILayout.TextField(pool[i].animalName);
                     pool[i].weight = EditorGUILayout.FloatField(pool[i].weight, GUILayout.Width(60));
 
                     if (GUILayout.Button("-", GUILayout.Width(24)))
