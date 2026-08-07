@@ -39,10 +39,6 @@ namespace _Scripts.LDY.AI
 
             CollectCandidates(self);
 
-            // Wait는 점수 경쟁에 넣지 않는다. Move 점수가 음수라 0점짜리 Wait이 항상 이겨버리고,
-            // "공격 불가면 가장 가까운 상대에게 이동" 규칙이 무력화되기 때문이다.
-            if (_candidates.Count == 0) return LDY_EnemyAction.Wait();
-
             IReadOnlyList<LDY_IActionScorer> ownScorers = _registry != null ? _registry.GetScorers(self) : null;
 
             LDY_EnemyAction best = _candidates[0];
@@ -64,11 +60,14 @@ namespace _Scripts.LDY.AI
             return best;
         }
 
-        // 열거 순서: 공격 후보 → 이동 후보.
-        // 두 목록 모두 고정된 방향 배열/좌표 순회에서 나오므로 같은 보드 상태면 항상 같은 순서다.
+        // 열거 순서: 대기 → 공격 후보 → 이동 후보.
+        // 대기가 맨 앞이라 모두 동점이면 제자리에 남는다. 기물별 scorer가 대기에 점수를 얹을 수 있다
+        // (부화를 기다리는 알처럼 대기가 정답인 기물).
+        // 공격/이동 목록은 고정된 방향 배열·좌표 순회에서 나오므로 같은 보드 상태면 항상 같은 순서다.
         private void CollectCandidates(LDY_Animal self)
         {
             _candidates.Clear();
+            _candidates.Add(LDY_EnemyAction.Wait());
 
             foreach (LDY_Animal target in _attackSystem.GetAttackTargets(self))
             {
