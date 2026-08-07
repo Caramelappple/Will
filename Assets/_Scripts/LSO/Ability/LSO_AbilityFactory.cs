@@ -20,6 +20,9 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.Frail, () => new LSO_Frail() },
                 { LSO_AbilityType.CurseImmunity, () => new LSO_CurseImmunity() },
                 { LSO_AbilityType.Evolve, () => new DLJ_Evolve() },
+                { LSO_AbilityType.AllHeal, () => new DLJ_AllHeal() },
+                { LSO_AbilityType.LifeSteal, () => new DLJ_LifeSteal() },
+                { LSO_AbilityType.CostRefund, () => new DLJ_CostRefund() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

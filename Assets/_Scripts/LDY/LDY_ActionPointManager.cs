@@ -22,7 +22,7 @@ namespace _Scripts.LDY
             get => _current;
             private set
             {
-                int clamped = Mathf.Clamp(value, minActionPoints, maxActionPoints);
+                int clamped = Mathf.Max(value, minActionPoints);
                 if (clamped == _current) return;   // 값이 안 바뀌면 이벤트도 안 쏜다
 
                 _current = clamped;
@@ -46,7 +46,7 @@ namespace _Scripts.LDY
 
         public void ResetPoints()
         {
-            Current = maxActionPoints;
+            Current = Mathf.Max(Current, maxActionPoints);
         }
 
         /// <summary>

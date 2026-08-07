@@ -61,7 +61,7 @@ public sealed class DLJ_ContractRefund
 
         pendingRefund += amount;
         Debug.Log(
-            $"Contract queued {amount} action points " +
+            $"Queued {amount} action points " +
             $"(pending: {pendingRefund}).");
     }
 
@@ -73,14 +73,16 @@ public sealed class DLJ_ContractRefund
         int amount = pendingRefund;
         pendingRefund = 0;
 
-        if (actionPoints == null || !actionPoints.TryConsume(-amount))
+        if (actionPoints == null)
         {
-            Debug.LogError("Contract failed to refund action points.");
+            Debug.LogError("Failed to refund action points.");
             return;
         }
 
+        actionPoints.AddActionPoints(amount);
+
         Debug.Log(
-            $"Contract refunded {amount} action points " +
+            $"Refunded {amount} action points " +
             $"(current: {actionPoints.Current}).");
     }
 }

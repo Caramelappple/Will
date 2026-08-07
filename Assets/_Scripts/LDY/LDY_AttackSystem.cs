@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO;
+using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.Will;
@@ -81,6 +82,7 @@ namespace _Scripts.LDY
                             attacker.GetAtk(),
                             ToDamageSource(attacker.RangeType));
 
+                        NotifyAttackAbilities(attacker);
                         target.health.GetDamage(data);
                         if (target.health.IsDestroyed)
                             HandleDeath(target, attacker);
@@ -165,7 +167,17 @@ namespace _Scripts.LDY
             }
         }
 
-        // 적이 죽었을 때만 알린다. 구독자가 없어도 무해하며, 매니저가 없으면 조용히 넘어간다.
+        private static void NotifyAttackAbilities(LDY_Animal attacker)
+        {
+            if (attacker == null) return;
+
+            foreach (LSO_IAbility ability in attacker.Abilities)
+            {
+                if (ability is IOnAnimalAttack listener)
+                    listener.OnAttack(attacker.data);
+            }
+        }
+
         private static void RaiseEnemyDead(LDY_Animal target)
         {
             if (target == null || target.team != LDY_Team.Enemy) return;
