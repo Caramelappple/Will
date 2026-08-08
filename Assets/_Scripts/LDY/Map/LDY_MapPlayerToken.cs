@@ -1,63 +1,202 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-// 맵 위에서 플레이어의 현재 위치를 나타내는 토큰. 노드를 클릭하면 그 노드 좌표로 이동한 뒤 콜백을 호출함.
-// NodeContainer 밑에 둬서 팬/줌에 노드들과 똑같이 따라 움직임.
-// 씬 전환(아이리스) 연출은 이 토큰이 실제로 도착한 위치를 기준으로 재생되므로,
-// 카메라가 움직이는 중에 클릭해도 항상 "플레이어가 서있는 자리"를 기준으로 자연스럽게 나옴
+[RequireComponent(typeof(CanvasGroup))] // ★ 위치 잡힐 때까지 잔상 방지용
 public class LDY_MapPlayerToken : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 800f; // 맵 좌표 단위/초
-    [SerializeField] private float minMoveDuration = 0.3f;
-    [SerializeField] private float maxMoveDuration = 1.2f;
-
     private RectTransform rt;
-    private Coroutine moving;
+    private CanvasGroup canvasGroup;
+    private Coroutine moveCoroutine;
+
+    [Header("Scene Settings")]
+    [Tooltip("플레이어 토큰이 존재해야 하는 맵 씬의 이름")]
+    [SerializeField] private string mapSceneName = "KTH_StageScene";
+
+    public bool IsMoving => moveCoroutine != null;
 
     private void Awake()
     {
-        rt = (RectTransform)transform;
+        rt = GetComponent<RectTransform>();
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+    }
+
+    private void OnEnable()
+    {
+        // ★ 켜지는 순간에는 숨김 (위치가 정확히 맞춰진 후 보여줌)
+        if (canvasGroup != null) canvasGroup.alpha = 0f;
+
+        EnsureCorrectParent();
+        BringToFront();
+    }
+
+    private bool IsCurrentSceneMap()
+    {
+        if (string.IsNullOrEmpty(mapSceneName)) return true;
+        return SceneManager.GetActiveScene().name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void EnsureCorrectParent()
+    {
+        // 부모가 이미 올바르게 잡혀있다면 패스
+        if (transform.parent != null && transform.parent.gameObject.activeInHierarchy) return;
+
+        // 1. 현재 활성화된 씬의 LDY_MapUIController를 찾아 안전하게 nodeContainer 참조
+        LDY_MapUIController uiController = FindFirstObjectByType<LDY_MapUIController>();
+        if (uiController != null)
+        {
+            Transform containerTransform = uiController.transform.Find("NodeContainer");
+            if (containerTransform != null)
+            {
+                transform.SetParent(containerTransform, false);
+                return;
+            }
+        }
+
+        // 2. Fallback: 현재 activeScene에 속한 NodeContainer만 탐색 (DontDestroyOnLoad 구역 감지 방지)
+        Scene activeScene = SceneManager.GetActiveScene();
+        GameObject[] rootObjects = activeScene.GetRootGameObjects();
+
+        foreach (GameObject root in rootObjects)
+        {
+            if (root.name == "MapCanvas" || root.name == "NodeContainer")
+            {
+                Transform foundNodeContainer = root.name == "NodeContainer" ? root.transform : root.transform.Find("NodeContainer");
+                if (foundNodeContainer != null)
+                {
+                    transform.SetParent(foundNodeContainer, false);
+                    return;
+                }
+            }
+        }
+
+        // 3. 최후의 수단: 씬의 최상위 Canvas 사용
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas != null && canvas.gameObject.scene == activeScene)
+        {
+            transform.SetParent(canvas.transform, false);
+        }
+    }
+
+    public void BringToFront()
+    {
+        EnsureCorrectParent();
+        transform.SetAsLastSibling();
     }
 
     public void SetPosition(Vector2 mapPosition)
     {
-        if (rt == null) rt = (RectTransform)transform;
-        rt.anchoredPosition = mapPosition;
-    }
+        if (rt == null) rt = GetComponent<RectTransform>();
 
-    public void MoveTo(Vector2 targetMapPosition, Action onComplete)
-    {
-        if (moving != null) StopCoroutine(moving);
-        moving = StartCoroutine(MoveRoutine(targetMapPosition, onComplete));
-    }
+        EnsureCorrectParent();
 
-    private IEnumerator MoveRoutine(Vector2 target, Action onComplete)
-    {
-        Vector2 start = rt.anchoredPosition;
-        float distance = Vector2.Distance(start, target);
-        float duration = Mathf.Clamp(distance / Mathf.Max(moveSpeed, 1f), minMoveDuration, maxMoveDuration);
-
-        float t = 0f;
-        while (t < duration)
+        if (rt != null)
         {
-            t += Time.unscaledDeltaTime;
-            float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / duration), 2f); // ease-out
-            rt.anchoredPosition = Vector2.Lerp(start, target, k);
-            yield return null;
+            rt.anchoredPosition = mapPosition;
         }
 
-        rt.anchoredPosition = target;
-        moving = null;
+        if (gameObject.activeInHierarchy)
+        {
+            StartCoroutine(Co_BringToFrontEndFrame());
+        }
+        else
+        {
+            BringToFront();
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+        }
+    }
+
+    public void MoveTo(Vector2 targetMapPosition, Action onComplete, float duration = 0.8f)
+    {
+        List<Vector2> path = new List<Vector2> { targetMapPosition };
+        MoveAlongPath(path, onComplete, duration);
+    }
+
+    public void MoveAlongPath(List<Vector2> pathPoints, Action onComplete, float totalDuration = 0.8f)
+    {
+        if (moveCoroutine != null)
+        {
+            StopCoroutine(moveCoroutine);
+            moveCoroutine = null;
+        }
+
+        if (pathPoints == null || pathPoints.Count == 0)
+        {
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+            onComplete?.Invoke();
+            return;
+        }
+
+        if (!gameObject.activeInHierarchy)
+        {
+            if (rt == null) rt = GetComponent<RectTransform>();
+            if (rt != null && pathPoints.Count > 0)
+            {
+                rt.anchoredPosition = pathPoints[pathPoints.Count - 1];
+            }
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+            onComplete?.Invoke();
+            return;
+        }
+
+        moveCoroutine = StartCoroutine(Co_MoveAlongPath(pathPoints, totalDuration, onComplete));
+    }
+
+    private IEnumerator Co_MoveAlongPath(List<Vector2> pathPoints, float totalDuration, Action onComplete)
+    {
+        if (rt == null) rt = GetComponent<RectTransform>();
+
+        EnsureCorrectParent();
+        BringToFront();
+
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
+
+        float durationPerSegment = totalDuration / pathPoints.Count;
+
+        foreach (Vector2 targetPos in pathPoints)
+        {
+            Vector2 startPos = rt != null ? rt.anchoredPosition : targetPos;
+            float elapsed = 0f;
+
+            while (elapsed < durationPerSegment)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / durationPerSegment);
+                t = Mathf.SmoothStep(0f, 1f, t);
+
+                if (rt != null)
+                {
+                    rt.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+                }
+
+                BringToFront();
+                yield return null;
+            }
+
+            if (rt != null) rt.anchoredPosition = targetPos;
+        }
+
+        BringToFront();
+        moveCoroutine = null;
         onComplete?.Invoke();
     }
 
-    // 씬 전환 아이리스 연출의 중심점으로 쓰기 위한, 이 토큰의 화면상 위치(0~1).
-    // 캔버스의 world scale이 CanvasScaler 때문에 실제 픽셀과 단위가 안 맞을 수 있으므로,
-    // world 좌표를 그냥 빼서 쓰지 않고 InverseTransformPoint로 "캔버스 로컬 공간"으로 정확히 변환한 뒤
-    // 그 로컬 공간과 같은 단위인 canvas.rect(참조 해상도)를 기준으로 0~1 비율을 계산함
+    private IEnumerator Co_BringToFrontEndFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        BringToFront();
+
+        // ★ 프레임 이동 및 위치 계산이 끝난 뒤에 깔끔하게 노출
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
+    }
+
     public Vector2 GetScreenUV()
     {
+        if (rt == null) return new Vector2(0.5f, 0.5f);
+
         Canvas canvas = GetComponentInParent<Canvas>();
         if (canvas == null) return new Vector2(0.5f, 0.5f);
 
@@ -65,13 +204,9 @@ public class LDY_MapPlayerToken : MonoBehaviour
         Vector3 localPos = canvasRect.InverseTransformPoint(rt.position);
         Rect rect = canvasRect.rect;
 
-        Vector2 uv = new Vector2(
+        return new Vector2(
             (localPos.x - rect.xMin) / rect.width,
-            (localPos.y - rect.yMin) / rect.height);
-
-        Debug.Log($"[LDY_MapPlayerToken] GetScreenUV: anchoredPosition(local)={rt.anchoredPosition}, " +
-            $"worldPos={rt.position}, localPos(canvas space)={localPos}, rect={rect}, uv={uv}");
-
-        return uv;
+            (localPos.y - rect.yMin) / rect.height
+        );
     }
 }

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb7372ed4d33b140bb1f45508a4dec4, type: 3}
+  m_Name: LDY_ScorerRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.AI.LDY_ScorerRegistry
+  bindings:
+  - animal: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
+    scorers: []
+  - animal: {fileID: 11400000, guid: 363e89414e1dc3c45832fddf9f5ad538, type: 2}
+    scorers: []
+  - animal: {fileID: 11400000, guid: 93044af61bfcc0a4e98b4221c6efb1ee, type: 2}
+    scorers: []
+  - animal: {fileID: 11400000, guid: d6c0ae7c8cfa638438a419605e7691cd, type: 2}
+    scorers: []
+  references:
+    version: 2
+    RefIds: []

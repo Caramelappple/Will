@@ -12,6 +12,17 @@ public class KTH_BgmPlayer : MonoBehaviour, KTH_IBgmPlayer
     {
         audioSource.clip = data.clip;
         audioSource.loop = data.loop;
+        if (data.randomPitch)
+        {
+            float min = Mathf.Min(data.minPitch, data.maxPitch);
+            float max = Mathf.Max(data.minPitch, data.maxPitch);
+
+            audioSource.pitch = Random.Range(min, max);
+        }
+        else
+        {
+            audioSource.pitch = data.pitch;
+        }
         audioSource.volume = data.volume * bgmVolume * masterVolume;
         audioSource.Play();
     }

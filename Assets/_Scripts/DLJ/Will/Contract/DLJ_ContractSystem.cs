@@ -17,6 +17,7 @@ internal sealed class DLJ_ContractWill : LSO_IWill
     private readonly int unitCost;
     private readonly LDY_Team ownerTeam;
     private readonly DLJ_ContractRefund refundService;
+    private readonly bool isEnhanced;
 
     internal DLJ_ContractWill(DLJ_WillContext context)
     {
@@ -24,6 +25,7 @@ internal sealed class DLJ_ContractWill : LSO_IWill
             ? Mathf.Max(0, context.animal.data.cost)
             : 0;
         ownerTeam = context.animal != null ? context.animal.team : LDY_Team.Player;
+        isEnhanced = DLJ_WillEnhancement.IsActive(context.animal);
         refundService = DLJ_ContractRefund.GetOrCreate(
             context.actionPoints,
             context.turnManager);
@@ -40,6 +42,9 @@ internal sealed class DLJ_ContractWill : LSO_IWill
             return;
         }
 
-        refundService.QueueRefund(Mathf.CeilToInt(unitCost / 2f));
+        int refundAmount = isEnhanced
+            ? unitCost
+            : Mathf.CeilToInt(unitCost / 2f);
+        refundService.QueueRefund(refundAmount);
     }
 }

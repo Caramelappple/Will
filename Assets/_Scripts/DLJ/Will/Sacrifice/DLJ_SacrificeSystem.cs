@@ -29,11 +29,13 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
     private const int StatBonus = 1;
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
+    private readonly int healthBonus;
 
     internal DLJ_SacrificeWill(LDY_Animal sourceOwner, LDY_BoardManager sourceBoard)
     {
         owner = sourceOwner;
         board = sourceBoard;
+        healthBonus = DLJ_WillEnhancement.IsActive(owner) ? 2 : StatBonus;
     }
 
     public void InvokeWill()
@@ -61,8 +63,8 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
             if (ally.health == null || ally.health.IsDestroyed)
                 continue;
 
-            int increasedHealth = ally.health.Value + StatBonus;
-            ally.health.Init(ally.health.MaxValue + StatBonus, false);
+            int increasedHealth = ally.health.Value + healthBonus;
+            ally.health.Init(ally.health.MaxValue + healthBonus, false);
             ally.health.Value = increasedHealth;
             ally.baseAtk += StatBonus;
             buffedCount++;

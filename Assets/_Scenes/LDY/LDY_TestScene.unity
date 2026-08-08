@@ -5840,6 +5840,12 @@ MonoBehaviour:
   attackSystem: {fileID: 944642611}
   actionPoints: {fileID: 944642608}
   actionDelay: 0.5
+  scorers: []
+  scorerRegistry: {fileID: 0}
+  enableDecisionLog: 0
+  references:
+    version: 2
+    RefIds: []
 --- !u!114 &944642610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8488,10 +8494,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377c9df8f0ea2a14ea0ff6d235f77479, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
-  nodeStages: []
-  typeStages:
-  - nodeType: 0
-    stage: {fileID: 0}
+  nodeStages:
+  - nodeIndex: 0
+    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
+  typeStages: []
 --- !u!1 &1345992235
 GameObject:
   m_ObjectHideFlags: 0
