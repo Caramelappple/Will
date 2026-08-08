@@ -1,14 +1,17 @@
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
-// LDY_MapManager의 nodePositions / nodeTypes / connections를 2D 캔버스에서 시각적으로 편집하는 툴
-// (좌표는 UI anchoredPosition 기준. 씬 오브젝트 트랜스폼과는 무관한 독립 좌표계)
-// 한 노드가 여러 연결을 가지면 분기(두 갈래 이상)가 됨
+// LDY_MapManager의 챕터별 nodePositions / nodeTypes / connections를 2D 캔버스에서 시각적으로 편집하는 툴
 public class LDY_ConstellationMapEditorWindow : EditorWindow
 {
     private enum EditMode { Select, AddNode, Connect }
 
     private LDY_MapManager manager;
+
+    // --- 챕터 선택 관련 변수 ---
+    private int selectedChapterIndex = 0;
+    private string[] chapterNames = new string[] { "Chapter 1", "Chapter 2", "Chapter 3" };
 
     private Vector2 panOffset;
     private float zoom = 1f;
@@ -52,14 +55,54 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
 
         SerializedObject so = new SerializedObject(manager);
         so.Update();
-        SerializedProperty posProp = so.FindProperty("nodePositions");
-        SerializedProperty typeProp = so.FindProperty("nodeTypes");
-        SerializedProperty connProp = so.FindProperty("connections");
+
+        // ★ [핵심 수정] chapters -> chapterMaps 변수명 수정
+        SerializedProperty chapterMapsProp = so.FindProperty("chapterMaps");
+
+        SerializedProperty posProp = null;
+        SerializedProperty typeProp = null;
+        SerializedProperty connProp = null;
+
+        if (chapterMapsProp != null && chapterMapsProp.isArray && chapterMapsProp.arraySize > 0)
+        {
+            // 챕터 목록 이름 배열 갱신
+            if (chapterNames.Length != chapterMapsProp.arraySize)
+            {
+                chapterNames = new string[chapterMapsProp.arraySize];
+                for (int i = 0; i < chapterMapsProp.arraySize; i++)
+                {
+                    SerializedProperty elem = chapterMapsProp.GetArrayElementAtIndex(i);
+                    SerializedProperty chNum = elem.FindPropertyRelative("chapter");
+                    int num = chNum != null ? chNum.intValue : (i + 1);
+                    chapterNames[i] = $"Chapter {num}";
+                }
+            }
+
+            selectedChapterIndex = Mathf.Clamp(selectedChapterIndex, 0, chapterMapsProp.arraySize - 1);
+            SerializedProperty currentChapter = chapterMapsProp.GetArrayElementAtIndex(selectedChapterIndex);
+
+            posProp = currentChapter.FindPropertyRelative("nodePositions");
+            typeProp = currentChapter.FindPropertyRelative("nodeTypes");
+            connProp = currentChapter.FindPropertyRelative("connections");
+        }
+        else
+        {
+            // 단일 데이터 구조 호환용 Fallback
+            posProp = so.FindProperty("nodePositions");
+            typeProp = so.FindProperty("nodeTypes");
+            connProp = so.FindProperty("connections");
+        }
+
+        if (posProp == null || typeProp == null || connProp == null)
+        {
+            EditorGUILayout.HelpBox("MapManager에서 노드 데이터를 찾을 수 없습니다. (chapterMaps 프로퍼티 확인 필요)", MessageType.Warning);
+            return;
+        }
 
         EditorGUILayout.BeginHorizontal();
         Rect canvasRect = GUILayoutUtility.GetRect(10, 10, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
         DrawCanvas(canvasRect, posProp, typeProp, connProp);
-        DrawSidePanel(posProp, typeProp, connProp);
+        DrawSidePanel(posProp, typeProp, connProp, chapterMapsProp);
         EditorGUILayout.EndHorizontal();
 
         so.ApplyModifiedProperties();
@@ -71,24 +114,43 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
         EditorGUILayout.LabelField("대상", GUILayout.Width(30));
-        manager = (LDY_MapManager)EditorGUILayout.ObjectField(manager, typeof(LDY_MapManager), true, GUILayout.Width(200));
+        manager = (LDY_MapManager)EditorGUILayout.ObjectField(manager, typeof(LDY_MapManager), true, GUILayout.Width(160));
+
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("챕터", GUILayout.Width(30));
+
+        int newChapter = EditorGUILayout.Popup(selectedChapterIndex, chapterNames, EditorStyles.toolbarPopup, GUILayout.Width(100));
+        if (newChapter != selectedChapterIndex)
+        {
+            selectedChapterIndex = newChapter;
+            selectedIndex = -1; // 챕터 변경 시 선택 해제
+            connectFrom = -1;
+
+            // ★ 챕터 전환 시 LDY_MapManager의 인스펙터 편집용 변수도 맞춰 업데이트
+            if (manager != null)
+            {
+                manager.LoadChapterToEditor(selectedChapterIndex + 1);
+            }
+        }
+
+        EditorGUILayout.Space(10);
 
         GUI.backgroundColor = mode == EditMode.AddNode ? new Color(0.85f, 0.66f, 0.3f) : Color.white;
-        if (GUILayout.Button(mode == EditMode.AddNode ? "노드 추가 모드 (ON)" : "노드 추가 모드", EditorStyles.toolbarButton, GUILayout.Width(140)))
+        if (GUILayout.Button(mode == EditMode.AddNode ? "노드 추가 모드 (ON)" : "노드 추가 모드", EditorStyles.toolbarButton, GUILayout.Width(120)))
         {
             mode = mode == EditMode.AddNode ? EditMode.Select : EditMode.AddNode;
             connectFrom = -1;
         }
 
         GUI.backgroundColor = mode == EditMode.Connect ? new Color(0.72f, 0.48f, 0.49f) : Color.white;
-        if (GUILayout.Button(mode == EditMode.Connect ? "연결 모드 (ON)" : "연결 모드 (분기)", EditorStyles.toolbarButton, GUILayout.Width(140)))
+        if (GUILayout.Button(mode == EditMode.Connect ? "연결 모드 (ON)" : "연결 모드 (분기)", EditorStyles.toolbarButton, GUILayout.Width(120)))
         {
             mode = mode == EditMode.Connect ? EditMode.Select : EditMode.Connect;
             connectFrom = -1;
         }
         GUI.backgroundColor = Color.white;
 
-        if (GUILayout.Button("뷰 초기화", EditorStyles.toolbarButton, GUILayout.Width(70)))
+        if (GUILayout.Button("뷰 초기화", EditorStyles.toolbarButton, GUILayout.Width(65)))
         {
             panOffset = Vector2.zero;
             zoom = 1f;
@@ -97,8 +159,8 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
         GUILayout.FlexibleSpace();
 
         string hint = mode == EditMode.Connect
-            ? "연결 모드: 시작 노드 클릭 → 도착 노드 클릭 (같은 노드를 다시 클릭하면 취소)"
-            : "좌클릭: 선택/드래그   |   우클릭 드래그: 이동   |   휠: 확대/축소";
+            ? "연결 모드: 시작 노드 클릭 → 도착 노드 클릭"
+            : "좌클릭: 선택/드래그 | 우클릭: 이동 | 휠: 확대/축소";
         EditorGUILayout.LabelField(hint, EditorStyles.miniLabel);
         EditorGUILayout.EndHorizontal();
     }
@@ -140,7 +202,7 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
 
     private void DrawConnections(Rect rect, SerializedProperty posProp, SerializedProperty connProp)
     {
-        if (connProp.arraySize == 0) return;
+        if (connProp == null || connProp.arraySize == 0) return;
 
         Handles.color = new Color(0.85f, 0.66f, 0.3f, 0.9f);
         for (int i = 0; i < connProp.arraySize; i++)
@@ -158,6 +220,8 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
 
     private void DrawNodes(Rect rect, SerializedProperty posProp, SerializedProperty typeProp)
     {
+        if (posProp == null) return;
+
         for (int i = 0; i < posProp.arraySize; i++)
         {
             Vector2 screenPos = NodeToScreen(posProp.GetArrayElementAtIndex(i).vector2Value, rect);
@@ -268,6 +332,7 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
 
     private int HitTestNode(SerializedProperty posProp, Rect canvasRect, Vector2 mousePos)
     {
+        if (posProp == null) return -1;
         for (int i = posProp.arraySize - 1; i >= 0; i--)
         {
             Vector2 screenPos = NodeToScreen(posProp.GetArrayElementAtIndex(i).vector2Value, canvasRect);
@@ -288,11 +353,45 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
         return new Vector2(local.x, -local.y);
     }
 
-    private void DrawSidePanel(SerializedProperty posProp, SerializedProperty typeProp, SerializedProperty connProp)
+    private void DrawSidePanel(SerializedProperty posProp, SerializedProperty typeProp, SerializedProperty connProp, SerializedProperty chaptersProp)
     {
         GUILayout.BeginVertical(GUILayout.Width(220));
 
-        EditorGUILayout.LabelField("별자리 노드", EditorStyles.boldLabel);
+        if (chaptersProp != null && chaptersProp.isArray)
+        {
+            EditorGUILayout.LabelField("챕터 관리", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("＋ 챕터 추가"))
+            {
+                Undo.RecordObject(manager, "Add Chapter");
+                int newIdx = chaptersProp.arraySize;
+                chaptersProp.arraySize++;
+
+                // 새로 생성된 챕터의 chapter 번호 지정
+                SerializedProperty newElem = chaptersProp.GetArrayElementAtIndex(newIdx);
+                SerializedProperty chProp = newElem.FindPropertyRelative("chapter");
+                if (chProp != null) chProp.intValue = newIdx + 1;
+
+                selectedChapterIndex = newIdx;
+            }
+            using (new EditorGUI.DisabledScope(chaptersProp.arraySize <= 1))
+            {
+                if (GUILayout.Button("－ 챕터 삭제"))
+                {
+                    if (EditorUtility.DisplayDialog("챕터 삭제", $"Chapter {selectedChapterIndex + 1}을(를) 삭제하시겠습니까?", "삭제", "취소"))
+                    {
+                        Undo.RecordObject(manager, "Delete Chapter");
+                        chaptersProp.DeleteArrayElementAtIndex(selectedChapterIndex);
+                        selectedChapterIndex = Mathf.Max(0, selectedChapterIndex - 1);
+                        return;
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+        }
+
+        EditorGUILayout.LabelField($"현재 선택: Chapter {selectedChapterIndex + 1}", EditorStyles.boldLabel);
         EditorGUILayout.LabelField($"노드 수: {posProp.arraySize}   연결 수: {connProp.arraySize}");
         EditorGUILayout.Space();
 
@@ -337,17 +436,17 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
         {
             EditorGUILayout.HelpBox(
                 "캔버스에서 노드를 클릭해 선택하세요.\n\n" +
-                "· 노드 추가 모드: 캔버스 클릭 → 새 노드 추가 (선택 중이던 노드가 있으면 자동 연결됨)\n" +
-                "· 연결 모드: 노드 두 개를 순서대로 클릭 → 연결 생성 (한 노드에서 2개 이상 연결하면 분기)",
+                "· 노드 추가 모드: 클릭 시 새 노드 생성\n" +
+                "· 연결 모드: 두 노드를 차례대로 클릭해 선 연결",
                 MessageType.Info);
         }
 
         GUILayout.FlexibleSpace();
 
         GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f);
-        if (GUILayout.Button("전체 초기화"))
+        if (GUILayout.Button("현재 챕터 전체 초기화"))
         {
-            if (EditorUtility.DisplayDialog("전체 초기화", "모든 노드와 연결을 삭제하시겠습니까?", "삭제", "취소"))
+            if (EditorUtility.DisplayDialog("챕터 초기화", $"Chapter {selectedChapterIndex + 1}의 모든 노드를 삭제하시겠습니까?", "삭제", "취소"))
                 ClearAll(posProp, typeProp, connProp);
         }
         GUI.backgroundColor = Color.white;
@@ -532,7 +631,6 @@ public class LDY_ConstellationMapEditorWindow : EditorWindow
         }
     }
 
-    // 편집 툴 전용 시인성 색상 (실제 게임 내 노드 색상은 LDY_MapTheme의 상태값을 따름)
     private static Color EditorTypeColor(LDY_NodeType type)
     {
         switch (type)

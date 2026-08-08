@@ -2,43 +2,82 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
+[RequireComponent(typeof(CanvasGroup))] // ★ 위치 잡힐 때까지 잔상 방지용
 public class LDY_MapPlayerToken : MonoBehaviour
 {
     private RectTransform rt;
+    private CanvasGroup canvasGroup;
     private Coroutine moveCoroutine;
 
-    // ★ 이동 중인지 여부를 확인할 수 있는 플래그 추가
+    [Header("Scene Settings")]
+    [Tooltip("플레이어 토큰이 존재해야 하는 맵 씬의 이름")]
+    [SerializeField] private string mapSceneName = "KTH_StageScene";
+
     public bool IsMoving => moveCoroutine != null;
 
     private void Awake()
     {
         rt = GetComponent<RectTransform>();
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
     }
 
     private void OnEnable()
     {
+        // ★ 켜지는 순간에는 숨김 (위치가 정확히 맞춰진 후 보여줌)
+        if (canvasGroup != null) canvasGroup.alpha = 0f;
+
         EnsureCorrectParent();
         BringToFront();
     }
 
+    private bool IsCurrentSceneMap()
+    {
+        if (string.IsNullOrEmpty(mapSceneName)) return true;
+        return SceneManager.GetActiveScene().name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase);
+    }
+
     public void EnsureCorrectParent()
     {
-        if (transform.parent == null || transform.parent.GetComponent<RectTransform>() == null)
+        // 부모가 이미 올바르게 잡혀있다면 패스
+        if (transform.parent != null && transform.parent.gameObject.activeInHierarchy) return;
+
+        // 1. 현재 활성화된 씬의 LDY_MapUIController를 찾아 안전하게 nodeContainer 참조
+        LDY_MapUIController uiController = FindFirstObjectByType<LDY_MapUIController>();
+        if (uiController != null)
         {
-            GameObject nodeContainer = GameObject.Find("NodeContainer");
-            if (nodeContainer != null)
+            Transform containerTransform = uiController.transform.Find("NodeContainer");
+            if (containerTransform != null)
             {
-                transform.SetParent(nodeContainer.transform, false);
+                transform.SetParent(containerTransform, false);
+                return;
             }
-            else
+        }
+
+        // 2. Fallback: 현재 activeScene에 속한 NodeContainer만 탐색 (DontDestroyOnLoad 구역 감지 방지)
+        Scene activeScene = SceneManager.GetActiveScene();
+        GameObject[] rootObjects = activeScene.GetRootGameObjects();
+
+        foreach (GameObject root in rootObjects)
+        {
+            if (root.name == "MapCanvas" || root.name == "NodeContainer")
             {
-                Canvas canvas = FindFirstObjectByType<Canvas>();
-                if (canvas != null)
+                Transform foundNodeContainer = root.name == "NodeContainer" ? root.transform : root.transform.Find("NodeContainer");
+                if (foundNodeContainer != null)
                 {
-                    transform.SetParent(canvas.transform, false);
+                    transform.SetParent(foundNodeContainer, false);
+                    return;
                 }
             }
+        }
+
+        // 3. 최후의 수단: 씬의 최상위 Canvas 사용
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas != null && canvas.gameObject.scene == activeScene)
+        {
+            transform.SetParent(canvas.transform, false);
         }
     }
 
@@ -59,7 +98,15 @@ public class LDY_MapPlayerToken : MonoBehaviour
             rt.anchoredPosition = mapPosition;
         }
 
-        StartCoroutine(Co_BringToFrontEndFrame());
+        if (gameObject.activeInHierarchy)
+        {
+            StartCoroutine(Co_BringToFrontEndFrame());
+        }
+        else
+        {
+            BringToFront();
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+        }
     }
 
     public void MoveTo(Vector2 targetMapPosition, Action onComplete, float duration = 0.8f)
@@ -78,6 +125,19 @@ public class LDY_MapPlayerToken : MonoBehaviour
 
         if (pathPoints == null || pathPoints.Count == 0)
         {
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+            onComplete?.Invoke();
+            return;
+        }
+
+        if (!gameObject.activeInHierarchy)
+        {
+            if (rt == null) rt = GetComponent<RectTransform>();
+            if (rt != null && pathPoints.Count > 0)
+            {
+                rt.anchoredPosition = pathPoints[pathPoints.Count - 1];
+            }
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
             onComplete?.Invoke();
             return;
         }
@@ -91,6 +151,8 @@ public class LDY_MapPlayerToken : MonoBehaviour
 
         EnsureCorrectParent();
         BringToFront();
+
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
 
         float durationPerSegment = totalDuration / pathPoints.Count;
 
@@ -118,7 +180,7 @@ public class LDY_MapPlayerToken : MonoBehaviour
         }
 
         BringToFront();
-        moveCoroutine = null; // ★ 이동 완료 후 코루틴 변수 초기화
+        moveCoroutine = null;
         onComplete?.Invoke();
     }
 
@@ -126,6 +188,9 @@ public class LDY_MapPlayerToken : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         BringToFront();
+
+        // ★ 프레임 이동 및 위치 계산이 끝난 뒤에 깔끔하게 노출
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
     }
 
     public Vector2 GetScreenUV()

@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 맵 씬에 배치: 노드 버튼들을 생성하고, MapManager의 connections(간선) 목록을 따라
-// 노드 사이를 얇은 골드 별자리 선(UI Image)으로 연결 — 한 노드가 여러 간선을 가지면 분기로 표현됨
 public class LDY_MapUIController : MonoBehaviour
 {
     [Header("Theme")]
@@ -22,9 +20,6 @@ public class LDY_MapUIController : MonoBehaviour
 
     private void Start()
     {
-        // 씬을 다시 로드하면 씬에 새로 생성된 MapManager는 Awake()에서 중복으로 판정되어
-        // BuildNodes() 없이 곧 파괴되지만, 이 시점(Start)엔 아직 완전히 파괴되지 않아 null이 아닐 수 있다.
-        // 그래서 인스펙터에 연결된 값보다 항상 영속(DontDestroyOnLoad) 인스턴스를 우선한다.
         if (LDY_MapManager.Instance != null) mapManager = LDY_MapManager.Instance;
         if (mapManager == null)
         {
@@ -35,12 +30,46 @@ public class LDY_MapUIController : MonoBehaviour
         if (backgroundPanel != null && theme != null)
             backgroundPanel.color = theme.navyBackground;
 
-        mapManager.onMapChanged.AddListener(RefreshAll);
+        // ★ onMapChanged 발생 시 노드/라인을 전부 재구성하도록 변경
+        mapManager.onMapChanged.AddListener(RebuildMap);
+
+        RebuildMap();
+    }
+
+    private void OnDestroy()
+    {
+        if (mapManager != null)
+            mapManager.onMapChanged.RemoveListener(RebuildMap);
+    }
+
+    // ★ 맵(챕터/스테이지)이 바뀔 때마다 노드 뷰 + 연결선을 전부 새로 그림
+    private void RebuildMap()
+    {
+        ClearNodeViews();
+        ClearLines();
 
         InitPlayerPosition();
         SpawnNodeViews();
         DrawConnections();
         RefreshAll();
+    }
+
+    private void ClearNodeViews()
+    {
+        foreach (LDY_MapNodeView view in nodeViews)
+        {
+            if (view != null) Destroy(view.gameObject);
+        }
+        nodeViews.Clear();
+    }
+
+    private void ClearLines()
+    {
+        if (lineContainer == null) return;
+        for (int i = lineContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(lineContainer.GetChild(i).gameObject);
+        }
     }
 
     private void InitPlayerPosition()
@@ -51,14 +80,11 @@ public class LDY_MapUIController : MonoBehaviour
         int startIndex = nodes.FindIndex(n => n.type == LDY_NodeType.Start);
         if (startIndex < 0) startIndex = 0;
 
-        // 전투 씬 등을 갔다 오면 CurrentNodeIndex에 "마지막으로 도착한 노드"가 그대로 남아있음
-        // 없으면(-1, 최초 진입) 시작 노드를 기본값으로 설정
+        // ★ [문제 발생 지점]
         currentPlayerNodeIndex = (mapManager.CurrentNodeIndex >= 0 && mapManager.CurrentNodeIndex < nodes.Count)
             ? mapManager.CurrentNodeIndex
             : startIndex;
     }
-
-    // 노드뷰가 클릭 또는 도착 시 알려주면 현재 위치 갱신
     public void OnPlayerArrivedAt(int nodeIndex)
     {
         currentPlayerNodeIndex = nodeIndex;
@@ -67,19 +93,12 @@ public class LDY_MapUIController : MonoBehaviour
 
     public bool IsPlayerAt(int nodeIndex) => nodeIndex == currentPlayerNodeIndex;
 
-    private void OnDestroy()
-    {
-        if (mapManager != null)
-            mapManager.onMapChanged.RemoveListener(RefreshAll);
-    }
-
     private void SpawnNodeViews()
     {
         List<LDY_MapNode> nodes = mapManager.Nodes;
         for (int i = 0; i < nodes.Count; i++)
         {
             LDY_MapNodeView view = Instantiate(nodeViewPrefab, nodeContainer);
-            // playerToken 인자 전달 부분 제거
             view.Initialize(mapManager, nodes[i], i, theme, this);
             nodeViews.Add(view);
         }
@@ -99,13 +118,14 @@ public class LDY_MapUIController : MonoBehaviour
             Vector2 from = nodes[c.fromIndex].position;
             Vector2 to = nodes[c.toIndex].position;
 
-            // 글로우를 먼저 깔고(뒤) 그 위에 얇은 실선을 그림(앞) - 은은하게 번지는 느낌
             float thickness = theme != null ? theme.lineThickness : 2f;
 
+            // 1. 글로우 라인
             Image glow = Instantiate(linePrefab, lineContainer);
             SetupLine(glow.rectTransform, from, to, thickness * (theme != null ? theme.lineGlowWidthMultiplier : 6f));
             StyleLineGlow(glow);
 
+            // 2. 메인 실선 라인
             Image line = Instantiate(linePrefab, lineContainer);
             SetupLine(line.rectTransform, from, to, thickness);
             StyleLine(line);
@@ -118,7 +138,12 @@ public class LDY_MapUIController : MonoBehaviour
         float distance = direction.magnitude;
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-        lineRect.anchoredPosition = from + direction * 0.5f;
+        // Anchor & Pivot을 중앙(0.5, 0.5)으로 설정
+        lineRect.anchorMin = new Vector2(0.5f, 0.5f);
+        lineRect.anchorMax = new Vector2(0.5f, 0.5f);
+        lineRect.pivot = new Vector2(0.5f, 0.5f);
+
+        lineRect.anchoredPosition = (from + to) * 0.5f;
         lineRect.sizeDelta = new Vector2(distance, thickness);
         lineRect.localRotation = Quaternion.Euler(0f, 0f, angle);
     }
