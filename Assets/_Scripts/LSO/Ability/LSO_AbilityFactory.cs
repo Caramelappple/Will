@@ -23,6 +23,7 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.AllHeal, () => new DLJ_AllHeal() },
                 { LSO_AbilityType.LifeSteal, () => new DLJ_LifeSteal() },
                 { LSO_AbilityType.CostRefund, () => new DLJ_CostRefund() },
+                { LSO_AbilityType.WillEnhancement, () => new DLJ_WillEnhancement() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

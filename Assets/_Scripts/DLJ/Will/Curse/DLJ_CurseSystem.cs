@@ -19,6 +19,7 @@ internal sealed class DLJ_CurseWill : LSO_IWill
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
     private readonly DLJ_WillDataSO data;
+    private readonly int duration;
 
     internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
@@ -27,6 +28,7 @@ internal sealed class DLJ_CurseWill : LSO_IWill
         board = context.board;
         attackSystem = context.attackSystem;
         data = sourceData;
+        duration = DLJ_WillEnhancement.IsActive(owner) ? 3 : sourceData.duration;
     }
 
     public void InvokeWill()
@@ -51,7 +53,7 @@ internal sealed class DLJ_CurseWill : LSO_IWill
 
         DLJ_CurseActivationData activation = new DLJ_CurseActivationData
         {
-            duration = data.duration,
+            duration = duration,
             damage = data.damage,
             range = data.range,
             center = center,
