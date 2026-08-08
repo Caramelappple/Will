@@ -17,11 +17,11 @@ public class LDY_MapNodeView : MonoBehaviour
     [Header("Type Icons (모양으로만 구분, 색은 사용하지 않음)")]
     [SerializeField] private Sprite battleIcon;
     [SerializeField] private GameObject successObj;
-    [SerializeField] private GameObject curObj;
+    [SerializeField] private GameObject curObj; // 현재 노드 위치 표시 오브젝트
     [SerializeField] private Sprite bossIcon;
 
     [Header("아이콘 크기 (부모 대비 채우는 비율)")]
-    [Range(0.5f, 1f)] [SerializeField] private float iconFillRatio = 0.9f;
+    [Range(0.5f, 1f)][SerializeField] private float iconFillRatio = 0.9f;
 
     public RectTransform RectTransform => (RectTransform)transform;
     public int NodeIndex { get; private set; }
@@ -29,7 +29,6 @@ public class LDY_MapNodeView : MonoBehaviour
     private LDY_MapManager manager;
     private LDY_MapNode nodeData;
     private LDY_MapTheme theme;
-    private LDY_MapPlayerToken playerToken;
     private LDY_MapUIController uiController;
 
     private bool isPulsing;
@@ -37,18 +36,18 @@ public class LDY_MapNodeView : MonoBehaviour
     private float phaseOffset;
     private Color pulseBaseColor;
 
-    public void Initialize(LDY_MapManager manager, LDY_MapNode node, int index, LDY_MapTheme theme,
-        LDY_MapPlayerToken playerToken, LDY_MapUIController uiController)
+    public void Initialize(LDY_MapManager manager, LDY_MapNode node, int index, LDY_MapTheme theme, LDY_MapUIController uiController)
     {
         this.manager = manager;
         this.theme = theme;
-        this.playerToken = playerToken;
         this.uiController = uiController;
         nodeData = node;
         NodeIndex = index;
         phaseOffset = Random.Range(0f, Mathf.PI * 2f);
 
         RectTransform.anchoredPosition = node.position;
+
+        button.onClick.RemoveAllListeners();
         button.onClick.AddListener(HandleClick);
 
         // 별을 크게: 아이콘이 부모 박스를 거의 꽉 채우도록 인셋을 넓힘
@@ -84,12 +83,17 @@ public class LDY_MapNodeView : MonoBehaviour
         bool isCurrent = nodeData.isUnlocked && !nodeData.isCleared;
         bool glowActive = nodeData.isCleared || isCurrent;
         bool ringActive = isCurrent; // "겉테두리가 빛나는" 표시는 지금 갈 수 있는 노드에만
-        bool playerHere = uiController != null && uiController.IsPlayerAt(NodeIndex);
+
+        // [수정] 현재 노드가 이미 클리어된 노드라면 curObj(현재 위치)를 끕니다.
+        // 아직 클리어되지 않고 해금된 노드 중에서만 판단합니다.
+        bool playerHere = !nodeData.isCleared &&
+                          ((manager != null && manager.CurrentNodeIndex == NodeIndex) ||
+                           (uiController != null && uiController.IsPlayerAt(NodeIndex)));
 
         // 클리어 오브젝트: 클리어된 노드에서만 활성화
         if (successObj != null) successObj.SetActive(nodeData.isCleared);
 
-        // 현재 위치 오브젝트: 플레이어가 실제로 서 있는 노드에서만 활성화
+        // 현재 위치 오브젝트: 클리어되지 않은 목표/다음 노드에 활성화
         if (curObj != null) curObj.SetActive(playerHere);
 
         Color iconColor;
@@ -103,7 +107,6 @@ public class LDY_MapNodeView : MonoBehaviour
         else
         {
             iconColor = theme.textLocked;
-            // iconAlpha = theme.lockedOpacity; // 알파값 감소 비활성화
             iconAlpha = 1f;
         }
 
@@ -159,24 +162,15 @@ public class LDY_MapNodeView : MonoBehaviour
 
     private void HandleClick()
     {
-        if (playerToken != null)
+        // 클릭 시 곧바로 이동하고자 하는 노드의 ScreenUV 기준 전환 이벤트 실행
+        if (manager != null)
         {
-            // 플레이어가 이 노드로 걸어가서 도착한 뒤, 그 자리(플레이어 위치) 기준으로 처리
-            playerToken.MoveTo(nodeData.position, () =>
-            {
-                uiController?.OnPlayerArrivedAt(NodeIndex);
-                manager.OnNodeClicked(NodeIndex, playerToken.GetScreenUV());
-            });
-        }
-        else
-        {
+            uiController?.OnPlayerArrivedAt(NodeIndex);
             manager.OnNodeClicked(NodeIndex, GetScreenUV());
         }
     }
 
-    // 씬 전환 아이리스 연출의 중심점으로 쓰기 위한, 이 노드의 화면상 위치(0~1) (playerToken이 없을 때의 폴백).
-    // 캔버스의 world scale이 CanvasScaler 때문에 실제 픽셀과 안 맞을 수 있으므로 InverseTransformPoint로
-    // 캔버스 로컬 공간으로 정확히 변환한 뒤 canvas.rect(참조 해상도) 기준 0~1 비율을 계산함
+    // 씬 전환 연출의 중심점으로 사용하기 위한 노드의 화면 비율 좌표(0~1) 계산
     private Vector2 GetScreenUV()
     {
         Canvas canvas = GetComponentInParent<Canvas>();

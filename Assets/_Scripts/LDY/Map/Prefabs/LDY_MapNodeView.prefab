@@ -275,7 +275,7 @@ MonoBehaviour:
   cornerStarImage: {fileID: 2568519071572257396}
   battleIcon: {fileID: 343404050, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
   successObj: {fileID: 6956819831556466758}
-  curObj: {fileID: 0}
+  curObj: {fileID: 321069711757398409}
   bossIcon: {fileID: 1733515228, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
   iconFillRatio: 0.9
 --- !u!1 &3781996385005055102
@@ -534,7 +534,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.57, y: 1.51}
+  m_Size: {x: 61.666668, y: 62}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
