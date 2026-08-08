@@ -29,9 +29,20 @@ namespace _Scripts.LDY
 
         private void Update()
         {
+            if (Mouse.current == null) return;
+
+            // 계승 대기 중에는 좌클릭이 계승 대상 선택으로만 쓰이고, 그 외 조작은 전부 막힌다.
+            // 계승은 주로 적 턴에(내 기물이 맞아 죽을 때) 발동하므로 턴 가드보다 앞에 둬야 클릭을 받을 수 있다.
+            // 대기 중이 아닐 때는 곧바로 아래 기존 흐름으로 떨어지므로, 적 턴 클릭이 새어나가지 않는다.
+            if (DLJ_SuccessionSystem.IsWaitingForSuccessionTarget)
+            {
+                if (Mouse.current.leftButton.wasPressedThisFrame)
+                    HandleSuccessionClick();
+                return;
+            }
+
             if (turnManager != null && turnManager.CurrentTurn != LDY_Team.Player) return;
             if (cardPlacer != null && cardPlacer.IsPlacing) return; // 카드 배치 위치 선택 중엔 이동/공격 클릭을 막는다.
-            if (Mouse.current == null) return;
 
             bool leftClicked = Mouse.current.leftButton.wasPressedThisFrame;
             bool rightClicked = Mouse.current.rightButton.wasPressedThisFrame;
@@ -45,6 +56,15 @@ namespace _Scripts.LDY
             }
 
             HandleSelectOrAttackClick(board.Get(gridPos));
+        }
+
+        // 유효한 대상인지는 DLJ_SuccessionSystem이 판단한다. 여기서는 어느 칸을 클릭했는지만 넘긴다.
+        // 거부되면 대기 상태가 그대로 유지되므로 다시 클릭하면 된다.
+        private void HandleSuccessionClick()
+        {
+            if (!TryRaycastToGrid(out var gridPos)) return;
+
+            DLJ_SuccessionSystem.TrySelectSuccessionTarget(board.Get(gridPos));
         }
 
         private void HandleMoveClick(Vector3Int gridPos)

@@ -62,8 +62,6 @@ namespace _Scripts.LDY
                 yield break;
             }
 
-            ApplyLoggerSetting();
-
             // actionPoints는 Awake에서 필수로 확인했다. null 허용 분기를 남겨두면
             // 그 경우에만 종료 조건이 통째로 사라지는 함정이 된다.
             while (actionPoints.HasActionPoints)
@@ -103,6 +101,10 @@ namespace _Scripts.LDY
         /// <summary>보드에 실제로 변화가 생겼으면 true.</summary>
         private bool ActEnemy(LDY_Animal enemy)
         {
+            // 판단 직전마다 확인한다. 턴 시작에만 반영하면 적이 움직이는 도중 체크박스를 켰을 때
+            // 행동 로그는 바로 나오는데 점수 내역만 다음 턴까지 안 나온다.
+            ApplyLoggerSetting();
+
             LDY_EnemyAction action = _brain.Decide(enemy, board);
             LDY_ActionOutcome outcome = _executor.Execute(enemy, action);
 
@@ -165,7 +167,7 @@ namespace _Scripts.LDY
                 new LDY_AttackPriorityScorer(),
                 new LDY_KillBonusScorer(),
                 new LDY_FrontlineScorer(),
-                new LDY_ApproachScorer(),
+                new LDY_PositioningScorer(),
             };
         }
     }
