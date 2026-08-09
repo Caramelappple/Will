@@ -32,7 +32,6 @@ public class KTH_CardDragUI : MonoBehaviour,
 
     private LSO_CardSO _cardData;
     private int _databaseIndex = -1;
-    // 두 번째 인자는 "인벤토리 구역에 놓였는가". 어디에 놓였는지는 카드가 가장 정확히 안다.
     private Action<KTH_CardDragUI, bool> _onDropped;
 
     private RectTransform _rectTransform;
@@ -50,6 +49,9 @@ public class KTH_CardDragUI : MonoBehaviour,
     public LSO_CardSO CardData => _cardData;
     public int DatabaseIndex => _databaseIndex;
     public bool IsSelected { get; private set; }
+
+    // [복사 방지용 추가] 해당 카드가 인벤토리에 속한 카드인지 여부
+    public bool IsFromInventory { get; private set; }
 
     private void Awake()
     {
@@ -70,10 +72,6 @@ public class KTH_CardDragUI : MonoBehaviour,
         }
     }
 
-    /// <summary>
-    /// 카드가 뒤집힌 각도면 앞면을 숨긴다.
-    /// 회전은 등장 연출 때만 일어나므로 각도가 변했을 때만 검사한다.
-    /// </summary>
     private void Update()
     {
         if (frontUI == null) return;
@@ -88,11 +86,13 @@ public class KTH_CardDragUI : MonoBehaviour,
     }
 
     /// <param name="onDropped">드롭이 끝났을 때 알릴 대상. 두 번째 인자는 인벤토리에 놓였는지 여부.</param>
-    public void Setup(LSO_CardSO data, int index, Action<KTH_CardDragUI, bool> onDropped = null)
+    /// <param name="isFromInventory">이 카드가 인벤토리 구역에 있던 카드로 생성되었는지 여부</param>
+    public void Setup(LSO_CardSO data, int index, Action<KTH_CardDragUI, bool> onDropped = null, bool isFromInventory = false)
     {
         _cardData = data;
         _databaseIndex = index;
         _onDropped = onDropped;
+        IsFromInventory = isFromInventory; // 인벤토리 출신인지 저장
 
         if (iconImage && data != null)
             iconImage.sprite = data.Image;
@@ -113,7 +113,6 @@ public class KTH_CardDragUI : MonoBehaviour,
     {
         if (_rootCanvas == null) return;
 
-        // 스크린 좌표를 그대로 transform.position에 대입하면 Overlay가 아닌 캔버스에서 어긋난다.
         if (RectTransformUtility.ScreenPointToWorldPointInRectangle(
                 (RectTransform)_rootCanvas.transform,
                 eventData.position,
@@ -143,7 +142,6 @@ public class KTH_CardDragUI : MonoBehaviour,
         _onDropped?.Invoke(this, droppedInInventory);
     }
 
-    /// <summary>부모뿐 아니라 순서와 위치까지 되돌린다. 부모만 돌리면 카드가 엉뚱한 자리에 남는다.</summary>
     private void RestoreOriginalPlacement()
     {
         if (_originalParent == null) return;
@@ -153,7 +151,6 @@ public class KTH_CardDragUI : MonoBehaviour,
         _rectTransform.anchoredPosition = _originalAnchoredPosition;
     }
 
-    /// <summary>LSO_ButtonClickHandler가 호출 (좌클릭 시)</summary>
     public void OnClick()
     {
         if (!toggleSelectedOnClick) return;
@@ -161,13 +158,11 @@ public class KTH_CardDragUI : MonoBehaviour,
         IsSelected = !IsSelected;
     }
 
-    /// <summary>LSO_ButtonHoverHandler가 호출 (포인터 진입 시)</summary>
     public void OnHoverEnter()
     {
         if (_canvasGroup != null) _canvasGroup.alpha = hoverAlpha;
     }
 
-    /// <summary>LSO_ButtonHoverHandler가 호출 (포인터 이탈 시)</summary>
     public void OnHoverExit()
     {
         if (_canvasGroup != null) _canvasGroup.alpha = 1f;

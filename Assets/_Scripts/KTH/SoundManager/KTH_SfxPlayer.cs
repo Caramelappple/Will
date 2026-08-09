@@ -3,25 +3,21 @@ using UnityEngine;
 
 public class KTH_SfxPlayer : MonoBehaviour, KTH_ISfxPlayer
 {
-    [SerializeField]private KTH_AudioSourcePool audioSourcePool;
+    [SerializeField] private KTH_AudioSourcePool audioSourcePool;
 
     private float sfxVolume = 1f;
     private float masterVolume = 1f;
 
     private void Awake()
     {
-        // 인스펙터 연결이 빠지면 Play에서 NullReference가 난다.
-        // 소리가 필요한 순간이 아니라 시작할 때 알려줘야 원인을 바로 찾는다.
         if (audioSourcePool == null)
-            Debug.LogError($"{name}: Audio Source Pool이 연결되지 않았습니다.", this);
+            audioSourcePool = GetComponentInChildren<KTH_AudioSourcePool>();
     }
 
     public void Play(KTH_SfxData data)
     {
-        if (data == null) return;
+        if (data == null || data.clip == null) return;
 
-        // 사운드 매니저가 DontDestroyOnLoad로 남는데 풀이 씬에 남아 있으면
-        // 씬을 넘긴 뒤 파괴된 참조가 된다. == null 은 그 경우도 잡는다.
         if (audioSourcePool == null)
         {
             Debug.LogError($"{name}: Audio Source Pool이 없어 '{data.name}'을 재생하지 못했습니다.", this);
@@ -39,7 +35,6 @@ public class KTH_SfxPlayer : MonoBehaviour, KTH_ISfxPlayer
         {
             float min = Mathf.Min(data.minPitch, data.maxPitch);
             float max = Mathf.Max(data.minPitch, data.maxPitch);
-
             audioSource.pitch = Random.Range(min, max);
         }
         else
@@ -49,13 +44,19 @@ public class KTH_SfxPlayer : MonoBehaviour, KTH_ISfxPlayer
 
         audioSource.Play();
 
-        StartCoroutine(ReturnRoutine(audioSource));
+        // 안전하게 클립 길이만큼 대기 후 반환하는 방식으로 변경
+        StartCoroutine(ReturnRoutine(audioSource, data.clip.length));
     }
 
-    private IEnumerator ReturnRoutine(AudioSource audio)
+    private IEnumerator ReturnRoutine(AudioSource audio, float duration)
     {
-        yield return new WaitWhile(() => audio.isPlaying);
-        audioSourcePool.Return(audio);
+        // clip 길이 + 여유시간 후 안전 반환 (무한 루프 방지)
+        yield return new WaitForSeconds(duration + 0.1f);
+
+        if (audio != null && audioSourcePool != null)
+        {
+            audioSourcePool.Return(audio);
+        }
     }
 
     public void Stop()

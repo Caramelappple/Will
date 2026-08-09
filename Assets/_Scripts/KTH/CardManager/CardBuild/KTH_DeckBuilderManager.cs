@@ -57,6 +57,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        // 씬 전환 또는 객체 파괴 시 매니저 참조 DOTween 강제 정리
+        DOTween.Kill(this);
         if (Instance == this) Instance = null;
     }
 
@@ -150,6 +152,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         }
 
         RefreshLayout(inventoryContainer);
+        UpdateCompleteButtonState();
     }
 
     public List<LSO_CardSO> GetCurrentInventoryCardData()
@@ -165,6 +168,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         return inventoryList;
     }
 
+    /// <summary>
+    /// 카드를 드롭했을 때 호출되는 핸들러 (복사 현상 방지)
+    /// </summary>
     private void HandleCardDropped(KTH_CardDragUI cardUI, bool droppedInInventory)
     {
         if (cardUI == null || cardUI.CardData == null) return;
@@ -173,13 +179,22 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
         if (droppedInInventory)
         {
-            _inventoryCardIDs.Add(cardID);
+            // [복사 방지 핵심]
+            // 만약 이미 인벤토리 안에 있던 카드를 다시 인벤토리에 드롭한 거라면 
+            // 중복 추가하지 않고 UI 갱신만 수행
+            if (!cardUI.IsFromInventory)
+            {
+                _inventoryCardIDs.Add(cardID);
+            }
         }
         else
         {
+            // 인벤토리 밖(풀 등)으로 드롭했으므로 인벤토리 목록에서 1개 제거
             _inventoryCardIDs.Remove(cardID);
         }
 
+        // 데이터가 변경되었으므로 양쪽 UI 컨테이너 모두 즉시 갱신
+        RefreshInventoryView();
         RefreshPoolPage();
     }
 
@@ -229,7 +244,10 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         if (data == null) return;
 
         var cardUI = Instantiate(cardUIPrefab, parent);
-        cardUI.Setup(data, databaseIndex, HandleCardDropped);
+
+        // 생성 대상 부모가 inventoryContainer인지 확인하여 Setup에 넘겨줍니다.
+        bool isInventoryCard = (parent == inventoryContainer);
+        cardUI.Setup(data, databaseIndex, HandleCardDropped, isInventoryCard);
 
         RectTransform cardRect = cardUI.GetComponent<RectTransform>();
         if (cardRect != null)
@@ -241,7 +259,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
                 cardRect.localScale = new Vector3(0f, 1f, 1f);
                 cardRect.localRotation = Quaternion.Euler(0f, 180f, 0f);
 
-                Sequence seq = DOTween.Sequence();
+                // Target을 cardRect로 설정해 비동기 삭제 시 안전하게 무시되도록 처리
+                Sequence seq = DOTween.Sequence().SetTarget(cardRect);
                 seq.PrependInterval(delay);
                 seq.Join(cardRect.DOScale(Vector3.one, flipAnimDuration).SetEase(Ease.OutBack));
                 seq.Join(cardRect.DORotate(Vector3.zero, flipAnimDuration).SetEase(Ease.OutCubic));
@@ -256,7 +275,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
     private void OnResetButtonClick()
     {
-        if (isAnimating || _inventoryCardIDs.Count == 0)
+        if (isAnimating) return;
+
+        if (_inventoryCardIDs.Count == 0)
         {
             _inventoryCardIDs.Clear();
             currentPageIndex = 0;
@@ -266,8 +287,18 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
         isAnimating = true;
 
-        Sequence resetSequence = DOTween.Sequence();
+        Sequence resetSequence = DOTween.Sequence().SetTarget(this);
         Vector3 targetPoolPos = poolContainer.position;
+
+        if (inventoryContainer.childCount == 0)
+        {
+            _inventoryCardIDs.Clear();
+            RefreshInventoryView();
+            currentPageIndex = 0;
+            RefreshPoolPage(true);
+            isAnimating = false;
+            return;
+        }
 
         foreach (Transform child in inventoryContainer)
         {
@@ -291,8 +322,19 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         int totalCards = cardDatabase != null ? cardDatabase.Count : 0;
         int maxPages = Mathf.Max(1, Mathf.CeilToInt((float)totalCards / cardsPerPage));
 
-        if (prevButton) prevButton.interactable = (currentPageIndex > 0);
-        if (nextButton) nextButton.interactable = (currentPageIndex + 1 < maxPages);
+        if (prevButton) prevButton.interactable = (currentPageIndex > 0) && !isAnimating;
+        if (nextButton) nextButton.interactable = (currentPageIndex + 1 < maxPages) && !isAnimating;
+    }
+
+    /// <summary>
+    /// 인벤토리 카드 수량에 따른 완료 버튼 활성화 상태 조절
+    /// </summary>
+    private void UpdateCompleteButtonState()
+    {
+        if (completeButton == null) return;
+
+        // 카드가 1장 이상일 때만 완료 버튼 활성화
+        completeButton.interactable = (_inventoryCardIDs.Count > 0) && !isAnimating;
     }
 
     public void OnNextPageButtonClick()
@@ -320,6 +362,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 컨테이너 내 UI 자식 요소를 완전히 트윈 해제 후 안전하게 파괴
+    /// </summary>
     private void ClearContainerImmediate(Transform container)
     {
         if (!container) return;
@@ -327,7 +372,10 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         for (int i = container.childCount - 1; i >= 0; i--)
         {
             Transform child = container.GetChild(i);
-            child.DOKill();
+
+            // 트윈 완전 강제 종료 (true: Complete 호출하여 깔끔하게 정리)
+            child.DOKill(true);
+
             child.SetParent(null);
             Destroy(child.gameObject);
         }
@@ -349,6 +397,21 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
     private void OnCompleteButtonClick()
     {
+        if (isAnimating) return;
+
+        // [0장 방어 코드] 카드가 0장이면 다음 씬으로 넘어가지 않음
+        if (_inventoryCardIDs.Count <= 0)
+        {
+            Debug.LogWarning("[DeckBuilder] 최소 1장 이상의 카드가 필요합니다.");
+
+            if (completeButton != null)
+            {
+                completeButton.transform.DOComplete();
+                completeButton.transform.DOPunchPosition(new Vector3(10f, 0f, 0f), 0.3f, 10, 1f);
+            }
+            return;
+        }
+
         if (completeButton) completeButton.interactable = false;
 
         List<LSO_CardSO> currentInventoryList = GetCurrentInventoryCardData();
