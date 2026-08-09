@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,7 +20,23 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_TurnManager turnManager;
         [SerializeField] private LDY_CardPlacer cardPlacer;
 
-        private LDY_Animal _selected;
+        /// <summary>지금 선택된 기물. 선택된 것이 없으면 null.</summary>
+        public LDY_Animal Selected { get; private set; }
+
+        /// <summary>
+        /// 내 기물 선택이 바뀔 때마다 발생한다. 선택되면 그 기물이, 해제되면 null이 넘어온다.
+        /// 아군 정보창이 구독하면 된다(적 정보창은 OnEnemyInspectedChanged를 쓴다).
+        /// </summary>
+        public event Action<LDY_Animal> OnSelectionChanged;
+
+        /// <summary>정보만 들여다보고 있는 적 기물. 없으면 null. 조작 대상인 Selected와는 별개다.</summary>
+        public LDY_Animal InspectedEnemy { get; private set; }
+
+        /// <summary>
+        /// 적 기물을 클릭해 정보를 볼 때 발생한다. 볼 대상이 없어지면 null이 넘어온다.
+        /// 적 전용 정보창이 구독하면 된다(내 기물 정보창은 OnSelectionChanged를 쓴다).
+        /// </summary>
+        public event Action<LDY_Animal> OnEnemyInspectedChanged;
 
         private void Awake()
         {
@@ -69,37 +86,52 @@ namespace _Scripts.LDY
 
         private void HandleMoveClick(Vector3Int gridPos)
         {
-            if (_selected == null) return;
-            if (!moveSystem.GetMovableTiles(_selected).Contains(gridPos)) return;
+            if (Selected == null) return;
+            if (!moveSystem.GetMovableTiles(Selected).Contains(gridPos)) return;
 
-            moveSystem.MoveTo(_selected, gridPos);
+            moveSystem.MoveTo(Selected, gridPos);
             Deselect();
         }
 
         private void HandleSelectOrAttackClick(LDY_Animal occupant)
         {
-            if (_selected == null)
+            if (Selected == null)
             {
                 if (IsSelectable(occupant))
                     Select(occupant);
+                else
+                    InspectEnemy(occupant); // 적이면 정보만 보여주고, 빈 칸이면 보던 정보를 닫는다.
                 return;
             }
 
-            if (occupant == _selected)
+            if (occupant == Selected)
             {
                 Deselect();
                 return;
             }
 
-            if (occupant != null && attackSystem.GetAttackTargets(_selected).Contains(occupant))
+            // 사거리 안의 적을 클릭한 것은 "공격"이 우선이다. 정보를 보려면 선택을 푼 뒤 클릭하면 된다.
+            if (occupant != null && attackSystem.GetAttackTargets(Selected).Contains(occupant))
             {
-                attackSystem.Attack(_selected, occupant);
+                attackSystem.Attack(Selected, occupant);
                 Deselect();
                 return;
             }
 
             if (IsSelectable(occupant))
                 Select(occupant);
+            else
+                InspectEnemy(occupant);
+        }
+
+        // 적 기물(또는 빈 칸=null)을 정보 조회 대상으로 삼는다. 실제로 바뀐 경우에만 알린다.
+        private void InspectEnemy(LDY_Animal animal)
+        {
+            LDY_Animal next = (animal != null && animal.team == LDY_Team.Enemy) ? animal : null;
+            if (InspectedEnemy == next) return;
+
+            InspectedEnemy = next;
+            OnEnemyInspectedChanged?.Invoke(next);
         }
 
         // 내 팀(Player) 기물만 선택 가능. 이게 없으면 좌클릭으로 상대 기물을 직접 조작하게 되는 버그가 생긴다.
@@ -111,16 +143,25 @@ namespace _Scripts.LDY
 
         private void Select(LDY_Animal animal)
         {
-            _selected = animal;
+            InspectEnemy(null); // 내 기물을 고르면 적 정보창은 닫는다(둘이 동시에 떠 있지 않게).
+
+            Selected = animal;
             highlighter.ClearHighlights(this);
             highlighter.ShowMoveHighlights(this, moveSystem.GetMovableTiles(animal));
             highlighter.ShowAttackHighlights(this, attackSystem.GetAttackableTiles(animal));
+            OnSelectionChanged?.Invoke(animal);
         }
 
         private void Deselect()
         {
-            _selected = null;
+            bool hadSelection = Selected != null;
+
+            Selected = null;
             highlighter.ClearHighlights(this);
+
+            // 선택이 없던 상태에서 또 호출돼도 UI가 헛돌지 않게 실제로 바뀐 경우에만 알린다.
+            if (hadSelection)
+                OnSelectionChanged?.Invoke(null);
         }
 
         private bool TryRaycastToGrid(out Vector3Int gridPos)
