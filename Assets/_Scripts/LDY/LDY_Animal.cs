@@ -6,6 +6,7 @@ using _Scripts.LSO.Ability;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.HealthSystem;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Scripts.LDY
 {
@@ -26,7 +27,25 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_RangeType fallbackRangeType;
         
         [Tooltip("data의 damage로 초기화된 뒤 버프/디버프로 변할 수 있는 값.")]
-        public int baseAtk;
+        [SerializeField, FormerlySerializedAs("baseAtk")] private int _baseAtk;
+
+        /// <summary>
+        /// 버프/디버프가 더하고 빼는 원본 공격력.
+        ///
+        /// 필드가 아니라 프로퍼티인 이유는 값이 바뀔 때 OnStatsChanged를 발행하기 위해서다.
+        /// 이름을 소문자로 둔 건 기존 호출부(DLJ_SacrificeSystem 등)의 baseAtk += 를 그대로 두기 위해서다.
+        /// </summary>
+        public int baseAtk
+        {
+            get => _baseAtk;
+            set
+            {
+                if (_baseAtk == value) return;
+
+                _baseAtk = value;
+                RefreshStats();
+            }
+        }
 
         [field: SerializeField] public LSO_WillType WillType { get; private set; }
 
@@ -221,6 +240,65 @@ else
         private void HandleHit(DamageData data)
         {
             LSO_AbilityNotify.Notify<LSO_IOnHit>(_abilities, a => a.OnHit(this, data));
+        }
+
+        /// <summary>
+        /// 한 시점의 전투 스탯 묶음. 값 비교로 "정말 바뀌었는지"를 판단하는 데 쓴다.
+        /// </summary>
+        public readonly struct Stats : IEquatable<Stats>
+        {
+            public readonly int Atk;
+            public readonly int Health;
+            public readonly int MaxHealth;
+
+            public Stats(int atk, int health, int maxHealth)
+            {
+                Atk = atk;
+                Health = health;
+                MaxHealth = maxHealth;
+            }
+
+            public bool Equals(Stats other) =>
+                Atk == other.Atk && Health == other.Health && MaxHealth == other.MaxHealth;
+
+            public override bool Equals(object obj) => obj is Stats other && Equals(other);
+
+            public override int GetHashCode() => HashCode.Combine(Atk, Health, MaxHealth);
+
+            public override string ToString() => $"ATK {Atk}, HP {Health}/{MaxHealth}";
+        }
+
+        /// <summary>
+        /// 공격력이나 체력이 바뀔 때 발행된다. UI가 값을 다시 그릴 때 쓴다.
+        ///
+        /// 피해/회복/baseAtk 변경은 자동으로 잡힌다.
+        /// 다만 GetAtk()는 특성이 매번 계산하는 값이라(늑대처럼 주변 상황에 반응하는 특성)
+        /// 아무도 쓰기를 하지 않아도 결과가 달라질 수 있다. 그런 특성을 만들었다면
+        /// 상황이 바뀌는 지점에서 RefreshStats()를 직접 불러야 한다.
+        /// </summary>
+        public event Action<Stats> OnStatsChanged;
+
+        private Stats _lastStats;
+
+        /// <summary>지금 이 순간의 스탯. 호출할 때마다 새로 계산한다.</summary>
+        public Stats CurrentStats =>
+            health != null
+                ? new Stats(GetAtk(), health.Value, health.MaxValue)
+                : new Stats(GetAtk(), 0, 0);
+
+        /// <summary>
+        /// 스탯을 다시 계산해 이전과 다르면 OnStatsChanged를 발행한다.
+        ///
+        /// 값이 같으면 아무 일도 일어나지 않으므로 의심스러우면 그냥 불러도 된다.
+        /// Health.Value처럼 이벤트 없이 직접 대입할 수 있는 경로를 메우는 탈출구이기도 하다.
+        /// </summary>
+        public void RefreshStats()
+        {
+            Stats next = CurrentStats;
+            if (next.Equals(_lastStats)) return;
+
+            _lastStats = next;
+            OnStatsChanged?.Invoke(next);
         }
 
         // ATK는 항상 이 메서드를 통해서만 조회한다.
