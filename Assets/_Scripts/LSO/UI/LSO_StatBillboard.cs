@@ -1,16 +1,21 @@
-using System.Net.NetworkInformation;
-using _Scripts.LDY;
 using TMPro;
 using UnityEngine;
 
-public class LSO_StatBillboard : MonoBehaviour
+namespace _Scripts.LSO.UI
 {
-    [SerializeField] private TextMeshProUGUI AtkText;
-    [SerializeField] private TextMeshProUGUI HPText;
-
-    public void SetText(int atk, int hp)
+    public class LSO_StatBillboard : MonoBehaviour
     {
-        AtkText.text = atk.ToString();
-        HPText.text = hp.ToString();
+        [SerializeField] private TextMeshPro atkText;
+        [SerializeField] private TextMeshPro hpText;
+    
+        public void SetAtkText(int atk)
+        {
+            atkText.text = atk.ToString();
+        }
+
+        public void SetHpText(int hp)
+        {
+            hpText.text = hp.ToString();
+        }
     }
 }
