@@ -215,4 +215,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_CardDragUI
   iconImage: {fileID: 8687971361382688685}
   frontUI: {fileID: 1796407459142249546}
-  backUI: {fileID: 6323644397786800221}
+  hoverAlpha: 0.85
+  toggleSelectedOnClick: 1
+  selectionBorder: {fileID: 6323644397786800221}
