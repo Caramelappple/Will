@@ -198,26 +198,27 @@ PrefabInstance:
     - target: {fileID: 7649714088019959899, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
       propertyPath: audioSourcePool
       value: 
-      objectReference: {fileID: 446570820}
-    m_RemovedComponents:
-    - {fileID: 8434511612221001501, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
+      objectReference: {fileID: 209773121}
+    - target: {fileID: 9080050768262990840, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 7088470692997364574, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 446570819}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
---- !u!4 &209773121 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7088470692997364574, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
+--- !u!114 &209773121 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8434511612221001501, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
   m_PrefabInstance: {fileID: 209773120}
   m_PrefabAsset: {fileID: 0}
---- !u!82 &209773122 stripped
-AudioSource:
-  m_CorrespondingSourceObject: {fileID: 78565567029793285, guid: a402083a6045a574ba1e15d0dcba7db2, type: 3}
-  m_PrefabInstance: {fileID: 209773120}
-  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b96ffe0667d04541b930311608bf5e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_AudioSourcePool
 --- !u!114 &295561707 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2111378261603418143, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
@@ -356,52 +357,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
---- !u!1 &446570818
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 446570819}
-  - component: {fileID: 446570820}
-  m_Layer: 0
-  m_Name: AudioSourcePool
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &446570819
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 446570818}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 209773121}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &446570820
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 446570818}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1b96ffe0667d04541b930311608bf5e6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_AudioSourcePool
-  prefab: {fileID: 209773122}
-  initialSize: 5
 --- !u!1 &634524077
 GameObject:
   m_ObjectHideFlags: 0
