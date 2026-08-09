@@ -7,7 +7,8 @@ using UnityEngine;
 
 public class KTH_RewardEditorWindow : EditorWindow
 {
-    private KTH_Reward target;
+    // 테이블이 씬이 아니라 에셋으로 옮겨졌다. 씬을 열지 않고도 밸런싱을 고칠 수 있다.
+    private KTH_RewardTableSO target;
     private Vector2 scroll;
     private GUIStyle headerStyle;
     private GUIStyle stageHeaderStyle;
@@ -22,16 +23,17 @@ public class KTH_RewardEditorWindow : EditorWindow
     private void OnEnable()
     {
         if (target == null)
-            target = FindTargetInScene();
+            target = FindTableAsset();
     }
 
-    private KTH_Reward FindTargetInScene()
+    /// <summary>프로젝트에서 첫 번째 보상 테이블 에셋을 찾는다.</summary>
+    private KTH_RewardTableSO FindTableAsset()
     {
-#if UNITY_2023_1_OR_NEWER
-        return FindFirstObjectByType<KTH_Reward>();
-#else
-        return FindObjectOfType<KTH_Reward>();
-#endif
+        string[] guids = AssetDatabase.FindAssets("t:KTH_RewardTableSO");
+        if (guids.Length == 0) return null;
+
+        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+        return AssetDatabase.LoadAssetAtPath<KTH_RewardTableSO>(path);
     }
 
     private void OnGUI()
@@ -41,14 +43,18 @@ public class KTH_RewardEditorWindow : EditorWindow
         EditorGUILayout.Space(4);
         using (new EditorGUILayout.HorizontalScope())
         {
-            target = (KTH_Reward)EditorGUILayout.ObjectField("대상 (KTH_Reward)", target, typeof(KTH_Reward), true);
-            if (GUILayout.Button("씬에서 찾기", GUILayout.Width(90)))
-                target = FindTargetInScene();
+            target = (KTH_RewardTableSO)EditorGUILayout.ObjectField(
+                "대상 (Reward Table)", target, typeof(KTH_RewardTableSO), false);
+
+            if (GUILayout.Button("에셋 찾기", GUILayout.Width(90)))
+                target = FindTableAsset();
         }
 
         if (target == null)
         {
-            EditorGUILayout.HelpBox("씬에서 KTH_Reward 컴포넌트를 찾을 수 없습니다. 위 필드에 직접 드래그해주세요.", MessageType.Warning);
+            EditorGUILayout.HelpBox(
+                "보상 테이블 에셋이 없습니다.\nProject 창에서 Create > KTH > Reward Table 로 만든 뒤 여기에 드래그하세요.",
+                MessageType.Warning);
             return;
         }
 
@@ -58,11 +64,11 @@ public class KTH_RewardEditorWindow : EditorWindow
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            GUILayout.Label($"스테이지 총 {target.stageRewardTable.Count}개", EditorStyles.boldLabel);
+            GUILayout.Label($"스테이지 총 {target.Stages.Count}개", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("+ 스테이지 추가", GUILayout.Width(120)))
             {
-                target.stageRewardTable.Add(new KTH_StageRewardData
+                target.Stages.Add(new KTH_StageRewardData
                 {
                     chapter = 1,
                     stage = 1
@@ -76,17 +82,18 @@ public class KTH_RewardEditorWindow : EditorWindow
 
         KTH_StageRewardData toDelete = null;
 
-        foreach (var stage in target.stageRewardTable)
+        foreach (var stage in target.Stages)
             DrawStageRow(stage, ref toDelete);
 
         EditorGUILayout.EndScrollView();
 
         if (toDelete != null)
-            target.stageRewardTable.Remove(toDelete);
+            target.Stages.Remove(toDelete);
 
         if (EditorGUI.EndChangeCheck())
         {
             EditorUtility.SetDirty(target);
+            AssetDatabase.SaveAssetIfDirty(target);
         }
     }
 
@@ -112,6 +119,14 @@ public class KTH_RewardEditorWindow : EditorWindow
 
             EditorGUILayout.LabelField("스테이지", GUILayout.Width(55));
             stage.stage = EditorGUILayout.IntField(stage.stage, GUILayout.Width(50));
+
+            GUILayout.Space(10);
+
+            EditorGUILayout.LabelField("기물", GUILayout.Width(30));
+            stage.pieceCount = Mathf.Max(0, EditorGUILayout.IntField(stage.pieceCount, GUILayout.Width(35)));
+
+            EditorGUILayout.LabelField("유언", GUILayout.Width(30));
+            stage.willCount = Mathf.Max(0, EditorGUILayout.IntField(stage.willCount, GUILayout.Width(35)));
 
             GUILayout.FlexibleSpace();
 

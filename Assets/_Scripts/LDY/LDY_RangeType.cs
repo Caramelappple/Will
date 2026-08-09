@@ -4,6 +4,7 @@ namespace _Scripts.LDY
     {
         Melee,
         Ranged,
-        Jump
+        Jump,
+        None,
     }
 }

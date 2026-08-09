@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using UnityEngine;
 
@@ -19,8 +20,11 @@ public class LSO_AnimalSO : ScriptableObject
     [Header("Types")]
     public LDY_RangeType range;
     public LSO_AbilityType ability;
-   // public LSO_WillType willType;
-   //유언은 카드에서 랜덤으로 선택하므로 필요 X
+
+    [Tooltip("플레이어가 고르지 않고 소환될 때 쓸 유언.\n" +
+             "적 기물과 스테이지 초기 배치가 이 값을 쓴다.\n" +
+             "플레이어가 직접 소환할 때는 선택 UI 결과가 우선한다.")]
+    public LSO_WillType defaultWill;
 
     [Header("Prefab")]
     [Tooltip("보드에 소환될 기물 프리팹. LDY_Animal 컴포넌트가 붙어 있어야 한다.")]

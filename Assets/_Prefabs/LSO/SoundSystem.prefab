@@ -310,6 +310,7 @@ GameObject:
   - component: {fileID: 1945351032617876467}
   - component: {fileID: 7649714088019959899}
   - component: {fileID: 78565567029793285}
+  - component: {fileID: 8434511612221001501}
   m_Layer: 0
   m_Name: SfxPlayer
   m_TagString: Untagged
@@ -344,7 +345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85d4b53366bc5444797a5439057d76d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SfxPlayer
-  audioSource: {fileID: 78565567029793285}
+  audioSourcePool: {fileID: 0}
 --- !u!82 &78565567029793285
 AudioSource:
   m_ObjectHideFlags: 0
@@ -442,3 +443,17 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &8434511612221001501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5162366662754359930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b96ffe0667d04541b930311608bf5e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_AudioSourcePool
+  audioSourcePrefabs: {fileID: 78565567029793285}
+  initialPoolSize: 10

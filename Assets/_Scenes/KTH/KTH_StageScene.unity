@@ -332,21 +332,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bf6e675d12b07546b01a827010a922e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_Reward
-  stageRewardTable:
-  - chapter: 1
-    stage: 1
-    possiblePieces:
-    - animalName: cat
-      weight: 1
-    - animalName: Dog
-      weight: 2
-    possibleWills:
-    - willType: 0
-      weight: 1
-    - willType: 0
-      weight: 1
-  unlockedPieces: []
-  unlockedWills: 
+  rewardTable: {fileID: 11400000, guid: 01cccf976f6677d4184defa875f2e234, type: 2}
 --- !u!4 &713707820
 Transform:
   m_ObjectHideFlags: 0
@@ -1941,15 +1927,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.36477977, g: 0.36477977, b: 0.36477977, a: 0}
+  m_Color: {r: 1, g: 0.9647059, b: 0.6, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 2f37fd5bfaa0d00448937a845566a19c, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4

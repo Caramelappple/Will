@@ -19,13 +19,7 @@ namespace _Scripts.LSO
         [SerializeField] private LSO_CardSO[] cardCatalog;
 
         public GameSaveData SaveData { get; private set; }
-
-        /// <summary>id로 카드를 찾는 표. 세이브를 되돌릴 때 필요하다.</summary>
-        public LSO_CardRegistry CardRegistry { get; private set; }
-
-        /// <summary>플레이어가 보유한 카드(세이브 대상). 전투용 더미는 LSO_Deck이 따로 만든다.</summary>
-        public LSO_CardCollection Cards { get; private set; }
-
+        
         /// <summary>세이브가 통째로 반영됐을 때. 스테이지 UI 등이 다시 그리는 신호로 쓴다.</summary>
         public event Action<GameSaveData> SaveDataChanged;
 
@@ -48,9 +42,6 @@ namespace _Scripts.LSO
 
             DontDestroyOnLoad(gameObject);
 
-            CardRegistry = new LSO_CardRegistry(cardCatalog);
-            Cards = new LSO_CardCollection();
-
             ApplySave(GameSaveData.CreateDefault());
 
             if (eventDispatcher == null)
@@ -65,8 +56,6 @@ namespace _Scripts.LSO
         public void ApplySave(GameSaveData data)
         {
             SaveData = data;
-            Cards.Load(data.inventoryItems, CardRegistry);
-            SaveDataChanged?.Invoke(SaveData);
         }
 
         /// <summary>
@@ -75,7 +64,6 @@ namespace _Scripts.LSO
         public GameSaveData CaptureSave()
         {
             GameSaveData data = SaveData;
-            data.inventoryItems = Cards.ToSaveData();
 
             return data;
         }
