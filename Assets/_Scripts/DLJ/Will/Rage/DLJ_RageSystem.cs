@@ -19,6 +19,7 @@ internal sealed class DLJ_RageWill : LSO_IWill
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
     private readonly DLJ_WillDataSO data;
+    private readonly int damage;
 
     internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
@@ -26,6 +27,7 @@ internal sealed class DLJ_RageWill : LSO_IWill
         board = context.board;
         attackSystem = context.attackSystem;
         data = sourceData;
+        damage = DLJ_WillEnhancement.IsActive(owner) ? 4 : sourceData.damage;
     }
 
     public void InvokeWill()
@@ -77,7 +79,7 @@ internal sealed class DLJ_RageWill : LSO_IWill
             if (target == null || target.health == null || target.health.IsDestroyed)
                 continue;
 
-            target.health.GetDamage(DamageData.Create(null, data.damage));
+            target.health.GetDamage(DamageData.Create(null, damage));
             if (target.health.IsDestroyed)
                 attackSystem.HandleDeath(target);
         }

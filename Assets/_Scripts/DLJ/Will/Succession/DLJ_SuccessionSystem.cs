@@ -1,5 +1,4 @@
 using System.Collections;
-using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
 using DG.Tweening;
@@ -37,6 +36,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
     private readonly float moveDuration;
+    private readonly bool isEnhanced;
     private GameObject effectInstance;
     private bool isWaitingForAttackAnimation;
 
@@ -46,6 +46,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         attackSystem = context.attackSystem;
         effectPrefab = data.effectPrefab;
         moveDuration = data.moveDuration;
+        isEnhanced = DLJ_WillEnhancement.IsActive(animal);
     }
 
     public static bool IsWaitingForSuccessionTarget =>
@@ -100,8 +101,12 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
         successionSource = this;
         successionTeam = animal.team;
-        successionHealthBonus = animal.data.maxHealth;
-        successionAttackBonus = animal.data.damage;
+        int sourceHealth = animal.health != null
+            ? animal.health.MaxValue
+            : animal.data.maxHealth;
+        int sourceAttack = animal.baseAtk;
+        successionHealthBonus = CalculateInheritedStat(sourceHealth);
+        successionAttackBonus = CalculateInheritedStat(sourceAttack);
         timeScaleBeforeSuccession = Time.timeScale;
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
@@ -122,6 +127,14 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
         return true;
+    }
+
+    private int CalculateInheritedStat(int sourceStat)
+    {
+        int inheritedStat = Mathf.CeilToInt(Mathf.Max(0, sourceStat) / 3f);
+        return isEnhanced
+            ? Mathf.CeilToInt(inheritedStat * 1.5f)
+            : inheritedStat;
     }
 
     public static bool TrySelectSuccessionTarget(LDY_Animal target)
@@ -167,8 +180,10 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
         if (target != null && target.health != null && !target.health.IsDestroyed)
         {
-            target.health.Recover(RecoverData.Create(null, successionHealthBonus));
-            target.baseAtk += successionAttackBonus;
+            DLJ_SuccessionBonus.Apply(
+                target,
+                successionHealthBonus,
+                successionAttackBonus);
         }
 
         FinishSuccession();
@@ -176,7 +191,9 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         if (source != null && source.animal != null)
             Object.Destroy(source.animal.gameObject);
 
-        Debug.Log("Succession Finished");
+        Debug.Log(
+            $"Succession Finished: HP +{successionHealthBonus}, " +
+            $"ATK +{successionAttackBonus}");
     }
 
     private static void FinishSuccession()

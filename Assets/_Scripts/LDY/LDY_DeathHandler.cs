@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using _Scripts.LSO;
+using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Will;
 using UnityEngine;
@@ -51,17 +51,20 @@ namespace _Scripts.LDY
 
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
+            {
                 Destroy(victim.gameObject);
+                return;
+            }
+
+            // 파괴가 미뤄졌다. 계승처럼 뒤늦게 발동하는 유언은 주체를 알려주지 않으므로 여기서 적어둔다.
+            LDY_DeferredDeaths.Record(victim);
         }
 
         /// <summary>죽는 본인의 특성에게 먼저 알린다. 파괴 전이라 아직 self를 쓸 수 있다.</summary>
         private static void NotifyOwnDeathAbilities(LDY_Animal victim, LDY_Animal killer)
         {
-            if (victim.Abilities == null) return;
-
-            // 처리 중 목록이 바뀔 수 있으므로 복사본으로 순회한다.
-            foreach (LSO_IOnDeath ability in victim.Abilities.OfType<LSO_IOnDeath>().ToArray())
-                ability.OnDeath(victim, killer);
+            LSO_AbilityNotify.Notify<LSO_IOnDeath>(
+                victim.Abilities, a => a.OnDeath(victim, killer));
         }
 
         private static void RaiseEnemyDead(LDY_Animal victim)

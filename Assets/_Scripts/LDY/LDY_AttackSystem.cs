@@ -27,9 +27,39 @@ namespace _Scripts.LDY
             if (attacker == null) return new List<Vector3Int>();
             if (actionPoints != null && !actionPoints.HasActionPoints) return new List<Vector3Int>();
 
+            return AttackableTilesFrom(attacker, attacker.pos, board);
+        }
+
+        /// <summary>
+        /// 아직 가보지 않은 좌표에서 공격할 대상이 있는지 묻는다.
+        /// 행동을 고르는 평가 단계용이라 행동력을 보지 않는다 — 실행이 아니므로 소모 여부와 무관하다.
+        /// 인스턴스 상태가 필요 없는 순수 판정이라 보드를 인자로 받는다.
+        /// </summary>
+        public static bool HasTargetFrom(LDY_Animal attacker, Vector3Int from, LDY_BoardManager board)
+        {
+            if (attacker == null || board == null) return false;
+
+            foreach (var tile in AttackableTilesFrom(attacker, from, board))
+            {
+                var occupant = board.Get(tile);
+                if (occupant != null && occupant.team != attacker.team)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>연결된 보드를 기준으로 한 HasTargetFrom.</summary>
+        public bool HasTargetFrom(LDY_Animal attacker, Vector3Int from)
+        {
+            return HasTargetFrom(attacker, from, board);
+        }
+
+        // 순수 사거리 판정. 판정 자체는 항상 LDY_IAttackRange 구현에 위임한다.
+        private static List<Vector3Int> AttackableTilesFrom(LDY_Animal attacker, Vector3Int from, LDY_BoardManager board)
+        {
             var strategy = LDY_AttackRangeFactory.Create(attacker.RangeType);
             return strategy != null
-                ? strategy.GetAttackableTiles(attacker.pos, board)
+                ? strategy.GetAttackableTiles(from, board)
                 : new List<Vector3Int>();
         }
 
@@ -153,7 +183,13 @@ namespace _Scripts.LDY
 
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
+            {
                 Destroy(target.gameObject);
+                return;
+            }
+
+            // LDY_DeathHandler와 같은 이유로 기록한다. 이쪽은 핸들러가 없을 때 쓰이는 예전 경로다.
+            LDY_DeferredDeaths.Record(target);
         }
 
         private static LSO_DamageSource ToDamageSource(LDY_RangeType rangeType)
@@ -171,11 +207,8 @@ namespace _Scripts.LDY
         {
             if (attacker == null) return;
 
-            foreach (LSO_IAbility ability in attacker.Abilities)
-            {
-                if (ability is IOnAnimalAttack listener)
-                    listener.OnAttack(attacker.data);
-            }
+            LSO_AbilityNotify.Notify<IOnAnimalAttack>(
+                attacker.Abilities, a => a.OnAttack(attacker.data));
         }
 
         private static void RaiseEnemyDead(LDY_Animal target)

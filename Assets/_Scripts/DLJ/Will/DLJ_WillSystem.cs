@@ -31,6 +31,10 @@ public static class DLJ_WillRuntime
         if (animal == null)
             return null;
 
+        // Inherited stats last for the receiver's lifetime, but must not be
+        // passed on again or remain on its deferred corpse.
+        DLJ_SuccessionBonus.RemoveFrom(animal);
+
         DLJ_WillDatabaseSO willDatabase = GetDatabase();
         if (willDatabase == null)
             return null;

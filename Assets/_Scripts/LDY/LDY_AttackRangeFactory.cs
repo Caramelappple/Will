@@ -13,6 +13,7 @@ namespace _Scripts.LDY
                 { LDY_RangeType.Melee, () => new LDY_MeleeRange() },
                 { LDY_RangeType.Ranged, () => new LDY_RangedRange() },
                 { LDY_RangeType.Jump, () => new LDY_JumpRange() },
+                { LDY_RangeType.None, () => new LDY_NoneRange() },
             };
 
         public static LDY_IAttackRange Create(LDY_RangeType type)

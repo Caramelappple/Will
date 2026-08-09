@@ -7430,13 +7430,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: b3ba56ef3f65bf048a78ae78a910f78d, type: 2}
+  data: {fileID: 11400000, guid: fbffca24c113253478717ff9ff95ac74, type: 2}
   health: {fileID: 1749388463}
   pos: {x: 5, y: 0, z: 4}
   team: 0
   fallbackRangeType: 0
   baseAtk: 2
-  <WillType>k__BackingField: 2
+  <WillType>k__BackingField: 3
   modelTransform: {fileID: 1749388460}
 --- !u!114 &1749388463
 MonoBehaviour:

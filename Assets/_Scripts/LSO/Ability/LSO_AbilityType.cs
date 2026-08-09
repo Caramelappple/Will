@@ -17,6 +17,7 @@ namespace _Scripts.LSO.Ability
         Evolve,
         AllHeal,
         LifeSteal,
-        CostRefund
+        CostRefund,
+        WillEnhancement
     }
 }
