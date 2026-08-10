@@ -1,35 +1,31 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
-[AddComponentMenu("")]
-public sealed class DLJ_CurseEffect : MonoBehaviour
+public sealed class DLJ_CurseEffect : DLJ_IWillEffect
 {
-    public static void Play(
-        DLJ_CurseActivationData data,
-        GameObject effectPrefab,
-        float expandTime,
-        float effectHeight)
+    public void Play(
+        GameObject effectObject,
+        DLJ_WillEffectContext context,
+        Action onComplete = null)
     {
-        if (data == null)
-            return;
-
-        if (effectPrefab == null)
+        if (effectObject == null || context == null)
         {
-            Debug.LogError("Curse effect prefab is missing.");
+            onComplete?.Invoke();
             return;
         }
 
-        Vector3 position = data.centerWorld + Vector3.up * (effectHeight * 0.5f);
-        Vector3 targetScale = new Vector3(data.areaSize.x, effectHeight, data.areaSize.z);
-        GameObject instance = Object.Instantiate(effectPrefab, position, Quaternion.identity);
-        instance.transform.localScale = Vector3.zero;
-        instance.SetActive(true);
-
-        DLJ_CurseZone zone = instance.GetComponent<DLJ_CurseZone>();
-        if (zone == null)
-            zone = instance.AddComponent<DLJ_CurseZone>();
-
-        zone.Initialize(data);
-        instance.transform.DOScale(targetScale, expandTime).SetEase(Ease.Linear);
+        float height = context.data != null ? context.data.effectHeight : 0.12f;
+        float expandTime = context.data != null ? context.data.expandTime : 0.25f;
+        Transform effectTransform = effectObject.transform;
+        effectTransform.position = context.origin + Vector3.up * (height * 0.5f);
+        Vector3 targetScale = new Vector3(
+            context.areaSize.x,
+            height,
+            context.areaSize.z);
+        effectTransform.localScale = Vector3.zero;
+        effectObject.SetActive(true);
+        effectTransform.DOScale(targetScale, expandTime).SetEase(Ease.Linear);
+        onComplete?.Invoke();
     }
 }

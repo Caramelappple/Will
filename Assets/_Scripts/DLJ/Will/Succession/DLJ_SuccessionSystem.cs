@@ -1,7 +1,6 @@
 using System.Collections;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
-using DG.Tweening;
 using UnityEngine;
 
 /// <summary>Legacy component shim and the public succession-selection entry point.</summary>
@@ -35,8 +34,9 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly LDY_Animal animal;
     private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
-    private readonly float moveDuration;
+    private readonly DLJ_WillDataSO data;
     private readonly bool isEnhanced;
+    private readonly DLJ_IWillEffect effect = new DLJ_SuccessionEffect();
     private GameObject effectInstance;
     private bool isWaitingForAttackAnimation;
 
@@ -44,8 +44,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     {
         animal = context.animal;
         attackSystem = context.attackSystem;
+        this.data = data;
         effectPrefab = data.effectPrefab;
-        moveDuration = data.moveDuration;
         isEnhanced = DLJ_WillEnhancement.IsActive(animal);
     }
 
@@ -161,17 +161,17 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
     private void MoveEffectAndApply(LDY_Animal target)
     {
-        if (effectInstance == null)
-        {
-            ApplySuccession(target);
-            return;
-        }
-
-        effectInstance.transform
-            .DOMove(target.transform.position, moveDuration)
-            .SetEase(Ease.Linear)
-            .SetUpdate(true)
-            .OnComplete(() => ApplySuccession(target));
+        effect.Play(
+            effectInstance,
+            new DLJ_WillEffectContext
+            {
+                data = data,
+                owner = animal != null ? animal.gameObject : null,
+                target = target.gameObject,
+                origin = animal != null ? animal.transform.position : Vector3.zero,
+                targetPosition = target.transform.position
+            },
+            () => ApplySuccession(target));
     }
 
     private static void ApplySuccession(LDY_Animal target)
@@ -201,7 +201,6 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         DLJ_SuccessionWill source = successionSource;
         if (source != null && source.effectInstance != null)
         {
-            source.effectInstance.transform.DOKill();
             Object.Destroy(source.effectInstance);
             source.effectInstance = null;
         }

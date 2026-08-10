@@ -12,12 +12,15 @@ public class DLJ_CurseZone : MonoBehaviour
     private LDY_AttackSystem attackSystem;
     private LDY_Team sourceTeam;
     private Vector3Int center;
+    private GameObject effectInstance;
     private readonly HashSet<LDY_Animal> animalsInside = new();
     private readonly HashSet<LDY_Animal> currentAnimalsInside = new();
 
     public int RemainingTurn { get; private set; }
 
-    public void Initialize(DLJ_CurseActivationData data)
+    public void Initialize(
+        DLJ_CurseActivationData data,
+        GameObject visualInstance = null)
     {
         if (data == null ||
             data.turnManager == null ||
@@ -37,6 +40,7 @@ public class DLJ_CurseZone : MonoBehaviour
         attackSystem = data.attackSystem;
         sourceTeam = data.sourceTeam;
         center = data.center;
+        effectInstance = visualInstance;
 
         turnManager.OnTurnChanged += HandleTurnChanged;
         DamageAnimalsInArea();
@@ -156,6 +160,8 @@ public class DLJ_CurseZone : MonoBehaviour
     private void Expire()
     {
         Unsubscribe();
+        if (effectInstance != null)
+            Destroy(effectInstance);
         Destroy(gameObject);
     }
 
@@ -170,5 +176,7 @@ public class DLJ_CurseZone : MonoBehaviour
     private void OnDestroy()
     {
         Unsubscribe();
+        if (effectInstance != null)
+            Destroy(effectInstance);
     }
 }

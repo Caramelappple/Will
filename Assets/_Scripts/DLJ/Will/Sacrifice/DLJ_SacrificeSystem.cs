@@ -8,7 +8,7 @@ public sealed class DLJ_SacrificeSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_SacrificeWill(context.animal, context.board);
+        return new DLJ_SacrificeWill(context.animal, context.board, data);
     }
 }
 
@@ -30,12 +30,18 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
     private readonly int healthBonus;
+    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_IWillEffect effect = new DLJ_SacrificeEffect();
 
-    internal DLJ_SacrificeWill(LDY_Animal sourceOwner, LDY_BoardManager sourceBoard)
+    internal DLJ_SacrificeWill(
+        LDY_Animal sourceOwner,
+        LDY_BoardManager sourceBoard,
+        DLJ_WillDataSO sourceData)
     {
         owner = sourceOwner;
         board = sourceBoard;
         healthBonus = DLJ_WillEnhancement.IsActive(owner) ? 2 : StatBonus;
+        data = sourceData;
     }
 
     public void InvokeWill()
@@ -71,5 +77,20 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
         }
 
         Debug.Log($"Sacrifice buffed {buffedCount} adjacent allies.");
+
+        GameObject effectObject = data.effectPrefab != null
+            ? Object.Instantiate(
+                data.effectPrefab,
+                owner.transform.position,
+                Quaternion.identity)
+            : null;
+        effect.Play(
+            effectObject,
+            new DLJ_WillEffectContext
+            {
+                data = data,
+                owner = owner.gameObject,
+                origin = owner.transform.position
+            });
     }
 }

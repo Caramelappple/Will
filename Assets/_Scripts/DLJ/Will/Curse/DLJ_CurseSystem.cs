@@ -20,6 +20,7 @@ internal sealed class DLJ_CurseWill : LSO_IWill
     private readonly LDY_AttackSystem attackSystem;
     private readonly DLJ_WillDataSO data;
     private readonly int duration;
+    private readonly DLJ_IWillEffect effect = new DLJ_CurseEffect();
 
     internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
@@ -68,11 +69,24 @@ internal sealed class DLJ_CurseWill : LSO_IWill
             attackSystem = attackSystem
         };
 
-        DLJ_CurseEffect.Play(
+        GameObject effectInstance = data.effectPrefab != null
+            ? Object.Instantiate(data.effectPrefab, centerWorld, Quaternion.identity)
+            : null;
+        effect.Play(
+            effectInstance,
+            new DLJ_WillEffectContext
+            {
+                data = data,
+                owner = owner.gameObject,
+                origin = centerWorld,
+                areaSize = activation.areaSize
+            });
+
+        GameObject zoneObject = new GameObject("Curse Zone");
+        zoneObject.transform.position = centerWorld;
+        zoneObject.AddComponent<DLJ_CurseZone>().Initialize(
             activation,
-            data.effectPrefab,
-            data.expandTime,
-            data.effectHeight);
+            effectInstance);
         Debug.Log("Curse Activated");
     }
 }

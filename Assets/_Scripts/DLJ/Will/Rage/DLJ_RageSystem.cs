@@ -20,6 +20,7 @@ internal sealed class DLJ_RageWill : LSO_IWill
     private readonly LDY_AttackSystem attackSystem;
     private readonly DLJ_WillDataSO data;
     private readonly int damage;
+    private readonly DLJ_IWillEffect effect = new DLJ_RageEffect();
 
     internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
     {
@@ -56,13 +57,18 @@ internal sealed class DLJ_RageWill : LSO_IWill
             0f,
             Vector3.Distance(centerWorld, horizontalWorld) * diameter);
 
-        DLJ_RageEffect.Play(
-            centerWorld,
-            areaSize,
-            data.effectPrefab,
-            data.expandTime,
-            data.holdTime,
-            data.effectHeight);
+        GameObject effectObject = data.effectPrefab != null
+            ? Object.Instantiate(data.effectPrefab, centerWorld, Quaternion.identity)
+            : null;
+        effect.Play(
+            effectObject,
+            new DLJ_WillEffectContext
+            {
+                data = data,
+                owner = owner.gameObject,
+                origin = centerWorld,
+                areaSize = areaSize
+            });
         Debug.Log("Rage Activated");
     }
 
