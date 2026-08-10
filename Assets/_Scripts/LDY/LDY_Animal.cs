@@ -65,11 +65,21 @@ namespace _Scripts.LDY
         private readonly List<LSO_IAbility> _abilities = new();
         private bool _abilitiesRegistered;
 
+        // AddAbility가 특성 하나만 연결할 때 쓰는 버퍼.
+        // LSO_AbilityWiring.Bind가 목록을 받으므로 매번 리스트를 새로 만들지 않으려고 재사용한다.
+        private readonly LSO_IAbility[] _bindBuffer = new LSO_IAbility[1];
+
         /// <summary>사거리는 동물 데이터가 원본이다. 복사본을 따로 들고 있지 않는다.</summary>
         public LDY_RangeType RangeType => data != null ? data.range : fallbackRangeType;
 
-        /// <summary>특성 종류도 동물 데이터가 원본이다.</summary>
-        public LSO_AbilityType AbilityType => data != null ? data.ability : LSO_AbilityType.None;
+        /// <summary>
+        /// 특성 종류 목록. 동물 데이터가 원본이다.
+        ///
+        /// "첫 번째 것"을 돌려주는 단수 접근자를 남겨두지 않은 이유는,
+        /// 특성이 여럿인 기물에서 하나만 돌려주는 프로퍼티가 반드시 누군가를 속이기 때문이다.
+        /// </summary>
+        public IReadOnlyList<LSO_AbilityType> AbilityTypes =>
+            data != null ? data.AbilityTypes : Array.Empty<LSO_AbilityType>();
 
         /// <summary>이 개체가 실제로 들고 있는 특성 인스턴스. 외부에서 목록을 바꿀 수 없다.</summary>
         public IReadOnlyList<LSO_IAbility> Abilities => _abilities;
@@ -150,15 +160,7 @@ private void Init()
 UnregisterAbilities();
 _abilities.Clear();
 
-LSO_IAbility ability = LSO_AbilityFactory.Create(data.ability);
-if (ability != null)
-{
-    // 보드나 소유자 정보가 필요한 특성에만 컨텍스트를 넘긴다.
-    if (ability is LSO_IAbilityInitializable initializable)
-        initializable.Initialize(new LSO_AbilityContext(this));
-
-    _abilities.Add(ability);
-}
+CreateAbilities();
 
 if (Application.isPlaying && isActiveAndEnabled)
     RegisterAbilities();
@@ -166,13 +168,115 @@ if (Application.isPlaying && isActiveAndEnabled)
 if (modelTransform == null)
     modelTransform = transform;
 this.baseAtk = data.damage;
-//this.RangeType = data.range;
-        //this.AbilityType = data.ability;
 
 if (health != null)
     health.Init(data.maxHealth);
 else
     Debug.LogError($"{name}: Health 컴포넌트를 찾을 수 없습니다.", this);
+        }
+
+        /// <summary>
+        /// 동물 데이터에 적힌 특성들을 실제 인스턴스로 만든다.
+        ///
+        /// 팩토리가 매번 새 인스턴스를 만드는 건 의도된 것이다.
+        /// 특성은 개체마다 상태(발동 여부, 누적 수치)를 가지므로 인스턴스를 공유하면 상태가 섞인다.
+        /// </summary>
+        private void CreateAbilities()
+        {
+            IReadOnlyList<LSO_AbilityType> types = data.AbilityTypes;
+
+            for (int i = 0; i < types.Count; i++)
+            {
+                LSO_AbilityType type = types[i];
+                if (type == LSO_AbilityType.None) continue;
+
+                // 같은 특성이 두 번 들어오면 Health와 Dispatcher에 두 번 등록되어 효과가 두 배가 된다.
+                // 팩토리가 서로 다른 인스턴스를 만들기 때문에 등록 쪽의 중복 검사에도 걸리지 않는다.
+                if (ContainsBefore(types, i, type))
+                {
+                    Debug.LogWarning($"{name}: 특성 {type}이 중복되어 뒤쪽을 무시합니다.", this);
+                    continue;
+                }
+
+                LSO_IAbility created = LSO_AbilityFactory.Create(type);
+                if (created == null)
+                {
+                    // 특성이 하나뿐일 때는 "안 먹네" 하고 금방 알아채지만,
+                    // 여러 개 중 하나가 빠지면 조용히 묻힌다.
+                    Debug.LogWarning($"{name}: 특성 {type}의 생성기가 LSO_AbilityFactory에 없습니다.", this);
+                    continue;
+                }
+
+                // 보드나 소유자 정보가 필요한 특성에만 컨텍스트를 넘긴다.
+                if (created is LSO_IAbilityInitializable initializable)
+                    initializable.Initialize(new LSO_AbilityContext(this));
+
+                _abilities.Add(created);
+            }
+        }
+
+        /// <summary>
+        /// 런타임에 특성을 하나 더 붙인다. 되먹임처럼 게임 도중 특성을 얻는 경우에 쓴다.
+        ///
+        /// RegisterAbilities는 _abilitiesRegistered 플래그 때문에 개체당 한 번만 돈다.
+        /// 그래서 나중에 추가된 특성은 여기서 개별로 연결해줘야 한다.
+        /// 그러지 않으면 목록에는 들어가 있는데 피해 계산과 전역 이벤트에는 걸리지 않아,
+        /// "붙었는데 아무 일도 안 일어나는" 상태가 된다.
+        /// </summary>
+        /// <returns>실제로 붙은 특성. 중복이거나 생성기가 없으면 null.</returns>
+        public LSO_IAbility AddAbility(LSO_AbilityType type)
+        {
+            if (type == LSO_AbilityType.None) return null;
+
+            LSO_IAbility created = LSO_AbilityFactory.Create(type);
+            if (created == null)
+            {
+                Debug.LogWarning($"{name}: 특성 {type}의 생성기가 LSO_AbilityFactory에 없습니다.", this);
+                return null;
+            }
+
+            // Init의 중복 규칙과 같은 기준을 쓴다. 같은 특성이 두 번 등록되면 효과가 두 배가 된다.
+            if (HasAbilityOfSameType(created))
+            {
+                Debug.LogWarning($"{name}: 특성 {type}을 이미 갖고 있어 추가하지 않습니다.", this);
+                return null;
+            }
+
+            if (created is LSO_IAbilityInitializable initializable)
+                initializable.Initialize(new LSO_AbilityContext(this));
+
+            _abilities.Add(created);
+
+            // 아직 등록 절차를 안 거쳤다면 나중에 RegisterAbilities가 목록째로 처리한다.
+            if (_abilitiesRegistered)
+            {
+                _bindBuffer[0] = created;
+                LSO_AbilityWiring.Bind(_bindBuffer, health, Dispatcher);
+                _bindBuffer[0] = null; // 파괴된 특성을 계속 붙들고 있지 않도록 비운다.
+            }
+
+            return created;
+        }
+
+        private bool HasAbilityOfSameType(LSO_IAbility candidate)
+        {
+            for (int i = 0; i < _abilities.Count; i++)
+            {
+                if (_abilities[i] != null && _abilities[i].GetType() == candidate.GetType())
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsBefore(IReadOnlyList<LSO_AbilityType> types, int index, LSO_AbilityType type)
+        {
+            for (int i = 0; i < index; i++)
+            {
+                if (types[i] == type) return true;
+            }
+
+            return false;
         }
 
         // 특성을 두 곳에 연결한다.

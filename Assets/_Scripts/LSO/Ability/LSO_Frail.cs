@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability
@@ -9,7 +10,7 @@ namespace _Scripts.LSO.Ability
     /// 기본값 0.6 기준으로 라운드당 약 84%.
     /// 직접 파괴하지 않고 사망 창구를 거치므로 유언과 사망 이벤트가 정상적으로 발동한다.
     /// </summary>
-    public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable
+    public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier
     {
         private const float DefaultDeathChance = 0.33f;
 
@@ -41,6 +42,12 @@ namespace _Scripts.LSO.Ability
             Debug.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
 
             LSO_IDeathServiceHolder.KillThrough(_context, owner);
+        }
+
+        public int Priority { get; }
+        public int ModifyIncomingDamage(DamageableResources target, DamageData data, int damage)
+        {
+            return 0;
         }
     }
 
