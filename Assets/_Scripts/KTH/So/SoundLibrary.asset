@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundLibrarySO
   sfxList:
   - {fileID: 11400000, guid: a4b177355e9ff3d4a8137e974d27b9a0, type: 2}
+  - {fileID: 11400000, guid: 3c5c46fbadbc85d42b90c6c9a4ebf824, type: 2}
+  - {fileID: 11400000, guid: 7f83db01ab3f6c647885cb594a3f3621, type: 2}
   bgmList:
   - {fileID: 11400000, guid: 8a45bc8c85625e6428c5c1385fa0bf0e, type: 2}

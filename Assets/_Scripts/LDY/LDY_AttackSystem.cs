@@ -207,11 +207,8 @@ namespace _Scripts.LDY
         {
             if (attacker == null) return;
 
-            foreach (LSO_IAbility ability in attacker.Abilities)
-            {
-                if (ability is IOnAnimalAttack listener)
-                    listener.OnAttack(attacker.data);
-            }
+            LSO_AbilityNotify.Notify<IOnAnimalAttack>(
+                attacker.Abilities, a => a.OnAttack(attacker.data));
         }
 
         private static void RaiseEnemyDead(LDY_Animal target)

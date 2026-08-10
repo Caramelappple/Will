@@ -1,5 +1,5 @@
 
-using System.Linq;
+using System;
 using System.Collections.Generic;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
@@ -29,6 +29,34 @@ namespace _Scripts.LDY
         public int baseAtk;
 
         [field: SerializeField] public LSO_WillType WillType { get; private set; }
+
+        /// <summary>
+        /// 플레이어가 직접 고른 유언인지. false면 동물 데이터의 기본값이 들어가 있다.
+        /// </summary>
+        public bool IsWillChosen { get; private set; }
+
+        /// <summary>
+        /// 플레이어가 고른 유언으로 확정한다. 소환 직후 선택 UI 결과가 여기로 들어온다.
+        ///
+        /// 소환 시점에 이미 기본값이 들어가 있으므로 이건 "덮어쓰기"다.
+        /// 개체당 한 번만 먹으며, 두 번 들어오는 건 UI가 콜백을 중복 호출했다는 뜻이라 경고를 남긴다.
+        /// </summary>
+        public void SetWill(LSO_WillType willType)
+        {
+            if (IsWillChosen)
+            {
+                Debug.LogWarning($"{name}: 유언이 이미 {WillType}로 정해져 있습니다.", this);
+                return;
+            }
+
+            WillType = willType;
+            IsWillChosen = true;
+        }
+        
+        /// <summary>
+        /// UI용 스크립트
+        /// </summary>
+        public event Action<LSO_WillType> OnWillChange;
 
         [Header("3D")]
         [Tooltip("이동/공격 연출 시 실제로 움직일 3D 모델 트랜스폼. 비워두면 자기 자신의 transform을 사용한다.")]
@@ -79,30 +107,36 @@ Init();
         /// 카드로부터 이 기물을 구성한다. 스탯은 카드가 가리키는 동물SO에서, 유언은 카드에서 가져온다.
         /// 카드가 기물을 만드는 유일한 경로이므로 LSO_AnimalFactory를 통해 호출할 것.
         /// </summary>
+        
         public void Setup(LSO_CardSO card, LDY_Team ownerTeam)
         {
-if (card == null || !card.IsValid)
-{
-    Debug.LogWarning($"{name}: 유효하지 않은 카드로 Setup이 호출되었습니다.", this);
-    return;
+            if (card == null || !card.IsValid)
+            {
+                Debug.LogWarning($"{name}: 유효하지 않은 카드로 Setup이 호출되었습니다.", this);
+                return;
+            }
+
+            data = card.Animal;
+
+            // 태어날 때부터 유효한 유언을 갖게 한다.
+            // 플레이어가 소환한 기물은 곧바로 선택 UI 결과가 이 값을 덮어쓴다.
+            // 적 기물이나 스테이지 초기 배치는 이 값을 그대로 쓴다.
+            WillType = card.DefaultWill;
+
+            team = ownerTeam;
+
+            CacheComponents();
+            Init();
 }
 
-data = card.Animal;
-WillType = card.WillType;
-team = ownerTeam;
+        private void CacheComponents()
+        {
+         if (health == null)
+                health = GetComponent<Health>();
 
-CacheComponents();
-Init();
-}
-
-private void CacheComponents()
-{
-    if (health == null)
-        health = GetComponent<Health>();
-
-    if (modelTransform == null)
-        modelTransform = transform;
-}
+         if (modelTransform == null)
+                modelTransform = transform;
+        }
 
 private void Init()
 {
@@ -148,22 +182,11 @@ else
         {
             if (_abilitiesRegistered || health == null) return;
 
-            foreach (LSO_IDamageModifier modifier in _abilities.OfType<LSO_IDamageModifier>())
-                health.AddDamageModifier(modifier);
+            LSO_AbilityWiring.Bind(_abilities, health, Dispatcher);
 
-            // 피격 반응 특성이 하나라도 있으면 Health의 피격 신호를 받아 전달한다.
-            if (_abilities.OfType<LSO_IOnHit>().Any())
-                health.OnHit += HandleHit;
-
-            GameEventDispatcher dispatcher = GameManager.Instance != null
-                ? GameManager.Instance.EventDispatcher
-                : null;
-
-            if (dispatcher != null)
-            {
-                foreach (LSO_IAbility ability in _abilities)
-                    dispatcher.Register(ability);
-            }
+            // 특성 유무와 무관하게 항상 연결해둔다.
+            // 조건부로 걸면 나중에 특성이 바뀌었을 때 해제 조건과 어긋나 구독이 남는다.
+            health.OnHit += HandleHit;
 
             _abilitiesRegistered = true;
         }
@@ -172,24 +195,18 @@ else
         {
             if (!_abilitiesRegistered || health == null) return;
 
-            foreach (LSO_IDamageModifier modifier in _abilities.OfType<LSO_IDamageModifier>())
-                health.RemoveDamageModifier(modifier);
+            LSO_AbilityWiring.Unbind(_abilities, health, Dispatcher);
 
             health.OnHit -= HandleHit;
 
-            // 종료 시점에는 매니저가 이미 사라졌을 수 있으므로 새로 만들지 않는다.
-            GameEventDispatcher dispatcher = GameManager.HasInstance
-                ? GameManager.Instance.EventDispatcher
-                : null;
-
-            if (dispatcher != null)
-            {
-                foreach (LSO_IAbility ability in _abilities)
-                    dispatcher.Unregister(ability);
-            }
-
             _abilitiesRegistered = false;
         }
+
+        /// <summary>
+        /// 전역 이벤트 통로. 종료 시점에는 매니저가 이미 사라졌을 수 있으므로 새로 만들지 않는다.
+        /// </summary>
+        private static GameEventDispatcher Dispatcher =>
+            GameManager.HasInstance ? GameManager.Instance.EventDispatcher : null;
 
         #if UNITY_EDITOR
         /// <summary>동물SO 없이 테스트 기물을 배치하는 에디터 도구 전용 진입점.</summary>
@@ -203,20 +220,15 @@ else
         /// <summary>Health가 보낸 피격 신호를 피격 반응 특성들에게 전달한다.</summary>
         private void HandleHit(DamageData data)
         {
-            foreach (LSO_IOnHit ability in _abilities.OfType<LSO_IOnHit>().ToArray())
-                ability.OnHit(this, data);
+            LSO_AbilityNotify.Notify<LSO_IOnHit>(_abilities, a => a.OnHit(this, data));
         }
 
         // ATK는 항상 이 메서드를 통해서만 조회한다.
         // 늑대/하이에나처럼 상황에 따라 공격력이 변하는 특성은 하위 클래스에서 이 메서드를 override해서 구현한다.
         public virtual int GetAtk()
         {
-            int atk = baseAtk;
-
-            foreach(var mod in _abilities.OfType<IStatModifier>())
-                atk = mod.ModifyAttack(this, atk);
-
-            return atk;
+            return LSO_AbilityNotify.Accumulate<IStatModifier>(
+                _abilities, baseAtk, (mod, value) => mod.ModifyAttack(this, value));
         }
     }
 }

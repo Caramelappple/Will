@@ -61,9 +61,18 @@ namespace _Scripts.LDY
             ResetPoints();
         }
 
+        /// <summary>차감하지 않고 되는지만 본다. UI가 미리 회색 처리할 때 쓴다.</summary>
+        public bool CanAfford(int amount = 1)
+        {
+            return amount >= 0 && Current >= amount;
+        }
+
         public bool TryConsume(int amount = 1)
         {
-            if (Current < amount) return false;
+            // 딱 맞을 때(Current == amount)도 써야 한다.
+            // <= 로 두면 마지막 1을 못 쓰고 "부족하다"가 뜬다.
+            if (!CanAfford(amount)) return false;
+
             Current -= amount;
             return true;
         }

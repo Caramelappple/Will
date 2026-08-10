@@ -3,6 +3,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Deck;
+using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Manager;
 using UnityEngine;
 
@@ -13,9 +14,15 @@ namespace _Scripts.LSO
         [Tooltip("비워두면 자식 오브젝트에서 찾고, 그래도 없으면 직접 추가한다.")]
         [SerializeField] private GameEventDispatcher eventDispatcher;
 
+        [Tooltip("게임에 존재하는 모든 카드. 세이브에 적힌 id를 실제 카드로 되돌릴 때 쓴다.\n" +
+                 "여기 없는 카드는 세이브에서 복원되지 않는다.")]
+        [SerializeField] private LSO_CardSO[] cardCatalog;
+
         public GameSaveData SaveData { get; private set; }
-        /// <summary>플레이어가 보유한 카드(세이브 대상). 전투용 더미는 LSO_Deck이 따로 만든다.</summary>
-        public LSO_CardCollection Cards { get; private set; }
+        
+        /// <summary>세이브가 통째로 반영됐을 때. 스테이지 UI 등이 다시 그리는 신호로 쓴다.</summary>
+        public event Action<GameSaveData> SaveDataChanged;
+
         public GameEventDispatcher EventDispatcher => eventDispatcher;
         
         public LDY_TurnManager TurnManager { get; private set; }
@@ -35,13 +42,30 @@ namespace _Scripts.LSO
 
             DontDestroyOnLoad(gameObject);
 
-            SaveData = GameSaveData.CreateDefault();
-            Cards = new LSO_CardCollection(SaveData.inventoryItems);
+            ApplySave(GameSaveData.CreateDefault());
 
             if (eventDispatcher == null)
                 eventDispatcher = GetComponentInChildren<GameEventDispatcher>(true);
             if (eventDispatcher == null)
                 eventDispatcher = gameObject.AddComponent<GameEventDispatcher>();
+        }
+
+        /// <summary>
+        /// 불러온 세이브를 현재 상태로 반영한다. 새 게임 시작과 세이브 로드 양쪽에서 같은 경로를 쓴다.
+        /// </summary>
+        public void ApplySave(GameSaveData data)
+        {
+            SaveData = data;
+        }
+
+        /// <summary>
+        /// 저장 직전에 호출한다. 보유 카드는 런타임 목록이 원본이므로 여기서 최신 값을 담아 내보낸다.
+        /// </summary>
+        public GameSaveData CaptureSave()
+        {
+            GameSaveData data = SaveData;
+
+            return data;
         }
 
         public void RegisterTurnManager(LDY_TurnManager turnManager)
