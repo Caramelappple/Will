@@ -808,7 +808,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
   cardPlacer: {fileID: 0}
-  cardDatabase: []
+  cardDatabase:
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
   handCardPrefab: {fileID: 5094566040124373414, guid: 4866ed4a06a7922409ff39120982d3d8, type: 3}
   handContainer: {fileID: 1370604569}
   handSpacing: 150
