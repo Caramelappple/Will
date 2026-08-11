@@ -133,12 +133,13 @@ namespace _Scripts.LDY.Save.Debugging
             {
                 text.Append(" / 맵 (매니저 없음)");
             }
+            /*
 
             KTH_Reward reward = KTH_Reward.Instance;
             text.Append(reward != null
                 ? $" / 해금 기물 {reward.Unlocks.Pieces.Count}·유언 {reward.Unlocks.Wills.Count}"
                 : " / 해금 (매니저 없음)");
-
+            */
             return text.ToString();
         }
 
