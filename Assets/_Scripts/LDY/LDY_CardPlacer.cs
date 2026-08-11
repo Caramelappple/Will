@@ -220,8 +220,15 @@ namespace _Scripts.LDY
         private IReadOnlyList<LSO_WillType> FallbackWills =>
             selectableWills is { Count: > 0 } ? selectableWills : AllWills;
 
+        // None은 유언이 없는 기물용 값이므로 플레이어의 유언 선택지에는 노출하지 않는다.
         private static readonly LSO_WillType[] AllWills =
-            (LSO_WillType[])System.Enum.GetValues(typeof(LSO_WillType));
+        {
+            LSO_WillType.Curse,
+            LSO_WillType.Rage,
+            LSO_WillType.Succession,
+            LSO_WillType.Contract,
+            LSO_WillType.Sacrifice
+        };
 
         // 아직 칸을 직접 클릭해서 고르는 UI가 없는 카드 시스템을 위한 자동 배치.
         // Player는 z가 작은 줄부터, Enemy는 z가 큰 줄부터 빈 칸을 찾아 채운다.

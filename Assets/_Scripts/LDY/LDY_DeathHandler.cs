@@ -45,6 +45,7 @@ namespace _Scripts.LDY
                 Debug.LogWarning($"{name}: BoardManager를 찾을 수 없어 격자에서 제거하지 못했습니다.", this);
 
             NotifyOwnDeathAbilities(victim, killer);
+            DLJ_CombatKillEvents.Raise(victim, killer);
             RaiseEnemyDead(victim);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);

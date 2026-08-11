@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -77,6 +78,9 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
         }
 
         Debug.Log($"Sacrifice buffed {buffedCount} adjacent allies.");
+
+        if (buffedCount > 0)
+            DLJ_WillBenefitEvents.Raise(owner, LSO_WillType.Sacrifice);
 
         GameObject effectObject = data.effectPrefab != null
             ? Object.Instantiate(

@@ -16,7 +16,7 @@ MonoBehaviour:
   enableExtendedColorPicker: 0
   editorHints: 1
   changeRootFolder: 0
-  rootFolder: Dark - Complete Horror UI/Prefabs/
+  rootFolder: Dark - Complete Grunge UI/Prefabs/
   backgroundColorTint: {r: 255, g: 255, b: 255, a: 255}
   backgroundType: 0
   backgroundImage: {fileID: 21300000, guid: 1ddfa95659ff6e343813a952d6e3eaa2, type: 3}
