@@ -4,16 +4,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(CanvasGroup))] // ★ 위치 잡힐 때까지 잔상 방지용
+[RequireComponent(typeof(CanvasGroup))]
 public class LDY_MapPlayerToken : MonoBehaviour
 {
     private RectTransform rt;
     private CanvasGroup canvasGroup;
+    private Canvas tokenCanvas; // ★ 토큰 전용 독립 렌더링 Canvas
     private Coroutine moveCoroutine;
 
     [Header("Scene Settings")]
     [Tooltip("플레이어 토큰이 존재해야 하는 맵 씬의 이름")]
     [SerializeField] private string mapSceneName = "KTH_StageScene";
+
+    [Header("Sorting Settings")]
+    [Tooltip("다른 노드 UI보다 항상 위에 그려지도록 설정할 Sorting Order")]
+    [SerializeField] private int sortingOrder = 100; // ★ 노드보다 확연히 높은 값
 
     public bool IsMoving => moveCoroutine != null;
 
@@ -22,15 +27,36 @@ public class LDY_MapPlayerToken : MonoBehaviour
         rt = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+
+        // ★ Canvas 컴포넌트 자동 추가 및 Sorting Order 강제 설정
+        tokenCanvas = GetComponent<Canvas>();
+        if (tokenCanvas == null) tokenCanvas = gameObject.AddComponent<Canvas>();
+
+        SetupCanvasSorting();
     }
 
     private void OnEnable()
     {
-        // ★ 켜지는 순간에는 숨김 (위치가 정확히 맞춰진 후 보여줌)
         if (canvasGroup != null) canvasGroup.alpha = 0f;
 
+        SetupCanvasSorting();
         EnsureCorrectParent();
         BringToFront();
+
+        StartCoroutine(Co_EnsureBringToFrontOnEnable());
+    }
+
+    /// <summary>
+    /// Hierarchy 순서와 관계없이 화면 맨 앞에 그려지도록 Canvas Sorting을 강제합니다.
+    /// </summary>
+    private void SetupCanvasSorting()
+    {
+        if (tokenCanvas == null) tokenCanvas = GetComponent<Canvas>();
+        if (tokenCanvas != null)
+        {
+            tokenCanvas.overrideSorting = true;
+            tokenCanvas.sortingOrder = sortingOrder; // 100으로 설정하여 노드보다 무조건 앞에 그림
+        }
     }
 
     private bool IsCurrentSceneMap()
@@ -41,10 +67,8 @@ public class LDY_MapPlayerToken : MonoBehaviour
 
     public void EnsureCorrectParent()
     {
-        // 부모가 이미 올바르게 잡혀있다면 패스
         if (transform.parent != null && transform.parent.gameObject.activeInHierarchy) return;
 
-        // 1. 현재 활성화된 씬의 LDY_MapUIController를 찾아 안전하게 nodeContainer 참조
         LDY_MapUIController uiController = FindFirstObjectByType<LDY_MapUIController>();
         if (uiController != null)
         {
@@ -56,7 +80,6 @@ public class LDY_MapPlayerToken : MonoBehaviour
             }
         }
 
-        // 2. Fallback: 현재 activeScene에 속한 NodeContainer만 탐색 (DontDestroyOnLoad 구역 감지 방지)
         Scene activeScene = SceneManager.GetActiveScene();
         GameObject[] rootObjects = activeScene.GetRootGameObjects();
 
@@ -73,7 +96,6 @@ public class LDY_MapPlayerToken : MonoBehaviour
             }
         }
 
-        // 3. 최후의 수단: 씬의 최상위 Canvas 사용
         Canvas canvas = FindFirstObjectByType<Canvas>();
         if (canvas != null && canvas.gameObject.scene == activeScene)
         {
@@ -84,6 +106,7 @@ public class LDY_MapPlayerToken : MonoBehaviour
     public void BringToFront()
     {
         EnsureCorrectParent();
+        SetupCanvasSorting();
         transform.SetAsLastSibling();
     }
 
@@ -98,13 +121,14 @@ public class LDY_MapPlayerToken : MonoBehaviour
             rt.anchoredPosition = mapPosition;
         }
 
+        BringToFront();
+
         if (gameObject.activeInHierarchy)
         {
             StartCoroutine(Co_BringToFrontEndFrame());
         }
         else
         {
-            BringToFront();
             if (canvasGroup != null) canvasGroup.alpha = 1f;
         }
     }
@@ -125,6 +149,7 @@ public class LDY_MapPlayerToken : MonoBehaviour
 
         if (pathPoints == null || pathPoints.Count == 0)
         {
+            BringToFront();
             if (canvasGroup != null) canvasGroup.alpha = 1f;
             onComplete?.Invoke();
             return;
@@ -137,6 +162,7 @@ public class LDY_MapPlayerToken : MonoBehaviour
             {
                 rt.anchoredPosition = pathPoints[pathPoints.Count - 1];
             }
+            BringToFront();
             if (canvasGroup != null) canvasGroup.alpha = 1f;
             onComplete?.Invoke();
             return;
@@ -189,8 +215,23 @@ public class LDY_MapPlayerToken : MonoBehaviour
         yield return new WaitForEndOfFrame();
         BringToFront();
 
-        // ★ 프레임 이동 및 위치 계산이 끝난 뒤에 깔끔하게 노출
+        yield return null;
+        BringToFront();
+
         if (canvasGroup != null) canvasGroup.alpha = 1f;
+    }
+
+    private IEnumerator Co_EnsureBringToFrontOnEnable()
+    {
+        yield return new WaitForEndOfFrame();
+        BringToFront();
+        yield return null;
+        BringToFront();
+
+        if (canvasGroup != null && moveCoroutine == null)
+        {
+            canvasGroup.alpha = 1f;
+        }
     }
 
     public Vector2 GetScreenUV()

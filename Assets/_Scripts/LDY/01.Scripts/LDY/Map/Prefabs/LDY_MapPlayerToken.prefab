@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1627559714678875372}
   - component: {fileID: 165733035190986884}
   - component: {fileID: 5716994852695685956}
+  - component: {fileID: 1309333008887069061}
   m_Layer: 0
   m_Name: LDY_MapPlayerToken
   m_TagString: Untagged
@@ -59,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9137255, g: 0.8862745, b: 0.8392157, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -88,3 +89,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 098f7abe39a8fb94ea0e27edc3f3ae4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapPlayerToken
+  mapSceneName: KTH_StageScene
+--- !u!225 &1309333008887069061
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6689488872487840248}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

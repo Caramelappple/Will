@@ -1,14 +1,16 @@
 using System;
+using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI;
+using _Scripts.LSO.Will;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
 /// 덱 편성 화면의 카드 한 장. 드래그로 풀 ↔ 인벤토리를 오간다.
-/// 드롭 결과는 콜백으로 알리기만 하고, 목록을 어떻게 갱신할지는 알지 못한다.
-/// LSO_ButtonClickHandler / LSO_ButtonHoverHandler가 이 컴포넌트를 찾아 클릭·호버를 전달한다.
+/// ScriptableObject 다형성을 지원하여 LSO_AnimalSO, DLJ_WillDataSO 등 다양한 SO 데이터를 처리한다.
 /// </summary>
 [RequireComponent(typeof(CanvasGroup))]
 [RequireComponent(typeof(RectTransform))]
@@ -30,7 +32,7 @@ public class KTH_CardDragUI : MonoBehaviour,
     [Tooltip("클릭 시 선택 상태를 토글할지 여부")]
     [SerializeField] private bool toggleSelectedOnClick = true;
 
-    private LSO_CardSO _cardData;
+    private ScriptableObject _cardData;
     private int _databaseIndex = -1;
     private Action<KTH_CardDragUI, bool> _onDropped;
 
@@ -46,7 +48,7 @@ public class KTH_CardDragUI : MonoBehaviour,
 
     private float _lastCheckedYAngle = float.NaN;
 
-    public LSO_CardSO CardData => _cardData;
+    public ScriptableObject CardData => _cardData;
     public int DatabaseIndex => _databaseIndex;
     public bool IsSelected { get; private set; }
 
@@ -85,17 +87,43 @@ public class KTH_CardDragUI : MonoBehaviour,
         if (frontUI.activeSelf != showFront) frontUI.SetActive(showFront);
     }
 
+    /// <param name="data">LSO_AnimalSO, DLJ_WillDataSO 등 임의의 ScriptableObject</param>
     /// <param name="onDropped">드롭이 끝났을 때 알릴 대상. 두 번째 인자는 인벤토리에 놓였는지 여부.</param>
     /// <param name="isFromInventory">이 카드가 인벤토리 구역에 있던 카드로 생성되었는지 여부</param>
-    public void Setup(LSO_CardSO data, int index, Action<KTH_CardDragUI, bool> onDropped = null, bool isFromInventory = false)
+    public void Setup(ScriptableObject data, int index, Action<KTH_CardDragUI, bool> onDropped = null, bool isFromInventory = false)
     {
         _cardData = data;
         _databaseIndex = index;
         _onDropped = onDropped;
-        IsFromInventory = isFromInventory; // 인벤토리 출신인지 저장
+        IsFromInventory = isFromInventory;
 
-        if (iconImage && data != null)
-            iconImage.sprite = data.Image;
+        UpdateCardVisuals(data);
+    }
+
+    /// <summary>
+    /// 타입별(AnimalSO, WillDataSO 등) 스프라이트 및 비주얼 바인딩
+    /// </summary>
+    private void UpdateCardVisuals(ScriptableObject data)
+    {
+        if (iconImage == null || data == null) return;
+
+        // 1. 기존 LSO_CardSO 타입인 경우
+        if (data is LSO_CardSO cardSO)
+        {
+            iconImage.sprite = cardSO.Image;
+        }
+        // 2. LSO_AnimalSO 타입인 경우 (필요 시 내부 Sprite 필드명에 맞게 조정 가능)
+        else if (data is LSO_AnimalSO animalSO)
+        {
+            // 예: animalSO에 Sprite/Icon 변수가 있다면 지정
+            // iconImage.sprite = animalSO.icon;
+        }
+        // 3. DLJ_WillDataSO 타입인 경우 (필요 시 내부 Sprite 필드명에 맞게 조정 가능)
+        else if (data is DLJ_WillDataSO willSO)
+        {
+            // 예: willSO에 Sprite/Icon 변수가 있다면 지정
+            // iconImage.sprite = willSO.icon;
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)

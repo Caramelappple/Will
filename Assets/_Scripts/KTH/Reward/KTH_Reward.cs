@@ -1,43 +1,19 @@
 using System;
 using System.Collections.Generic;
-using _Scripts.LSO;
-using _Scripts.LSO.Will;
 using UnityEngine;
+using _Scripts.LSO;
+using _Scripts.LSO.Deck.Data; // LSO_CardSO
+using _Scripts.LSO.Will;
 
-/// <summary>
-/// Unlock 결과
-/// </summary>
-public class KTH_UnlockResult
-{
-    public List<string> newlyUnlockedPieces = new();
-    public List<LSO_WillType> newlyUnlockedWills = new();
-
-    public bool HasAnyNewUnlock =>
-        newlyUnlockedPieces.Count > 0 ||
-        newlyUnlockedWills.Count > 0;
-}
-
-/// <summary>
-/// 해금 요소 매니저. 조립만 한다.
-///
-///   보상 테이블  KTH_RewardTableSO   (에셋)
-///   확률 뽑기    KTH_RewardRoller    (static)
-///   해금 상태    KTH_UnlockState     (순수 C#)
-///
-/// 이 클래스가 하는 일은 셋을 이어 붙이고 결과를 알리는 것뿐이다.
-/// </summary>
 public class KTH_Reward : MonoBehaviour
 {
     public static KTH_Reward Instance { get; private set; }
 
-    [Header("스테이지별 해금 테이블")]
+    [Header("스테이지별 해금 테이블 참조")]
     [SerializeField] private KTH_RewardTableSO rewardTable;
 
-    /// <summary>보상이 지급됐을 때. 보상 UI가 이걸 받아 화면에 띄운다.</summary>
-    public event Action<KTH_UnlockResult> Unlocked;
-
-    /// <summary>해금 상태. 저장 담당자는 Export/Import만 쓰면 된다.</summary>
-    public KTH_UnlockState Unlocks { get; } = new();
+    // 보상 해금 이벤트
+    public event Action<KTH_UnlockState> Unlocked;
 
     private void Awake()
     {
@@ -49,142 +25,155 @@ public class KTH_Reward : MonoBehaviour
         else
         {
             Destroy(gameObject);
-            return;
         }
-
-        if (rewardTable == null)
-            Debug.LogError($"{name}: 보상 테이블(KTH_RewardTableSO)이 연결되지 않았습니다.", this);
-
-        // 소환할 때 고를 수 있는 유언을 이쪽에서 공급한다.
-        // 소환 코드가 해금 시스템을 직접 참조하지 않게 함수만 건네준다.
-        LSO_WillSelection.UnlockedWillsProvider = GetUnlockedWillList;
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance != this) return;
-
-        Instance = null;
-
-        if (LSO_WillSelection.UnlockedWillsProvider == GetUnlockedWillList)
-            LSO_WillSelection.UnlockedWillsProvider = null;
     }
 
     /// <summary>
-    /// 해금된 유언 목록. 매번 새 리스트를 만들지 않도록 캐시해두고 해금될 때만 다시 만든다.
+    /// 스테이지 클리어 시 보상 롤링 및 라이브러리 자동 저장
     /// </summary>
-    private List<LSO_WillType> _unlockedWillCache;
-    private int _unlockedWillCacheCount = -1;
-
-    private IReadOnlyList<LSO_WillType> GetUnlockedWillList()
+    public KTH_UnlockState UnlockByStage(int chapter, int stage)
     {
-        if (_unlockedWillCacheCount != Unlocks.Wills.Count)
+        Debug.Log($"🎁 [KTH_Reward] 스테이지 보상 해금 프로세스 시작: Chapter {chapter}, Stage {stage}");
+
+        // 이번 스테이지에서 새로 해금된 보상만 담을 객체 생성
+        KTH_UnlockState newRewardState = new KTH_UnlockState();
+
+        // ItemLibraryManager에 넘겨줄 카드 목록을 별도로 수집합니다.
+        List<LSO_CardSO> unlockedCards = new List<LSO_CardSO>();
+
+        // 1. KTH_RewardTableSO에서 현재 스테이지 보상 데이터 조회
+        if (rewardTable != null)
         {
-            _unlockedWillCache = new List<LSO_WillType>(Unlocks.Wills);
-            _unlockedWillCacheCount = _unlockedWillCache.Count;
+            KTH_StageRewardData stageData = rewardTable.Find(chapter, stage);
+
+            if (stageData != null)
+            {
+                // [기물/카드 가중치 확률 뽑기]
+                for (int i = 0; i < stageData.pieceCount; i++)
+                {
+                    LSO_CardSO selectedCard = RollRandomPiece(stageData.possiblePieces);
+                    if (selectedCard != null)
+                    {
+                        // 1) KTH_UnlockState에는 Animal 데이터 전달
+                        if (selectedCard.Animal != null)
+                        {
+                            newRewardState.UnlockPiece(selectedCard.Animal);
+                        }
+
+                        // 2) ItemLibraryManager에 등록할 카드(LSO_CardSO) 저장 리스트에 추가
+                        unlockedCards.Add(selectedCard);
+
+                        Debug.Log($"🎲 [KTH_Reward] 기물/카드 획득: {selectedCard.name}");
+                    }
+                }
+
+                // [유언(Will) 가중치 확률 뽑기]
+                for (int i = 0; i < stageData.willCount; i++)
+                {
+                    DLJ_WillDataSO selectedWill = RollRandomWill(stageData.possibleWills);
+                    if (selectedWill != null)
+                    {
+                        newRewardState.UnlockWill(selectedWill);
+                        Debug.Log($"🎲 [KTH_Reward] 유언 획득: {selectedWill.name}");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ [KTH_Reward] Chapter {chapter}, Stage {stage} 보상 데이터를 찾을 수 없습니다.");
+            }
+        }
+        else
+        {
+            Debug.LogError("🚨 [KTH_Reward] RewardTable이 인스펙터에 할당되지 않았습니다!");
         }
 
-        return _unlockedWillCache;
-    }
-
-    //==================================================
-    // 스테이지 리워드 지급
-    //==================================================
-
-    public KTH_UnlockResult UnlockByStage(int chapter, int stage)
-    {
-        KTH_UnlockResult result = new();
-
-        KTH_StageRewardData data = GetStageRewardData(chapter, stage);
-
-        if (data == null)
+        // 2. ItemLibraryManager에 카드 및 유언 전달 (⭐ 이 부분이 핵심입니다!)
+        if (ItemLibraryManager.Instance != null)
         {
-            Log($"Stage {stage}에 등록된 리워드가 없습니다.");
-            return result;
+            // 수집한 카드(LSO_CardSO)들을 도감 라이브러리에 등록
+            if (unlockedCards.Count > 0)
+            {
+                ItemLibraryManager.Instance.AddPiecesToLibrary(unlockedCards);
+            }
+
+            // 유언(Will)들을 도감 라이브러리에 등록
+            if (newRewardState.Wills != null && newRewardState.Wills.Count > 0)
+            {
+                List<DLJ_WillDataSO> willsList = new List<DLJ_WillDataSO>(newRewardState.Wills);
+                ItemLibraryManager.Instance.AddWillsToLibrary(willsList);
+            }
+        }
+        else
+        {
+            Debug.LogError("🚨 [KTH_Reward] ItemLibraryManager 인스턴스를 찾을 수 없습니다!");
         }
 
-        RollPieces(data, result);
-        RollWills(data, result);
-
-        // 아무것도 못 뽑았어도 알린다. UI가 "받을 게 없다"를 보여줄 수 있어야 한다.
-        Unlocked?.Invoke(result);
-
-        return result;
+        Unlocked?.Invoke(newRewardState);
+        return newRewardState;
     }
 
-    private void RollPieces(KTH_StageRewardData data, KTH_UnlockResult result)
-    {
-        List<KTH_RewardPoolEntry> picked = KTH_RewardRoller.PickMany(
-            data.possiblePieces,
-            data.pieceCount,
-            entry => entry.weight,
-            entry => string.IsNullOrEmpty(entry.animalName)
-                     || Unlocks.IsPieceUnlocked(entry.animalName));
+    // =========================================================================
+    // 🎲 가중치(Weight) 기반 확률 뽑기 헬퍼 메서드
+    // =========================================================================
 
-        foreach (KTH_RewardPoolEntry entry in picked)
+    private LSO_CardSO RollRandomPiece(List<KTH_RewardPoolEntry> pool)
+    {
+        if (pool == null || pool.Count == 0) return null;
+
+        float totalWeight = 0f;
+        foreach (var entry in pool)
         {
-            if (!Unlocks.UnlockPiece(entry.animalName)) continue;
-
-            result.newlyUnlockedPieces.Add(entry.animalName);
-            Log($"새 기물 해금 : {entry.animalName}");
+            if (entry != null && entry.pieceSO != null && entry.weight > 0)
+                totalWeight += entry.weight;
         }
-    }
 
-    private void RollWills(KTH_StageRewardData data, KTH_UnlockResult result)
-    {
-        List<KTH_WillRewardPoolEntry> picked = KTH_RewardRoller.PickMany(
-            data.possibleWills,
-            data.willCount,
-            entry => entry.weight,
-            entry => Unlocks.IsWillUnlocked(entry.willType));
+        if (totalWeight <= 0f) return null;
 
-        foreach (KTH_WillRewardPoolEntry entry in picked)
+        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+
+        foreach (var entry in pool)
         {
-            if (!Unlocks.UnlockWill(entry.willType)) continue;
+            if (entry == null || entry.pieceSO == null || entry.weight <= 0) continue;
 
-            result.newlyUnlockedWills.Add(entry.willType);
-            Log($"새 유언 해금 : {entry.willType}");
+            currentWeight += entry.weight;
+            if (randomValue <= currentWeight)
+            {
+                return entry.pieceSO;
+            }
         }
+
+        return null;
     }
 
-    //==================================================
-    // 조회 (기존 호출부 호환용)
-    //==================================================
-
-    public KTH_StageRewardData GetStageRewardData(int chapter, int stage)
+    private DLJ_WillDataSO RollRandomWill(List<KTH_WillRewardPoolEntry> pool)
     {
-        return rewardTable != null ? rewardTable.Find(chapter, stage) : null;
-    }
+        if (pool == null || pool.Count == 0) return null;
 
-    public bool UnlockPiece(string animalName) => Unlocks.UnlockPiece(animalName);
+        float totalWeight = 0f;
+        foreach (var entry in pool)
+        {
+            if (entry != null && entry.willSO != null && entry.weight > 0)
+                totalWeight += entry.weight;
+        }
 
-    public bool UnlockPiece(LSO_AnimalSO animal) =>
-        animal != null && Unlocks.UnlockPiece(animal.animalName);
+        if (totalWeight <= 0f) return null;
 
-    public bool IsPieceUnlocked(string animalName) => Unlocks.IsPieceUnlocked(animalName);
+        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
 
-    public bool IsPieceUnlocked(LSO_AnimalSO animal) =>
-        animal != null && Unlocks.IsPieceUnlocked(animal.animalName);
+        foreach (var entry in pool)
+        {
+            if (entry == null || entry.willSO == null || entry.weight <= 0) continue;
 
-    public bool UnlockWill(LSO_WillType willType) => Unlocks.UnlockWill(willType);
+            currentWeight += entry.weight;
+            if (randomValue <= currentWeight)
+            {
+                return entry.willSO;
+            }
+        }
 
-    public bool IsWillUnlocked(LSO_WillType willType) => Unlocks.IsWillUnlocked(willType);
-
-    public IReadOnlyCollection<string> GetUnlockedPieces() => Unlocks.Pieces;
-
-    public IReadOnlyCollection<LSO_WillType> GetUnlockedWills() => Unlocks.Wills;
-
-    public void ResetUnlocks()
-    {
-        Unlocks.Clear();
-        Log("모든 해금 데이터 초기화");
-    }
-
-    // 릴리즈 빌드에서는 통째로 사라진다. 호출부도 같이 제거된다.
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
-    [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
-    private static void Log(string message)
-    {
-        Debug.Log($"[Reward] {message}");
+        return null;
     }
 }
