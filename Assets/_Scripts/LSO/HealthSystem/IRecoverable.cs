@@ -1,5 +1,5 @@
 using System;
-using _Scripts.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 
 public interface IRecoverable
 {

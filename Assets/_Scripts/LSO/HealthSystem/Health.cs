@@ -1,5 +1,5 @@
 using System;
-using _Scripts.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.HealthSystem

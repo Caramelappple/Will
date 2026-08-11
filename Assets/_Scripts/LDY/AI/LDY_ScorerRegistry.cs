@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Attributes;
 using UnityEngine;
 

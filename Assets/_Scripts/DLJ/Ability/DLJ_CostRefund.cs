@@ -2,6 +2,7 @@ using _Scripts.LDY;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 /// <summary>Accumulates 1 summon cost per survived turn, up to 3, and refunds it on death.</summary>

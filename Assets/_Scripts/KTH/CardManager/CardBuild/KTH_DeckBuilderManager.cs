@@ -4,6 +4,7 @@ using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Will;
 using DG.Tweening;
 using System.Collections.Generic;
+using _Scripts.LSO.Animal.Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;

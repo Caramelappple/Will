@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.DeathSystem;
+using _Scripts.LSO.Manager;
 
 namespace _Scripts.LSO.Ability
 {

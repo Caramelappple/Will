@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
   stageName: "\uC774\uC2DC\uC628 \uC2A4\uD14C\uC774\uC9C0"
   description: "\uC5C4\uCCAD\uB09C \uC2A4\uD14C\uC774\uC9C0"
-  sceneName: LSO_TestScene
+  sceneName: LDY_TestScene
   enemies:
   - card: {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
     pos: {x: 0, y: 0, z: 0}

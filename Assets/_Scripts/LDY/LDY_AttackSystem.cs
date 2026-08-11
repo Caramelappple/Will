@@ -4,6 +4,8 @@ using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
