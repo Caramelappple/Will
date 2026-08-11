@@ -1,16 +1,16 @@
-using _Scripts.LSO;
+using _Scripts.LSO.Deck.Data; // LSO_CardSO 네임스페이스
+using _Scripts.LSO.Will;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 확률 뽑기용 기물 항목 (기물 이름 식별용)
-///
+/// 확률 뽑기용 카드 항목 (LSO_CardSO 직접 등록)
 /// </summary>
 [System.Serializable]
 public class KTH_RewardPoolEntry
 {
-    [Tooltip("기물의 animalName (예: Crow, Raven, Rook...)")]
-    public string animalName;
+    [Tooltip("카드 ScriptableObject 에셋")]
+    public LSO_CardSO pieceSO; // 타입을 LSO_AnimalSO -> LSO_CardSO로 변경
 
     [Tooltip("가중치 (값이 클수록 뽑힐 확률 높음)")]
     public float weight = 1f;
@@ -22,15 +22,15 @@ public class KTH_RewardPoolEntry
 [System.Serializable]
 public class KTH_WillRewardPoolEntry
 {
-    [Tooltip("유언 타입")]
-    public LSO_WillType willType;
+    [Tooltip("유언 ScriptableObject 에셋")]
+    public DLJ_WillDataSO willSO;
 
     [Tooltip("가중치")]
     public float weight = 1f;
 }
 
 /// <summary>
-/// 스테이지별 해금 데이터 (기물 / 유언) - 확률 기반 풀
+/// 스테이지별 해금 데이터 (카드 / 유언) - 확률 기반 풀
 /// </summary>
 [System.Serializable]
 public class KTH_StageRewardData
@@ -41,13 +41,13 @@ public class KTH_StageRewardData
     [Header("스테이지")]
     public int stage;
 
-    [Tooltip("이 스테이지에서 뽑을 기물 개수.")]
+    [Tooltip("이 스테이지에서 뽑을 카드 개수.")]
     [Min(0)] public int pieceCount = 1;
 
     [Tooltip("이 스테이지에서 뽑을 유언 개수.")]
     [Min(0)] public int willCount = 1;
 
-    [Header("기물 후보 (animalName 기준)")]
+    [Header("카드 후보")]
     public List<KTH_RewardPoolEntry> possiblePieces = new();
 
     [Header("유언 후보")]
@@ -55,12 +55,7 @@ public class KTH_StageRewardData
 }
 
 /// <summary>
-/// 스테이지별 보상 테이블. 순수 설정 데이터라 씬이 아니라 에셋으로 둔다.
-///
-/// 씬에 묻어두면 밸런싱을 고칠 때마다 씬 파일이 바뀌어 머지 충돌이 잦고,
-/// 다른 씬에서 같은 테이블을 재사용할 수도 없다.
-///
-/// /// SO로 수정해 관리가 쉽도록 하였다
+/// 스테이지별 보상 테이블 (SO 에셋)
 /// </summary>
 [CreateAssetMenu(fileName = "KTH_RewardTable", menuName = "KTH/Reward Table")]
 public class KTH_RewardTableSO : ScriptableObject

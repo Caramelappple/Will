@@ -1,13 +1,13 @@
-// Assets/Editor/KTH_RewardEditorWindow.cs
 #if UNITY_EDITOR
 using _Scripts.LSO;
+using _Scripts.LSO.Deck.Data; // LSO_CardSO 네임스페이스 추가
+using _Scripts.LSO.Will;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 public class KTH_RewardEditorWindow : EditorWindow
 {
-    // 테이블이 씬이 아니라 에셋으로 옮겨졌다. 씬을 열지 않고도 밸런싱을 고칠 수 있다.
     private KTH_RewardTableSO target;
     private Vector2 scroll;
     private GUIStyle headerStyle;
@@ -26,7 +26,6 @@ public class KTH_RewardEditorWindow : EditorWindow
             target = FindTableAsset();
     }
 
-    /// <summary>프로젝트에서 첫 번째 보상 테이블 에셋을 찾는다.</summary>
     private KTH_RewardTableSO FindTableAsset()
     {
         string[] guids = AssetDatabase.FindAssets("t:KTH_RewardTableSO");
@@ -122,7 +121,7 @@ public class KTH_RewardEditorWindow : EditorWindow
 
             GUILayout.Space(10);
 
-            EditorGUILayout.LabelField("기물", GUILayout.Width(30));
+            EditorGUILayout.LabelField("카드", GUILayout.Width(30));
             stage.pieceCount = Mathf.Max(0, EditorGUILayout.IntField(stage.pieceCount, GUILayout.Width(35)));
 
             EditorGUILayout.LabelField("유언", GUILayout.Width(30));
@@ -138,46 +137,13 @@ public class KTH_RewardEditorWindow : EditorWindow
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            DrawPool("기물 풀", stage.possiblePieces);
+            DrawPool("카드 풀 (CardSO)", stage.possiblePieces);
             GUILayout.Space(8);
-            DrawWillPool("유언 풀", stage.possibleWills);
+            DrawWillPool("유언 풀 (WillDataSO)", stage.possibleWills);
         }
 
         EditorGUILayout.EndVertical();
         EditorGUILayout.Space(4);
-    }
-
-    private void DrawWillPool(string title, List<KTH_WillRewardPoolEntry> pool)
-    {
-        float colWidth = (position.width - 60) / 2f;
-
-        using (new EditorGUILayout.VerticalScope(GUILayout.Width(colWidth)))
-        {
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-
-            for (int i = 0; i < pool.Count; i++)
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    pool[i].willType =
-                        (LSO_WillType)EditorGUILayout.EnumPopup(pool[i].willType);
-
-                    pool[i].weight =
-                        EditorGUILayout.FloatField(pool[i].weight, GUILayout.Width(60));
-
-                    if (GUILayout.Button("-", GUILayout.Width(24)))
-                    {
-                        pool.RemoveAt(i);
-                        break;
-                    }
-                }
-            }
-
-            if (GUILayout.Button("+ 유언 추가"))
-            {
-                pool.Add(new KTH_WillRewardPoolEntry());
-            }
-        }
     }
 
     private void DrawPool(string title, List<KTH_RewardPoolEntry> pool)
@@ -192,7 +158,10 @@ public class KTH_RewardEditorWindow : EditorWindow
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    pool[i].animalName = EditorGUILayout.TextField(pool[i].animalName);
+                    // LSO_CardSO 타입으로 변경
+                    pool[i].pieceSO = (LSO_CardSO)EditorGUILayout.ObjectField(
+                        pool[i].pieceSO, typeof(LSO_CardSO), false);
+
                     pool[i].weight = EditorGUILayout.FloatField(pool[i].weight, GUILayout.Width(60));
 
                     if (GUILayout.Button("-", GUILayout.Width(24)))
@@ -203,9 +172,42 @@ public class KTH_RewardEditorWindow : EditorWindow
                 }
             }
 
-            if (GUILayout.Button("+ 기물 추가"))
+            if (GUILayout.Button("+ 카드 추가"))
             {
                 pool.Add(new KTH_RewardPoolEntry());
+            }
+        }
+    }
+
+    private void DrawWillPool(string title, List<KTH_WillRewardPoolEntry> pool)
+    {
+        float colWidth = (position.width - 60) / 2f;
+
+        using (new EditorGUILayout.VerticalScope(GUILayout.Width(colWidth)))
+        {
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+
+            for (int i = 0; i < pool.Count; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    // DLJ_WillDataSO 타입 필터링
+                    pool[i].willSO = (DLJ_WillDataSO)EditorGUILayout.ObjectField(
+                        pool[i].willSO, typeof(DLJ_WillDataSO), false);
+
+                    pool[i].weight = EditorGUILayout.FloatField(pool[i].weight, GUILayout.Width(60));
+
+                    if (GUILayout.Button("-", GUILayout.Width(24)))
+                    {
+                        pool.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (GUILayout.Button("+ 유언 추가"))
+            {
+                pool.Add(new KTH_WillRewardPoolEntry());
             }
         }
     }

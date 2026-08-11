@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Animal.Data;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {

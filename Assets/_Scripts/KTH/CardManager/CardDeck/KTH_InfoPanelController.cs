@@ -16,13 +16,21 @@ public class KTH_InfoPanelController : MonoBehaviour
     public Button placeButton;
     public Button closeButton;
 
+    [Header("버린 카드 UI 연결")]
+    public KTH_DiscardCardUI discardCardUI;
+
     [Header("바깥 클릭 감지")]
     public Button outsideClickCatcher;
 
-    [Header("연출 설정 (DOTween)")]
-    public float animDuration = 0.4f;     // 연출 시간
-    public float startYOffset = -200f;   // 시작 Y 오프셋
-    public float startYRotation = -180f; // 시작 Y축 회전 각도
+    [Header("패널 연출 설정 (DOTween)")]
+    public float animDuration = 0.4f;
+    public float startYOffset = -200f;
+    public float startYRotation = -180f;
+
+    [Header("카드 버리기 연출 설정")]
+    public float flyDuration = 0.5f;
+    public float rotateAngle = -360f;
+    public Vector3 endScale = new Vector3(0.15f, 0.15f, 0.15f);
 
     private Vector2 _originalAnchoredPos;
     private Action _onCancel;
@@ -37,6 +45,11 @@ public class KTH_InfoPanelController : MonoBehaviour
         if (panelRoot)
         {
             _originalAnchoredPos = panelRoot.anchoredPosition;
+        }
+
+        if (discardCardUI == null)
+        {
+            discardCardUI = FindFirstObjectByType<KTH_DiscardCardUI>();
         }
 
         EnsureOutsideClickCatcher();
@@ -126,8 +139,25 @@ public class KTH_InfoPanelController : MonoBehaviour
             {
                 placeButton.onClick.AddListener(() =>
                 {
-                    onPlace();
+                    KTH_HandCardView targetCardView = _currentCardView;
+                    LSO_CardSO targetData = _currentData;
+
+                    // 1. 패널 닫기 연출
                     HideWithAnim();
+
+                    // 2. 카드 연출 시작
+                    if (targetCardView != null)
+                    {
+                        PlayDiscardDirectly(targetCardView, targetData, onPlace);
+                    }
+                    else
+                    {
+                        onPlace();
+                        if (discardCardUI != null && targetData != null)
+                        {
+                            discardCardUI.AddToDiscardPile(targetData);
+                        }
+                    }
                 });
             }
         }
@@ -152,6 +182,56 @@ public class KTH_InfoPanelController : MonoBehaviour
         showSequence.Join(panelRoot.DOAnchorPos(_originalAnchoredPos, animDuration).SetEase(Ease.OutBack))
                     .Join(panelRoot.DOLocalRotate(Vector3.zero, animDuration, RotateMode.FastBeyond360).SetEase(Ease.OutCubic))
                     .Join(panelRoot.DOScale(Vector3.one, animDuration).SetEase(Ease.OutBack));
+    }
+
+    private void PlayDiscardDirectly(KTH_HandCardView cardView, LSO_CardSO cardData, Action onComplete)
+    {
+        if (discardCardUI == null)
+        {
+            discardCardUI = FindFirstObjectByType<KTH_DiscardCardUI>();
+        }
+
+        if (discardCardUI == null || discardCardUI.DiscardCardTransform == null)
+        {
+            if (cardData != null && discardCardUI != null) discardCardUI.AddToDiscardPile(cardData);
+            cardView.gameObject.SetActive(false);
+            onComplete?.Invoke();
+            return;
+        }
+
+        cardView.enabled = false;
+
+        RectTransform cardRect = cardView.GetComponent<RectTransform>();
+        RectTransform targetRect = discardCardUI.DiscardCardTransform;
+
+        cardRect.DOKill();
+        cardRect.SetAsLastSibling();
+
+        RectTransform parentRect = cardRect.parent as RectTransform;
+        Canvas parentCanvas = cardRect.GetComponentInParent<Canvas>();
+        Camera uiCamera = (parentCanvas != null && parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                            ? parentCanvas.worldCamera
+                            : null;
+
+        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, targetRect.position);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPos, uiCamera, out Vector2 targetAnchoredPos);
+
+        Sequence discardSeq = DOTween.Sequence();
+
+        discardSeq.Join(cardRect.DOAnchorPos(targetAnchoredPos, flyDuration).SetEase(Ease.InQuad))
+                  .Join(cardRect.DOLocalRotate(new Vector3(0f, 0f, rotateAngle), flyDuration, RotateMode.FastBeyond360).SetEase(Ease.InOutQuad))
+                  .Join(cardRect.DOScale(endScale, flyDuration).SetEase(Ease.InBack));
+
+        discardSeq.OnComplete(() =>
+        {
+            if (cardData != null)
+            {
+                discardCardUI.AddToDiscardPile(cardData);
+            }
+
+            cardView.gameObject.SetActive(false);
+            onComplete?.Invoke();
+        });
     }
 
     public void HideWithAnim()
@@ -192,9 +272,9 @@ public class KTH_InfoPanelController : MonoBehaviour
         _currentData = null;
         _onCancel = null;
 
-        // 매니저에 전달된 onCancel 콜백 실행 및 안전 복원
         tempCancel?.Invoke();
 
+        // ★ [핵심] 인포 패널을 취소/닫았을 때 내려갔던 다른 카드들을 모두 복원
         var deckManager = FindFirstObjectByType<KTH_DeckManager>();
         if (deckManager != null)
         {

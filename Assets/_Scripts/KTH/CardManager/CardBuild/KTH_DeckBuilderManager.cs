@@ -1,15 +1,19 @@
+using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Deck.Data;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+using _Scripts.LSO.Will;
 using DG.Tweening;
+using System.Collections.Generic;
+using _Scripts.LSO.Animal.Data;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class KTH_DeckBuilderManager : MonoBehaviour
 {
     public static KTH_DeckBuilderManager Instance { get; private set; }
 
-    [Header("카드 데이터 리스트")]
+    [Header("카드 데이터 리스트 (ItemLibraryManager와 자동 동기화됨)")]
     public List<LSO_CardSO> cardDatabase = new List<LSO_CardSO>();
     public List<LSO_CardSO> initialInventoryCards = new List<LSO_CardSO>();
 
@@ -55,9 +59,24 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         Instance = this;
     }
 
+    private void OnEnable()
+    {
+        if (ItemLibraryManager.Instance != null)
+        {
+            ItemLibraryManager.Instance.onItemLibraryUpdated += OnItemLibraryUpdated;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (ItemLibraryManager.Instance != null)
+        {
+            ItemLibraryManager.Instance.onItemLibraryUpdated -= OnItemLibraryUpdated;
+        }
+    }
+
     private void OnDestroy()
     {
-        // 씬 전환 또는 객체 파괴 시 매니저 참조 DOTween 강제 정리
         DOTween.Kill(this);
         if (Instance == this) Instance = null;
     }
@@ -90,18 +109,68 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 카드 SO에서 고유 ID 추출 (LSO_CardSO 변경 없이 asset의 고유 name을 ID로 사용)
+    /// ItemLibraryManager로부터 LSO_CardSO 타입 카드 데이터를 수집합니다.
+    /// (CS8121 에러 우회를 위해 object 타입 캐스팅 검사 적용)
     /// </summary>
+    public void SyncCardDatabaseFromLibrary()
+    {
+        cardDatabase.Clear();
+
+        if (ItemLibraryManager.Instance != null)
+        {
+            // 해금된 기물(Pieces) 리스트 검사
+            if (ItemLibraryManager.Instance.unlockedPieces != null)
+            {
+                foreach (var piece in ItemLibraryManager.Instance.unlockedPieces)
+                {
+                    if (piece == null) continue;
+
+                    // 1. piece 자체가 LSO_CardSO인 경우
+                    if ((object)piece is LSO_CardSO cardSO)
+                    {
+                        if (!cardDatabase.Contains(cardSO))
+                        {
+                            cardDatabase.Add(cardSO);
+                        }
+                    }
+                    // 2. piece가 LSO_AnimalSO이고, 이를 포함하는 LSO_CardSO를 수집해야 하는 경우
+                    else if ((object)piece is LSO_AnimalSO animalSO)
+                    {
+                        // initialInventoryCards 등에 등록되어 있던 카드 중 해당 동물을 가진 카드를 탐색
+                        LSO_CardSO matchedCard = initialInventoryCards.Find(c => c != null && c.Animal == animalSO);
+                        if (matchedCard != null && !cardDatabase.Contains(matchedCard))
+                        {
+                            cardDatabase.Add(matchedCard);
+                        }
+                    }
+                }
+            }
+
+            Debug.Log($"🎴 [KTH_DeckBuilderManager] 카드 데이터베이스 {cardDatabase.Count}개 동기화 완료!");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ [KTH_DeckBuilderManager] ItemLibraryManager 인스턴스를 찾을 수 없습니다.");
+        }
+    }
+
+    private void OnItemLibraryUpdated()
+    {
+        SyncCardDatabaseFromLibrary();
+        RefreshPoolPage(true);
+    }
+
     private string GetCardID(LSO_CardSO card)
     {
         if (card == null) return string.Empty;
-        return card.name;
+        return $"{card.GetType().Name}_{card.name}";
     }
 
     public void InitializeDeckBuilder()
     {
         currentPageIndex = 0;
 
+        SyncCardDatabaseFromLibrary();
         BuildInitialInventory();
 
         ClearContainerImmediate(poolContainer);
@@ -113,9 +182,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     {
         _inventoryCardIDs.Clear();
 
-        // KTH_DeckDataPersistent에 저장된 덱이 있으면 최우선으로 로드
         List<LSO_CardSO> sourceCards = initialInventoryCards;
-        if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
+        if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
         {
             sourceCards = KTH_DeckDataPersistent.Instance.savedInventory;
         }
@@ -168,20 +236,14 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         return inventoryList;
     }
 
-    /// <summary>
-    /// 카드를 드롭했을 때 호출되는 핸들러 (복사 현상 방지)
-    /// </summary>
     private void HandleCardDropped(KTH_CardDragUI cardUI, bool droppedInInventory)
     {
         if (cardUI == null || cardUI.CardData == null) return;
 
-        string cardID = GetCardID(cardUI.CardData);
+        string cardID = GetCardID((LSO_CardSO)cardUI.CardData);
 
         if (droppedInInventory)
         {
-            // [복사 방지 핵심]
-            // 만약 이미 인벤토리 안에 있던 카드를 다시 인벤토리에 드롭한 거라면 
-            // 중복 추가하지 않고 UI 갱신만 수행
             if (!cardUI.IsFromInventory)
             {
                 _inventoryCardIDs.Add(cardID);
@@ -189,11 +251,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         }
         else
         {
-            // 인벤토리 밖(풀 등)으로 드롭했으므로 인벤토리 목록에서 1개 제거
             _inventoryCardIDs.Remove(cardID);
         }
 
-        // 데이터가 변경되었으므로 양쪽 UI 컨테이너 모두 즉시 갱신
         RefreshInventoryView();
         RefreshPoolPage();
     }
@@ -216,7 +276,6 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
             string cardID = GetCardID(card);
 
-            // 이미 인벤토리에 들어간 수량만큼 풀에서 차감/제외
             int countInInventory = _inventoryCardIDs.FindAll(id => id == cardID).Count;
             int countInPoolSoFar = 0;
 
@@ -245,8 +304,8 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
         var cardUI = Instantiate(cardUIPrefab, parent);
 
-        // 생성 대상 부모가 inventoryContainer인지 확인하여 Setup에 넘겨줍니다.
         bool isInventoryCard = (parent == inventoryContainer);
+
         cardUI.Setup(data, databaseIndex, HandleCardDropped, isInventoryCard);
 
         RectTransform cardRect = cardUI.GetComponent<RectTransform>();
@@ -259,7 +318,6 @@ public class KTH_DeckBuilderManager : MonoBehaviour
                 cardRect.localScale = new Vector3(0f, 1f, 1f);
                 cardRect.localRotation = Quaternion.Euler(0f, 180f, 0f);
 
-                // Target을 cardRect로 설정해 비동기 삭제 시 안전하게 무시되도록 처리
                 Sequence seq = DOTween.Sequence().SetTarget(cardRect);
                 seq.PrependInterval(delay);
                 seq.Join(cardRect.DOScale(Vector3.one, flipAnimDuration).SetEase(Ease.OutBack));
@@ -326,14 +384,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         if (nextButton) nextButton.interactable = (currentPageIndex + 1 < maxPages) && !isAnimating;
     }
 
-    /// <summary>
-    /// 인벤토리 카드 수량에 따른 완료 버튼 활성화 상태 조절
-    /// </summary>
     private void UpdateCompleteButtonState()
     {
         if (completeButton == null) return;
-
-        // 카드가 1장 이상일 때만 완료 버튼 활성화
         completeButton.interactable = (_inventoryCardIDs.Count > 0) && !isAnimating;
     }
 
@@ -362,9 +415,6 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 컨테이너 내 UI 자식 요소를 완전히 트윈 해제 후 안전하게 파괴
-    /// </summary>
     private void ClearContainerImmediate(Transform container)
     {
         if (!container) return;
@@ -372,10 +422,7 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         for (int i = container.childCount - 1; i >= 0; i--)
         {
             Transform child = container.GetChild(i);
-
-            // 트윈 완전 강제 종료 (true: Complete 호출하여 깔끔하게 정리)
             child.DOKill(true);
-
             child.SetParent(null);
             Destroy(child.gameObject);
         }
@@ -399,7 +446,6 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     {
         if (isAnimating) return;
 
-        // [0장 방어 코드] 카드가 0장이면 다음 씬으로 넘어가지 않음
         if (_inventoryCardIDs.Count <= 0)
         {
             Debug.LogWarning("[DeckBuilder] 최소 1장 이상의 카드가 필요합니다.");
@@ -422,5 +468,24 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         }
 
         SceneManager.LoadScene(nextSceneName);
+    }
+
+    public void AddCardsToInventory(List<LSO_CardSO> newCards)
+    {
+        if (newCards == null || newCards.Count == 0) return;
+
+        foreach (var card in newCards)
+        {
+            if (card == null) continue;
+            string cardID = GetCardID(card);
+
+            if (!string.IsNullOrEmpty(cardID))
+            {
+                _inventoryCardIDs.Add(cardID);
+            }
+        }
+
+        RefreshInventoryView(true);
+        RefreshPoolPage(true);
     }
 }

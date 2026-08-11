@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.Manager;
 
 namespace _Scripts.LSO.Ability
 {

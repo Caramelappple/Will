@@ -312,7 +312,6 @@ GameObject:
   m_Component:
   - component: {fileID: 713707820}
   - component: {fileID: 713707819}
-  - component: {fileID: 713707821}
   m_Layer: 0
   m_Name: Reward
   m_TagString: Untagged
@@ -348,18 +347,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &713707821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 713707818}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94f72119f613aad4294383026a166c23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_DontDestroy
 --- !u!1 &909175233
 GameObject:
   m_ObjectHideFlags: 0
@@ -531,7 +518,7 @@ MonoBehaviour:
   nodeContainerRect: {fileID: 1671757774}
   mapSceneName: KTH_StageScene
   editorChapterIndex: 1
-  editorStageIndex: 2
+  editorStageIndex: 1
   nodePositions:
   - {x: -244, y: 108.33331}
   - {x: -96.666626, y: 5}
@@ -673,11 +660,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
   nodeStages:
-  - nodeIndex: 1
+  - chapter: 1
+    nodeIndex: 0
     stage: {fileID: 11400000, guid: 9efdf403ceebdff47a1b69789d72dd6b, type: 2}
-  typeStages:
-  - nodeType: 1
-    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
+  - chapter: 1
+    nodeIndex: 1
+    stage: {fileID: 11400000, guid: 9efdf403ceebdff47a1b69789d72dd6b, type: 2}
+  - chapter: 1
+    nodeIndex: 2
+    stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
+  typeStages: []
 --- !u!114 &1071272902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1577,6 +1569,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1565159380}
   m_CullTransparentMesh: 1
+--- !u!1 &1569112263
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1569112265}
+  - component: {fileID: 1569112266}
+  m_Layer: 0
+  m_Name: ItemLibrary
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1569112265
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1569112263}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 896.825, y: -0.00007, z: 1688.9373}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1569112266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1569112263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f60949ea5837b4d96e3cdce2d8de76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemLibraryManager
+  unlockedPieces: []
+  unlockedWills: []
 --- !u!1 &1615184306
 GameObject:
   m_ObjectHideFlags: 0
@@ -1701,6 +1739,52 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1755233876
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1755233878}
+  - component: {fileID: 1755233877}
+  m_Layer: 0
+  m_Name: GiveReaward
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1755233877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755233876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 437f890e696c33e4b8d336924ee0b15d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_GiveReward
+  currentChapter: 1
+  currentStage: 1
+--- !u!4 &1755233878
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755233876}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 896.8251, y: 0.00003, z: 1688.9374}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1760669630
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2070,3 +2154,5 @@ SceneRoots:
   - {fileID: 1062778834}
   - {fileID: 2121850231}
   - {fileID: 713707820}
+  - {fileID: 1755233878}
+  - {fileID: 1569112265}

@@ -1,8 +1,9 @@
-using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 public sealed class DLJ_LifeSteal : LSO_IAbility, IOnTurnStart, IOnAnimalAttack,

@@ -25,14 +25,14 @@ namespace _Scripts.LDY.Save
                 return;
             }
 
-            reward.Unlocks.Export(out string[] pieces, out LSO_WillType[] wills);
+            //reward.Unlocks.Export(out string[] pieces, out LSO_WillType[] wills);
 
-            data.unlockedPieceNames.AddRange(pieces);
+            //data.unlockedPieceNames.AddRange(pieces);
 
             // 유언은 enum이지만 문자열로 적는다. 나중에 enum에 값을 끼워 넣어도
             // 기존 세이브가 엉뚱한 유언으로 읽히지 않는다.
-            foreach (LSO_WillType will in wills)
-                data.unlockedWillIds.Add(will.ToString());
+            //foreach (LSO_WillType will in wills)
+                //data.unlockedWillIds.Add(will.ToString());
         }
 
         public void Restore(LDY_RunSaveData data)
@@ -58,7 +58,7 @@ namespace _Scripts.LDY.Save
                 Debug.LogWarning($"[LDY_UnlockSaveGateway] 알 수 없는 유언 id '{willId}' 입니다.");
             }
 
-            reward.Unlocks.Import(data.unlockedPieceNames, wills);
+            //reward.Unlocks.Import(data.unlockedPieceNames, wills);
         }
     }
 }
