@@ -214,6 +214,7 @@ namespace _Scripts.LDY
             }
 
             board.Remove(target);
+            DLJ_CombatKillEvents.Raise(target, killer);
             RaiseEnemyDead(target);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(target, board);

@@ -35,6 +35,9 @@ public static class DLJ_WillRuntime
         // passed on again or remain on its deferred corpse.
         DLJ_SuccessionBonus.RemoveFrom(animal);
 
+        if (animal.WillType == LSO_WillType.None)
+            return null;
+
         DLJ_WillDatabaseSO willDatabase = GetDatabase();
         if (willDatabase == null)
             return null;

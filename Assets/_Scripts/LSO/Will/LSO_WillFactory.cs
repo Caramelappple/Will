@@ -23,6 +23,9 @@ namespace _Scripts.LSO.Will
             DLJ_WillContext context,
             DLJ_WillDataSO data)
         {
+            if (type == LSO_WillType.None)
+                return null;
+
             if (!Creators.TryGetValue(
                     type,
                     out Func<DLJ_WillContext, DLJ_WillDataSO, LSO_IWill> creator))
