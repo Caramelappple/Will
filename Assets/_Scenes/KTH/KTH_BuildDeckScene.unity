@@ -777,7 +777,7 @@ MonoBehaviour:
   nextButton: {fileID: 1259842424}
   completeButton: {fileID: 755815063}
   resetButton: {fileID: 215173449}
-  nextSceneName: KTH_TestScene
+  nextSceneName: KTH_UiTestScene
   flipAnimDuration: 0.4
   resetAnimDuration: 0.35
   cardAnimInterval: 0.05
