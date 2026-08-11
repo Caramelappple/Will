@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO;
+using _Scripts.LSO.Ability;
 using TMPro;
 using UnityEngine;
 
@@ -39,6 +41,10 @@ public class LSO_AnimalInfoPanel : MonoBehaviour
 
     private LDY_Animal _target;
     private LDY_BoardManager _board;
+
+    // 특성 목록은 전투 중에 변하지 않는데 Refresh는 피해를 받을 때마다 불린다.
+    // 매번 string.Join을 돌리면 쓸데없는 할당이 쌓이므로 대상이 바뀔 때만 만든다.
+    private string _abilityText = string.Empty;
 
     // 구독을 Awake/OnDestroy에 두는 이유:
     // 이 창은 볼 대상이 없을 때 자기 자신을 끈다. 그런데 꺼진 오브젝트는 OnEnable이 다시 돌지 않아서,
@@ -83,6 +89,7 @@ public class LSO_AnimalInfoPanel : MonoBehaviour
 
         Unsubscribe(_target);
         _target = animal;
+        _abilityText = DescribeAbilities(_target);
         Subscribe(_target);
 
         SetVisible(_target != null);
@@ -162,13 +169,23 @@ public class LSO_AnimalInfoPanel : MonoBehaviour
         SetText(damage, $"Atk: {_target.GetAtk()}");
 
         SetText(range, _target.RangeType.ToString());
-        SetText(ability, _target.AbilityType.ToString());
+        SetText(ability, _abilityText);
         SetText(will, _target.WillType.ToString());
 
         SetText(desc, _target.data != null ? _target.data.description : string.Empty);
 
         if (animalName != null)
             animalName.color = _target.team == LDY_Team.Enemy ? enemyColor : allyColor;
+    }
+
+    private static string DescribeAbilities(LDY_Animal animal)
+    {
+        if (animal == null) return string.Empty;
+
+        IReadOnlyList<LSO_AbilityType> types = animal.AbilityTypes;
+        if (types == null || types.Count == 0) return "없음";
+
+        return string.Join(", ", types);
     }
 
     private int HealthValue => _target.health != null ? _target.health.Value : 0;

@@ -3229,6 +3229,7 @@ MonoBehaviour:
   costText: {fileID: 246953466}
   placeButton: {fileID: 591244064}
   closeButton: {fileID: 681692062}
+  outsideClickCatcher: {fileID: 0}
   animDuration: 0.7
   startYOffset: -1016
   startYRotation: -180
@@ -6768,6 +6769,9 @@ MonoBehaviour:
   rearrangeDuration: 0.25
   drawButton: {fileID: 211093966}
   infoPanel: {fileID: 469151347}
+  deckPanelRoot: {fileID: 0}
+  deckHideYOffset: -300
+  deckAnimDuration: 0.3
 --- !u!1 &1056996184
 GameObject:
   m_ObjectHideFlags: 0

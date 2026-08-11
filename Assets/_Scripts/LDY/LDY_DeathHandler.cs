@@ -45,7 +45,7 @@ namespace _Scripts.LDY
                 Debug.LogWarning($"{name}: BoardManager를 찾을 수 없어 격자에서 제거하지 못했습니다.", this);
 
             NotifyOwnDeathAbilities(victim, killer);
-            DLJ_CombatKillEvents.Raise(victim, killer);
+            NotifyKillerAbilities(victim, killer);
             RaiseEnemyDead(victim);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
@@ -66,6 +66,21 @@ namespace _Scripts.LDY
         {
             LSO_AbilityNotify.Notify<LSO_IOnDeath>(
                 victim.Abilities, a => a.OnDeath(victim, killer));
+        }
+
+        /// <summary>
+        /// 죽인 쪽의 특성에게 알린다. 포식처럼 "내가 처치했을 때"가 조건인 특성이 여기서 발동한다.
+        ///
+        /// 유언보다 앞에 두는 이유는, 계승처럼 죽은 기물의 스탯을 다른 기물에게 옮기는 유언이 있어서다.
+        /// 뒤에 부르면 이미 옮겨진 뒤의 값을 읽게 된다.
+        /// </summary>
+        private static void NotifyKillerAbilities(LDY_Animal victim, LDY_Animal killer)
+        {
+            // 독·유언 등으로 죽으면 죽인 주체가 없다. 자기 자신을 죽인 경우도 처치로 치지 않는다.
+            if (killer == null || killer == victim) return;
+
+            LSO_AbilityNotify.Notify<LSO_IOnKill>(
+                killer.Abilities, a => a.OnKill(killer, victim));
         }
 
         private static void RaiseEnemyDead(LDY_Animal victim)
