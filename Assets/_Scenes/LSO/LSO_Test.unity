@@ -7696,6 +7696,8 @@ GameObject:
   - component: {fileID: 1219364775}
   - component: {fileID: 1219364774}
   - component: {fileID: 1219364773}
+  - component: {fileID: 1219364779}
+  - component: {fileID: 1219364778}
   m_Layer: 0
   m_Name: Enemy_Ranged
   m_TagString: Untagged
@@ -7730,7 +7732,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
   health: {fileID: 1219364774}
   pos: {x: 4, y: 0, z: 5}
   team: 1
@@ -7831,6 +7833,31 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1219364771}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1219364778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1219364771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e748fb2c96c14b65af404b8a4ad121f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyTracker
+--- !u!114 &1219364779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1219364771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00d249b060dc4f88b15ad7399d815951, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
+  maxStoredAbilities: 3
 --- !u!1 &1242579790
 GameObject:
   m_ObjectHideFlags: 0

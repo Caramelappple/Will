@@ -131,8 +131,8 @@ namespace _Scripts.LSO
             {
                 if (card == null) continue;
 
-                amounts.TryGetValue(card.Id, out int count);
-                amounts[card.Id] = count + 1;
+                amounts.TryGetValue(card.ID.ToString(), out int count);
+                amounts[card.ID.ToString()] = count + 1;
             }
 
             var result = new DeckCardsSaveData[amounts.Count];

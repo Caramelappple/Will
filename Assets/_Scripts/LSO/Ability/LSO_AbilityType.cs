@@ -18,6 +18,12 @@ namespace _Scripts.LSO.Ability
         AllHeal,
         LifeSteal,
         CostRefund,
-        WillEnhancement
+        WillEnhancement,
+
+        // 값이 에셋에 int로 저장되므로 새 항목은 반드시 이 아래에만 붙일 것.
+        // 중간에 끼우면 기존 에셋의 특성이 통째로 다른 것을 가리킨다.
+        Predation,
+        MemoryFrenzy,
+        PreyMarking
     }
 }

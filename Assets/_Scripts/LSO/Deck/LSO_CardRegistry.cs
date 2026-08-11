@@ -24,14 +24,14 @@ namespace _Scripts.LSO.Deck
                 if (card == null) continue;
 
                 // id가 겹치면 어느 쪽을 써야 할지 알 수 없다. 조용히 덮어쓰면 나중에 원인을 못 찾으므로 에러로 알린다.
-                if (_byId.TryGetValue(card.Id, out LSO_CardSO existing))
+                if (_byId.TryGetValue(card.ID, out LSO_CardSO existing))
                 {
                     Debug.LogError(
-                        $"LSO_CardRegistry: id '{card.Id}'가 중복입니다. ({existing.name} / {card.name})", card);
+                        $"LSO_CardRegistry: id '{card.ID}'가 중복입니다. ({existing.name} / {card.name})", card);
                     continue;
                 }
 
-                _byId.Add(card.Id, card);
+                _byId.Add(card.ID, card);
             }
         }
 
@@ -40,7 +40,7 @@ namespace _Scripts.LSO.Deck
         {
             if (string.IsNullOrEmpty(id)) return null;
 
-            return _byId.TryGetValue(id, out LSO_CardSO card) ? card : null;
+            return _byId.GetValueOrDefault(id);
         }
 
         public bool Contains(string id)

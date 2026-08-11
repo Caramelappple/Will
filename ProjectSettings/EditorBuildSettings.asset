@@ -27,6 +27,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/KTH/KTH_LoadingScene.unity
     guid: 7c7763e920e65074db3a37edc2f0c967
+  - enabled: 1
+    path: Assets/_Scenes/LSO/LSO_TestScene.unity
+    guid: 6eee892ae5eb8f547831affcd3b70f54
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
