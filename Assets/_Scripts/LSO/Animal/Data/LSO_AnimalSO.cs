@@ -18,7 +18,15 @@ public class LSO_AnimalSO : ScriptableObject
     public int maxHealth;
     public int damage;
     public int cost;
-    
+
+    [Tooltip("한 번에 움직일 수 있는 칸 수. 2를 넣으면 2칸까지 이동한다.\n" +
+             "0으로 두면 기본값 1칸으로 취급한다(예전에 만든 에셋 호환용).")]
+    [Min(0)]
+    public int moveRange = 1;
+
+    /// <summary>실제로 쓰이는 이동 칸 수. 값을 채우지 않은 옛 에셋은 1칸으로 본다.</summary>
+    public int MoveRange => moveRange > 0 ? moveRange : 1;
+
     [Header("Types")]
     public LDY_RangeType range;
 

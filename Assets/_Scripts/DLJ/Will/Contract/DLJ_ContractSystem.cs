@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -51,6 +52,11 @@ internal sealed class DLJ_ContractWill : LSO_IWill
             ? unitCost
             : Mathf.CeilToInt(unitCost / 2f);
         refundService.QueueRefund(refundAmount);
+
+        if (refundAmount > 0)
+            DLJ_WillBenefitEvents.Raise(
+                owner != null ? owner.GetComponent<LDY_Animal>() : null,
+                LSO_WillType.Contract);
 
         Vector3 effectPosition = owner != null
             ? owner.transform.position
