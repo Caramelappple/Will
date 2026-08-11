@@ -11,7 +11,7 @@ namespace _Scripts.LSO.Deck.Data
     {
 
         [Header("카드 저장 및 구별에 사용할 고유 ID")]
-        [field: SerializeField] private int ID => animal.name.GetHashCode();
+        public int ID => animal.name.GetHashCode();
         
         [Tooltip("이 카드가 소환하는 동물 데이터.")]
         [SerializeField] private LSO_AnimalSO animal;

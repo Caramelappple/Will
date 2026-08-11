@@ -1,0 +1,14 @@
+{
+    "name": "LSO.UI.Transition",
+    "rootNamespace": "_Scripts.LSO.UI.Transition",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -21,6 +21,16 @@ MonoBehaviour:
     scorers: []
   - animal: {fileID: 11400000, guid: d6c0ae7c8cfa638438a419605e7691cd, type: 2}
     scorers: []
+  - animal: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
+    scorers:
+    - rid: 5566933157692309571
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5566933157692309571
+      type: {class: LSO_PreyScorer, ns: _Scripts.LSO.AI.Boss, asm: Assembly-CSharp}
+      data:
+        attackBonus: 50
+        reattackBonus: 40
+        approachWeight: 20
+        reattackApproachWeight: 20

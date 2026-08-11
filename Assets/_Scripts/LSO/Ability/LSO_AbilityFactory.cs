@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Boss.CrowKing;
 
 namespace _Scripts.LSO.Ability
 {
@@ -24,6 +25,9 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.LifeSteal, () => new DLJ_LifeSteal() },
                 { LSO_AbilityType.CostRefund, () => new DLJ_CostRefund() },
                 { LSO_AbilityType.WillEnhancement, () => new DLJ_WillEnhancement() },
+                { LSO_AbilityType.Predation, () => new LSO_Predation() },
+                { LSO_AbilityType.MemoryFrenzy, () => new LSO_MemoryFrenzy() },
+                { LSO_AbilityType.PreyMarking, () => new LSO_PreyMarking() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

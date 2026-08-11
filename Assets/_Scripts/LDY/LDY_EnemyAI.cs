@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY.AI;
+using _Scripts.LSO.Attributes;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -23,7 +24,8 @@ namespace _Scripts.LDY
 
         [Header("판단")]
         [Tooltip("비워두면 기본 4종(공격 우선 / 처치 보너스 / 전선 / 접근)을 쓴다.")]
-        [SerializeReference] private List<LDY_IActionScorer> scorers = new();
+        [SerializeReference, LSO_SubclassPicker]
+        private List<LDY_IActionScorer> scorers = new();
         [Tooltip("기물별 전용 scorer 매핑. 비워도 공용 scorer만으로 동작한다.")]
         [SerializeField] private LDY_ScorerRegistry scorerRegistry;
         [Tooltip("후보별 점수 내역을 콘솔에 남긴다. 조용히 무시된 행동은 이 값과 무관하게 항상 경고로 남는다.")]
