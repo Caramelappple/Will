@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
+  m_Name: Corvo King
+  m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
+  animalName: CrowKing
+  description: "\uD574\uCEE4\uD1A4\uC5D0\uC11C 10\uC5F0\uC18D 1\uB4F1\uC744 \uCC28\uC9C0\uD55C
+    \uC65C\uC778\uC9C0 \uD574\uD0B9\uC744 \uC88B\uC544\uD560 \uB4EF\uD55C\n\uC5C4\uCCAD\uB09C
+    2\uB2EC\uC758 \uACE0\uC720\uD55C \uC5ED\uC0AC\uB97C \uAC00\uC9C4 \uAE4C\uB9C8\uADC0\uC655
+    \uC785\uB2C8\uB2E4"
+  maxHealth: 30
+  damage: 3
+  cost: 1
+  range: 1
+  abilities: 
+  defaultWill: 1
+  unitPrefab: {fileID: 4488470074872201150, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}

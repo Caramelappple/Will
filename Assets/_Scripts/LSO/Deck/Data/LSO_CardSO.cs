@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using UnityEngine;
@@ -7,6 +9,10 @@ namespace _Scripts.LSO.Deck.Data
     [CreateAssetMenu(fileName = "LSO_CardSO", menuName = "LSO/Deck/CardSO")]
     public class LSO_CardSO : ScriptableObject
     {
+
+        [Header("카드 저장 및 구별에 사용할 고유 ID")]
+        [field: SerializeField] private int ID => animal.name.GetHashCode();
+        
         [Tooltip("이 카드가 소환하는 동물 데이터.")]
         [SerializeField] private LSO_AnimalSO animal;
 
@@ -37,7 +43,8 @@ namespace _Scripts.LSO.Deck.Data
         public int Cost => IsValid ? animal.cost : 0;
         public int Damage => IsValid ? animal.damage : 0;
         public int MaxHealth => IsValid ? animal.maxHealth : 0;
-        public LSO_AbilityType Ability => IsValid ? animal.ability : LSO_AbilityType.None;
+        public IReadOnlyList<LSO_AbilityType> AbilityTypes =>
+            IsValid ? animal.AbilityTypes : Array.Empty<LSO_AbilityType>();
         public LDY_RangeType Range => IsValid ? animal.range : LDY_RangeType.Melee;
 
         /// <summary>
