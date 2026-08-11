@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5895b4ef1a4686aa2e57804e18f12b, type: 3}
   m_Name: CorvoCard
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
-  id: 
+  id: crow
   animal: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
-  willType: 0
   image: {fileID: 21300000, guid: 1ddfa95659ff6e343813a952d6e3eaa2, type: 3}

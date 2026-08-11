@@ -329,6 +329,7 @@ MonoBehaviour:
   pos: {x: 2, y: 0, z: 1}
   team: 1
   fallbackRangeType: 0
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 70646586}
@@ -3734,6 +3735,7 @@ MonoBehaviour:
   pos: {x: 5, y: 0, z: 1}
   team: 0
   fallbackRangeType: 1
+  fallbackMoveRange: 1
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 571457307}
@@ -7735,6 +7737,7 @@ MonoBehaviour:
   pos: {x: 4, y: 0, z: 5}
   team: 1
   fallbackRangeType: 1
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 1219364772}
@@ -8031,6 +8034,7 @@ MonoBehaviour:
   pos: {x: 3, y: 0, z: 0}
   team: 0
   fallbackRangeType: 2
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1273964880}
@@ -8784,6 +8788,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345992235}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1360002259
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1360002261}
+  - component: {fileID: 1360002260}
+  m_Layer: 0
+  m_Name: LDY_SaveDebugHotkeys
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1360002260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1360002259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3208962ebcfbbd84ea8ce9e9375f58e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Save.Debugging.LDY_SaveDebugHotkeys
+  saveKey: 286
+  loadKey: 290
+  toastSeconds: 5
+--- !u!4 &1360002261
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1360002259}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.5153, y: 0, z: 2.20864}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1393852925
 GameObject:
   m_ObjectHideFlags: 0
@@ -10236,6 +10287,7 @@ MonoBehaviour:
   pos: {x: 1, y: 0, z: 0}
   team: 0
   fallbackRangeType: 0
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1621688121}
@@ -10437,6 +10489,110 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1663589425
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1663589429}
+  - component: {fileID: 1663589428}
+  - component: {fileID: 1663589427}
+  - component: {fileID: 1663589426}
+  m_Layer: 0
+  m_Name: GameSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1663589426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663589425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bf6e675d12b07546b01a827010a922e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_Reward
+  rewardTable: {fileID: 11400000, guid: 01cccf976f6677d4184defa875f2e234, type: 2}
+--- !u!114 &1663589427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663589425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5d71aced3b38894e9c6a1c3ea9778d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LDY_MapManager
+  isTest: 0
+  nodeContainerRect: {fileID: 0}
+  mapSceneName: MapScene
+  editorChapterIndex: 1
+  editorStageIndex: 1
+  nodePositions: []
+  nodeTypes: 
+  connections: []
+  chapterMaps: []
+  battleSceneName: BattleScene
+  bossSceneName: BossScene
+  stageRouterSource: {fileID: 0}
+  playerTokenPrefab: {fileID: 0}
+  ldy_play: {fileID: 0}
+  onShopNodeSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  onEventNodeSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  onStageChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onMapChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  currentChapter: 1
+  currentStage: 1
+  activeNodeIndex: -1
+--- !u!114 &1663589428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663589425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e839e4a50cd564cb7bad641e2b944b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckDataPersistent
+  savedInventory:
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+--- !u!4 &1663589429
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663589425}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.5153, y: 0, z: 2.20864}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1676574781
 GameObject:
   m_ObjectHideFlags: 0
@@ -12256,6 +12412,7 @@ MonoBehaviour:
   pos: {x: 6, y: 0, z: 7}
   team: 1
   fallbackRangeType: 2
+  fallbackMoveRange: 1
   baseAtk: 3
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 2073800958}
@@ -12590,3 +12747,5 @@ SceneRoots:
   - {fileID: 635901939}
   - {fileID: 1336432046}
   - {fileID: 35912877}
+  - {fileID: 1360002261}
+  - {fileID: 1663589429}

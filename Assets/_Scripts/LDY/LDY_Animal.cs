@@ -24,6 +24,10 @@ namespace _Scripts.LDY
         [Header("Test Only")]
         [Tooltip("data(AnimalSO)가 없을 때만 쓰이는 임시값. data가 있으면 data.range가 항상 우선한다.")]
         [SerializeField] private LDY_RangeType fallbackRangeType;
+
+        [Tooltip("data(AnimalSO)가 없을 때만 쓰이는 임시 이동 칸 수. data가 있으면 data.moveRange가 항상 우선한다.")]
+        [Min(1)]
+        [SerializeField] private int fallbackMoveRange = 1;
         
         [Tooltip("data의 damage로 초기화된 뒤 버프/디버프로 변할 수 있는 값.")]
         public int baseAtk;
@@ -71,6 +75,9 @@ namespace _Scripts.LDY
 
         /// <summary>사거리는 동물 데이터가 원본이다. 복사본을 따로 들고 있지 않는다.</summary>
         public LDY_RangeType RangeType => data != null ? data.range : fallbackRangeType;
+
+        /// <summary>한 번에 움직일 수 있는 칸 수. 사거리와 마찬가지로 동물 데이터가 원본이다.</summary>
+        public int MoveRange => data != null ? data.MoveRange : Mathf.Max(1, fallbackMoveRange);
 
         /// <summary>
         /// 특성 종류 목록. 동물 데이터가 원본이다.
