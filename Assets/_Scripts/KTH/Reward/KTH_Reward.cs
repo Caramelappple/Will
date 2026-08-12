@@ -2,18 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using _Scripts.LSO;
-using _Scripts.LSO.Deck.Data; // LSO_CardSO
+using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Will;
 
 public class KTH_Reward : MonoBehaviour
 {
     public static KTH_Reward Instance { get; private set; }
 
-    [Header("스테이지별 해금 테이블 참조")]
+    [Header("스테이지별 해금 테이블")]
     [SerializeField] private KTH_RewardTableSO rewardTable;
 
-    // 보상 해금 이벤트
+    public event Action<List<KTH_RewardOption>> RewardOptionsGenerated;
     public event Action<KTH_UnlockState> Unlocked;
+
+    private List<KTH_RewardOption> currentOptions = new();
+    private KTH_StageRewardData currentStageData;
 
     private void Awake()
     {
@@ -21,6 +24,8 @@ public class KTH_Reward : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            Debug.Log("[KTH_Reward] Instance 생성");
         }
         else
         {
@@ -28,152 +33,257 @@ public class KTH_Reward : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 스테이지 클리어 시 보상 롤링 및 라이브러리 자동 저장
-    /// </summary>
-    public KTH_UnlockState UnlockByStage(int chapter, int stage)
+    // =========================================================
+    // 보상 후보 생성
+    // =========================================================
+    public List<KTH_RewardOption> GenerateRewardOptions(int chapter, int stage)
     {
-        Debug.Log($"🎁 [KTH_Reward] 스테이지 보상 해금 프로세스 시작: Chapter {chapter}, Stage {stage}");
+        Debug.Log($"🎁 [KTH_Reward] 보상 후보 생성: Chapter {chapter}, Stage {stage}");
 
-        // 이번 스테이지에서 새로 해금된 보상만 담을 객체 생성
-        KTH_UnlockState newRewardState = new KTH_UnlockState();
+        currentOptions.Clear();
 
-        // ItemLibraryManager에 넘겨줄 카드 목록을 별도로 수집합니다.
-        List<LSO_CardSO> unlockedCards = new List<LSO_CardSO>();
-
-        // 1. KTH_RewardTableSO에서 현재 스테이지 보상 데이터 조회
-        if (rewardTable != null)
+        if (rewardTable == null)
         {
-            KTH_StageRewardData stageData = rewardTable.Find(chapter, stage);
+            Debug.LogError("[KTH_Reward] RewardTable이 할당되지 않았습니다!");
+            return currentOptions;
+        }
 
-            if (stageData != null)
+        KTH_StageRewardData stageData = rewardTable.Find(chapter, stage);
+
+        if (stageData == null)
+        {
+            Debug.LogWarning($"[KTH_Reward] Chapter {chapter}, Stage {stage} 데이터를 찾을 수 없습니다.");
+            return currentOptions;
+        }
+
+        currentStageData = stageData;
+        int choiceCount = Mathf.Max(1, stageData.rewardChoiceCount);
+        List<KTH_RewardOption> available = CreateAvailableRewards(stageData);
+
+        if (available.Count == 0)
+        {
+            Debug.LogWarning("[KTH_Reward] 뽑을 수 있는 보상이 없습니다.");
+            return currentOptions;
+        }
+
+        for (int i = 0; i < choiceCount; i++)
+        {
+            if (available.Count == 0) break;
+
+            KTH_RewardOption selected = RollRandomReward(available);
+
+            if (selected == null) break;
+
+            currentOptions.Add(selected);
+            available.Remove(selected);
+        }
+
+        Debug.Log($"🎁 [KTH_Reward] 보상 후보 {currentOptions.Count}개 생성");
+
+        foreach (KTH_RewardOption option in currentOptions)
+        {
+            if (option == null) continue;
+            Debug.Log($"  → {option.type} : {option.GetName()}");
+        }
+
+        RewardOptionsGenerated?.Invoke(currentOptions);
+        return currentOptions;
+    }
+
+    // =========================================================
+    // 카드 + 유언 후보 생성
+    // =========================================================
+    private List<KTH_RewardOption> CreateAvailableRewards(KTH_StageRewardData stageData)
+    {
+        List<KTH_RewardOption> result = new();
+
+        // 카드
+        if (stageData.possiblePieces != null)
+        {
+            foreach (KTH_RewardPoolEntry entry in stageData.possiblePieces)
             {
-                // [기물/카드 가중치 확률 뽑기]
-                for (int i = 0; i < stageData.pieceCount; i++)
+                if (entry == null || entry.pieceSO == null || entry.weight <= 0)
+                    continue;
+
+                result.Add(new KTH_RewardOption
                 {
-                    LSO_CardSO selectedCard = RollRandomPiece(stageData.possiblePieces);
-                    if (selectedCard != null)
-                    {
-                        // 1) KTH_UnlockState에는 Animal 데이터 전달
-                        if (selectedCard.Animal != null)
-                        {
-                            newRewardState.UnlockPiece(selectedCard.Animal);
-                        }
+                    type = KTH_RewardType.Piece,
+                    piece = entry.pieceSO
+                });
 
-                        // 2) ItemLibraryManager에 등록할 카드(LSO_CardSO) 저장 리스트에 추가
-                        unlockedCards.Add(selectedCard);
+                Debug.Log($"[KTH_Reward] 카드 후보 추가: {entry.pieceSO.name}");
+            }
+        }
 
-                        Debug.Log($"🎲 [KTH_Reward] 기물/카드 획득: {selectedCard.name}");
-                    }
-                }
+        // 유언
+        if (stageData.possibleWills != null)
+        {
+            foreach (KTH_WillRewardPoolEntry entry in stageData.possibleWills)
+            {
+                if (entry == null || entry.willSO == null || entry.weight <= 0)
+                    continue;
 
-                // [유언(Will) 가중치 확률 뽑기]
-                for (int i = 0; i < stageData.willCount; i++)
+                result.Add(new KTH_RewardOption
                 {
-                    DLJ_WillDataSO selectedWill = RollRandomWill(stageData.possibleWills);
-                    if (selectedWill != null)
-                    {
-                        newRewardState.UnlockWill(selectedWill);
-                        Debug.Log($"🎲 [KTH_Reward] 유언 획득: {selectedWill.name}");
-                    }
-                }
+                    type = KTH_RewardType.Will,
+                    will = entry.willSO
+                });
+
+                Debug.Log($"[KTH_Reward] 유언 후보 추가: {entry.willSO.name}");
+            }
+        }
+
+        return result;
+    }
+
+    // =========================================================
+    // 가중치 랜덤
+    // =========================================================
+    private KTH_RewardOption RollRandomReward(List<KTH_RewardOption> available)
+    {
+        if (available == null || available.Count == 0) return null;
+
+        float totalWeight = 0f;
+
+        foreach (KTH_RewardOption option in available)
+        {
+            if (option == null) continue;
+            totalWeight += GetRewardWeight(option);
+        }
+
+        if (totalWeight <= 0f)
+        {
+            Debug.LogWarning("[KTH_Reward] 전체 가중치가 0입니다.");
+            return null;
+        }
+
+        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+
+        foreach (KTH_RewardOption option in available)
+        {
+            if (option == null) continue;
+
+            currentWeight += GetRewardWeight(option);
+
+            if (randomValue <= currentWeight)
+                return option;
+        }
+
+        return available[available.Count - 1];
+    }
+
+    private float GetRewardWeight(KTH_RewardOption option)
+    {
+        if (option == null || currentStageData == null) return 0f;
+
+        if (option.type == KTH_RewardType.Piece)
+        {
+            if (currentStageData.possiblePieces == null) return 0f;
+
+            foreach (KTH_RewardPoolEntry entry in currentStageData.possiblePieces)
+            {
+                if (entry != null && entry.pieceSO == option.piece)
+                    return Mathf.Max(0f, entry.weight);
+            }
+        }
+        else if (option.type == KTH_RewardType.Will)
+        {
+            if (currentStageData.possibleWills == null) return 0f;
+
+            foreach (KTH_WillRewardPoolEntry entry in currentStageData.possibleWills)
+            {
+                if (entry != null && entry.willSO == option.will)
+                    return Mathf.Max(0f, entry.weight);
+            }
+        }
+
+        return 0f;
+    }
+
+    // =========================================================
+    // 선택된 보상 지급
+    // =========================================================
+    public KTH_UnlockState ClaimReward(KTH_RewardOption selectedOption)
+    {
+        if (selectedOption == null)
+        {
+            Debug.LogError("[KTH_Reward] 선택된 보상이 NULL입니다.");
+            return null;
+        }
+
+        Debug.Log($"🎁 [KTH_Reward] 보상 선택: {selectedOption.type}");
+
+        // 카드 보상
+        if (selectedOption.type == KTH_RewardType.Piece)
+        {
+            if (selectedOption.piece == null)
+            {
+                Debug.LogError("[KTH_Reward] 선택된 CardSO가 NULL입니다.");
+                return null;
+            }
+
+            LSO_CardSO card = selectedOption.piece;
+            Debug.Log($"🎴 선택된 CardSO: {card.name}");
+
+            KTH_UnlockState rewardState = new KTH_UnlockState();
+
+            if (card.Animal != null)
+            {
+                rewardState.UnlockPiece(card.Animal);
+            }
+
+            if (ItemLibraryManager.Instance == null)
+            {
+                Debug.LogError("[KTH_Reward] ItemLibraryManager.Instance가 NULL입니다!");
             }
             else
             {
-                Debug.LogWarning($"⚠️ [KTH_Reward] Chapter {chapter}, Stage {stage} 보상 데이터를 찾을 수 없습니다.");
+                ItemLibraryManager.Instance.AddPieceToLibrary(card);
+                Debug.Log($"📚 [KTH_Reward] ItemLibrary에 CardSO 저장 완료: {card.name}");
             }
-        }
-        else
-        {
-            Debug.LogError("🚨 [KTH_Reward] RewardTable이 인스펙터에 할당되지 않았습니다!");
+
+            Unlocked?.Invoke(rewardState);
+            currentOptions.Clear();
+            return rewardState;
         }
 
-        // 2. ItemLibraryManager에 카드 및 유언 전달 (⭐ 이 부분이 핵심입니다!)
-        if (ItemLibraryManager.Instance != null)
+        // 유언 보상
+        if (selectedOption.type == KTH_RewardType.Will)
         {
-            // 수집한 카드(LSO_CardSO)들을 도감 라이브러리에 등록
-            if (unlockedCards.Count > 0)
+            if (selectedOption.will == null)
             {
-                ItemLibraryManager.Instance.AddPiecesToLibrary(unlockedCards);
+                Debug.LogError("[KTH_Reward] 선택된 WillSO가 NULL입니다.");
+                return null;
             }
 
-            // 유언(Will)들을 도감 라이브러리에 등록
-            if (newRewardState.Wills != null && newRewardState.Wills.Count > 0)
+            DLJ_WillDataSO will = selectedOption.will;
+            Debug.Log($"📜 선택된 WillSO: {will.name}");
+
+            KTH_UnlockState rewardState = new KTH_UnlockState();
+            rewardState.UnlockWill(will);
+
+            if (ItemLibraryManager.Instance == null)
             {
-                List<DLJ_WillDataSO> willsList = new List<DLJ_WillDataSO>(newRewardState.Wills);
-                ItemLibraryManager.Instance.AddWillsToLibrary(willsList);
+                Debug.LogError("[KTH_Reward] ItemLibraryManager.Instance가 NULL입니다!");
             }
-        }
-        else
-        {
-            Debug.LogError("🚨 [KTH_Reward] ItemLibraryManager 인스턴스를 찾을 수 없습니다!");
-        }
-
-        Unlocked?.Invoke(newRewardState);
-        return newRewardState;
-    }
-
-    // =========================================================================
-    // 🎲 가중치(Weight) 기반 확률 뽑기 헬퍼 메서드
-    // =========================================================================
-
-    private LSO_CardSO RollRandomPiece(List<KTH_RewardPoolEntry> pool)
-    {
-        if (pool == null || pool.Count == 0) return null;
-
-        float totalWeight = 0f;
-        foreach (var entry in pool)
-        {
-            if (entry != null && entry.pieceSO != null && entry.weight > 0)
-                totalWeight += entry.weight;
-        }
-
-        if (totalWeight <= 0f) return null;
-
-        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
-        float currentWeight = 0f;
-
-        foreach (var entry in pool)
-        {
-            if (entry == null || entry.pieceSO == null || entry.weight <= 0) continue;
-
-            currentWeight += entry.weight;
-            if (randomValue <= currentWeight)
+            else
             {
-                return entry.pieceSO;
+                ItemLibraryManager.Instance.AddWillToLibrary(will);
+                Debug.Log($"📚 [KTH_Reward] ItemLibrary에 WillSO 저장 완료: {will.name}");
             }
+
+            Unlocked?.Invoke(rewardState);
+            currentOptions.Clear();
+            return rewardState;
         }
 
+        Debug.LogError($"[KTH_Reward] 알 수 없는 보상 타입: {selectedOption.type}");
         return null;
     }
 
-    private DLJ_WillDataSO RollRandomWill(List<KTH_WillRewardPoolEntry> pool)
+    public List<KTH_RewardOption> GetCurrentOptions()
     {
-        if (pool == null || pool.Count == 0) return null;
-
-        float totalWeight = 0f;
-        foreach (var entry in pool)
-        {
-            if (entry != null && entry.willSO != null && entry.weight > 0)
-                totalWeight += entry.weight;
-        }
-
-        if (totalWeight <= 0f) return null;
-
-        float randomValue = UnityEngine.Random.Range(0f, totalWeight);
-        float currentWeight = 0f;
-
-        foreach (var entry in pool)
-        {
-            if (entry == null || entry.willSO == null || entry.weight <= 0) continue;
-
-            currentWeight += entry.weight;
-            if (randomValue <= currentWeight)
-            {
-                return entry.willSO;
-            }
-        }
-
-        return null;
+        return currentOptions;
     }
 }
