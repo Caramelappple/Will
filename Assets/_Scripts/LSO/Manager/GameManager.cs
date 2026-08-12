@@ -127,7 +127,7 @@ namespace _Scripts.LSO
                 return SaveData.inventoryItems ?? Array.Empty<DeckCardsSaveData>();
 
             var amounts = new Dictionary<string, int>();
-            foreach (LSO_CardSO card in holder.savedInventory)
+            foreach (LSO_CardSO card in holder.SavedInventory)
             {
                 if (card == null) continue;
 

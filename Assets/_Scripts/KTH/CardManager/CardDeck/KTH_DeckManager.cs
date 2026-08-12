@@ -65,9 +65,9 @@ public class KTH_DeckManager : MonoBehaviour
         if (deckPanelRoot != null)
             _deckPanelOriginalPos = deckPanelRoot.anchoredPosition;
 
-        if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
+        if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.SavedInventory.Count > 0)
         {
-            cardDatabase = new List<LSO_CardSO>(KTH_DeckDataPersistent.Instance.savedInventory);
+            cardDatabase = new List<LSO_CardSO>(KTH_DeckDataPersistent.Instance.SavedInventory);
             Debug.Log($"[KTH_DeckManager] 1씬으로부터 총 {cardDatabase.Count}장의 카드를 성공적으로 불러왔습니다!");
         }
         else
