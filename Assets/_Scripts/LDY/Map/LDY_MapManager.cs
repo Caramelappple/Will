@@ -112,6 +112,11 @@ public class LDY_MapManager : MonoBehaviour
 
     public int BattleEntryCount { get; private set; }
 
+    /// <summary>
+    /// 맵에 아직 한 번도 들어오지 않았는지. 첫 진입은 TryRestoreOnEntry가 맡으므로 자동저장하지 않는다.
+    /// </summary>
+    private bool _firstMapEntryPending = true;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -179,7 +184,41 @@ public class LDY_MapManager : MonoBehaviour
         if (scene.name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase))
         {
             StartCoroutine(Co_DelayedInitToken());
+
+            AutoSaveOnMapReentry();
         }
+    }
+
+    /// <summary>
+    /// 맵으로 돌아올 때마다 저장한다.
+    ///
+    /// 전투 승리 판정 지점이 코드에 아직 없어서, "전투 → 보상 → 맵 복귀" 흐름에서
+    /// 맵 씬이 다시 로드된다는 사실을 대신 신호로 쓴다.
+    /// 정식 승리 훅이 생기면 저장 호출은 그쪽으로 옮기고 여기서 뺄 것.
+    /// </summary>
+    private void AutoSaveOnMapReentry()
+    {
+        // 맵 씬을 다시 열면 씬에 놓인 두 번째 인스턴스도 Awake에서 파괴되기 전에
+        // 이 이벤트를 함께 받는다. 걸러내지 않으면 한 번의 복귀에 저장이 두 번 돈다.
+        if (Instance != this) return;
+
+        // 첫 진입은 방금 TryRestoreOnEntry가 되돌려놓은 상태다. 그대로 다시 쓰는 것은 의미가 없다.
+        if (ConsumeFirstMapEntry()) return;
+
+        Debug.Log("[LDY_MapManager] 맵 재진입 감지 — 자동저장 실행");
+
+        LDY_SaveService.Instance.SaveRun();
+    }
+
+    /// <summary>
+    /// 첫 맵 진입을 한 번만 집어간다. 처음이면 true를 돌려주고, 그 뒤로는 항상 false다.
+    /// </summary>
+    private bool ConsumeFirstMapEntry()
+    {
+        if (!_firstMapEntryPending) return false;
+
+        _firstMapEntryPending = false;
+        return true;
     }
 
     private IEnumerator Co_DelayedInitToken()
