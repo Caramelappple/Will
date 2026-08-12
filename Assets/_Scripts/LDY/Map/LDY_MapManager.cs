@@ -90,6 +90,9 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private int currentChapter = 1;
     [SerializeField] private int currentStage = 1;
 
+    [Header("보상 지급 연동용")]
+    [SerializeField] private KTH_GiveReward giveReward;
+
     public int CurrentChapter => currentChapter;
     public int CurrentStage => currentStage;
 
@@ -732,19 +735,21 @@ public class LDY_MapManager : MonoBehaviour
     /// </summary>
     private void TriggerStageReward(int chapter, int stage)
     {
-        KTH_GiveReward giveReward = FindFirstObjectByType<KTH_GiveReward>();
-        if (giveReward != null)
+        if (giveReward == null)
         {
-            giveReward.GiveStageReward(chapter, stage);
+            Debug.LogError(
+                "[LDY_MapManager] KTH_GiveReward가 Inspector에 연결되지 않았습니다."
+            );
+
+            return;
         }
-        else if (KTH_Reward.Instance != null)
-        {
-            KTH_Reward.Instance.UnlockByStage(chapter, stage);
-        }
-        else
-        {
-            Debug.LogWarning("[LDY_MapManager] 씬에서 KTH_GiveReward 또는 KTH_Reward 인스턴스를 찾을 수 없어 보상이 지급되지 않았습니다.");
-        }
+
+        Debug.Log(
+            $"[LDY_MapManager] 보상 요청 " +
+            $"(Chapter: {chapter}, Stage: {stage})"
+        );
+
+        giveReward.GiveStageReward(chapter, stage);
     }
 
     private void SetTokenPositionToNode(int nodeIndex)
