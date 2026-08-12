@@ -119,20 +119,17 @@ public class KTH_DeckManager : MonoBehaviour
             var cardView = currentHand[i];
             if (cardView == null) continue;
 
-            if (!cardView.IsSelected)
-            {
-                RectTransform cardRect = (RectTransform)cardView.transform;
-                cardRect.DOKill();
+            RectTransform cardRect = (RectTransform)cardView.transform;
+            cardRect.DOKill();
 
-                // [핵심 수정] 기준 위치는 변하지 않는 OriginBasePosition을 사용합니다!
-                Vector2 originPos = cardView.OriginBasePosition;
-                Vector2 targetPos = visible ? originPos : originPos + new Vector2(0f, deckHideYOffset);
+            // 기준 위치(OriginBasePosition)에서 아래(deckHideYOffset)로 이동
+            Vector2 originPos = cardView.OriginBasePosition;
+            Vector2 targetPos = visible ? originPos : originPos + new Vector2(0f, deckHideYOffset);
 
-                DOTween.To(() => cardView.BasePosition, value => cardView.BasePosition = value, targetPos, rearrangeDuration)
-                       .SetEase(visible ? Ease.OutCubic : Ease.InCubic)
-                       .SetTarget(cardRect)
-                       .SetLink(cardView.gameObject);
-            }
+            DOTween.To(() => cardView.BasePosition, value => cardView.BasePosition = value, targetPos, rearrangeDuration)
+                   .SetEase(visible ? Ease.OutCubic : Ease.InCubic)
+                   .SetTarget(cardRect)
+                   .SetLink(cardView.gameObject);
         }
     }
 
@@ -250,7 +247,6 @@ public class KTH_DeckManager : MonoBehaviour
 
     private Tween TweenBasePosition(KTH_HandCardView view, Vector2 target, float duration)
     {
-        // [핵심 수정] 카드의 원본 위치 정보를 갱신합니다.
         view.OriginBasePosition = target;
 
         return DOTween.To(() => view.BasePosition, value => view.BasePosition = value, target, duration)
@@ -266,8 +262,8 @@ public class KTH_DeckManager : MonoBehaviour
         foreach (var c in currentHand)
             c.SetSelected(c == card);
 
-        // 안 고른 카드들만 내려 숨기기
-        SetUnselectedCardsVisible(false);
+        // ★ 선택된 카드 포함 모든 카드를 아래로 내림
+        SetAllCardsVisible(false);
 
         if (infoPanel != null)
         {
@@ -277,10 +273,34 @@ public class KTH_DeckManager : MonoBehaviour
                 onPlace: () => PlaceCard(card),
                 onCancel: () =>
                 {
-                    // [취소 시] 내려갔던 카드 복원
+                    // [취소 시] 내려갔던 모든 카드를 다시 복원
                     DeselectAllCards();
                 }
             );
+        }
+    }
+
+    public void SetAllCardsVisible(bool visible)
+    {
+        for (int i = 0; i < currentHand.Count; i++)
+        {
+            var cardView = currentHand[i];
+            if (cardView == null) continue;
+
+            // 선택 연출로 떠오르는 yOffset을 강제로 0으로 리셋
+            cardView.ResetSelectionOffset();
+
+            RectTransform cardRect = (RectTransform)cardView.transform;
+            cardRect.DOKill();
+
+            Vector2 originPos = cardView.OriginBasePosition;
+            // 더 완전히 내려가게 하고 싶다면 yOffset을 크게(예: -400f) 설정
+            Vector2 targetPos = visible ? originPos : originPos + new Vector2(0f, deckHideYOffset);
+
+            DOTween.To(() => cardView.BasePosition, value => cardView.BasePosition = value, targetPos, rearrangeDuration)
+                   .SetEase(visible ? Ease.OutCubic : Ease.InCubic)
+                   .SetTarget(cardRect)
+                   .SetLink(cardView.gameObject);
         }
     }
 
@@ -299,6 +319,7 @@ public class KTH_DeckManager : MonoBehaviour
             if (!cardPlacer.CanAfford(data))
             {
                 Debug.Log($"[KTH_DeckManager] 코스트가 부족해 {data.AnimalName}을(를) 배치할 수 없습니다.");
+                DeselectAllCards(); // 코스트 부족 시 복원
                 return;
             }
 
@@ -311,12 +332,15 @@ public class KTH_DeckManager : MonoBehaviour
                 {
                     SetDeckPanelVisible(true);
 
-                    if (animal == null) return;
+                    if (animal == null)
+                    {
+                        DeselectAllCards();
+                        return;
+                    }
                     FinalizeCardPlacement(card, data);
                 },
                 onCancelled: () =>
                 {
-                    // [배치 취소 시] 패널 및 안 고른 카드 복원
                     SetDeckPanelVisible(true);
                     DeselectAllCards();
                 });
@@ -349,6 +373,8 @@ public class KTH_DeckManager : MonoBehaviour
         Destroy(card.gameObject);
         if (infoPanel) infoPanel.Hide();
 
+        // 선택 완료되어 카드가 파괴되면 나머지 안 고른 카드들 다시 위로 올리며 정렬
+        DeselectAllCards();
         RearrangeHand();
 
         if (!isDrawing && drawButton) drawButton.interactable = (GetRemainingHandSlots() > 0);

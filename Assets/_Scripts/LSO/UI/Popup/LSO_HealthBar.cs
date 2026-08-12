@@ -1,5 +1,5 @@
-using _Scripts.HealthSystem;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;

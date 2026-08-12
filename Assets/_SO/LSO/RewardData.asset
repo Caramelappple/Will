@@ -16,22 +16,20 @@ MonoBehaviour:
   - chapter: 1
     stage: 1
     pieceCount: 1
-    willCount: 0
+    willCount: 1
     possiblePieces:
-    - animalName: 
-      weight: 0
-    - animalName: 
-      weight: 0
-    possibleWills: []
+    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+      weight: 1
+    possibleWills:
+    - willSO: {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+      weight: 1
   - chapter: 1
     stage: 2
     pieceCount: 1
-    willCount: 0
-    possiblePieces: []
-    possibleWills: []
-  - chapter: 0
-    stage: 0
-    pieceCount: 0
-    willCount: 0
-    possiblePieces: []
-    possibleWills: []
+    willCount: 1
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+      weight: 1
+    possibleWills:
+    - willSO: {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
+      weight: 1

@@ -1,7 +1,8 @@
-using _Scripts.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LDY;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Animal.Data;
 using UnityEngine;
 
 /// <summary>Each attack has a 10% chance to heal every living ally by 1.</summary>

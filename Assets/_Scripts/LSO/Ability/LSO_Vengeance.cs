@@ -1,6 +1,7 @@
 using _Scripts.LDY;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability

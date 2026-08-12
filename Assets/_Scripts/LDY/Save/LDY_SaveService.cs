@@ -99,8 +99,8 @@ namespace _Scripts.LDY.Save
 
             // 임시 조치다. 런이 끝날 때 해금을 비우는 곳이 지금은 여기뿐이라 여기서 부른다.
             // 팀이 "런 시작" 흐름을 만들면 그쪽으로 옮길 것.
-            if (KTH_Reward.Instance != null)
-                KTH_Reward.Instance.ResetUnlocks();
+            //if (KTH_Reward.Instance != null)
+                //KTH_Reward.Instance.ResetUnlocks();
 
             EnsureMetaLoaded();
             Meta.totalRuns++;

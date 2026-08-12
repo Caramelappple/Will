@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO.HealthSystem.Data;
 
 namespace _Scripts.LSO.Ability
 {

@@ -10,13 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3102cc7d511b7f84fad6a24225e364be, type: 3}
-  m_Name: LSO_TestState
+  m_Name: TestStage2
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
-  stageName: "\uC774\uC2DC\uC628 \uC2A4\uD14C\uC774\uC9C0"
-  description: "\uC5C4\uCCAD\uB09C \uC2A4\uD14C\uC774\uC9C0"
-  sceneName: LDY_TestScene
-  enemies:
-  - card: {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
-    pos: {x: 0, y: 0, z: 0}
-  actionPointsPerTurn: 5
+  stageName: 
+  description: 
+  sceneName: KTH_BuildDeckScene
+  enemies: []
+  actionPointsPerTurn: 0
   summonCostPerTurn: 0

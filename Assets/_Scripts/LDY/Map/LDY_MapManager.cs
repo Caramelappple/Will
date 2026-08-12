@@ -116,8 +116,6 @@ public class LDY_MapManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            // ★ 수정됨: 씬 재로드 시 새로 생성된 파괴 대상 오브젝트가 
-            // DontDestroyOnLoad로 살아남은 기존 Instance의 진행도를 초기화하지 못하도록 삭제
             Destroy(gameObject);
             return;
         }
@@ -127,7 +125,6 @@ public class LDY_MapManager : MonoBehaviour
 
         ResolveStageRouter();
 
-        // 게임 처음 시작할 때만 에디터 설정값으로 노드 구성
         SetChapterAndStage(editorChapterIndex, editorStageIndex);
     }
 
@@ -178,7 +175,6 @@ public class LDY_MapManager : MonoBehaviour
         nodeContainerRect = null;
         EnsureNodeContainer();
 
-        // 씬에 들어왔을 때 현재 노드 데이터를 UI로 전달
         onMapChanged?.Invoke();
 
         if (nodeContainerRect != null && Nodes.Count > 0)
@@ -610,16 +606,33 @@ public class LDY_MapManager : MonoBehaviour
         // 1. 현재 노드 클리어
         Nodes[index].isCleared = true;
 
-        // 2. 스테이지 증가 ★
+        // 2. 스테이지 클리어 및 보상 지급 연동 ★
         if (Nodes[index].type == LDY_NodeType.Battle)
         {
+            int clearedChapter = currentChapter;
+            int clearedStage = currentStage;
+
+            // 스테이지 완료 로그 출력
+            Debug.Log($"[LDY_MapManager] 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
+
+            // ★ 보상 지급 요청 (현재 클리어한 챕터와 스테이지 전달)
+            TriggerStageReward(clearedChapter, clearedStage);
+
+            // 다음 진행을 위해 스테이지 카운트 증가
             currentStage++;
             editorStageIndex = currentStage;
             onStageChanged?.Invoke();
-            Debug.Log($"[LDY_MapManager] 스테이지 클리어! Current Stage: {currentStage}");
         }
         else if (Nodes[index].type == LDY_NodeType.Boss)
         {
+            int clearedChapter = currentChapter;
+            int clearedStage = currentStage;
+
+            Debug.Log($"[LDY_MapManager] 보스 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
+
+            // ★ 보스 보상 지급 요청
+            TriggerStageReward(clearedChapter, clearedStage);
+
             currentChapter++;
             currentStage = 1;
             editorChapterIndex = currentChapter;
@@ -659,6 +672,26 @@ public class LDY_MapManager : MonoBehaviour
 
         // 5. UI 및 데이터 갱신 이벤트 호출
         onMapChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// KTH_GiveReward 또는 KTH_Reward에 보상 지급을 연동하는 전용 헬퍼 메서드
+    /// </summary>
+    private void TriggerStageReward(int chapter, int stage)
+    {
+        KTH_GiveReward giveReward = FindFirstObjectByType<KTH_GiveReward>();
+        if (giveReward != null)
+        {
+            giveReward.GiveStageReward(chapter, stage);
+        }
+        else if (KTH_Reward.Instance != null)
+        {
+            KTH_Reward.Instance.UnlockByStage(chapter, stage);
+        }
+        else
+        {
+            Debug.LogWarning("[LDY_MapManager] 씬에서 KTH_GiveReward 또는 KTH_Reward 인스턴스를 찾을 수 없어 보상이 지급되지 않았습니다.");
+        }
     }
 
     private void SetTokenPositionToNode(int nodeIndex)
@@ -716,39 +749,33 @@ public class LDY_MapManager : MonoBehaviour
     {
         LDY_StageSO stage = _stageRouter?.Resolve(index, node.type);
 
-        if (stage != null)
+        if (stage == null)
         {
-            LDY_StageSelection.Select(stage);
-
-            if (!string.IsNullOrEmpty(stage.SceneName))
-            {
-                RequestSceneLoad(stage.SceneName, screenUV, node.type);
-                return;
-            }
-        }
-
-        RequestSceneLoad(fallbackSceneName, screenUV, node.type);
-    }
-
-    private void RequestSceneLoad(string defaultSceneName, Vector2 screenUV, LDY_NodeType nodeType)
-    {
-        string targetSceneName = defaultSceneName;
-
-        if (_stageRouter != null)
-        {
-            CurrentStageSO = _stageRouter.Resolve(activeNodeIndex, nodeType);
-
-            if (CurrentStageSO != null && !string.IsNullOrEmpty(CurrentStageSO.SceneName))
-            {
-                targetSceneName = CurrentStageSO.SceneName;
-            }
-        }
-
-        if (string.IsNullOrEmpty(targetSceneName))
-        {
-            Debug.LogError("[LDY_MapManager] 이동할 씬 이름이 설정되지 않았습니다.");
+            Debug.LogError($"[LDY_MapManager] {currentChapter}챕터 {index}번 노드({node.type})에 배정된 StageSO가 StageRouter에 없습니다!");
             return;
         }
+
+        CurrentStageSO = stage;
+        LDY_StageSelection.Select(stage);
+
+        if (string.IsNullOrEmpty(stage.SceneName))
+        {
+            Debug.LogError($"[LDY_MapManager] '{stage.name}' StageSO에 이동할 SceneName이 비어있습니다!");
+            return;
+        }
+
+        RequestSceneLoad(stage.SceneName, screenUV, node.type);
+    }
+
+    private void RequestSceneLoad(string targetSceneName, Vector2 screenUV, LDY_NodeType nodeType)
+    {
+        if (string.IsNullOrEmpty(targetSceneName))
+        {
+            Debug.LogError("[LDY_MapManager] 이동할 씬 이름이 전달되지 않았습니다.");
+            return;
+        }
+
+        Debug.Log($"[LDY_MapManager] 라우터 기반 씬 이동 시작 -> Target Scene: {targetSceneName}");
 
         KTH_LoadingSceneController.LoadScene(targetSceneName);
     }
