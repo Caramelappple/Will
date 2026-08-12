@@ -119,9 +119,9 @@ public class KTH_DeckBuilderManager : MonoBehaviour
         if (ItemLibraryManager.Instance != null)
         {
             // 해금된 기물(Pieces) 리스트 검사
-            if (ItemLibraryManager.Instance.unlockedPieces != null)
+            if (ItemLibraryManager.Instance.UnlockedPieces != null)
             {
-                foreach (var piece in ItemLibraryManager.Instance.unlockedPieces)
+                foreach (var piece in ItemLibraryManager.Instance.UnlockedPieces)
                 {
                     if (piece == null) continue;
 
