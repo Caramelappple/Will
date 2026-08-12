@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Manager;
 using TMPro;
 using UnityEngine;
 
@@ -43,8 +44,9 @@ namespace _Scripts.LSO.UI
         private LDY_Animal _target;
         private LDY_BoardManager _board;
 
-        // 특성 목록은 전투 중에 변하지 않는데 Refresh는 피해를 받을 때마다 불린다.
-        // 매번 string.Join을 돌리면 쓸데없는 할당이 쌓이므로 대상이 바뀔 때만 만든다.
+        // Refresh는 피해를 받을 때마다 불린다. 매번 string.Join을 돌리면 할당이 쌓이므로
+        // 대상이 바뀔 때와 LDY_Animal.AbilitiesChanged가 올 때만 다시 만든다.
+        // 되먹임처럼 전투 도중 특성이 늘어나는 경우가 있어 대상 교체만으로는 부족하다.
         private string _abilityText = string.Empty;
 
         // 구독을 Awake/OnDestroy에 두는 이유:
@@ -52,6 +54,8 @@ namespace _Scripts.LSO.UI
         // OnEnable에서 구독했다면 한 번 닫힌 뒤로는 선택 신호를 영영 못 받는다.
         private void Awake()
         {
+            SubscribeManager();
+
             if (selection == null)
             {
                 Debug.LogError($"{name}: LDY_SelectionController를 연결해야 정보창이 동작합니다.", this);
@@ -76,7 +80,11 @@ namespace _Scripts.LSO.UI
             }
 
             Unsubscribe(_target);
-            UnsubscribeBoard();
+
+            if (GameManager.HasInstance)
+                GameManager.Instance.BoardChanged -= BindBoard;
+
+            BindBoard(null);
         }
 
         /// <summary>볼 대상을 바꾼다. null이면 창을 닫는다.</summary>
@@ -112,40 +120,55 @@ namespace _Scripts.LSO.UI
                 animal.health.OnRecover += HandleRecovered;
             }
 
-            SubscribeBoard();
+            animal.AbilitiesChanged += HandleAbilitiesChanged;
         }
 
         private void Unsubscribe(LDY_Animal animal)
         {
-            if (animal == null || animal.health == null) return;
+            if (animal == null) return;
 
-            animal.health.OnDamage -= HandleDamaged;
-            animal.health.OnRecover -= HandleRecovered;
+            if (animal.health != null)
+            {
+                animal.health.OnDamage -= HandleDamaged;
+                animal.health.OnRecover -= HandleRecovered;
+            }
+
+            animal.AbilitiesChanged -= HandleAbilitiesChanged;
         }
 
-        private void SubscribeBoard()
+        // 보드는 씬마다 새로 생기고, 이 창이 켜지는 시점에 아직 없을 수도 있다.
+        // 그래서 "지금 있는 보드"와 "앞으로 바뀔 보드"를 한 경로로 받는다.
+        private void SubscribeManager()
         {
-            if (_board != null) return;
-            if (!GameManager.HasInstance) return;
+            GameManager manager = GameManager.Instance;
+            if (manager == null) return;
 
-            LDY_BoardManager board = GameManager.Instance.Board;
-            if (board == null) return;
+            manager.BoardChanged += BindBoard;
+            BindBoard(manager.Board);
+        }
+
+        private void BindBoard(LDY_BoardManager board)
+        {
+            if (_board == board) return;
+
+            if (_board != null)
+                _board.OnBoardChanged -= HandleBoardChanged;
 
             _board = board;
-            _board.OnBoardChanged += HandleBoardChanged;
-        }
 
-        private void UnsubscribeBoard()
-        {
-            if (_board == null) return;
-
-            _board.OnBoardChanged -= HandleBoardChanged;
-            _board = null;
+            if (_board != null)
+                _board.OnBoardChanged += HandleBoardChanged;
         }
 
         private void HandleDamaged(DamageResultData data) => Refresh();
 
         private void HandleRecovered(RecoverResultData data) => Refresh();
+
+        private void HandleAbilitiesChanged()
+        {
+            _abilityText = DescribeAbilities(_target);
+            Refresh();
+        }
 
         // 보고 있던 기물이 죽으면 파괴된 오브젝트를 그리게 되므로 창을 닫는다.
         // 선택 자체는 LDY_SelectionController가 관리하므로 여기서는 표시만 정리한다.

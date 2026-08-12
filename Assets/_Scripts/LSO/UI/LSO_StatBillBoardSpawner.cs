@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Manager;
 using UnityEngine;
 
 namespace _Scripts.LSO.UI
@@ -57,16 +58,7 @@ namespace _Scripts.LSO.UI
                 _animal.health.OnRecover += HandleRecovered;
             }
 
-            // 소환으로 나중에 만들어진 기물은 보드가 이미 있으므로 여기서 붙는다.
-            TrySubscribeBoard();
-            Refresh();
-        }
-
-        // 씬에 처음부터 있던 기물은 OnEnable이 보드의 Awake보다 먼저 돌 수 있다.
-        // Start는 모든 Awake 이후라 그때는 반드시 찾을 수 있다.
-        private void Start()
-        {
-            TrySubscribeBoard();
+            SubscribeManager();
             Refresh();
         }
 
@@ -81,24 +73,36 @@ namespace _Scripts.LSO.UI
                 _animal.health.OnRecover -= HandleRecovered;
             }
 
-            if (_board != null)
-            {
-                _board.OnBoardChanged -= Refresh;
-                _board = null;
-            }
+            if (GameManager.HasInstance)
+                GameManager.Instance.BoardChanged -= BindBoard;
+
+            BindBoard(null);
         }
 
-        /// <summary>아직 안 붙었으면 보드를 찾아 구독한다. 여러 번 불러도 한 번만 붙는다.</summary>
-        private void TrySubscribeBoard()
+        // 보드는 씬마다 새로 생기고, 이 기물이 켜지는 시점에 아직 없을 수도 있다.
+        // 그래서 "지금 있는 보드"와 "앞으로 바뀔 보드"를 한 경로로 받는다.
+        private void SubscribeManager()
         {
-            if (_board != null) return;
-            if (!GameManager.HasInstance) return;
+            GameManager manager = GameManager.Instance;
+            if (manager == null) return;
 
-            LDY_BoardManager board = GameManager.Instance.Board;
-            if (board == null) return;
+            manager.BoardChanged += BindBoard;
+            BindBoard(manager.Board);
+        }
+
+        private void BindBoard(LDY_BoardManager board)
+        {
+            if (_board == board) return;
+
+            if (_board != null)
+                _board.OnBoardChanged -= Refresh;
 
             _board = board;
+
+            if (_board == null) return;
+
             _board.OnBoardChanged += Refresh;
+            Refresh();
         }
 
         private void HandleDamaged(DamageResultData data) => Refresh();

@@ -27,14 +27,15 @@ namespace _Scripts.LSO.HealthSystem
 
         [SerializeField] private int _value;
 
+        [Header("디버그")]
+        [Tooltip("피해를 받을 때마다 콘솔에 찍는다. 콘솔이 시끄러우면 끌 것.")]
+        [SerializeField] private bool logDamage = true;
+
         protected virtual void Awake()
         {
             // 인스펙터에서 값을 세팅한 경우, _value가 0이면 MaxValue로 초기화
             if (_value <= 0)
                 _value = MaxValue;
-
-            OnDamage += data =>
-                Debug.Log($"<color=red>{gameObject}가 {data.giver}로부터 {data.damage}만큼 대미지를 받았습니다!</color>");
         }
 
         /// <summary>
@@ -86,6 +87,11 @@ namespace _Scripts.LSO.HealthSystem
             {
                 var resultData = DamageResultData.Create(data.giver, before - Value, Value);
                 OnDamage?.Invoke(resultData);
+
+                // 구독이 아니라 여기서 찍는다. Awake에서 람다로 붙이면 인스펙터에서 꺼도 반영되지 않는다.
+                if (logDamage)
+                    Debug.Log(
+                        $"<color=red>{name}가 {data.giver}로부터 {before - Value}만큼 대미지를 받았습니다!</color>", this);
             }
         }
     

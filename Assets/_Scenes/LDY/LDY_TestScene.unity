@@ -290,6 +290,10 @@ GameObject:
   - component: {fileID: 70646589}
   - component: {fileID: 70646588}
   - component: {fileID: 70646587}
+  - component: {fileID: 70646595}
+  - component: {fileID: 70646594}
+  - component: {fileID: 70646593}
+  - component: {fileID: 70646592}
   m_Layer: 0
   m_Name: Enemy_Melee
   m_TagString: Untagged
@@ -324,7 +328,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
   health: {fileID: 70646588}
   pos: {x: 2, y: 0, z: 1}
   team: 1
@@ -426,6 +430,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 70646585}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &70646592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70646585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd97b820fa449504aa9e2454ba3d31c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyMarkView
+  markPrefab: {fileID: 4226619876032977035, guid: 1681959ce347c06418e889296d5656e4, type: 3}
+  localOffset: {x: 0, y: 0.6, z: 0}
+  localScale: {x: 1, y: 1, z: 1}
+--- !u!114 &70646593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70646585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e748fb2c96c14b65af404b8a4ad121f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyTracker
+--- !u!114 &70646594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70646585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
+  healthThreshold: 15
+--- !u!114 &70646595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70646585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00d249b060dc4f88b15ad7399d815951, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
+  maxStoredAbilities: 3
 --- !u!1 &101516210
 GameObject:
   m_ObjectHideFlags: 0
@@ -8548,6 +8605,10 @@ PrefabInstance:
       propertyPath: actionPoints
       value: 
       objectReference: {fileID: 944642608}
+    - target: {fileID: 2585178828559655044, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: loadOnStart
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2585178828559655044, guid: 19a747f32b7491045b591a801491b512, type: 3}
       propertyPath: defaultStage
       value: 

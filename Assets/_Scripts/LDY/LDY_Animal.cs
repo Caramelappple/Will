@@ -94,6 +94,12 @@ namespace _Scripts.LDY
         /// <summary>이 개체가 실제로 들고 있는 특성 인스턴스. 외부에서 목록을 바꿀 수 없다.</summary>
         public IReadOnlyList<LSO_IAbility> Abilities => _abilities;
 
+        /// <summary>
+        /// 특성 목록이 바뀌었을 때. 되먹임처럼 전투 도중 특성이 늘어나는 경우에 발행된다.
+        /// 표시하는 쪽은 이 신호로 다시 그린다. 기물은 누가 보고 있는지 알 필요가 없다.
+        /// </summary>
+        public event Action AbilitiesChanged;
+
         private void Awake()
         {
 CacheComponents();
@@ -174,6 +180,8 @@ CreateAbilities();
 
 if (Application.isPlaying && isActiveAndEnabled)
     RegisterAbilities();
+
+AbilitiesChanged?.Invoke();
 
 if (modelTransform == null)
     modelTransform = transform;
@@ -264,6 +272,8 @@ else
                 LSO_AbilityWiring.Bind(_bindBuffer, health, Dispatcher);
                 _bindBuffer[0] = null; // 파괴된 특성을 계속 붙들고 있지 않도록 비운다.
             }
+
+            AbilitiesChanged?.Invoke();
 
             return created;
         }

@@ -1,4 +1,5 @@
 using System;
+using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace _Scripts.LSO.Ability
             if (UnityEngine.Random.value >= DodgeChance) return damage;
 
             Dodged?.Invoke(target);
-            Debug.Log($"<color=cyan>{(target != null ? target.name : "대상")}: 회피 성공! 피해 {damage} 무효</color>", target);
+            LSO_AbilityLog.Log($"<color=cyan>{(target != null ? target.name : "대상")}: 회피 성공! 피해 {damage} 무효</color>", target);
 
             return 0;
         }

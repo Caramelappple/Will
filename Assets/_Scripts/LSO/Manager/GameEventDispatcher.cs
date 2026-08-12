@@ -7,7 +7,7 @@ namespace _Scripts.LSO.Manager
     public class GameEventDispatcher : MonoBehaviour
     {
         private readonly List<IOnTurnStart> _onTurnStart = new();
-        private readonly List<IOnEnemyDead> _onEnemyDead = new();
+        private readonly List<LSO_IOnAnimalDead> _onAnimalDead = new();
 
         private LDY_TurnManager _boundTurnManager;
 
@@ -52,13 +52,13 @@ namespace _Scripts.LSO.Manager
         public void Register(object obj)
         {
             if (obj is IOnTurnStart s && !_onTurnStart.Contains(s)) _onTurnStart.Add(s);
-            if (obj is IOnEnemyDead d && !_onEnemyDead.Contains(d)) _onEnemyDead.Add(d);
+            if (obj is LSO_IOnAnimalDead d && !_onAnimalDead.Contains(d)) _onAnimalDead.Add(d);
         }
 
         public void Unregister(object obj)
         {
             if (obj is IOnTurnStart s) _onTurnStart.Remove(s);
-            if (obj is IOnEnemyDead d) _onEnemyDead.Remove(d);
+            if (obj is LSO_IOnAnimalDead d) _onAnimalDead.Remove(d);
         }
 
         public void RaiseTurnStart(LDY_Team team)
@@ -68,10 +68,10 @@ namespace _Scripts.LSO.Manager
                 l.OnTurnStart(team);
         }
 
-        public void RaiseEnemyDead(LDY_Animal info)
+        public void RaiseAnimalDead(LDY_Animal info)
         {
-            foreach (var l in _onEnemyDead.ToArray())
-                l.OnEnemyDead(info);
+            foreach (var l in _onAnimalDead.ToArray())
+                l.OnAnimalDead(info);
         }
     }
 }

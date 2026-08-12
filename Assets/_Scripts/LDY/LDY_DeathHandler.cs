@@ -47,7 +47,7 @@ namespace _Scripts.LDY
 
             NotifyOwnDeathAbilities(victim, killer);
             NotifyKillerAbilities(victim, killer);
-            RaiseEnemyDead(victim);
+            RaiseAnimalDead(victim);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
 
@@ -84,13 +84,14 @@ namespace _Scripts.LDY
                 killer.Abilities, a => a.OnKill(killer, victim));
         }
 
-        private static void RaiseEnemyDead(LDY_Animal victim)
+        // 팀을 가리지 않고 모든 죽음을 알린다. 누가 적인지는 받는 특성이 판단한다.
+        // 여기서 걸러내면 "아군이 죽으면 발동" 같은 특성을 만들 방법이 없어진다.
+        private static void RaiseAnimalDead(LDY_Animal victim)
         {
-            if (victim.team != LDY_Team.Enemy) return;
             if (!GameManager.HasInstance) return;
 
             GameEventDispatcher dispatcher = GameManager.Instance.EventDispatcher;
-            dispatcher?.RaiseEnemyDead(victim);
+            dispatcher?.RaiseAnimalDead(victim);
         }
     }
 }

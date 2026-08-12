@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace _Scripts.LSO.Ability
             if (owner.health != null && owner.health.IsDestroyed) return;
             if (Random.value >= DeathChance) return;
 
-            Debug.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
+            LSO_AbilityLog.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
 
             LSO_IDeathServiceHolder.KillThrough(_context, owner);
         }

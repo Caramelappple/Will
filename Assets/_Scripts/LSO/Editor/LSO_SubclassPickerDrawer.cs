@@ -4,7 +4,7 @@ using _Scripts.LSO.Attributes;
 using UnityEditor;
 using UnityEngine;
 
-namespace _Scripts.LSO.EditorTools
+namespace _Scripts.LSO.Editor
 {
     /// <summary>
     /// [SerializeReference] 필드에 구현 타입을 고르는 드롭다운을 그린다.
