@@ -132,14 +132,8 @@ public class LDY_MapManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 이어할 런이 있으면 되돌린다.
-    ///
     /// 이 오브젝트는 DontDestroyOnLoad라 Start가 게임당 한 번만 돈다.
     /// 맵으로 돌아올 때마다 다시 불러오지 않는 것은 의도한 것이다.
-    ///
-    /// ⚠ 지금은 "새 런 시작"과 "이어하기"를 가르는 진입점이 없다.
-    /// 덱빌드를 마치고 맵에 처음 들어오는 흐름에서도 세이브가 있으면 그쪽이 이겨서
-    /// 방금 만든 덱을 덮어쓴다. 메인 메뉴에 이어하기가 생기면 이 호출은 그리로 옮겨야 한다.
     /// </summary>
     private IEnumerator Start()
     {
@@ -148,6 +142,26 @@ public class LDY_MapManager : MonoBehaviour
 
         // 덱과 해금 매니저가 Awake를 마칠 때까지 한 프레임 기다린다.
         yield return null;
+
+        TryRestoreOnEntry();
+    }
+
+    /// <summary>
+    /// 맵에 들어온 시점에 이어할 런이 있으면 되돌린다.
+    ///
+    /// 게임에서는 Start가 한 번 부르는 것이 전부다. 별도 메서드로 떼어둔 것은,
+    /// Start가 세션당 한 번뿐이라 분기를 다시 태워볼 방법이 없기 때문이다.
+    /// (LDY_SaveDebugHotkeys가 같은 플레이 안에서 반복해 부른다.)
+    ///
+    /// ⚠ 새 런으로 들어온 것인지는 LDY_RunEntryState가 알려주기로 되어 있지만,
+    /// 아직 그것을 켜주는 진입점이 없다. 그래서 덱빌드를 마치고 맵에 처음 들어오는 흐름에서도
+    /// 세이브가 있으면 그쪽이 이겨서 방금 만든 덱을 덮어쓴다.
+    /// 메인 메뉴의 게임 시작과 덱빌드 완료에서 IsStartingNewRun을 켜주면 그때 해결된다.
+    /// </summary>
+    public void TryRestoreOnEntry()
+    {
+        // 새 런이면 방금 만들어진 상태가 옳다. 세이브를 덮어씌우지 않는다.
+        if (LDY_RunEntryState.Consume()) return;
 
         if (LDY_SaveService.Instance.HasRun)
             LDY_SaveService.Instance.LoadRun();

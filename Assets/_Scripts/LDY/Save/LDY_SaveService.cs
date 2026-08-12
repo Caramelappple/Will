@@ -21,6 +21,23 @@ namespace _Scripts.LDY.Save
         private static LDY_SaveService _instance;
         public static LDY_SaveService Instance => _instance ??= new LDY_SaveService();
 
+        /// <summary>
+        /// 플레이 모드에 들어갈 때 인스턴스를 버린다. 다음 Instance 호출이 새로 만든다.
+        ///
+        /// Reload Domain을 끈 에디터에서는 이 인스턴스가 세션 내내 살아남는데,
+        /// 여기에는 파일에서 한 번만 읽는 Meta와 그 읽음 여부(_metaLoaded)가 들어 있다.
+        /// 즉 지난 플레이의 기록이 캐시된 채로 남아, 파일을 지우거나 밖에서 고쳐도 반영되지 않고
+        /// SaveMeta가 그 낡은 값을 그대로 다시 써버린다.
+        ///
+        /// 필드를 하나씩 되돌리지 않고 인스턴스째 버리는 이유는, 나중에 캐시가 늘어나도
+        /// 여기를 고칠 필요가 없기 때문이다.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            _instance = null;
+        }
+
         private readonly LDY_ISaveRepository _repository;
         private readonly LDY_DeckSaveGateway _deck;
         private readonly LDY_UnlockSaveGateway _unlocks;
