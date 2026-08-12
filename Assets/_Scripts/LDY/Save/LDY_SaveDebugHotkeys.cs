@@ -30,6 +30,12 @@ namespace _Scripts.LDY.Save.Debugging
         [SerializeField] private KeyCode saveKey = KeyCode.F5;
         [SerializeField] private KeyCode loadKey = KeyCode.F9;
 
+        [Tooltip("새 런 진입 플래그를 켠 뒤 맵 진입 처리를 다시 태운다. 건너뛰기 경로를 보기 위한 것.")]
+        [SerializeField] private KeyCode newRunKey = KeyCode.F8;
+
+        [Tooltip("플래그 없이 맵 진입 처리만 다시 태운다. 이어하기 경로를 보기 위한 것.")]
+        [SerializeField] private KeyCode restoreKey = KeyCode.F7;
+
         [Header("화면 표시")]
         [Tooltip("화면 구석에 뜬 요약이 남아 있는 시간(초).")]
         [SerializeField] private float toastSeconds = 5f;
@@ -49,6 +55,65 @@ namespace _Scripts.LDY.Save.Debugging
         {
             if (Input.GetKeyDown(saveKey)) DoSave();
             else if (Input.GetKeyDown(loadKey)) DoLoad();
+            else if (Input.GetKeyDown(newRunKey)) DoMarkNewRunAndRestore();
+            else if (Input.GetKeyDown(restoreKey)) DoRestore();
+        }
+
+        /// <summary>
+        /// 새 런 진입 신호를 켠 뒤 맵의 진입 처리를 그 자리에서 다시 태운다.
+        /// 맵이 세이브를 건너뛰는지 보는 용도다.
+        /// </summary>
+        private void DoMarkNewRunAndRestore()
+        {
+            LDY_RunEntryState.IsStartingNewRun = true;
+
+            Debug.Log("[LDY_SaveDebugHotkeys] IsStartingNewRun = true 로 설정함");
+
+            InvokeRestore($"{newRunKey} (새 런 플래그 켬)");
+        }
+
+        /// <summary>플래그를 켜지 않고 맵의 진입 처리만 다시 태운다. 이어하기 경로를 보는 용도다.</summary>
+        private void DoRestore()
+        {
+            InvokeRestore($"{restoreKey} (플래그 없이)");
+        }
+
+        /// <summary>
+        /// LDY_MapManager.TryRestoreOnEntry를 부르고 어느 갈래로 갔는지 남긴다.
+        ///
+        /// Start는 세션당 한 번뿐이라 그대로 두면 분기를 다시 태워볼 수 없다.
+        /// 같은 플레이 안에서 되풀이해 부를 수 있게 여기서 직접 호출한다.
+        /// </summary>
+        private void InvokeRestore(string label)
+        {
+            LDY_MapManager map = LDY_MapManager.Instance;
+            if (map == null)
+            {
+                Debug.LogWarning("[SaveDebug] LDY_MapManager가 없어 진입 처리를 부르지 못했습니다.");
+                ShowToast("맵 매니저 없음 — 호출 불가", true);
+                return;
+            }
+
+            // TryRestoreOnEntry는 값을 돌려주지 않는다. 부르기 직전 상태로 어느 갈래였는지 가린다.
+            // 맵 쪽 분기 조건이 바뀌면 여기도 같이 고칠 것.
+            bool wasNewRun = LDY_RunEntryState.IsStartingNewRun;
+            bool hadRun = LDY_SaveService.Instance.HasRun;
+
+            string before = DescribeGameState();
+
+            map.TryRestoreOnEntry();
+
+            string branch =
+                wasNewRun ? "새 런이라 LoadRun 을 건너뜀" :
+                hadRun ? "이어할 런이 있어 LoadRun 호출" :
+                "세이브가 없어 아무것도 하지 않음";
+
+            Debug.Log(
+                $"[SaveDebug] {label} → {branch}\n" +
+                $"  이전: {before}\n" +
+                $"  이후: {DescribeGameState()}");
+
+            ShowToast($"{label} → {branch}", false);
         }
 
         private void DoSave()
@@ -172,7 +237,8 @@ namespace _Scripts.LDY.Save.Debugging
             const float margin = 10f;
             float width = Mathf.Min(Screen.width - margin * 2f, 720f);
 
-            GUI.Box(new Rect(margin, margin, width, 52f), $"[{saveKey}=저장 {loadKey}=불러오기]  {_toast}", style);
+            GUI.Box(new Rect(margin, margin, width, 52f),
+                $"[{saveKey}=저장 {loadKey}=불러오기 {restoreKey}=진입처리 {newRunKey}=새 런+진입처리]  {_toast}", style);
         }
     }
 }

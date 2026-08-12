@@ -83,21 +83,30 @@ namespace _Scripts.LDY
             _activeCount++;
             try
             {
-                Transform t = animal.modelTransform;
+                Transform t = animal != null ? animal.modelTransform : null;
+                if (t == null) yield break;
+
                 Vector3 startPos = t.position;
                 float elapsed = 0f;
 
                 while (elapsed < moveDuration)
                 {
+                    // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
+                    // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
+                    // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
+                    if (t == null) yield break;
+
                     elapsed += Time.deltaTime;
                     t.position = Vector3.Lerp(startPos, targetWorldPos, elapsed / moveDuration);
                     yield return null;
                 }
 
-                t.position = targetWorldPos;
+                if (t != null)
+                    t.position = targetWorldPos;
             }
             finally
             {
+                // 중간에 빠져나가도 IsBusy가 켜진 채 남지 않도록 finally에서 되돌린다.
                 _activeCount--;
             }
         }
