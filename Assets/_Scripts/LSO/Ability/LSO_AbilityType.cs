@@ -24,6 +24,10 @@ namespace _Scripts.LSO.Ability
         // 중간에 끼우면 기존 에셋의 특성이 통째로 다른 것을 가리킨다.
         Predation,
         MemoryFrenzy,
-        PreyMarking
+        PreyMarking,
+        FoxKingPlunder,
+        FoxKingGreed,
+        FoxKingInvestment,
+        FoxKingPhase
     }
 }

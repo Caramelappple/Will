@@ -1,79 +1,48 @@
 using System;
+using System.Collections.Generic;
 using _Scripts.LDY;
-using _Scripts.LSO;
+using _Scripts.LSO.Boss;
 using _Scripts.LSO.HealthSystem;
 using UnityEngine;
 
-/// <summary>
-/// 여우왕의 수탈 기믹만 담당한다.
-/// 플레이어가 계약으로 코스트를 환급받거나 희생으로 아군을 구제하면
-/// 수탈 자원을 1 획득해 전투가 끝날 때까지 보관한다.
-/// </summary>
+public enum DLJ_GreedEffectType
+{
+    Attack,
+    MaxHealth
+}
+
+[Serializable]
+public sealed class DLJ_GreedMilestone
+{
+    [Min(1)] public int threshold = 5;
+    public DLJ_GreedEffectType effect;
+    [Min(1)] public int amount = 1;
+}
+
+/// <summary>여우왕의 런타임 자원과 조정 가능한 탐욕 마일스톤 설정을 보관한다.</summary>
 [DisallowMultipleComponent]
-[RequireComponent(typeof(LDY_Animal), typeof(Health))]
+[RequireComponent(typeof(LDY_Animal), typeof(Health), typeof(LSO_BossPhase))]
 public sealed class DLJ_FoxKingBoss : MonoBehaviour
 {
-    private const int FirstAttackGreedThreshold = 5;
-    private const int SecondAttackGreedThreshold = 10;
-    private const int MaxHealthGreedThreshold = 15;
-    private const int AttackIncrease = 1;
-    private const int MaxHealthIncrease = 5;
-
-    private LDY_Animal foxKing;
-    private Health health;
-    private bool firstAttackIncreaseApplied;
-    private bool secondAttackIncreaseApplied;
-    private bool maxHealthIncreaseApplied;
+    [Header("Greed Milestones")]
+    [SerializeField] private List<DLJ_GreedMilestone> greedMilestones = new()
+    {
+        new DLJ_GreedMilestone { threshold = 5, effect = DLJ_GreedEffectType.Attack, amount = 1 },
+        new DLJ_GreedMilestone { threshold = 10, effect = DLJ_GreedEffectType.Attack, amount = 1 },
+        new DLJ_GreedMilestone { threshold = 15, effect = DLJ_GreedEffectType.MaxHealth, amount = 5 }
+    };
 
     public int StolenResources { get; private set; }
     public int Greed { get; private set; }
+    public int PendingAttackBonus { get; internal set; }
+    public int Phase => GetComponent<LSO_BossPhase>()?.CurrentPhase ?? 1;
+    public IReadOnlyList<DLJ_GreedMilestone> GreedMilestones => greedMilestones;
 
-    //UI와 연출이 현재 수탈 자원을 갱신할 때 사용한다
     public event Action<int> OnStolenResourcesChanged;
     public event Action<int> OnGreedChanged;
+    internal event Action<int> OnGreedMilestoneEvaluationRequested;
 
-    private void OnEnable()
-    {
-        foxKing = GetComponent<LDY_Animal>();
-        health = GetComponent<Health>();
-        DLJ_WillBenefitEvents.OnBenefit += HandleWillBenefit;
-        DLJ_CombatKillEvents.OnKilled += HandleAnimalKilled;
-    }
-
-    private void OnDisable()
-    {
-        DLJ_WillBenefitEvents.OnBenefit -= HandleWillBenefit;
-        DLJ_CombatKillEvents.OnKilled -= HandleAnimalKilled;
-    }
-
-    private void HandleWillBenefit(LDY_Animal owner, LSO_WillType willType)
-    {
-        if (owner == null || owner.team != LDY_Team.Player)
-            return;
-
-        if (willType != LSO_WillType.Contract && willType != LSO_WillType.Sacrifice)
-            return;
-
-        GainResources(1, 1);
-
-        Debug.Log($"[여우왕] {willType} 이득 수탈 → 수탈 자원 {StolenResources}", this);
-    }
-
-    private void HandleAnimalKilled(LDY_Animal victim, LDY_Animal killer)
-    {
-        if (victim == null || killer != foxKing)
-            return;
-
-        int stolenAmount = victim.IsWillChosen ? 2 : 1;
-        GainResources(stolenAmount, 1);
-
-        Debug.Log(
-            $"[여우왕] 직접 처치 → 수탈 자원 +{stolenAmount}, 탐욕 +1 " +
-            $"(현재 {StolenResources} / {Greed})",
-            this);
-    }
-
-    private void GainResources(int stolenAmount, int greedAmount)
+    public void Gain(int stolenAmount, int greedAmount)
     {
         if (stolenAmount > 0)
         {
@@ -84,36 +53,19 @@ public sealed class DLJ_FoxKingBoss : MonoBehaviour
         if (greedAmount > 0)
         {
             Greed += greedAmount;
-            ApplyGreedMilestones();
+
             OnGreedChanged?.Invoke(Greed);
+            OnGreedMilestoneEvaluationRequested?.Invoke(Greed);
         }
     }
 
-    private void ApplyGreedMilestones()
+    public bool TrySpend(int amount)
     {
-        if (!firstAttackIncreaseApplied && Greed >= FirstAttackGreedThreshold)
-        {
-            firstAttackIncreaseApplied = true;
-            foxKing.baseAtk += AttackIncrease;
-            Debug.Log($"[여우왕] 탐욕 {FirstAttackGreedThreshold} → ATK +{AttackIncrease}", this);
-        }
+        if (amount <= 0 || StolenResources < amount)
+            return false;
 
-        if (!secondAttackIncreaseApplied && Greed >= SecondAttackGreedThreshold)
-        {
-            secondAttackIncreaseApplied = true;
-            foxKing.baseAtk += AttackIncrease;
-            Debug.Log($"[여우왕] 탐욕 {SecondAttackGreedThreshold} → ATK +{AttackIncrease}", this);
-        }
-
-        if (!maxHealthIncreaseApplied && Greed >= MaxHealthGreedThreshold)
-        {
-            maxHealthIncreaseApplied = true;
-            health.Init(health.MaxValue + MaxHealthIncrease, false);
-            health.Value += MaxHealthIncrease;
-            Debug.Log(
-                $"[여우왕] 탐욕 {MaxHealthGreedThreshold} → " +
-                $"최대 HP +{MaxHealthIncrease}, 현재 HP +{MaxHealthIncrease}",
-                this);
-        }
+        StolenResources -= amount;
+        OnStolenResourcesChanged?.Invoke(StolenResources);
+        return true;
     }
 }

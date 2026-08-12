@@ -28,6 +28,10 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.Predation, () => new LSO_Predation() },
                 { LSO_AbilityType.MemoryFrenzy, () => new LSO_MemoryFrenzy() },
                 { LSO_AbilityType.PreyMarking, () => new LSO_PreyMarking() },
+                { LSO_AbilityType.FoxKingPlunder, () => new DLJ_FoxKingPlunder() },
+                { LSO_AbilityType.FoxKingGreed, () => new DLJ_FoxKingGreed() },
+                { LSO_AbilityType.FoxKingInvestment, () => new DLJ_FoxKingInvestment() },
+                { LSO_AbilityType.FoxKingPhase, () => new DLJ_FoxKingPhase() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

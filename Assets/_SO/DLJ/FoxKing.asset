@@ -17,7 +17,8 @@ MonoBehaviour:
   maxHealth: 30
   damage: 2
   cost: 0
+  moveRange: 1
   range: 1
-  ability: 0
+  abilities: 14000000150000001600000017000000
   defaultWill: -1
   unitPrefab: {fileID: 0}
