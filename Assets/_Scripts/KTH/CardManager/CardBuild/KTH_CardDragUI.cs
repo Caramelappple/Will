@@ -1,6 +1,7 @@
 using System;
 using _Scripts.LDY;
 using _Scripts.LSO;
+using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI;
 using _Scripts.LSO.Will;

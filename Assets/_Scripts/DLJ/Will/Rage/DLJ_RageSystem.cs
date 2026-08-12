@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Will;
 using UnityEngine;
 

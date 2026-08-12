@@ -1,6 +1,6 @@
 ﻿using _Scripts.LSO.HealthSystem;
 
-namespace _Scripts.HealthSystem
+namespace _Scripts.LSO.HealthSystem.Data
 {
     public readonly struct RecoverData
     {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Animal.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.Deck.Data

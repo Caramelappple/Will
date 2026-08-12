@@ -1,3 +1,5 @@
+using _Scripts.LSO.HealthSystem.Data;
+
 namespace _Scripts.LSO.HealthSystem
 {
     public interface LSO_IDamageModifier

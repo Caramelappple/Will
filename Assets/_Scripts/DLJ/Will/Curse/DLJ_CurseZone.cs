@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 public class DLJ_CurseZone : MonoBehaviour
