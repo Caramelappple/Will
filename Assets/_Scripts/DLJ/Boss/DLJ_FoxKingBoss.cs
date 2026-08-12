@@ -54,7 +54,6 @@ public sealed class DLJ_FoxKingBoss : MonoBehaviour
         {
             Greed += greedAmount;
 
-            // UI와 연출이 탐욕 증가를 먼저 받은 뒤 능력치 강화가 적용되도록 순서를 고정한다.
             OnGreedChanged?.Invoke(Greed);
             OnGreedMilestoneEvaluationRequested?.Invoke(Greed);
         }

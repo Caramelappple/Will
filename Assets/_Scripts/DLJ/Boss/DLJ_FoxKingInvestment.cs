@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Boss;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
+using UnityEngine;
 
 /// <summary>턴별 투자, 코스트 약탈, 2페이즈 투자 수치만 담당한다.</summary>
 public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializable,
@@ -83,8 +84,6 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
     private void HandlePlayerTurnEnded()
     {
         playerTurns++;
-        if (phase >= 2)
-            state.Gain(1, 0);
 
         if (playerTurns % PlunderInterval != 0)
             return;
@@ -99,6 +98,7 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
 
     private void HandleEnemyTurnEnded()
     {
+        // 2페이즈의 턴 종료 수입은 여우왕 자신의 턴이 끝날 때 한 번만 지급한다.
         if (phase >= 2)
             state.Gain(1, 0);
 
@@ -119,8 +119,13 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
     private bool TryInvest()
     {
         int cost = phase >= 2 ? PhaseTwoCost : PhaseOneCost;
+        int resourcesBeforeInvestment = state.StolenResources;
         if (!state.TrySpend(cost))
             return false;
+
+        Debug.Log(
+            $"[여우왕] 투자 비용 지불 → 수탈 자원 -{cost} " +
+            $"({resourcesBeforeInvestment} → {state.StolenResources})");
 
         bool heal = health.Value < health.MaxValue && health.Value * 2 <= health.MaxValue;
         if (heal)
