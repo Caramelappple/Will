@@ -165,6 +165,14 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
             backUI.SetActive(isShowingBack);
     }
 
+    public void SnapRotationToFront()
+    {
+        _originRotation = Quaternion.identity;
+        transform.localRotation = Quaternion.identity;
+
+        // 회전 보간 루프가 다시 덮어쓰지 않도록 정지
+        _isOffsetSettled = true;
+    }
     public void Setup(
         LSO_CardSO cardData,
         Action<KTH_HandCardView> onClicked)
@@ -231,6 +239,10 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
             return;
 
         _isSelected = selected;
+
+        // 회전 트윈이 도중에 끊긴 경우를 대비해 원점 회전을 정면으로 재설정
+        _originRotation = Quaternion.identity;
+        transform.localRotation = Quaternion.identity;
 
         _isOffsetSettled = false;
 

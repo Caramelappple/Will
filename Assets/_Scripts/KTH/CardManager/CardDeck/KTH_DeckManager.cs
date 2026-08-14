@@ -262,6 +262,14 @@ public class KTH_DeckManager : MonoBehaviour
         if (drawButton != null)
             drawButton.interactable = false;
 
+        // 드로우(회전) 애니메이션이 재생되는 동안에는
+        // 기존 손패 카드까지 전부 클릭을 막는다.
+        // -> 애니메이션 도중 카드가 비스듬한 상태로 클릭되는 상황 자체를 방지.
+        foreach (KTH_HandCardView existingCard in currentHand)
+        {
+            SetCardRaycast(existingCard, false);
+        }
+
         List<LSO_CardSO> drawn =
             new List<LSO_CardSO>();
 
@@ -515,8 +523,15 @@ public class KTH_DeckManager : MonoBehaviour
             card.Data == null)
             return;
 
-        // 카드 이동 Tween만 정리
-        card.transform.DOKill();
+        // 드로우 애니메이션 진행 중에는 선택을 막는다.
+        // (SetCardRaycast로 이미 막혀 있지만, 이중 안전장치)
+        if (isDrawing)
+            return;
+
+        // 카드에 걸린 이동/스케일/회전 Tween을
+        // 중간값이 아닌 "최종 목표값"까지 완료시킨 뒤 정리한다.
+        // -> 회전 도중 클릭되어 비스듬한 상태로 멈추는 문제 방지.
+        card.transform.DOKill(true);
 
         foreach (KTH_HandCardView currentCard
                  in currentHand)
