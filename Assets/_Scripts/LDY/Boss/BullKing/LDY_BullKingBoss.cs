@@ -47,6 +47,19 @@ namespace _Scripts.LDY.Boss.BullKing
         [SerializeField] private bool rageChainHitsBullKing = true;
 
         [Header("연출")]
+        [Tooltip("돌진으로 한 칸을 지나는 데 걸리는 시간. 작을수록 빠르다.\n" +
+                 "일반 기물의 이동 속도(LDY_MoveSystem의 moveDuration)와 무관하게 이 값이 쓰인다.")]
+        [SerializeField, Min(0.005f)] private float chargeSecondsPerTile = 0.07f;
+
+        [Tooltip("짧은 돌진이 한 번 튀고 마는 것을 막는 하한.")]
+        [SerializeField, Min(0f)] private float minChargeDuration = 0.15f;
+
+        [Tooltip("돌진의 가속 곡선. 뒤로 갈수록 가팔라야 '달려들어 박는' 느낌이 난다.\n" +
+                 "끝값을 1보다 크게 만들면 목적지를 살짝 지나쳤다가 돌아온다.")]
+        [SerializeField] private AnimationCurve chargeEasing = new AnimationCurve(
+            new Keyframe(0f, 0f, 0f, 0f),
+            new Keyframe(1f, 1f, 2f, 2f));
+
         [Tooltip("밀려나는 기물이 한 칸 미끄러지는 데 걸리는 시간.")]
         [SerializeField, Min(0f)] private float pushDuration = 0.2f;
 
@@ -58,6 +71,14 @@ namespace _Scripts.LDY.Boss.BullKing
 
         /// <summary>지금 페이즈에서 쓸 돌진 수치.</summary>
         public LDY_BullChargeRule Rule => Phase >= 2 ? phaseTwo : phaseOne;
+
+        public AnimationCurve ChargeEasing => chargeEasing;
+
+        /// <summary>이만큼 달릴 때 연출에 쓸 시간.</summary>
+        public float ChargeDuration(int distance)
+        {
+            return Mathf.Max(minChargeDuration, Mathf.Max(1, distance) * chargeSecondsPerTile);
+        }
 
         public int RageChainDamage => rageChainDamage;
         public int RageChainRange => rageChainRange;
