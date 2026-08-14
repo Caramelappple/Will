@@ -60,15 +60,8 @@ public sealed class DLJ_LifeSteal : LSO_IAbility, IOnTurnStart, IOnAnimalAttack,
             return;
         }
 
-        LDY_AttackSystem attackSystem = Object.FindFirstObjectByType<LDY_AttackSystem>();
-        if (attackSystem != null)
-        {
-            attackSystem.HandleDeath(owner);
-            return;
-        }
-
         Debug.LogError(
-            $"{owner.name}: No death handler or attack system could process death.",
+            $"{owner.name}: No death service was provided through the ability context.",
             owner);
     }
 }

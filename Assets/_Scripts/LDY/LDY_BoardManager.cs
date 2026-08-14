@@ -79,9 +79,30 @@ namespace _Scripts.LDY
             return IsInside(p) ? _grid[p.x, p.z] : null;
         }
 
+        /// <summary>
+        /// 기물을 칸에 등록한다. 이미 다른 기물이 서 있으면 놓지 않는다.
+        ///
+        /// 덮어쓰기를 허용하면 밀려난 기물은 씬 오브젝트로는 살아 있는데 격자에서만 사라진다.
+        /// 그 기물은 GetAllByTeam·공격 대상·AI 판단에서 전부 빠지므로 죽일 수도 없는 유령이 되고,
+        /// 원인이 된 호출은 아무 흔적도 남기지 않는다. 조용히 지우느니 놓지 않는 편이 낫다.
+        /// </summary>
         public void Place(LDY_Animal animal, Vector3Int p)
         {
             if (animal == null || !IsInside(p)) return;
+
+            LDY_Animal occupant = _grid[p.x, p.z];
+            if (occupant != null && occupant != animal)
+            {
+                Debug.LogWarning(
+                    $"[LDY_BoardManager] {p} 칸에 이미 {occupant.name}이(가) 있어 {animal.name}을(를) 놓지 않는다. " +
+                    "인스펙터의 pos가 겹쳤거나 소환 전 빈 칸 검사를 건너뛴 것이다.", animal);
+                return;
+            }
+
+            // 다른 칸에 등록돼 있던 기물을 옮겨 놓는 경우다.
+            // 이전 칸을 비우지 않으면 같은 기물이 두 칸에서 동시에 조회되어, 있지도 않은 자리가 공격 대상이 된다.
+            if (IsInside(animal.pos) && _grid[animal.pos.x, animal.pos.z] == animal)
+                _grid[animal.pos.x, animal.pos.z] = null;
 
             _grid[p.x, p.z] = animal;
             animal.pos = p;
@@ -94,6 +115,17 @@ namespace _Scripts.LDY
         {
             if (animal == null || !IsInside(from) || !IsInside(to)) return;
             if (_grid[from.x, from.z] != animal) return;
+
+            // Place와 같은 이유로 막는다. 점유된 칸으로 밀고 들어가면 원래 있던 기물이 유령이 된다.
+            // 호출부(LDY_MoveSystem)는 빈 칸만 후보로 주므로, 이 경고가 뜬다면 검증과 실행 사이에서
+            // 보드가 바뀐 것이니 그 경로를 찾아야 한다.
+            LDY_Animal occupant = _grid[to.x, to.z];
+            if (occupant != null && occupant != animal)
+            {
+                Debug.LogWarning(
+                    $"[LDY_BoardManager] {to} 칸에 {occupant.name}이(가) 있어 {animal.name}을(를) 옮기지 않는다.", animal);
+                return;
+            }
 
             _grid[from.x, from.z] = null;
             _grid[to.x, to.z] = animal;

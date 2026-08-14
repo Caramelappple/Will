@@ -97,9 +97,6 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
             ? GameManager.Instance.TurnManager
             : null;
 
-        if (turnManager == null)
-            turnManager = Object.FindFirstObjectByType<LDY_TurnManager>();
-
         return DLJ_ContractRefund.GetOrCreate(actionPoints, turnManager);
     }
 }

@@ -70,7 +70,8 @@ public class KTH_RewardEditorWindow : EditorWindow
                 target.Stages.Add(new KTH_StageRewardData
                 {
                     chapter = 1,
-                    stage = 1
+                    stage = 1,
+                    rewardChoiceCount = 3
                 });
             }
         }
@@ -105,41 +106,77 @@ public class KTH_RewardEditorWindow : EditorWindow
             stageHeaderStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 13 };
     }
 
-    private void DrawStageRow(KTH_StageRewardData stage, ref KTH_StageRewardData toDelete)
+    private void DrawStageRow(
+    KTH_StageRewardData stage,
+    ref KTH_StageRewardData toDelete)
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            EditorGUILayout.LabelField("챕터", GUILayout.Width(40));
-            stage.chapter = EditorGUILayout.IntField(stage.chapter, GUILayout.Width(50));
+            EditorGUILayout.LabelField(
+                "챕터",
+                GUILayout.Width(40)
+            );
+
+            stage.chapter = EditorGUILayout.IntField(
+                stage.chapter,
+                GUILayout.Width(50)
+            );
 
             GUILayout.Space(10);
 
-            EditorGUILayout.LabelField("스테이지", GUILayout.Width(55));
-            stage.stage = EditorGUILayout.IntField(stage.stage, GUILayout.Width(50));
+            EditorGUILayout.LabelField(
+                "스테이지",
+                GUILayout.Width(55)
+            );
+
+            stage.stage = EditorGUILayout.IntField(
+                stage.stage,
+                GUILayout.Width(50)
+            );
 
             GUILayout.Space(10);
 
-            EditorGUILayout.LabelField("카드", GUILayout.Width(30));
-            stage.pieceCount = Mathf.Max(0, EditorGUILayout.IntField(stage.pieceCount, GUILayout.Width(35)));
+            // ⭐ 보상 후보 개수
+            EditorGUILayout.LabelField(
+                "보상 선택 수",
+                GUILayout.Width(75)
+            );
 
-            EditorGUILayout.LabelField("유언", GUILayout.Width(30));
-            stage.willCount = Mathf.Max(0, EditorGUILayout.IntField(stage.willCount, GUILayout.Width(35)));
+            stage.rewardChoiceCount = Mathf.Max(
+                1,
+                EditorGUILayout.IntField(
+                    stage.rewardChoiceCount,
+                    GUILayout.Width(40)
+                )
+            );
 
             GUILayout.FlexibleSpace();
 
-            if (GUILayout.Button("스테이지 삭제", GUILayout.Width(90)))
+            if (GUILayout.Button(
+                "스테이지 삭제",
+                GUILayout.Width(90)))
+            {
                 toDelete = stage;
+            }
         }
 
         EditorGUILayout.Space(2);
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            DrawPool("카드 풀 (CardSO)", stage.possiblePieces);
+            DrawPool(
+                "카드 풀 (CardSO)",
+                stage.possiblePieces
+            );
+
             GUILayout.Space(8);
-            DrawWillPool("유언 풀 (WillDataSO)", stage.possibleWills);
+
+            DrawWillPool(
+                "유언 풀 (WillDataSO)",
+                stage.possibleWills
+            );
         }
 
         EditorGUILayout.EndVertical();
