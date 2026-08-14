@@ -61,9 +61,11 @@ namespace _Scripts.LSO.Manager
             if (obj is LSO_IOnAnimalDead d) _onAnimalDead.Remove(d);
         }
 
+        // 두 Raise 모두 매번 배열을 새로 만든다. 재사용 버퍼로 바꾸면 안 된다.
+        // 알림을 받은 특성이 다시 죽음을 일으켜(복수 → 처치 → RaiseAnimalDead) 같은 메서드로
+        // 되들어오는 경로가 있어서, 버퍼를 공유하면 바깥쪽 순회가 안쪽 호출에 덮인다.
         public void RaiseTurnStart(LDY_Team team)
         {
-            // 순회 중 리스트가 바뀔 수 있으므로 복사본으로 순회
             foreach (var l in _onTurnStart.ToArray())
                 l.OnTurnStart(team);
         }

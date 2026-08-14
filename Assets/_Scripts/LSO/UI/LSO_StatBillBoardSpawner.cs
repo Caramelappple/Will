@@ -15,7 +15,8 @@ namespace _Scripts.LSO.UI
     [RequireComponent(typeof(LDY_Animal))]
     public class LSO_StatBillBoardSpawner : MonoBehaviour
     {
-        [SerializeField] public GameObject prefab;
+        [Tooltip("머리 위에 붙일 스탯 표시. LSO_StatBillboard가 붙어 있어야 한다.")]
+        [SerializeField] private GameObject prefab;
 
         [Tooltip("기물 기준 표시 위치.")]
         [SerializeField] private Vector3 localPosition = new(0f, 0.225f, -0.4f);

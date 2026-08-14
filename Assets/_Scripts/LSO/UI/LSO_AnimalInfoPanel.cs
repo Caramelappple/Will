@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.HealthSystem.Data;
@@ -41,13 +42,24 @@ namespace _Scripts.LSO.UI
         [SerializeField] private Color allyColor = Color.white;
         [SerializeField] private Color enemyColor = Color.red;
 
+        [Header("길이 제한")]
+        [Tooltip("설명에 표시할 최대 글자 수. 넘으면 …로 자른다. 0이면 자르지 않는다.\n" +
+                 "칸이 정해진 창에 긴 설명이 들어오면 아래 요소를 밀어내거나 겹친다.")]
+        [SerializeField, Min(0)] private int maxDescriptionLength = 60;
+
+        [Tooltip("나열할 최대 특성 수. 넘으면 '외 N개'로 접는다. 0이면 접지 않는다.\n" +
+                 "되먹임으로 특성이 늘어난 보스는 이름만 나열해도 한 줄을 훌쩍 넘는다.")]
+        [SerializeField, Min(0)] private int maxAbilityCount = 3;
+
         private LDY_Animal _target;
         private LDY_BoardManager _board;
 
-        // Refresh는 피해를 받을 때마다 불린다. 매번 string.Join을 돌리면 할당이 쌓이므로
+        // Refresh는 피해를 받을 때마다 불린다. 매번 문자열을 만들면 할당이 쌓이므로
         // 대상이 바뀔 때와 LDY_Animal.AbilitiesChanged가 올 때만 다시 만든다.
         // 되먹임처럼 전투 도중 특성이 늘어나는 경우가 있어 대상 교체만으로는 부족하다.
         private string _abilityText = string.Empty;
+
+        private string _detailText = string.Empty;
 
         // 구독을 Awake/OnDestroy에 두는 이유:
         // 이 창은 볼 대상이 없을 때 자기 자신을 끈다. 그런데 꺼진 오브젝트는 OnEnable이 다시 돌지 않아서,
@@ -99,6 +111,7 @@ namespace _Scripts.LSO.UI
             Unsubscribe(_target);
             _target = animal;
             _abilityText = DescribeAbilities(_target);
+            _detailText = DescribeDetail(_target);
             Subscribe(_target);
 
             SetVisible(_target != null);
@@ -196,20 +209,56 @@ namespace _Scripts.LSO.UI
             SetText(ability, _abilityText);
             SetText(will, _target.WillType.ToString());
 
-            SetText(desc, _target.data != null ? _target.data.description : string.Empty);
+            SetText(desc, _detailText);
 
             if (animalName != null)
                 animalName.color = _target.team == LDY_Team.Enemy ? enemyColor : allyColor;
         }
 
-        private static string DescribeAbilities(LDY_Animal animal)
+        private string DescribeAbilities(LDY_Animal animal)
         {
             if (animal == null) return string.Empty;
 
             IReadOnlyList<LSO_AbilityType> types = animal.AbilityTypes;
             if (types == null || types.Count == 0) return "없음";
 
-            return string.Join(", ", types);
+            int shown = maxAbilityCount > 0
+                ? Mathf.Min(maxAbilityCount, types.Count)
+                : types.Count;
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < shown; i++)
+            {
+                if (i > 0) sb.Append(", ");
+
+                sb.Append(types[i]);
+            }
+
+            int hidden = types.Count - shown;
+            if (hidden > 0)
+                sb.Append($" 외 {hidden}개");
+
+            return sb.ToString();
+        }
+
+        private string DescribeDetail(LDY_Animal animal)
+        {
+            if (animal == null || animal.data == null) return string.Empty;
+
+            return Shorten(animal.data.description, maxDescriptionLength);
+        }
+
+        /// <summary>
+        /// 글자 수로 자른다. 줄 수가 아니라 글자 수인 것은 폰트와 창 폭에 따라
+        /// 줄 수가 달라져서 코드 쪽에서는 알 수 없기 때문이다.
+        /// </summary>
+        private static string Shorten(string text, int limit)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            if (limit <= 0 || text.Length <= limit) return text;
+
+            return text.Substring(0, limit).TrimEnd() + "…";
         }
 
         private int HealthValue => _target.health != null ? _target.health.Value : 0;
