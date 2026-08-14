@@ -6,6 +6,7 @@ using _Scripts.LSO.Ability;
 using _Scripts.LSO.Boss;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Manager;
 using UnityEngine;
 
 /// <summary>턴별 투자, 코스트 약탈, 2페이즈 투자 수치만 담당한다.</summary>

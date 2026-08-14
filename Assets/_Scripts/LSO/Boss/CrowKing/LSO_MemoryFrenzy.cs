@@ -1,6 +1,7 @@
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
+using UnityEngine;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {
@@ -16,7 +17,8 @@ namespace _Scripts.LSO.Boss.CrowKing
     ///   나중에 AI가 미리 계산해보려고 한 번 더 부르는 순간 충전이 사라진다.
     ///   소비는 실제로 때렸다는 알림(OnAttack)에서 한다.
     /// </summary>
-    public class LSO_MemoryFrenzy : LSO_IAbility, LSO_IAbilityCountModifier, IOnAnimalAttack, LSO_IPhaseAware
+    public class LSO_MemoryFrenzy : LSO_IAbility, LSO_IAbilityCountModifier, IOnAnimalAttack, LSO_IPhaseAware,
+        LSO_IAbilityInitializable
     {
         // 공격력이 이 값의 배수를 새로 넘길 때마다 충전된다.
         private const int FrenzyStep = 6;
@@ -31,6 +33,29 @@ namespace _Scripts.LSO.Boss.CrowKing
         private int _lastChargedStep;
 
         private bool _charged;
+
+        /// <summary>
+        /// 여기서 하는 일은 진단뿐이다. 실제 동작에 필요한 self는 훅이 매번 넘겨준다.
+        ///
+        /// 이 특성은 LSO_BossPhase가 OnPhaseChanged를 불러줘야만 해금된다.
+        /// 그 컴포넌트가 없으면 _unlocked가 영영 false로 남아 아무 일도 일어나지 않는데,
+        /// 컴파일도 통과하고 로그도 없어서 "붙였는데 왜 2연타가 안 나오지"로 시간을 버리게 된다.
+        /// </summary>
+        public void Initialize(LSO_AbilityContext context)
+        {
+            LDY_Animal owner = context?.Owner;
+
+            if (owner == null)
+            {
+                Debug.LogError("LSO_MemoryFrenzy: 주인을 몰라 페이즈 해금을 확인할 수 없습니다.");
+                return;
+            }
+
+            if (owner.GetComponent<LSO_BossPhase>() == null)
+                Debug.LogError(
+                    $"{owner.name}: LSO_BossPhase가 없어 기억 폭주가 해금되지 않습니다. " +
+                    $"보스 오브젝트에 LSO_BossPhase를 붙이세요.", owner);
+        }
 
         /// <summary>
         /// 기억 폭주는 2페이즈에 활성화된다. 그전에는 아무 일도 하지 않는다.

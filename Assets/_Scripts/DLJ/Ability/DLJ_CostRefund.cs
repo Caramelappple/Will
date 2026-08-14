@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
@@ -95,9 +96,6 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
         LDY_TurnManager turnManager = GameManager.HasInstance
             ? GameManager.Instance.TurnManager
             : null;
-
-        if (turnManager == null)
-            turnManager = Object.FindFirstObjectByType<LDY_TurnManager>();
 
         return DLJ_ContractRefund.GetOrCreate(actionPoints, turnManager);
     }

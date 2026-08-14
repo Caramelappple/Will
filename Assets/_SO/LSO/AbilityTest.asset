@@ -15,9 +15,10 @@ MonoBehaviour:
   animalName: Test
   description: "\uD14C\uC2A4\uD2B8\uC6A9 \uAE30\uBB3C\uC785\uB2C8\uB2E4"
   maxHealth: 3
-  damage: 1
-  cost: 4
+  damage: 10
+  cost: 1
+  moveRange: 1
   range: 0
-  abilities: 0a00000007000000
+  abilities: 07000000
   defaultWill: 1
   unitPrefab: {fileID: 4337957452496197285, guid: caaab4fd8563b364592b616c5c55fb1b, type: 3}
