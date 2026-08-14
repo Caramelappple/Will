@@ -28,14 +28,16 @@ public class KTH_GiveReward : MonoBehaviour
         // 1. 보상 후보 생성
         List<KTH_RewardOption> options = KTH_Reward.Instance.GenerateRewardOptions(currentChapter, currentStage);
 
-        // 2. UI 스크립트에 생성된 보상 목록을 넘겨 직접 띄우기
-        if (KTH_RewardChoiceUI.Instance != null)
+        // 2. UI 인스턴스 가져오기 (비활성화 상태여도 Instance 프로퍼티가 찾아서 반환함)
+        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
+
+        if (rewardUI != null)
         {
-            KTH_RewardChoiceUI.Instance.ShowRewards(options);
+            rewardUI.ShowRewards(options);
         }
         else
         {
-            Debug.LogError("[KTH_GiveReward] KTH_RewardChoiceUI.Instance를 찾을 수 없습니다!");
+            Debug.LogError("[KTH_GiveReward] 현재 씬 Hierarchy에서 KTH_RewardChoiceUI 오브젝트를 찾을 수 없습니다!");
         }
 
         return options;

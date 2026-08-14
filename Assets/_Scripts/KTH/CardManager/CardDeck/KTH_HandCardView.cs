@@ -1,8 +1,8 @@
 using System;
 using _Scripts.LSO.Deck.Data;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
 public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
@@ -13,10 +13,10 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
     [Header("카드 앞/뒷면 UI")]
     [SerializeField] private GameObject frontUI;
-    [SerializeField] private GameObject backUI; // ★ 카드 뒷면 오브젝트 추가
+    [SerializeField] private GameObject backUI;
 
-    [Header("선택 시 떠오르는 연출")]
-    [SerializeField] private float selectRiseHeight = 60f;
+    [Header("선택 시 내려가는 연출")]
+    [SerializeField] private float selectDropHeight = 100f;
     [SerializeField] private float selectMoveSpeed = 10f;
     [SerializeField] private int selectedSortingOrder = 10;
 
@@ -24,12 +24,15 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
     private LSO_CardSO _data;
     private Action<KTH_HandCardView> _onClicked;
+
     private RectTransform _rectTransform;
     private Canvas _canvas;
 
     private Vector2 _originBasePosition;
     private Vector2 _basePosition;
+
     private Quaternion _originRotation = Quaternion.identity;
+
     private float _yOffset;
     private bool _isSelected;
     private bool _isOffsetSettled = true;
@@ -62,47 +65,70 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
         _rectTransform = (RectTransform)transform;
 
         _canvas = GetComponent<Canvas>();
+
         if (_canvas != null)
         {
             _canvas.overrideSorting = false;
         }
 
-        // 자동으로 Front/Back 오브젝트 찾기 (인스펙터 미할당 시)
         if (frontUI == null)
         {
             Transform foundFront = transform.Find("Front");
-            if (foundFront != null) frontUI = foundFront.gameObject;
+
+            if (foundFront != null)
+                frontUI = foundFront.gameObject;
         }
+
         if (backUI == null)
         {
             Transform foundBack = transform.Find("Back");
-            if (foundBack != null) backUI = foundBack.gameObject;
+
+            if (foundBack != null)
+                backUI = foundBack.gameObject;
         }
 
-        if (selectionOutline) selectionOutline.SetActive(false);
+        if (selectionOutline != null)
+            selectionOutline.SetActive(false);
     }
 
     private void Update()
     {
-        if (!_isOffsetSettled && enabled)
+        if (!_isOffsetSettled)
         {
             UpdateSelectionOffset();
         }
 
-        // ★ 카드가 회전할 때 실시간으로 Y축 각도를 체크하여 앞/뒷면 전환
         UpdateCardFace();
     }
 
     private void UpdateSelectionOffset()
     {
-        float targetOffset = _isSelected ? selectRiseHeight : 0f;
-        _yOffset = Mathf.Lerp(_yOffset, targetOffset, Time.deltaTime * selectMoveSpeed);
+        // 선택되면 아래로 내려간다.
+        float targetOffset = _isSelected
+            ? -selectDropHeight
+            : 0f;
 
-        Quaternion targetRotation = _isSelected ? Quaternion.identity : _originRotation;
-        transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRotation, Time.deltaTime * selectMoveSpeed);
+        _yOffset = Mathf.Lerp(
+            _yOffset,
+            targetOffset,
+            Time.deltaTime * selectMoveSpeed
+        );
+
+        Quaternion targetRotation = _isSelected
+            ? Quaternion.identity
+            : _originRotation;
+
+        transform.localRotation = Quaternion.Slerp(
+            transform.localRotation,
+            targetRotation,
+            Time.deltaTime * selectMoveSpeed
+        );
 
         if (Mathf.Abs(_yOffset - targetOffset) < OffsetSnapThreshold &&
-            Quaternion.Angle(transform.localRotation, targetRotation) < 0.5f)
+            Quaternion.Angle(
+                transform.localRotation,
+                targetRotation
+            ) < 0.5f)
         {
             _yOffset = targetOffset;
             transform.localRotation = targetRotation;
@@ -114,85 +140,166 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
     private void ApplyPosition()
     {
-        if (_rectTransform == null) _rectTransform = (RectTransform)transform;
+        if (_rectTransform == null)
+        {
+            _rectTransform = (RectTransform)transform;
+        }
 
-        _rectTransform.anchoredPosition = _basePosition + new Vector2(0f, _yOffset);
-        _rectTransform.localScale = Vector3.one;
+        _rectTransform.anchoredPosition =
+            _basePosition +
+            new Vector2(0f, _yOffset);
     }
 
-    /// <summary>
-    /// Y축 회전각에 따라 앞면/뒷면 오브젝트를 켜고 끕니다.
-    /// </summary>
     private void UpdateCardFace()
     {
-        // 로컬 Y축 회전 각도를 0 ~ 360 도 범위로 계산
         float yAngle = transform.localEulerAngles.y;
 
-        // 90도 ~ 270도 사이에 있을 때는 카드 뒷면이 보여야 함
-        bool isShowingBack = yAngle > 90f && yAngle < 270f;
+        bool isShowingBack =
+            yAngle > 90f &&
+            yAngle < 270f;
 
-        if (frontUI != null) frontUI.SetActive(!isShowingBack);
-        if (backUI != null) backUI.SetActive(isShowingBack);
+        if (frontUI != null)
+            frontUI.SetActive(!isShowingBack);
+
+        if (backUI != null)
+            backUI.SetActive(isShowingBack);
     }
 
-    public void Setup(LSO_CardSO cardData, Action<KTH_HandCardView> onClicked)
+    public void Setup(
+        LSO_CardSO cardData,
+        Action<KTH_HandCardView> onClicked)
     {
         _data = cardData;
         _onClicked = onClicked;
 
-        if (cardData == null)
-            Debug.LogWarning($"[KTH_HandCardView] {name}: 카드 데이터가 비어 있습니다.", this);
-        else if (iconImage)
-            iconImage.sprite = cardData.Image;
+        if (_data == null)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardView] {name}: 카드 데이터가 비어 있습니다.",
+                this
+            );
+        }
+        else if (iconImage != null)
+        {
+            iconImage.sprite = _data.Image;
+        }
 
+        _isSelected = false;
         _yOffset = 0f;
         _isOffsetSettled = true;
-        SetSelected(false);
+
+        if (selectionOutline != null)
+            selectionOutline.SetActive(false);
+
+        if (_canvas != null)
+        {
+            _canvas.overrideSorting = false;
+            _canvas.sortingOrder = 0;
+        }
+
         UpdateCardFace();
     }
 
-    public void SnapToBasePosition(Vector2 position, Quaternion rotation)
+    public void SnapToBasePosition(
+        Vector2 position,
+        Quaternion rotation)
     {
         _yOffset = 0f;
+
         _originRotation = rotation;
+
         transform.localRotation = rotation;
+
         _isOffsetSettled = true;
+
         OriginBasePosition = position;
+
         UpdateCardFace();
     }
 
     public void SnapToBasePosition(Vector2 position)
     {
-        SnapToBasePosition(position, Quaternion.identity);
+        SnapToBasePosition(
+            position,
+            Quaternion.identity
+        );
     }
 
     public void SetSelected(bool selected)
     {
-        if (_isSelected == selected) return;
+        if (_isSelected == selected)
+            return;
 
         _isSelected = selected;
+
         _isOffsetSettled = false;
 
-        if (selectionOutline) selectionOutline.SetActive(selected);
+        if (selectionOutline != null)
+            selectionOutline.SetActive(selected);
 
         if (_canvas != null)
         {
             _canvas.overrideSorting = selected;
-            if (selected) _canvas.sortingOrder = selectedSortingOrder;
+
+            if (selected)
+            {
+                _canvas.sortingOrder =
+                    selectedSortingOrder;
+            }
+            else
+            {
+                _canvas.sortingOrder = 0;
+            }
         }
     }
 
     public void ResetSelectionOffset()
     {
+        _isSelected = false;
+
+        if (selectionOutline != null)
+            selectionOutline.SetActive(false);
+
+        if (_canvas != null)
+        {
+            _canvas.overrideSorting = false;
+            _canvas.sortingOrder = 0;
+        }
+
         _yOffset = 0f;
+
         transform.localRotation = _originRotation;
+
         _isOffsetSettled = true;
+
         ApplyPosition();
+
         UpdateCardFace();
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerClick(
+        PointerEventData eventData)
     {
-        _onClicked?.Invoke(this);
+        if (_data == null)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardView] {name}: 데이터가 없어 클릭을 처리할 수 없습니다.",
+                this
+            );
+
+            return;
+        }
+
+        if (_onClicked == null)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardView] {name}: 클릭 콜백이 등록되지 않았습니다.",
+                this
+            );
+
+            return;
+        }
+
+        _onClicked.Invoke(this);
     }
 }
