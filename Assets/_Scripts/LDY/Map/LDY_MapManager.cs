@@ -90,6 +90,9 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private int currentChapter = 1;
     [SerializeField] private int currentStage = 1;
 
+    [Header("보상 지급 연동용")]
+    [SerializeField] private KTH_GiveReward giveReward;
+
     public int CurrentChapter => currentChapter;
     public int CurrentStage => currentStage;
 
@@ -112,6 +115,11 @@ public class LDY_MapManager : MonoBehaviour
 
     public int BattleEntryCount { get; private set; }
 
+    /// <summary>
+    /// 맵에 아직 한 번도 들어오지 않았는지. 첫 진입은 TryRestoreOnEntry가 맡으므로 자동저장하지 않는다.
+    /// </summary>
+    private bool _firstMapEntryPending = true;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -129,14 +137,8 @@ public class LDY_MapManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 이어할 런이 있으면 되돌린다.
-    ///
     /// 이 오브젝트는 DontDestroyOnLoad라 Start가 게임당 한 번만 돈다.
     /// 맵으로 돌아올 때마다 다시 불러오지 않는 것은 의도한 것이다.
-    ///
-    /// ⚠ 지금은 "새 런 시작"과 "이어하기"를 가르는 진입점이 없다.
-    /// 덱빌드를 마치고 맵에 처음 들어오는 흐름에서도 세이브가 있으면 그쪽이 이겨서
-    /// 방금 만든 덱을 덮어쓴다. 메인 메뉴에 이어하기가 생기면 이 호출은 그리로 옮겨야 한다.
     /// </summary>
     private IEnumerator Start()
     {
@@ -145,6 +147,26 @@ public class LDY_MapManager : MonoBehaviour
 
         // 덱과 해금 매니저가 Awake를 마칠 때까지 한 프레임 기다린다.
         yield return null;
+
+        TryRestoreOnEntry();
+    }
+
+    /// <summary>
+    /// 맵에 들어온 시점에 이어할 런이 있으면 되돌린다.
+    ///
+    /// 게임에서는 Start가 한 번 부르는 것이 전부다. 별도 메서드로 떼어둔 것은,
+    /// Start가 세션당 한 번뿐이라 분기를 다시 태워볼 방법이 없기 때문이다.
+    /// (LDY_SaveDebugHotkeys가 같은 플레이 안에서 반복해 부른다.)
+    ///
+    /// ⚠ 새 런으로 들어온 것인지는 LDY_RunEntryState가 알려주기로 되어 있지만,
+    /// 아직 그것을 켜주는 진입점이 없다. 그래서 덱빌드를 마치고 맵에 처음 들어오는 흐름에서도
+    /// 세이브가 있으면 그쪽이 이겨서 방금 만든 덱을 덮어쓴다.
+    /// 메인 메뉴의 게임 시작과 덱빌드 완료에서 IsStartingNewRun을 켜주면 그때 해결된다.
+    /// </summary>
+    public void TryRestoreOnEntry()
+    {
+        // 새 런이면 방금 만들어진 상태가 옳다. 세이브를 덮어씌우지 않는다.
+        if (LDY_RunEntryState.Consume()) return;
 
         if (LDY_SaveService.Instance.HasRun)
             LDY_SaveService.Instance.LoadRun();
@@ -165,7 +187,41 @@ public class LDY_MapManager : MonoBehaviour
         if (scene.name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase))
         {
             StartCoroutine(Co_DelayedInitToken());
+
+            AutoSaveOnMapReentry();
         }
+    }
+
+    /// <summary>
+    /// 맵으로 돌아올 때마다 저장한다.
+    ///
+    /// 전투 승리 판정 지점이 코드에 아직 없어서, "전투 → 보상 → 맵 복귀" 흐름에서
+    /// 맵 씬이 다시 로드된다는 사실을 대신 신호로 쓴다.
+    /// 정식 승리 훅이 생기면 저장 호출은 그쪽으로 옮기고 여기서 뺄 것.
+    /// </summary>
+    private void AutoSaveOnMapReentry()
+    {
+        // 맵 씬을 다시 열면 씬에 놓인 두 번째 인스턴스도 Awake에서 파괴되기 전에
+        // 이 이벤트를 함께 받는다. 걸러내지 않으면 한 번의 복귀에 저장이 두 번 돈다.
+        if (Instance != this) return;
+
+        // 첫 진입은 방금 TryRestoreOnEntry가 되돌려놓은 상태다. 그대로 다시 쓰는 것은 의미가 없다.
+        if (ConsumeFirstMapEntry()) return;
+
+        Debug.Log("[LDY_MapManager] 맵 재진입 감지 — 자동저장 실행");
+
+        LDY_SaveService.Instance.SaveRun();
+    }
+
+    /// <summary>
+    /// 첫 맵 진입을 한 번만 집어간다. 처음이면 true를 돌려주고, 그 뒤로는 항상 false다.
+    /// </summary>
+    private bool ConsumeFirstMapEntry()
+    {
+        if (!_firstMapEntryPending) return false;
+
+        _firstMapEntryPending = false;
+        return true;
     }
 
     private IEnumerator Co_DelayedInitToken()
@@ -679,19 +735,21 @@ public class LDY_MapManager : MonoBehaviour
     /// </summary>
     private void TriggerStageReward(int chapter, int stage)
     {
-        KTH_GiveReward giveReward = FindFirstObjectByType<KTH_GiveReward>();
-        if (giveReward != null)
+        if (giveReward == null)
         {
-            giveReward.GiveStageReward(chapter, stage);
+            Debug.LogError(
+                "[LDY_MapManager] KTH_GiveReward가 Inspector에 연결되지 않았습니다."
+            );
+
+            return;
         }
-        else if (KTH_Reward.Instance != null)
-        {
-            KTH_Reward.Instance.UnlockByStage(chapter, stage);
-        }
-        else
-        {
-            Debug.LogWarning("[LDY_MapManager] 씬에서 KTH_GiveReward 또는 KTH_Reward 인스턴스를 찾을 수 없어 보상이 지급되지 않았습니다.");
-        }
+
+        Debug.Log(
+            $"[LDY_MapManager] 보상 요청 " +
+            $"(Chapter: {chapter}, Stage: {stage})"
+        );
+
+        giveReward.GiveStageReward(chapter, stage);
     }
 
     private void SetTokenPositionToNode(int nodeIndex)

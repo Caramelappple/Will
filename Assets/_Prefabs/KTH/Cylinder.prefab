@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 4665774403491819293}
   - component: {fileID: 4252821230286214157}
   - component: {fileID: 8308474573611943773}
+  - component: {fileID: -4379339614478175788}
+  - component: {fileID: -8584810884870325977}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -143,11 +145,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: 0424bbfacef48224a934fc7c7afc381b, type: 2}
+  data: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
   health: {fileID: 4252821230286214157}
   pos: {x: 0, y: 0, z: 0}
   team: 0
-  baseAtk: 2
   fallbackRangeType: 0
+  fallbackMoveRange: 1
+  baseAtk: 2
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 5281586973659791504}
+--- !u!114 &-4379339614478175788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209428674623069864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
+  healthThreshold: 15
+--- !u!114 &-8584810884870325977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209428674623069864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bf41b619a0a17b4ba5e5cac5937fcde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Boss.BullKing.LDY_BullKingBoss
+  phaseOne:
+    chargeRange: 4
+    collisionDamage: 3
+    wallDamage: 2
+    maxChainPush: 3
+  phaseTwo:
+    chargeRange: 6
+    collisionDamage: 4
+    wallDamage: 3
+    maxChainPush: 5
+  rageChainDamage: 3
+  rageChainRange: 1
+  maxRageChainPerCharge: 3
+  rageChainHitsBullKing: 1
+  pushDuration: 0.2

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Scripts.LSO.Ability;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -72,10 +73,16 @@ namespace _Scripts.LDY
             if (!GetMovableTiles(animal).Contains(target)) return;
             if (actionPoints != null && !actionPoints.TryConsume()) return;
 
+            Vector3Int from = animal.pos;
             board.Move(animal, animal.pos, target);
 
             // board.Move가 높이(y)를 유지한 채 animal.pos를 갱신하므로, 연출도 그 최종 위치를 따라간다.
             StartCoroutine(MoveVisual(animal, board.GridToWorld(animal.pos)));
+
+            // 검증과 행동력 소모를 모두 통과해 실제로 자리를 옮긴 뒤에만 알린다.
+            // 밀려남은 board.Move를 직접 쓰므로 여기로 오지 않는다 — "스스로 움직였다"만 이 신호를 탄다.
+            LSO_AbilityNotify.Notify<LDY_IOnMoved>(
+                animal.Abilities, a => a.OnMoved(animal, from, animal.pos));
         }
 
         private IEnumerator MoveVisual(LDY_Animal animal, Vector3 targetWorldPos)
@@ -83,21 +90,30 @@ namespace _Scripts.LDY
             _activeCount++;
             try
             {
-                Transform t = animal.modelTransform;
+                Transform t = animal != null ? animal.modelTransform : null;
+                if (t == null) yield break;
+
                 Vector3 startPos = t.position;
                 float elapsed = 0f;
 
                 while (elapsed < moveDuration)
                 {
+                    // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
+                    // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
+                    // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
+                    if (t == null) yield break;
+
                     elapsed += Time.deltaTime;
                     t.position = Vector3.Lerp(startPos, targetWorldPos, elapsed / moveDuration);
                     yield return null;
                 }
 
-                t.position = targetWorldPos;
+                if (t != null)
+                    t.position = targetWorldPos;
             }
             finally
             {
+                // 중간에 빠져나가도 IsBusy가 켜진 채 남지 않도록 finally에서 되돌린다.
                 _activeCount--;
             }
         }
