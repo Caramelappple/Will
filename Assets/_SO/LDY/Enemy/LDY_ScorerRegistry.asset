@@ -24,6 +24,12 @@ MonoBehaviour:
   - animal: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
     scorers:
     - rid: 5566933157692309571
+  - animal: {fileID: 11400000, guid: 188e4120f440f3c4496eb6ae18c44b56, type: 2}
+    scorers:
+    - rid: 5566933157692309572
+  - animal: {fileID: 11400000, guid: 1d9e8c97bd2fb7c4985b41ff11da4d32, type: 2}
+    scorers:
+    - rid: 5566933157692309573
   references:
     version: 2
     RefIds:
@@ -34,3 +40,18 @@ MonoBehaviour:
         reattackBonus: 40
         approachWeight: 20
         reattackApproachWeight: 20
+    - rid: 5566933157692309572
+      type: {class: DLJ_FoxKingScorer, ns: , asm: Assembly-CSharp}
+      data:
+        attackBonus: 20
+        killBonus: 50
+        preferredWillBonus: 40
+        preferredWillKillBonus: 70
+        preferredWillApproachWeight: 20
+    - rid: 5566933157692309573
+      type: {class: DLJ_SharkKingScorer, ns: , asm: Assembly-CSharp}
+      data:
+        attackBonus: 50
+        predationTargetBonus: 40
+        killBonus: 80
+        movePenalty: 10000

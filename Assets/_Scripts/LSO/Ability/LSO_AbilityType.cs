@@ -28,6 +28,10 @@ namespace _Scripts.LSO.Ability
         FoxKingPlunder,
         FoxKingGreed,
         FoxKingInvestment,
-        FoxKingPhase
+        FoxKingPhase,
+        DLJ_SharkKingPhase,
+        DLJ_SharkKingImmobile,
+        DLJ_SharkKingHuntingGround,
+        DLJ_SharkKingPredation
     }
 }

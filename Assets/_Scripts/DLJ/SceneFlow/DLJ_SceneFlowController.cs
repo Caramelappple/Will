@@ -46,10 +46,6 @@ namespace _Scripts.DLJ.SceneFlow
             if (instance != null)
                 return;
 
-            instance = FindFirstObjectByType<DLJ_SceneFlowController>();
-            if (instance != null)
-                return;
-
             GameObject controllerObject = new GameObject(nameof(DLJ_SceneFlowController));
             instance = controllerObject.AddComponent<DLJ_SceneFlowController>();
         }
