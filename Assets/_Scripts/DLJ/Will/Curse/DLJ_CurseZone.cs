@@ -50,6 +50,11 @@ public class DLJ_CurseZone : MonoBehaviour
 
     private void Update()
     {
+        // Initialize를 못 받은 저주 지역은 board가 null이라 그대로 두면 매 프레임 터진다.
+        // 위쪽 early return이 Destroy를 부르지만 실제 파괴는 프레임 끝으로 미뤄지므로,
+        // 그 사이에 Update가 최소 한 번 돈다. 컴포넌트가 코드 밖에서 붙는 경우도 여기서 막힌다.
+        if (board == null) return;
+
         DamageNewEntrants();
     }
 
