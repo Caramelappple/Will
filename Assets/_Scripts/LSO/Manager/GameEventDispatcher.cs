@@ -7,7 +7,7 @@ namespace _Scripts.LSO.Manager
     public class GameEventDispatcher : MonoBehaviour
     {
         private readonly List<IOnTurnStart> _onTurnStart = new();
-        private readonly List<IOnEnemyDead> _onEnemyDead = new();
+        private readonly List<LSO_IOnAnimalDead> _onAnimalDead = new();
 
         private LDY_TurnManager _boundTurnManager;
 
@@ -52,26 +52,28 @@ namespace _Scripts.LSO.Manager
         public void Register(object obj)
         {
             if (obj is IOnTurnStart s && !_onTurnStart.Contains(s)) _onTurnStart.Add(s);
-            if (obj is IOnEnemyDead d && !_onEnemyDead.Contains(d)) _onEnemyDead.Add(d);
+            if (obj is LSO_IOnAnimalDead d && !_onAnimalDead.Contains(d)) _onAnimalDead.Add(d);
         }
 
         public void Unregister(object obj)
         {
             if (obj is IOnTurnStart s) _onTurnStart.Remove(s);
-            if (obj is IOnEnemyDead d) _onEnemyDead.Remove(d);
+            if (obj is LSO_IOnAnimalDead d) _onAnimalDead.Remove(d);
         }
 
+        // 두 Raise 모두 매번 배열을 새로 만든다. 재사용 버퍼로 바꾸면 안 된다.
+        // 알림을 받은 특성이 다시 죽음을 일으켜(복수 → 처치 → RaiseAnimalDead) 같은 메서드로
+        // 되들어오는 경로가 있어서, 버퍼를 공유하면 바깥쪽 순회가 안쪽 호출에 덮인다.
         public void RaiseTurnStart(LDY_Team team)
         {
-            // 순회 중 리스트가 바뀔 수 있으므로 복사본으로 순회
             foreach (var l in _onTurnStart.ToArray())
                 l.OnTurnStart(team);
         }
 
-        public void RaiseEnemyDead(LDY_Animal info)
+        public void RaiseAnimalDead(LDY_Animal info)
         {
-            foreach (var l in _onEnemyDead.ToArray())
-                l.OnEnemyDead(info);
+            foreach (var l in _onAnimalDead.ToArray())
+                l.OnAnimalDead(info);
         }
     }
 }

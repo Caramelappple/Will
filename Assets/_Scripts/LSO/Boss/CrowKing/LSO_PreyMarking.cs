@@ -40,7 +40,7 @@ namespace _Scripts.LSO.Boss.CrowKing
             LDY_BoardManager board = _context?.Board;
             if (board == null) return;
 
-            LDY_Animal next = PickRandom(board, Opponent(_owner.team));
+            LDY_Animal next = PickRandom(board, _owner.team.Opposite());
 
             //고를 것이 없으면 스킵
             if (next == null) return;
@@ -60,16 +60,6 @@ namespace _Scripts.LSO.Boss.CrowKing
             if (candidates.Count == 0) return null;
 
             return candidates[Random.Range(0, candidates.Count)];
-        }
-        
-        /// <summary>
-        /// 상대편 가져오는 메서드
-        /// </summary>
-        /// <param name="team"></param>
-        /// <returns></returns>
-        private static LDY_Team Opponent(LDY_Team team)
-        {
-            return team == LDY_Team.Enemy ? LDY_Team.Player : LDY_Team.Enemy;
         }
     }
 }

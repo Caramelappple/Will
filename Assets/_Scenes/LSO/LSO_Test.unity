@@ -296,7 +296,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &70646586
 Transform:
   m_ObjectHideFlags: 0
@@ -329,6 +329,7 @@ MonoBehaviour:
   pos: {x: 2, y: 0, z: 1}
   team: 1
   fallbackRangeType: 0
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 70646586}
@@ -347,6 +348,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &70646589
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3229,10 +3232,14 @@ MonoBehaviour:
   costText: {fileID: 246953466}
   placeButton: {fileID: 591244064}
   closeButton: {fileID: 681692062}
+  discardCardUI: {fileID: 0}
   outsideClickCatcher: {fileID: 0}
   animDuration: 0.7
   startYOffset: -1016
   startYRotation: -180
+  flyDuration: 0.5
+  rotateAngle: -360
+  endScale: {x: 0.15, y: 0.15, z: 0.15}
 --- !u!1 &484272660
 GameObject:
   m_ObjectHideFlags: 0
@@ -3734,6 +3741,7 @@ MonoBehaviour:
   pos: {x: 5, y: 0, z: 1}
   team: 0
   fallbackRangeType: 1
+  fallbackMoveRange: 1
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 571457307}
@@ -3752,6 +3760,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &571457310
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7732,11 +7742,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
+  data: {fileID: 11400000, guid: 188e4120f440f3c4496eb6ae18c44b56, type: 2}
   health: {fileID: 1219364774}
   pos: {x: 4, y: 0, z: 5}
   team: 1
   fallbackRangeType: 1
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 1219364772}
@@ -7755,6 +7766,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1219364775
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7842,9 +7855,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 1219364771}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e748fb2c96c14b65af404b8a4ad121f0, type: 3}
+  m_Script: {fileID: 11500000, guid: 4c10426a2d8e46cd8c620ffef45cf5ad, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyTracker
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_FoxKingBoss
+  greedMilestones:
+  - threshold: 5
+    effect: 0
+    amount: 1
+  - threshold: 10
+    effect: 0
+    amount: 1
+  - threshold: 15
+    effect: 1
+    amount: 5
 --- !u!114 &1219364779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7854,10 +7877,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1219364771}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00d249b060dc4f88b15ad7399d815951, type: 3}
+  m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
-  maxStoredAbilities: 3
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
+  healthThreshold: 15
 --- !u!1 &1242579790
 GameObject:
   m_ObjectHideFlags: 0
@@ -8058,6 +8081,7 @@ MonoBehaviour:
   pos: {x: 3, y: 0, z: 0}
   team: 0
   fallbackRangeType: 2
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1273964880}
@@ -8076,6 +8100,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1273964883
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8614,6 +8640,10 @@ PrefabInstance:
       propertyPath: actionPoints
       value: 
       objectReference: {fileID: 944642608}
+    - target: {fileID: 2585178828559655044, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: loadOnStart
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2835441762936283171, guid: 19a747f32b7491045b591a801491b512, type: 3}
       propertyPath: board
       value: 
@@ -8696,7 +8726,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
   nodeStages:
-  - nodeIndex: 0
+  - chapter: 1
+    nodeIndex: 0
     stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
   typeStages: []
 --- !u!1 &1345992235
@@ -10263,6 +10294,7 @@ MonoBehaviour:
   pos: {x: 1, y: 0, z: 0}
   team: 0
   fallbackRangeType: 0
+  fallbackMoveRange: 1
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1621688121}
@@ -10281,6 +10313,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1621688124
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12283,6 +12317,7 @@ MonoBehaviour:
   pos: {x: 6, y: 0, z: 7}
   team: 1
   fallbackRangeType: 2
+  fallbackMoveRange: 1
   baseAtk: 3
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 2073800958}
@@ -12301,6 +12336,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &2073800961
 MeshRenderer:
   m_ObjectHideFlags: 0

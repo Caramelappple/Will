@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace _Scripts.LSO.Will
 {
-    public class LSO_WillFactory
+    public static class LSO_WillFactory
     {
         private static readonly Dictionary<
             LSO_WillType,

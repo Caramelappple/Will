@@ -20,6 +20,7 @@ MonoBehaviour:
   maxHealth: 30
   damage: 3
   cost: 1
+  moveRange: 2
   range: 1
   abilities: 110000001200000013000000
   defaultWill: 1

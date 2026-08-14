@@ -51,7 +51,11 @@ namespace _Scripts.LSO.UI
 
         // ── 씬 ──────────────────────────────────────────────
 
-        public void StartGame() => LSO_SceneLoader.Load(gameSceneName);
+        public void StartGame()
+        {
+            //LDY_RunEntryState.IsStartingNewRun = true;
+            LSO_SceneLoader.Load(gameSceneName);
+        }
 
         public void GoToTitle() => LSO_SceneLoader.Load(titleSceneName);
 

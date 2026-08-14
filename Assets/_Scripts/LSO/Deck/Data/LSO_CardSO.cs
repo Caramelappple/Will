@@ -10,9 +10,6 @@ namespace _Scripts.LSO.Deck.Data
     [CreateAssetMenu(fileName = "LSO_CardSO", menuName = "LSO/Deck/CardSO")]
     public class LSO_CardSO : ScriptableObject
     {
-        
-        [Tooltip("세이브에 기록되는 고유 식별자. crow, goat 처럼 소문자 영문으로 적는다.\n" +
-                 "한 번 정하면 바꾸지 말 것. 바꾸면 기존 세이브가 이 카드를 못 찾는다.")]
         public string ID { get; private set; }
         
         [Tooltip("이 카드가 소환하는 동물 데이터.")]

@@ -217,7 +217,7 @@ namespace _Scripts.LDY
 
             board.Remove(target);
             DLJ_CombatKillEvents.Raise(target, killer);
-            RaiseEnemyDead(target);
+            RaiseAnimalDead(target);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(target, board);
 
@@ -251,15 +251,17 @@ namespace _Scripts.LDY
                 attacker.Abilities, a => a.OnAttack(attacker.data));
         }
 
-        private static void RaiseEnemyDead(LDY_Animal target)
+        // 팀을 가리지 않고 모든 죽음을 알린다. 누가 적인지는 받는 특성이 판단한다.
+        // LDY_DeathHandler.RaiseAnimalDead와 반드시 같게 유지할 것.
+        private static void RaiseAnimalDead(LDY_Animal target)
         {
-            if (target == null || target.team != LDY_Team.Enemy) return;
+            if (target == null) return;
             if (!GameManager.HasInstance) return;
 
             GameEventDispatcher dispatcher = GameManager.Instance.EventDispatcher;
             if (dispatcher == null) return;
 
-            dispatcher.RaiseEnemyDead(target);
+            dispatcher.RaiseAnimalDead(target);
         }
     }
 }

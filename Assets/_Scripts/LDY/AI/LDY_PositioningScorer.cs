@@ -58,7 +58,7 @@ namespace _Scripts.LDY.AI
         /// </summary>
         private static int NearestOpponentDistance(Vector3Int from, LDY_Team team, LDY_BoardManager board)
         {
-            List<LDY_Animal> opponents = board.GetAllByTeam(Opponent(team));
+            List<LDY_Animal> opponents = board.GetAllByTeam(team.Opposite());
             int nearest = int.MaxValue;
 
             foreach (LDY_Animal opponent in opponents)
@@ -71,11 +71,6 @@ namespace _Scripts.LDY.AI
             }
 
             return nearest == int.MaxValue ? -1 : nearest;
-        }
-
-        private static LDY_Team Opponent(LDY_Team team)
-        {
-            return team == LDY_Team.Enemy ? LDY_Team.Player : LDY_Team.Enemy;
         }
     }
 }
