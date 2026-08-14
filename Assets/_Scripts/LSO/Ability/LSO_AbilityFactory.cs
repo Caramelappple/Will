@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LDY.Boss.BullKing;
 using _Scripts.LSO.Boss.CrowKing;
 
 namespace _Scripts.LSO.Ability
@@ -32,6 +33,8 @@ namespace _Scripts.LSO.Ability
                 { LSO_AbilityType.FoxKingGreed, () => new DLJ_FoxKingGreed() },
                 { LSO_AbilityType.FoxKingInvestment, () => new DLJ_FoxKingInvestment() },
                 { LSO_AbilityType.FoxKingPhase, () => new DLJ_FoxKingPhase() },
+                { LSO_AbilityType.BullCharge, () => new LDY_BullCharge() },
+                { LSO_AbilityType.BullRageChain, () => new LDY_BullRageChain() },
             };
 
         public static LSO_IAbility Create(LSO_AbilityType type)

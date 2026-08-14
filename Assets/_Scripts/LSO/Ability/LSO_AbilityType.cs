@@ -28,6 +28,8 @@ namespace _Scripts.LSO.Ability
         FoxKingPlunder,
         FoxKingGreed,
         FoxKingInvestment,
-        FoxKingPhase
+        FoxKingPhase,
+        BullCharge,
+        BullRageChain
     }
 }

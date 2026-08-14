@@ -24,6 +24,9 @@ MonoBehaviour:
   - animal: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
     scorers:
     - rid: 5566933157692309571
+  - animal: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
+    scorers:
+    - rid: 8291755045211078727
   references:
     version: 2
     RefIds:
@@ -34,3 +37,12 @@ MonoBehaviour:
         reattackBonus: 40
         approachWeight: 20
         reattackApproachWeight: 20
+    - rid: 8291755045211078727
+      type: {class: LDY_BullChargeScorer, ns: _Scripts.LDY.AI.Boss, asm: Assembly-CSharp}
+      data:
+        collisionBonus: 60
+        perVictimBonus: 25
+        killBonus: 40
+        wallSlamBonus: 20
+        approachWeight: 10
+        nonChargePenalty: 200

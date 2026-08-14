@@ -290,8 +290,6 @@ GameObject:
   - component: {fileID: 70646589}
   - component: {fileID: 70646588}
   - component: {fileID: 70646587}
-  - component: {fileID: 70646593}
-  - component: {fileID: 70646592}
   m_Layer: 0
   m_Name: Enemy_Melee
   m_TagString: Untagged
@@ -326,7 +324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
+  data: {fileID: 0}
   health: {fileID: 70646588}
   pos: {x: 2, y: 0, z: 1}
   team: 1
@@ -428,46 +426,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 70646585}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &70646592
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 70646585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2bf41b619a0a17b4ba5e5cac5937fcde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Boss.BullKing.LDY_BullKingBoss
-  phaseOne:
-    chargeRange: 4
-    collisionDamage: 3
-    wallDamage: 2
-    maxChainPush: 3
-  phaseTwo:
-    chargeRange: 6
-    collisionDamage: 4
-    wallDamage: 3
-    maxChainPush: 5
-  rageChainDamage: 3
-  rageChainRange: 1
-  maxRageChainPerCharge: 3
-  rageChainHitsBullKing: 1
-  pushDuration: 0.2
---- !u!114 &70646593
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 70646585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
-  healthThreshold: 15
 --- !u!1 &101516210
 GameObject:
   m_ObjectHideFlags: 0
