@@ -102,6 +102,8 @@ public class LDY_MapManager : MonoBehaviour
 
     private int previousNodeIndex = -1;
 
+    private bool waitingForRewardBeforeMapReturn = false;
+
     public List<LDY_MapNode> Nodes { get; private set; } = new List<LDY_MapNode>();
 
     public LDY_NodeConnection[] Connections
@@ -638,8 +640,57 @@ public class LDY_MapManager : MonoBehaviour
 
     public void CompleteActiveNodeAndReturnToMap()
     {
-        CompleteActiveNode();
+        if (!IsValidIndex(activeNodeIndex))
+        {
+            GoToMapScene();
+            return;
+        }
 
+        LDY_NodeType type = Nodes[activeNodeIndex].type;
+        bool willGiveReward = (type == LDY_NodeType.Battle || type == LDY_NodeType.Boss) && giveReward != null;
+
+        if (willGiveReward)
+        {
+            waitingForRewardBeforeMapReturn = true;
+
+            KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
+            if (rewardUI != null)
+            {
+                rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap; // 중복 구독 방지
+                rewardUI.OnRewardResolved += HandleRewardResolvedThenReturnToMap;
+            }
+            else
+            {
+                // 보상 UI를 못 찾으면 대기 상태로 남지 않도록 안전 처리
+                Debug.LogWarning("[LDY_MapManager] KTH_RewardChoiceUI 인스턴스를 찾을 수 없어 즉시 맵으로 전환합니다.");
+                waitingForRewardBeforeMapReturn = false;
+            }
+        }
+
+        CompleteActiveNode(); // 내부에서 TriggerStageReward → ShowRewards가 트리거됨
+
+        if (!waitingForRewardBeforeMapReturn)
+        {
+            GoToMapScene();
+        }
+        // willGiveReward == true인 경우, 실제 씬 전환은
+        // HandleRewardResolvedThenReturnToMap에서 수행됨
+    }
+
+    private void HandleRewardResolvedThenReturnToMap()
+    {
+        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
+        if (rewardUI != null)
+        {
+            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+        }
+
+        waitingForRewardBeforeMapReturn = false;
+        GoToMapScene();
+    }
+
+    private void GoToMapScene()
+    {
         if (string.IsNullOrEmpty(mapSceneName))
         {
             Debug.LogWarning("[LDY_MapManager] mapSceneName이 비어 있습니다.", this);

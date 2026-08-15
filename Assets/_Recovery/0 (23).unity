@@ -719,13 +719,14 @@ MonoBehaviour:
   editorChapterIndex: 1
   editorStageIndex: 1
   nodePositions:
-  - {x: -129.33331, y: 108.33331}
-  - {x: 47.333374, y: -32.333374}
-  - {x: 180, y: 119}
-  - {x: 183.33337, y: -23.666687}
-  - {x: 305.33337, y: 123}
-  - {x: 404.66675, y: 58.333313}
-  nodeTypes: 010000000100000001000000010000000100000004000000
+  - {x: -453.3333, y: 106.33331}
+  - {x: -274, y: 7}
+  - {x: -35.333313, y: 119}
+  - {x: 189.33337, y: 93.66666}
+  - {x: 375.33337, y: 153}
+  - {x: 384.66675, y: -35}
+  - {x: 255.33337, y: -152.33337}
+  nodeTypes: 01000000010000000100000001000000010000000100000004000000
   connections:
   - fromIndex: 0
     toIndex: 1
@@ -737,30 +738,9 @@ MonoBehaviour:
     toIndex: 4
   - fromIndex: 4
     toIndex: 5
-  chapterMaps:
-  - chapter: 1
-    nodePositions:
-    - {x: -321.3333, y: 111}
-    - {x: -158.66663, y: 28.333313}
-    - {x: 37.333374, y: 147.66666}
-    - {x: 216.66669, y: 221}
-    - {x: 358.66675, y: 175}
-    - {x: 352, y: -39.666687}
-    - {x: 222.66669, y: -146.33337}
-    nodeTypes: 01000000010000000100000001000000010000000100000004000000
-    connections:
-    - fromIndex: 0
-      toIndex: 1
-    - fromIndex: 1
-      toIndex: 2
-    - fromIndex: 2
-      toIndex: 3
-    - fromIndex: 3
-      toIndex: 4
-    - fromIndex: 4
-      toIndex: 5
-    - fromIndex: 5
-      toIndex: 6
+  - fromIndex: 5
+    toIndex: 6
+  chapterMaps: []
   battleSceneName: KTH_SoundManagerScene
   bossSceneName: KTH_SoundManagerScene
   stageRouterSource: {fileID: 1062778835}
@@ -2670,7 +2650,7 @@ MonoBehaviour:
   mapManager: {fileID: 1062778833}
   nodeContainer: {fileID: 1671757774}
   lineContainer: {fileID: 1536103101}
-  nodeViewPrefab: {fileID: 4602573340324321884, guid: 6db63d69bd8314b48bad021fc73d4d25, type: 3}
+  nodeViewPrefab: {fileID: 4579725653209614505, guid: fe5d242b0e9b2d542bf8aa081a970e88, type: 3}
   linePrefab: {fileID: 3648804017643619440, guid: 3f982829c63573a4e95b9be91082c176, type: 3}
   backgroundPanel: {fileID: 2084838558}
 --- !u!4 &2121850231

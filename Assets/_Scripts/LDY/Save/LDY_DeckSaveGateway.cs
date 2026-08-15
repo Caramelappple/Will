@@ -30,7 +30,7 @@ namespace _Scripts.LDY.Save
                 return;
             }
 
-            foreach (LSO_CardSO card in holder.savedInventory)
+            foreach (LSO_CardSO card in holder.SavedInventory)
             {
                 if (card == null) continue;
 

@@ -182,17 +182,23 @@ public class KTH_DeckBuilderManager : MonoBehaviour
     {
         _inventoryCardIDs.Clear();
 
-        List<LSO_CardSO> sourceCards = initialInventoryCards;
-        if (KTH_DeckDataPersistent.Instance != null && KTH_DeckDataPersistent.Instance.savedInventory != null && KTH_DeckDataPersistent.Instance.savedInventory.Count > 0)
+        IReadOnlyList<LSO_CardSO> sourceCards = initialInventoryCards;
+
+        if (KTH_DeckDataPersistent.Instance != null &&
+            KTH_DeckDataPersistent.Instance.SavedInventory != null &&
+            KTH_DeckDataPersistent.Instance.SavedInventory.Count > 0)
         {
-            sourceCards = KTH_DeckDataPersistent.Instance.savedInventory;
+            sourceCards = KTH_DeckDataPersistent.Instance.SavedInventory;
         }
 
-        if (sourceCards == null) return;
+        if (sourceCards == null)
+            return;
 
         foreach (LSO_CardSO card in sourceCards)
         {
-            if (card == null) continue;
+            if (card == null)
+                continue;
+
             string cardID = GetCardID(card);
 
             if (!string.IsNullOrEmpty(cardID))

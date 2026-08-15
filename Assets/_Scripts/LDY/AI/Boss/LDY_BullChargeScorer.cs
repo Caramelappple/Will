@@ -117,7 +117,6 @@ namespace _Scripts.LDY.AI.Boss
 
         /// <summary>
         /// 가장 가까운 상대까지의 거리. 상대가 하나도 없으면 -1.
-        /// 거리 척도는 보드 전체와 같은 것을 써야 하므로 LDY_AttackRangeMetrics에 맡긴다.
         /// </summary>
         private static int NearestOpponentDistance(Vector3Int from, LDY_Team team, LDY_BoardManager board)
         {
@@ -128,12 +127,27 @@ namespace _Scripts.LDY.AI.Boss
             {
                 if (opponent == null) continue;
 
-                int distance = LDY_AttackRangeMetrics.Distance(from, opponent.pos);
+                int distance = ManhattanDistance(from, opponent.pos);
                 if (distance < nearest)
                     nearest = distance;
             }
 
             return nearest == int.MaxValue ? -1 : nearest;
+        }
+
+        /// <summary>
+        /// 황소왕만 맨해튼으로 잰다. 보드의 기본 척도(LDY_AttackRangeMetrics.Distance)는
+        /// 8방향 이동을 전제한 체비쇼프라, 상하좌우로만 가는 기물에게는 답이 어긋난다.
+        ///
+        /// (0,0)에 서서 (3,3)의 상대를 볼 때가 그렇다. 체비쇼프로는 어느 방향으로 몇 칸을 가도
+        /// 거리가 3에서 줄지 않아 모든 돌진이 0점이 되고, 결국 대기(0점)가 이겨서 제자리에 선다.
+        /// 기획서의 "대각선에만 기물이 있으면 가까워지는 방향으로" 규칙이 통째로 죽는 자리다.
+        ///
+        /// 맨해튼은 한 축만 좁혀도 거리가 줄어드므로, 대각선 상대에게도 기울기가 생긴다.
+        /// </summary>
+        private static int ManhattanDistance(Vector3Int a, Vector3Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.z - b.z);
         }
 
         private static LDY_Team Opponent(LDY_Team team)

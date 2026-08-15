@@ -14,6 +14,17 @@ namespace _Scripts.LSO.Will
         public int range;
         public int duration;
 
+        [Header("Tool Tip")]
+        [TextArea(3, 10)]
+        public string description;
+
+        [Header("Icon")]
+        public Sprite icon;
+
+        [Header("Buff / Debuff")]
+        public int buffAmount;
+        public int debuffAmount;
+
         [Header("Effect")]
         public GameObject effectPrefab;
         public float expandTime = 0.25f;

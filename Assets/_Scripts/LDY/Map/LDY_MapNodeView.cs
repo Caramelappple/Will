@@ -16,9 +16,11 @@ public class LDY_MapNodeView : MonoBehaviour
 
     [Header("Type Icons (모양으로만 구분, 색은 사용하지 않음)")]
     [SerializeField] private Sprite battleIcon;
-    [SerializeField] private GameObject successObj;
-    [SerializeField] private GameObject curObj; // 현재 노드 위치 표시 오브젝트
     [SerializeField] private Sprite bossIcon;
+
+    [Header("State Icons (클리어/현재 위치일 때 iconImage 스프라이트를 덮어씀)")]
+    [SerializeField] private Sprite successSprite; // 클리어 상태일 때 iconImage에 표시
+    [SerializeField] private Sprite currentSprite;  // 현재 위치일 때 iconImage에 표시
 
     [Header("아이콘 크기 (부모 대비 채우는 비율)")]
     [Range(0.5f, 1f)][SerializeField] private float iconFillRatio = 0.9f;
@@ -78,23 +80,27 @@ public class LDY_MapNodeView : MonoBehaviour
     {
         if (nodeData == null || theme == null) return;
 
-        if (iconImage != null) iconImage.sprite = GetIcon(nodeData.type);
-
         bool isCurrent = nodeData.isUnlocked && !nodeData.isCleared;
         bool glowActive = nodeData.isCleared || isCurrent;
         bool ringActive = isCurrent; // "겉테두리가 빛나는" 표시는 지금 갈 수 있는 노드에만
 
-        // [수정] 현재 노드가 이미 클리어된 노드라면 curObj(현재 위치)를 끕니다.
+        // [수정] 현재 노드가 이미 클리어된 노드라면 현재 위치 표시를 하지 않습니다.
         // 아직 클리어되지 않고 해금된 노드 중에서만 판단합니다.
         bool playerHere = !nodeData.isCleared &&
                           ((manager != null && manager.CurrentNodeIndex == NodeIndex) ||
                            (uiController != null && uiController.IsPlayerAt(NodeIndex)));
 
-        // 클리어 오브젝트: 클리어된 노드에서만 활성화
-        if (successObj != null) successObj.SetActive(nodeData.isCleared);
-
-        // 현재 위치 오브젝트: 클리어되지 않은 목표/다음 노드에 활성화
-        if (curObj != null) curObj.SetActive(playerHere);
+        // iconImage 스프라이트를 상태에 따라 결정 (SetActive 대신 교체)
+        // 우선순위: 클리어 > 현재 위치 > 기본 타입 아이콘
+        if (iconImage != null)
+        {
+            if (nodeData.isCleared)
+                iconImage.sprite = successSprite;
+            else if (playerHere)
+                iconImage.sprite = currentSprite;
+            else
+                iconImage.sprite = GetIcon(nodeData.type);
+        }
 
         Color iconColor;
         float iconAlpha;
@@ -189,9 +195,14 @@ public class LDY_MapNodeView : MonoBehaviour
     {
         switch (type)
         {
-            case LDY_NodeType.Battle: return battleIcon;
-            case LDY_NodeType.Boss: return bossIcon;
-            default: return null;
+            case LDY_NodeType.Battle:
+                return battleIcon;
+            case LDY_NodeType.Boss:
+                return bossIcon;
+            default:
+                // type이 예상을 벗어났을 때도 기본 아이콘(예: battleIcon)을 넘겨주거나 디버그 로그 출력
+                Debug.LogWarning($"[LDY_MapNodeView] 정의되지 않은 노드 타입입니다: {type}");
+                return battleIcon;
         }
     }
 }

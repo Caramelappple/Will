@@ -16,6 +16,10 @@ MonoBehaviour:
   damage: 1
   range: 1
   duration: 0
+  description: aaaaaa
+  icon: {fileID: 21300000, guid: 87bcde1484a3e40449c3d41e66c987f6, type: 3}
+  buffAmount: 1
+  debuffAmount: 2
   effectPrefab: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
   expandTime: 0.25
   holdTime: 0.3
