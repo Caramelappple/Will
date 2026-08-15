@@ -195,6 +195,109 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &242891965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 242891966}
+  - component: {fileID: 242891970}
+  - component: {fileID: 242891969}
+  - component: {fileID: 242891968}
+  - component: {fileID: 242891967}
+  m_Layer: 0
+  m_Name: LDY_MapPlayerToken(Clone)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &242891966
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242891965}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1671757774}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -321.3333, y: 111}
+  m_SizeDelta: {x: 28, y: 28}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &242891967
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242891965}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &242891968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242891965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 098f7abe39a8fb94ea0e27edc3f3ae4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LDY_MapPlayerToken
+  mapSceneName: KTH_StageScene
+  sortingOrder: 100
+--- !u!114 &242891969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242891965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &242891970
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242891965}
+  m_CullTransparentMesh: 1
 --- !u!1 &342963148
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,6 +797,7 @@ GameObject:
   - component: {fileID: 1062778834}
   - component: {fileID: 1062778833}
   - component: {fileID: 1062778835}
+  - component: {fileID: 1062778836}
   m_Layer: 0
   m_Name: MapManager
   m_TagString: Untagged
@@ -716,16 +820,19 @@ MonoBehaviour:
   isTest: 0
   nodeContainerRect: {fileID: 1671757774}
   mapSceneName: KTH_StageScene
+  deathSceneName: KTH_Death Scene
+  bossClearSceneName: KTH_BossClearScene
   editorChapterIndex: 1
   editorStageIndex: 1
   nodePositions:
-  - {x: -129.33331, y: 108.33331}
-  - {x: 47.333374, y: -32.333374}
-  - {x: 180, y: 119}
-  - {x: 183.33337, y: -23.666687}
-  - {x: 305.33337, y: 123}
-  - {x: 404.66675, y: 58.333313}
-  nodeTypes: 010000000100000001000000010000000100000004000000
+  - {x: -321.3333, y: 111}
+  - {x: -158.66663, y: 28.333313}
+  - {x: 37.333374, y: 147.66666}
+  - {x: 216.66669, y: 221}
+  - {x: 358.66675, y: 175}
+  - {x: 352, y: -39.666687}
+  - {x: 549.3334, y: 113.66666}
+  nodeTypes: 01000000010000000100000001000000010000000100000004000000
   connections:
   - fromIndex: 0
     toIndex: 1
@@ -737,6 +844,8 @@ MonoBehaviour:
     toIndex: 4
   - fromIndex: 4
     toIndex: 5
+  - fromIndex: 5
+    toIndex: 6
   chapterMaps:
   - chapter: 1
     nodePositions:
@@ -765,7 +874,7 @@ MonoBehaviour:
   bossSceneName: KTH_SoundManagerScene
   stageRouterSource: {fileID: 1062778835}
   playerTokenPrefab: {fileID: 5716994852695685956, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
-  ldy_play: {fileID: 5716994852695685956, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
+  ldy_play: {fileID: 242891968}
   onShopNodeSelected:
     m_PersistentCalls:
       m_Calls: []
@@ -814,9 +923,31 @@ MonoBehaviour:
     nodeIndex: 0
     stage: {fileID: 11400000, guid: 9efdf403ceebdff47a1b69789d72dd6b, type: 2}
   - chapter: 1
-    nodeIndex: 1
+    nodeIndex: 6
+    stage: {fileID: 11400000, guid: 97c9f405dad1d8449b676a23c536989e, type: 2}
+  - chapter: 2
+    nodeIndex: 6
+    stage: {fileID: 11400000, guid: 97c9f405dad1d8449b676a23c536989e, type: 2}
+  typeStages:
+  - chapter: 1
+    nodeType: 1
     stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
-  typeStages: []
+  - chapter: 2
+    nodeType: 1
+    stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
+--- !u!114 &1062778836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062778832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecdb95e5abe460549b85c5188d4cddbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_ChapterClearManager
+  mapSceneName: KTH_StageScene
 --- !u!114 &1071272902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1911,7 +2042,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81f60949ea5837b4d96e3cdce2d8de76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemLibraryManager
-  unlockedPieces: []
+  unlockedPieces:
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   unlockedWills: []
 --- !u!1 &1569990472
 GameObject:
@@ -2188,7 +2320,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 242891966}
   m_Father: {fileID: 1902033370}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

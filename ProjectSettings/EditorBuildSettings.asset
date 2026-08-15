@@ -8,9 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/LSO/LSO_UI Scene.unity
     guid: 65957781026e19944a128303d44b13d1
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/_Scenes/LSO/LSO_Test.unity
+    guid: 8fcc342fef1543f46befcdb88367a5a1
+  - enabled: 1
+    path: Assets/_Scenes/LDY/LDY_TestScene.unity
+    guid: d0b46644fbe5ca24f8cca2fab700874e
   - enabled: 1
     path: Assets/_Scenes/KTH/KTH_StageScene.unity
     guid: ceb83a3633c7c3149b502ad48d4511e4
@@ -21,16 +24,13 @@ EditorBuildSettings:
     path: Assets/_Scenes/KTH/KTH_LoadingScene.unity
     guid: 7c7763e920e65074db3a37edc2f0c967
   - enabled: 1
-    path: Assets/_Scenes/KTH/KTH_SoundManagerScene.unity
-    guid: c5b06a8240902994daf1f6ada0ea816e
-  - enabled: 1
     path: Assets/_Scenes/KTH/KTH_TestScene.unity
     guid: 8259af19b903c424eb423cc54bf334e4
   - enabled: 1
-    path: Assets/_Scenes/KTH/KTH_UiTestScene.unity
-    guid: da57d393f0e68814da9ab602cf62171c
+    path: Assets/_Scenes/KTH/KTH_Death Scene.unity
+    guid: 7207dafd7538f804289eec38c6b03d60
   - enabled: 1
-    path: Assets/_Scenes/LDY/LDY_TestScene.unity
-    guid: d0b46644fbe5ca24f8cca2fab700874e
+    path: Assets/_Scenes/KTH/KTH_BossClearScene.unity
+    guid: 7fc2bcaac8f26bd4e9ccec491b46c2f7
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

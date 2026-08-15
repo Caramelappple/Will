@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
   stageName: 
   description: 
-  sceneName: KTH_SoundManagerScene
+  sceneName: KTH_BuildDeckScene
   enemies:
   - card: {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
     pos: {x: 4, y: 0, z: 3}

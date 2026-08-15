@@ -350,6 +350,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &70646589
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3149,6 +3151,7 @@ MonoBehaviour:
   closeButton: {fileID: 681692062}
   discardCardUI: {fileID: 0}
   outsideClickCatcher: {fileID: 0}
+  panelClickBlocker: {fileID: 0}
   animDuration: 0.7
   startYOffset: -1016
   startYRotation: -180
@@ -3675,6 +3678,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &571457310
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7755,6 +7760,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1219364775
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8052,6 +8059,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1273964883
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10312,6 +10321,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1621688124
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10581,10 +10592,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e839e4a50cd564cb7bad641e2b944b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckDataPersistent
-  savedInventory:
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  _savedInventory: []
 --- !u!4 &1663589429
 Transform:
   m_ObjectHideFlags: 0
@@ -12438,6 +12446,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &2073800961
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12821,6 +12831,56 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
+--- !u!114 &4597706533223753243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5244942929327959329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2c7403a4e0441843a0967bdfdb52236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_GameEndManager
+  onBossClear:
+    m_PersistentCalls:
+      m_Calls: []
+  onBattleClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &5244942929327959329
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5586049386691157376}
+  - component: {fileID: 4597706533223753243}
+  m_Layer: 0
+  m_Name: EndManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5586049386691157376
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5244942929327959329}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 6.26295, y: -0, z: 0.43694}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -12837,3 +12897,4 @@ SceneRoots:
   - {fileID: 35912877}
   - {fileID: 1360002261}
   - {fileID: 1663589429}
+  - {fileID: 5586049386691157376}
