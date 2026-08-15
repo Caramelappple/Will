@@ -38,6 +38,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly bool isEnhanced;
     private readonly DLJ_IWillEffect effect = new DLJ_SuccessionEffect();
     private GameObject effectInstance;
+    private bool hasInvoked;
     private bool isWaitingForAttackAnimation;
 
     internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillDataSO data)
@@ -53,7 +54,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         isWaitingForSuccessionTarget && !isCompletingSuccession;
 
     public bool ShouldDeferDestruction =>
-        isWaitingForAttackAnimation ||
+        !hasInvoked || isWaitingForAttackAnimation ||
         (isWaitingForSuccessionTarget && successionSource == this);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -69,6 +70,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
     public void InvokeWill()
     {
+        hasInvoked = true;
+
         if (attackSystem != null && attackSystem.IsBusy)
         {
             isWaitingForAttackAnimation = true;
@@ -76,7 +79,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             return;
         }
 
-        Activate();
+        if (!Activate() && animal != null)
+            Object.Destroy(animal.gameObject);
     }
 
     private IEnumerator WaitForAttackAnimation()
@@ -111,18 +115,14 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         isCompletingSuccession = false;
         isWaitingForSuccessionTarget = true;
 
-        if (effectPrefab != null)
-        {
-            effectInstance = Object.Instantiate(
+        effectInstance = effectPrefab != null
+            ? Object.Instantiate(
                 effectPrefab,
                 animal.transform.position,
-                Quaternion.identity);
-            effectInstance.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("Succession effect prefab is missing.");
-        }
+                Quaternion.identity)
+            : new GameObject("Succession Effect Origin");
+        effectInstance.transform.position = animal.transform.position;
+        effectInstance.SetActive(true);
 
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
