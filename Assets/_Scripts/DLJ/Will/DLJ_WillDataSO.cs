@@ -31,5 +31,7 @@ namespace _Scripts.LSO.Will
         public float holdTime = 0.3f;
         public float effectHeight = 0.12f;
         public float moveDuration = 1f;
+
+        public DLJ_SuccessionEffectSO successionEffect;
     }
 }

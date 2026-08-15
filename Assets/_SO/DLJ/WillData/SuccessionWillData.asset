@@ -21,3 +21,17 @@ MonoBehaviour:
   holdTime: 0.3
   effectHeight: 0.12
   moveDuration: 1
+  sigilSprite: {fileID: 0}
+  sigilColor: {r: 1, g: 1, b: 1, a: 1}
+  silenceDuration: 0.18
+  sigilRevealDuration: 0.25
+  sigilHoldDuration: 0.3
+  sigilFadeDuration: 0.35
+  successionLineColor: {r: 0.72, g: 0.92, b: 1, a: 0.9}
+  successionLineWidth: 0.025
+  successionLineHeight: 0.35
+  successionAbsorbDuration: 0.22
+  successionFlashDuration: 2.02
+  successionBloomIntensity: 0.4
+  successionLightIntensity: 0.19
+  successionLightRange: 1.6

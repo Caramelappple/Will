@@ -4027,6 +4027,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 1
   <MinValue>k__BackingField: 0
   _value: 1
+  logDamage: 1
+  logRecover: 1
 --- !u!1 &1033300768
 GameObject:
   m_ObjectHideFlags: 0
@@ -4063,6 +4065,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 2
   <MinValue>k__BackingField: 0
   _value: 2
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1033300770
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4885,6 +4889,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1165718494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5147,6 +5153,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1196145410
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5166,7 +5174,7 @@ MonoBehaviour:
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 0
-  <WillType>k__BackingField: 3
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1196145414}
 --- !u!65 &1196145411
 BoxCollider:
@@ -6777,6 +6785,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 1
   <MinValue>k__BackingField: 0
   _value: 1
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1519162824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7388,6 +7398,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1637888690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8100,6 +8112,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 2
   <MinValue>k__BackingField: 0
   _value: 2
+  logDamage: 1
+  logRecover: 1
 --- !u!1 &1750493474
 GameObject:
   m_ObjectHideFlags: 0
@@ -8151,6 +8165,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 1
   <MinValue>k__BackingField: 0
   _value: 1
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1750493477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8170,7 +8186,7 @@ MonoBehaviour:
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 1
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: -1
   modelTransform: {fileID: 1750493481}
 --- !u!65 &1750493478
 BoxCollider:
@@ -9099,6 +9115,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &1982195017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9490,6 +9508,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!1 &2007069828
 GameObject:
   m_ObjectHideFlags: 0
@@ -9750,6 +9770,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 7
   <MinValue>k__BackingField: 0
   _value: 7
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &2086254336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9976,63 +9998,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2104318133}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &2655072534278387991
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 3957086677548363848, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_Name
-      value: SuccesionEffect
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -5.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 6.37
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -21.14
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4699947904022695686, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 14cbcc0c0cfabf64f8b7a282b28a0fc4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -10055,5 +10020,4 @@ SceneRoots:
   - {fileID: 569145184}
   - {fileID: 445805753}
   - {fileID: 579526131}
-  - {fileID: 2655072534278387991}
   - {fileID: 132100057}
