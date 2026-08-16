@@ -73,15 +73,15 @@ public static class DLJ_WillRuntime
         };
 
         LSO_IWill will = LSO_WillFactory.Create(animal.WillType, context, data);
-        if (animal.WillType == LSO_WillType.Succession)
+        DLJ_DeathPreludeSO deathPrelude =
+            (data as DLJ_ContractWillDataSO)?.deathPrelude;
+        if (deathPrelude != null)
         {
-            // 계승은 발동 자체가 timeScale을 관리한다. 전조 정지가 풀린 뒤 넘겨야
-            // 계승이 0을 원래 배속으로 기억해 전투가 영구 정지되는 일을 막는다.
-            DLJ_WillPrelude.Begin(animal, data, () => will?.InvokeWill());
+            DLJ_WillPrelude.Begin(animal, deathPrelude);
+            will?.InvokeWill();
         }
         else
         {
-            DLJ_WillPrelude.Begin(animal, data);
             will?.InvokeWill();
         }
         return will;
@@ -127,26 +127,29 @@ public static class DLJ_WillPrelude
     /// </summary>
     public static void Begin(
         LDY_Animal animal,
-        DLJ_WillDataSO data,
+        DLJ_DeathPreludeSO settings,
         System.Action onRevealed = null)
     {
-        if (animal == null)
+        if (animal == null || settings == null)
+        {
+            onRevealed?.Invoke();
             return;
+        }
 
         EnsureRunner();
-        GameObject sigil = CreateSigilPlaceholder(animal, data);
+        GameObject sigil = CreateSigilPlaceholder(animal, settings);
         AcquirePause();
-        runner.StartCoroutine(Animate(sigil, data, onRevealed));
+        runner.StartCoroutine(Animate(sigil, settings, onRevealed));
     }
 
     private static IEnumerator Animate(
         GameObject sigil,
-        DLJ_WillDataSO data,
+        DLJ_DeathPreludeSO settings,
         System.Action onRevealed)
     {
         try
         {
-            yield return WaitRealtime(data != null ? data.successionEffect.silenceDuration : 0.18f);
+            yield return WaitRealtime(settings.silenceDuration);
 
             if (sigil == null)
                 yield break;
@@ -157,7 +160,7 @@ public static class DLJ_WillPrelude
 
             float duration = Mathf.Max(
                 0f,
-                data != null ? data.successionEffect.sigilRevealDuration : 0.25f);
+                settings.revealDuration);
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -184,13 +187,13 @@ public static class DLJ_WillPrelude
         if (sigil == null)
             yield break;
 
-        yield return WaitRealtime(data != null ? data.successionEffect.sigilHoldDuration : 0.3f);
+        yield return WaitRealtime(settings.holdDuration);
 
         SpriteRenderer renderer = sigil.GetComponent<SpriteRenderer>();
         Color startColor = renderer != null ? renderer.color : Color.clear;
         float fadeDuration = Mathf.Max(
             0f,
-            data != null ? data.successionEffect.sigilFadeDuration : 0.35f);
+            settings.fadeDuration);
         float fadeElapsed = 0f;
 
         while (sigil != null && fadeElapsed < fadeDuration)
@@ -214,7 +217,7 @@ public static class DLJ_WillPrelude
 
     private static GameObject CreateSigilPlaceholder(
         LDY_Animal animal,
-        DLJ_WillDataSO data)
+        DLJ_DeathPreludeSO settings)
     {
         GameObject sigil = new GameObject($"Will Sigil - {animal.WillType}");
         sigil.transform.position = animal.transform.position + Vector3.up * 0.01f;
@@ -222,8 +225,8 @@ public static class DLJ_WillPrelude
         sigil.transform.localScale = Vector3.zero;
 
         SpriteRenderer renderer = sigil.AddComponent<SpriteRenderer>();
-        renderer.sprite = data != null ? data.successionEffect.sigilSprite : null;
-        renderer.color = data != null ? data.successionEffect.sigilColor : Color.white;
+        renderer.sprite = settings.sigilSprite;
+        renderer.color = settings.sigilColor;
         renderer.sortingOrder = 1;
         return sigil;
     }

@@ -9,7 +9,13 @@ public sealed class DLJ_SacrificeSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_SacrificeWill(context.animal, context.board, data);
+        if (data is not DLJ_SacrificeWillDataSO sacrificeData)
+        {
+            Debug.LogError($"Sacrifice requires {nameof(DLJ_SacrificeWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_SacrificeWill(context.animal, context.board, sacrificeData);
     }
 }
 
@@ -31,13 +37,13 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
     private readonly int healthBonus;
-    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_SacrificeWillDataSO data;
     private readonly DLJ_IWillEffect effect = new DLJ_SacrificeEffect();
 
     internal DLJ_SacrificeWill(
         LDY_Animal sourceOwner,
         LDY_BoardManager sourceBoard,
-        DLJ_WillDataSO sourceData)
+        DLJ_SacrificeWillDataSO sourceData)
     {
         owner = sourceOwner;
         board = sourceBoard;

@@ -10,7 +10,13 @@ public sealed class DLJ_RageSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_RageWill(context, data);
+        if (data is not DLJ_RageWillDataSO rageData)
+        {
+            Debug.LogError($"Rage requires {nameof(DLJ_RageWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_RageWill(context, rageData);
     }
 }
 
@@ -19,11 +25,11 @@ internal sealed class DLJ_RageWill : LSO_IWill
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
-    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_RageWillDataSO data;
     private readonly int damage;
     private readonly DLJ_IWillEffect effect = new DLJ_RageEffect();
 
-    internal DLJ_RageWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
+    internal DLJ_RageWill(DLJ_WillContext context, DLJ_RageWillDataSO sourceData)
     {
         owner = context.animal;
         board = context.board;
