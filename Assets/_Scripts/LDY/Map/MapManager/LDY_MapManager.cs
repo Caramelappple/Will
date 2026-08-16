@@ -51,6 +51,12 @@ public class LDY_MapManager : MonoBehaviour
     [Header("맵 씬 이름")]
     [SerializeField] private string mapSceneName = "MapScene";
 
+    [Header("패배 시 이동할 씬 이름 (통합 패배 씬)")]
+    [SerializeField] private string deathSceneName = "KTH_Death Scene";
+
+    [Header("보스 승리 시 이동할 씬 이름 (비워두면 맵으로 복귀)")]
+    [SerializeField] private string bossClearSceneName = "KTH_Boss Clear Scene";
+
     [Header("에디터에서 편집할 챕터 & 스테이지 번호")]
     [SerializeField] private int editorChapterIndex = 1;
     [SerializeField] private int editorStageIndex = 1;
@@ -104,6 +110,12 @@ public class LDY_MapManager : MonoBehaviour
 
     private bool waitingForRewardBeforeMapReturn = false;
 
+    /// <summary>
+    /// 보상 대기 중일 때, 보상 UI가 끝난 뒤 어떤 씬으로 갈지 판단하기 위해
+    /// 클리어한 노드의 타입을 잠깐 보관해두는 필드.
+    /// </summary>
+    private LDY_NodeType _pendingClearedNodeType = LDY_NodeType.Battle;
+
     public List<LDY_MapNode> Nodes { get; private set; } = new List<LDY_MapNode>();
 
     public LDY_NodeConnection[] Connections
@@ -138,36 +150,17 @@ public class LDY_MapManager : MonoBehaviour
         SetChapterAndStage(editorChapterIndex, editorStageIndex);
     }
 
-    /// <summary>
-    /// 이 오브젝트는 DontDestroyOnLoad라 Start가 게임당 한 번만 돈다.
-    /// 맵으로 돌아올 때마다 다시 불러오지 않는 것은 의도한 것이다.
-    /// </summary>
     private IEnumerator Start()
     {
-        // Awake에서 파괴 예약된 중복 인스턴스는 여기까지 오면 안 된다.
         if (Instance != this) yield break;
 
-        // 덱과 해금 매니저가 Awake를 마칠 때까지 한 프레임 기다린다.
         yield return null;
 
         TryRestoreOnEntry();
     }
 
-    /// <summary>
-    /// 맵에 들어온 시점에 이어할 런이 있으면 되돌린다.
-    ///
-    /// 게임에서는 Start가 한 번 부르는 것이 전부다. 별도 메서드로 떼어둔 것은,
-    /// Start가 세션당 한 번뿐이라 분기를 다시 태워볼 방법이 없기 때문이다.
-    /// (LDY_SaveDebugHotkeys가 같은 플레이 안에서 반복해 부른다.)
-    ///
-    /// ⚠ 새 런으로 들어온 것인지는 LDY_RunEntryState가 알려주기로 되어 있지만,
-    /// 아직 그것을 켜주는 진입점이 없다. 그래서 덱빌드를 마치고 맵에 처음 들어오는 흐름에서도
-    /// 세이브가 있으면 그쪽이 이겨서 방금 만든 덱을 덮어쓴다.
-    /// 메인 메뉴의 게임 시작과 덱빌드 완료에서 IsStartingNewRun을 켜주면 그때 해결된다.
-    /// </summary>
     public void TryRestoreOnEntry()
     {
-        // 새 런이면 방금 만들어진 상태가 옳다. 세이브를 덮어씌우지 않는다.
         if (LDY_RunEntryState.Consume()) return;
 
         if (LDY_SaveService.Instance.HasRun)
@@ -186,28 +179,18 @@ public class LDY_MapManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase))
-        {
-            StartCoroutine(Co_DelayedInitToken());
+        if (!scene.name.Equals(mapSceneName, StringComparison.OrdinalIgnoreCase))
+            return;
 
-            AutoSaveOnMapReentry();
-        }
+        AutoSaveOnMapReentry();
+
+        StartCoroutine(Co_InitializeMapAfterLoad());
     }
 
-    /// <summary>
-    /// 맵으로 돌아올 때마다 저장한다.
-    ///
-    /// 전투 승리 판정 지점이 코드에 아직 없어서, "전투 → 보상 → 맵 복귀" 흐름에서
-    /// 맵 씬이 다시 로드된다는 사실을 대신 신호로 쓴다.
-    /// 정식 승리 훅이 생기면 저장 호출은 그쪽으로 옮기고 여기서 뺄 것.
-    /// </summary>
     private void AutoSaveOnMapReentry()
     {
-        // 맵 씬을 다시 열면 씬에 놓인 두 번째 인스턴스도 Awake에서 파괴되기 전에
-        // 이 이벤트를 함께 받는다. 걸러내지 않으면 한 번의 복귀에 저장이 두 번 돈다.
         if (Instance != this) return;
 
-        // 첫 진입은 방금 TryRestoreOnEntry가 되돌려놓은 상태다. 그대로 다시 쓰는 것은 의미가 없다.
         if (ConsumeFirstMapEntry()) return;
 
         Debug.Log("[LDY_MapManager] 맵 재진입 감지 — 자동저장 실행");
@@ -215,9 +198,6 @@ public class LDY_MapManager : MonoBehaviour
         LDY_SaveService.Instance.SaveRun();
     }
 
-    /// <summary>
-    /// 첫 맵 진입을 한 번만 집어간다. 처음이면 true를 돌려주고, 그 뒤로는 항상 false다.
-    /// </summary>
     private bool ConsumeFirstMapEntry()
     {
         if (!_firstMapEntryPending) return false;
@@ -235,33 +215,28 @@ public class LDY_MapManager : MonoBehaviour
 
         onMapChanged?.Invoke();
 
-        if (nodeContainerRect != null && Nodes.Count > 0)
+        if (Nodes == null || Nodes.Count == 0)
         {
-            if (IsValidIndex(previousNodeIndex) && IsValidIndex(CurrentNodeIndex) && previousNodeIndex != CurrentNodeIndex)
-            {
-                SetTokenPositionToNode(previousNodeIndex);
-
-                List<Vector2> path = new List<Vector2>
-                {
-                    Nodes[previousNodeIndex].position,
-                    Nodes[CurrentNodeIndex].position
-                };
-
-                if (ldy_play != null)
-                {
-                    ldy_play.MoveAlongPath(path, () =>
-                    {
-                        previousNodeIndex = CurrentNodeIndex;
-                        onMapChanged?.Invoke();
-                    }, 0.8f);
-                }
-            }
-            else
-            {
-                int spawnIndex = IsValidIndex(CurrentNodeIndex) ? CurrentNodeIndex : 0;
-                SetTokenPositionToNode(spawnIndex);
-            }
+            Debug.LogWarning("[LDY_MapManager] 노드가 생성되지 않아 토큰을 배치할 수 없습니다.");
+            yield break;
         }
+
+        if (!IsValidIndex(CurrentNodeIndex))
+        {
+            Debug.LogWarning(
+                $"[LDY_MapManager] CurrentNodeIndex가 유효하지 않습니다. " +
+                $"Chapter: {CurrentChapter}, Stage: {CurrentStage}"
+            );
+
+            yield break;
+        }
+
+        SetTokenPositionToNode(CurrentNodeIndex);
+
+        yield return null;
+
+        if (ldy_play != null)
+            ldy_play.BringToFront();
     }
 
     private void ResolveStageRouter()
@@ -308,6 +283,17 @@ public class LDY_MapManager : MonoBehaviour
             targetData.nodeTypes = (LDY_NodeType[])nodeTypes.Clone();
             targetData.connections = (LDY_NodeConnection[])connections.Clone();
         }
+    }
+
+    private IEnumerator Co_InitializeMapAfterLoad()
+    {
+        yield return null;
+
+        TryRestoreOnEntry();
+
+        yield return null;
+
+        yield return StartCoroutine(Co_DelayedInitToken());
     }
 
     public void SetChapterAndStage(int chapter, int stage)
@@ -377,13 +363,6 @@ public class LDY_MapManager : MonoBehaviour
         onMapChanged?.Invoke();
     }
 
-    /// <summary>
-    /// 세이브에서 읽은 진행도를 되돌린다.
-    ///
-    /// SetChapterAndStage로 노드 뼈대를 세운 뒤 노드별 상태를 덮어쓴다.
-    /// 뼈대만으로 끝내지 않는 것은, 그쪽이 "stage 직전까지 순서대로 클리어"를 가정하기 때문이다.
-    /// 맵에 분기가 생기면 어느 갈래를 지나왔는지는 저장된 인덱스로만 알 수 있다.
-    /// </summary>
     public void RestoreProgress(
         int chapter,
         int stage,
@@ -410,14 +389,8 @@ public class LDY_MapManager : MonoBehaviour
         ApplyNodeFlags(unlockedIndices, cleared: false);
 
         CurrentNodeIndex = IsValidIndex(currentNode) ? currentNode : -1;
-
-        // 불러온 직후에는 토큰이 이동 연출 없이 제자리에 서야 한다.
-        // previousNodeIndex가 다르면 Co_DelayedInitToken이 지나온 적 없는 길을 걸어간다.
         previousNodeIndex = CurrentNodeIndex;
-
-        // 저장은 스테이지 경계에서만 일어나므로, 불러온 시점에 들어가 있는 스테이지는 없다.
         activeNodeIndex = -1;
-
         BattleEntryCount = Mathf.Max(0, battleEntries);
 
         onStageChanged?.Invoke();
@@ -519,6 +492,15 @@ public class LDY_MapManager : MonoBehaviour
         }
 
         onMapChanged?.Invoke();
+    }
+
+    private int CalculateNodeIndex(int chapter, int stage)
+    {
+        if (Nodes == null || Nodes.Count == 0)
+            return -1;
+
+        int index = stage - 1;
+        return IsValidIndex(index) ? index : -1;
     }
 
     public void OnNodeClicked(int index)
@@ -649,6 +631,8 @@ public class LDY_MapManager : MonoBehaviour
         LDY_NodeType type = Nodes[activeNodeIndex].type;
         bool willGiveReward = (type == LDY_NodeType.Battle || type == LDY_NodeType.Boss) && giveReward != null;
 
+        _pendingClearedNodeType = type;
+
         if (willGiveReward)
         {
             waitingForRewardBeforeMapReturn = true;
@@ -656,25 +640,42 @@ public class LDY_MapManager : MonoBehaviour
             KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
             if (rewardUI != null)
             {
-                rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap; // 중복 구독 방지
+                rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
                 rewardUI.OnRewardResolved += HandleRewardResolvedThenReturnToMap;
             }
             else
             {
-                // 보상 UI를 못 찾으면 대기 상태로 남지 않도록 안전 처리
-                Debug.LogWarning("[LDY_MapManager] KTH_RewardChoiceUI 인스턴스를 찾을 수 없어 즉시 맵으로 전환합니다.");
+                Debug.LogWarning("[LDY_MapManager] KTH_RewardChoiceUI 인스턴스를 찾을 수 없어 즉시 씬을 전환합니다.");
                 waitingForRewardBeforeMapReturn = false;
             }
         }
 
-        CompleteActiveNode(); // 내부에서 TriggerStageReward → ShowRewards가 트리거됨
+        CompleteActiveNode();
 
         if (!waitingForRewardBeforeMapReturn)
         {
-            GoToMapScene();
+            GoToPostClearScene(_pendingClearedNodeType);
         }
-        // willGiveReward == true인 경우, 실제 씬 전환은
-        // HandleRewardResolvedThenReturnToMap에서 수행됨
+    }
+
+    /// <summary>
+    /// 전투 패배 시 호출된다.
+    /// 전투/보스 구분 없이 공용 패배 씬(deathSceneName)으로 이동한다.
+    /// </summary>
+    public void FailActiveNodeAndReturnToMap()
+    {
+        Debug.Log($"[LDY_MapManager] 스테이지 패배 처리 (activeNodeIndex: {activeNodeIndex})");
+
+        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
+        if (rewardUI != null)
+        {
+            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+        }
+
+        waitingForRewardBeforeMapReturn = false;
+        activeNodeIndex = -1;
+
+        GoToDeathScene();
     }
 
     private void HandleRewardResolvedThenReturnToMap()
@@ -686,7 +687,7 @@ public class LDY_MapManager : MonoBehaviour
         }
 
         waitingForRewardBeforeMapReturn = false;
-        GoToMapScene();
+        GoToPostClearScene(_pendingClearedNodeType);
     }
 
     private void GoToMapScene()
@@ -700,6 +701,43 @@ public class LDY_MapManager : MonoBehaviour
         SceneManager.LoadScene(mapSceneName);
     }
 
+    /// <summary>
+    /// 클리어(승리) 후 이동할 씬을 노드 타입에 따라 결정한다.
+    /// Boss는 bossClearSceneName으로, 그 외(일반 전투)는 맵으로 돌아간다.
+    /// </summary>
+    private void GoToPostClearScene(LDY_NodeType clearedNodeType)
+    {
+        if (clearedNodeType == LDY_NodeType.Boss && !string.IsNullOrEmpty(bossClearSceneName))
+        {
+            Debug.Log($"[LDY_MapManager] 보스 클리어 씬 이동 -> {bossClearSceneName}");
+            SceneManager.LoadScene(bossClearSceneName);
+            return;
+        }
+
+        GoToMapScene();
+    }
+
+    /// <summary>
+    /// 패배 시 공용 Death Scene으로 전환한다.
+    /// </summary>
+    private void GoToDeathScene()
+    {
+        if (string.IsNullOrEmpty(deathSceneName))
+        {
+            Debug.LogWarning(
+                "[LDY_MapManager] Death Scene 이름이 비어 있어 맵으로 대신 돌아갑니다.",
+                this
+            );
+
+            GoToMapScene();
+            return;
+        }
+
+        Debug.Log($"[LDY_MapManager] 패배 씬 이동 -> {deathSceneName}");
+
+        SceneManager.LoadScene(deathSceneName);
+    }
+
     public void CompleteNode(int index)
     {
         if (!IsValidIndex(index)) return;
@@ -710,22 +748,17 @@ public class LDY_MapManager : MonoBehaviour
             return;
         }
 
-        // 1. 현재 노드 클리어
         Nodes[index].isCleared = true;
 
-        // 2. 스테이지 클리어 및 보상 지급 연동 ★
         if (Nodes[index].type == LDY_NodeType.Battle)
         {
             int clearedChapter = currentChapter;
             int clearedStage = currentStage;
 
-            // 스테이지 완료 로그 출력
             Debug.Log($"[LDY_MapManager] 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
 
-            // ★ 보상 지급 요청 (현재 클리어한 챕터와 스테이지 전달)
             TriggerStageReward(clearedChapter, clearedStage);
 
-            // 다음 진행을 위해 스테이지 카운트 증가
             currentStage++;
             editorStageIndex = currentStage;
             onStageChanged?.Invoke();
@@ -737,7 +770,6 @@ public class LDY_MapManager : MonoBehaviour
 
             Debug.Log($"[LDY_MapManager] 보스 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
 
-            // ★ 보스 보상 지급 요청
             TriggerStageReward(clearedChapter, clearedStage);
 
             currentChapter++;
@@ -754,7 +786,6 @@ public class LDY_MapManager : MonoBehaviour
             return;
         }
 
-        // 3. 연결된 다음 노드 해금
         int firstNextIndex = -1;
         if (Nodes[index].nextIndices != null && Nodes[index].nextIndices.Count > 0)
         {
@@ -770,20 +801,15 @@ public class LDY_MapManager : MonoBehaviour
 
         activeNodeIndex = -1;
 
-        // 4. 다음 위치 지정
         if (firstNextIndex >= 0)
         {
             previousNodeIndex = index;
             CurrentNodeIndex = firstNextIndex;
         }
 
-        // 5. UI 및 데이터 갱신 이벤트 호출
         onMapChanged?.Invoke();
     }
 
-    /// <summary>
-    /// KTH_GiveReward 또는 KTH_Reward에 보상 지급을 연동하는 전용 헬퍼 메서드
-    /// </summary>
     private void TriggerStageReward(int chapter, int stage)
     {
         if (giveReward == null)
@@ -887,6 +913,45 @@ public class LDY_MapManager : MonoBehaviour
         Debug.Log($"[LDY_MapManager] 라우터 기반 씬 이동 시작 -> Target Scene: {targetSceneName}");
 
         KTH_LoadingSceneController.LoadScene(targetSceneName);
+    }
+
+    public void ResetProgress()
+    {
+        Debug.Log("[LDY_MapManager] 진행도를 1-1로 초기화합니다.");
+
+        // 현재 진행도 초기화
+        currentChapter = 1;
+        currentStage = 1;
+
+        editorChapterIndex = 1;
+        editorStageIndex = 1;
+
+        // 현재 노드 상태 초기화
+        activeNodeIndex = -1;
+        CurrentNodeIndex = -1;
+        previousNodeIndex = -1;
+
+        BattleEntryCount = 0;
+
+        isWaitingSecondClick = false;
+        isNodeActionInProgress = false;
+        waitingForRewardBeforeMapReturn = false;
+
+        // 1챕터 맵 다시 불러오기
+        LoadChapterToEditor(1);
+
+        // 노드 다시 생성
+        BuildNodes();
+
+        // 저장 데이터도 현재 초기화 상태로 덮어쓰기
+        if (LDY_SaveService.Instance != null)
+        {
+            LDY_SaveService.Instance.SaveRun();
+            Debug.Log("[LDY_MapManager] 초기화된 진행도를 저장했습니다.");
+        }
+
+        onStageChanged?.Invoke();
+        onMapChanged?.Invoke();
     }
 
     private void RequestPopup(Vector2 screenUV, LDY_MapNode node, LDY_MapNodeUnityEvent popupEvent)

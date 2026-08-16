@@ -766,8 +766,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ec9f1713f3c6374b9cbe9c65e435c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckBuilderManager
-  cardDatabase:
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  cardDatabase: []
   initialInventoryCards: []
   cardUIPrefab: {fileID: 6183207813101924754, guid: 3fec95c7e41a03847ae1d58ebe76d28e, type: 3}
   poolContainer: {fileID: 955319489}
@@ -778,7 +777,7 @@ MonoBehaviour:
   nextButton: {fileID: 1259842424}
   completeButton: {fileID: 755815063}
   resetButton: {fileID: 215173449}
-  nextSceneName: KTH_TestScene
+  nextSceneName: LSO_Test
   flipAnimDuration: 0.4
   resetAnimDuration: 0.35
   cardAnimInterval: 0.05
