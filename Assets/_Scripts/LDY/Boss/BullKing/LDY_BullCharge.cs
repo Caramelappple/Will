@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using _Scripts.LSO.Ability;
 using UnityEngine;
 
@@ -17,7 +18,8 @@ namespace _Scripts.LDY.Boss.BullKing
     /// 이동 후보를 만드는 건 LDY_MoveSystem이라 특성이 후보를 고를 수는 없고,
     /// 돌진이 아닌 후보에 큰 감점을 줘서 고르지 않게 하는 방식이다.
     /// </summary>
-    public sealed class LDY_BullCharge : LSO_IAbility, LSO_IAbilityInitializable, LDY_IOnMoved
+    public sealed class LDY_BullCharge : LSO_IAbility, LSO_IAbilityInitializable,
+        LDY_IOnMoved, LDY_IMoveVisualModifier, LDY_IMoveDirections
     {
         private readonly LDY_BullCollision _collision = new();
 
@@ -34,6 +36,25 @@ namespace _Scripts.LDY.Boss.BullKing
             if (_boss == null)
                 Debug.LogError($"{_owner?.name}: LDY_BullKingBoss가 없어 돌진이 동작하지 않습니다.", _owner);
         }
+
+        /// <summary>
+        /// 황소왕은 룩처럼 상하좌우로만 달린다. 대각선 칸은 이동 후보에 아예 오르지 않는다.
+        ///
+        /// AI 감점으로 억제하지 않고 여기서 막는 이유는, 플레이어가 이 기물을 조종할 때는
+        /// 점수를 거치지 않기 때문이다. 그쪽은 이동 가능 타일 표시가 곧 규칙이다.
+        /// </summary>
+        public IReadOnlyList<Vector3Int> MoveDirections => LDY_ChargePath.Directions;
+
+        /// <summary>
+        /// 황소왕의 이동은 전부 돌진이므로 거리를 가리지 않고 돌진 속도를 쓴다.
+        /// 일반 기물보다 훨씬 빠르고, 멀리 갈수록 오래 달린다.
+        /// </summary>
+        public float ModifyMoveDuration(LDY_Animal self, int distance, float duration)
+        {
+            return _boss != null ? _boss.ChargeDuration(distance) : duration;
+        }
+
+        public AnimationCurve MoveEasing => _boss != null ? _boss.ChargeEasing : null;
 
         public void OnMoved(LDY_Animal self, Vector3Int from, Vector3Int to)
         {

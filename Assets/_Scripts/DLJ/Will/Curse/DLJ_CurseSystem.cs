@@ -8,7 +8,13 @@ public sealed class DLJ_CurseSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_CurseWill(context, data);
+        if (data is not DLJ_CurseWillDataSO curseData)
+        {
+            Debug.LogError($"Curse requires {nameof(DLJ_CurseWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_CurseWill(context, curseData);
     }
 }
 
@@ -18,11 +24,11 @@ internal sealed class DLJ_CurseWill : LSO_IWill
     private readonly LDY_TurnManager turnManager;
     private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
-    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_CurseWillDataSO data;
     private readonly int duration;
     private readonly DLJ_IWillEffect effect = new DLJ_CurseEffect();
 
-    internal DLJ_CurseWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
+    internal DLJ_CurseWill(DLJ_WillContext context, DLJ_CurseWillDataSO sourceData)
     {
         owner = context.animal;
         turnManager = context.turnManager;

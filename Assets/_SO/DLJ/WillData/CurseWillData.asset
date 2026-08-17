@@ -9,15 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a8e4d51be6d40e8a6b4674861445c38, type: 3}
+  m_Script: {fileID: 11500000, guid: cd3ed839426f454e8f907795a472555a, type: 3}
   m_Name: CurseWillData
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.DLJ_WillDataSO
-  willType: 0
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CurseWillDataSO
+  description: 
+  icon: {fileID: 0}
+  effectPrefab: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
   damage: 1
   range: 1
   duration: 2
-  effectPrefab: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
   expandTime: 0.25
-  holdTime: 0.3
   effectHeight: 0.12
-  moveDuration: 1

@@ -777,7 +777,7 @@ MonoBehaviour:
   nextButton: {fileID: 1259842424}
   completeButton: {fileID: 755815063}
   resetButton: {fileID: 215173449}
-  nextSceneName: KTH_UiTestScene
+  nextSceneName: LSO_Test
   flipAnimDuration: 0.4
   resetAnimDuration: 0.35
   cardAnimInterval: 0.05
@@ -1738,7 +1738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e839e4a50cd564cb7bad641e2b944b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckDataPersistent
-  savedInventory: []
+  _savedInventory: []
 --- !u!4 &1931667756
 Transform:
   m_ObjectHideFlags: 0

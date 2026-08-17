@@ -27,7 +27,7 @@ RectTransform:
   m_GameObject: {fileID: 222462190180147775}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3420681166915692780}
@@ -106,11 +106,11 @@ MonoBehaviour:
   borderImage: {fileID: 8758862278336605162}
   iconImage: {fileID: 7098611573854716157}
   cornerStarImage: {fileID: 2285391780942898814}
-  battleIcon: {fileID: 343404050, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
-  successObj: {fileID: 2720436221668690408}
-  curObj: {fileID: 2044353573857670938}
-  bossIcon: {fileID: 1733515228, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
-  iconFillRatio: 0.9
+  battleIcon: {fileID: 1080285106, guid: 82415171877d0cc45b7f0d4a90c54649, type: 3}
+  bossIcon: {fileID: -1818400976, guid: e0dd655bcaf1f6845b4aa753be70839d, type: 3}
+  successSprite: {fileID: -187687155, guid: 23eb876792525604297abfaad4b74bd3, type: 3}
+  currentSprite: {fileID: -400850087, guid: 27ea174e56072f84097c03da43843b5f, type: 3}
+  iconFillRatio: 1
 --- !u!1 &2044353573857670938
 GameObject:
   m_ObjectHideFlags: 0

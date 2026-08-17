@@ -11,8 +11,9 @@ public sealed class DLJ_SacrificeEffect : DLJ_IWillEffect
         if (effectObject != null)
         {
             effectObject.SetActive(true);
-            float lifetime = context?.data != null
-                ? Mathf.Max(0f, context.data.holdTime)
+            DLJ_SacrificeWillDataSO data = context?.data as DLJ_SacrificeWillDataSO;
+            float lifetime = data != null
+                ? Mathf.Max(0f, data.holdTime)
                 : 0f;
             UnityEngine.Object.Destroy(effectObject, lifetime);
         }

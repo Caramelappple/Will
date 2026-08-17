@@ -89,7 +89,7 @@ SpriteRenderer:
   m_Size: {x: 64.25, y: 37.75}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &2513319033924122658
 GameObject:
@@ -193,7 +193,7 @@ RectTransform:
   m_GameObject: {fileID: 3546046505775929431}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.3, y: 1.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6012625739892617233}
@@ -273,11 +273,11 @@ MonoBehaviour:
   borderImage: {fileID: 3885836230080927309}
   iconImage: {fileID: 2304303932146262602}
   cornerStarImage: {fileID: 2568519071572257396}
-  battleIcon: {fileID: 343404050, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
-  successObj: {fileID: 6956819831556466758}
-  curObj: {fileID: 321069711757398409}
-  bossIcon: {fileID: 1733515228, guid: 7f69126790bdc264088b71208c11f15a, type: 3}
-  iconFillRatio: 0.9
+  battleIcon: {fileID: 1080285106, guid: 82415171877d0cc45b7f0d4a90c54649, type: 3}
+  bossIcon: {fileID: 499588867, guid: e0dd655bcaf1f6845b4aa753be70839d, type: 3}
+  successSprite: {fileID: -187687155, guid: 23eb876792525604297abfaad4b74bd3, type: 3}
+  currentSprite: {fileID: -400850087, guid: 27ea174e56072f84097c03da43843b5f, type: 3}
+  iconFillRatio: 1
 --- !u!1 &3781996385005055102
 GameObject:
   m_ObjectHideFlags: 0
@@ -367,7 +367,7 @@ SpriteRenderer:
   m_Size: {x: 50.25, y: 50.25}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &4417308226236528071
 GameObject:
@@ -537,7 +537,7 @@ SpriteRenderer:
   m_Size: {x: 61.666668, y: 62}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &7329851704190284140
 GameObject:

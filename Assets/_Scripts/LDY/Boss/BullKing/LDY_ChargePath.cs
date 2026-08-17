@@ -45,7 +45,7 @@ namespace _Scripts.LDY.Boss.BullKing
     public static class LDY_ChargePath
     {
         /// <summary>돌진은 룩처럼 상하좌우로만 달린다. 대각선은 포함하지 않는다.</summary>
-        public static readonly Vector3Int[] Directions =
+        public static readonly IReadOnlyList<Vector3Int> Directions = new[]
         {
             new Vector3Int(0, 0, 1),
             new Vector3Int(0, 0, -1),

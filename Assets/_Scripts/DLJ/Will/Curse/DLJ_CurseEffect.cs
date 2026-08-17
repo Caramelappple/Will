@@ -15,8 +15,9 @@ public sealed class DLJ_CurseEffect : DLJ_IWillEffect
             return;
         }
 
-        float height = context.data != null ? context.data.effectHeight : 0.12f;
-        float expandTime = context.data != null ? context.data.expandTime : 0.25f;
+        DLJ_CurseWillDataSO data = context.data as DLJ_CurseWillDataSO;
+        float height = data != null ? data.effectHeight : 0.12f;
+        float expandTime = data != null ? data.expandTime : 0.25f;
         Transform effectTransform = effectObject.transform;
         effectTransform.position = context.origin + Vector3.up * (height * 0.5f);
         Vector3 targetScale = new Vector3(
