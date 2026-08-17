@@ -148,7 +148,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
   health: {fileID: 4252821230286214157}
   pos: {x: 0, y: 0, z: 0}
-  team: 0
+  team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 2
@@ -166,7 +166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
-  healthThreshold: 15
+  healthThreshold: 17
 --- !u!114 &-8584810884870325977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,4 +193,30 @@ MonoBehaviour:
   rageChainRange: 1
   maxRageChainPerCharge: 3
   rageChainHitsBullKing: 1
+  chargeSecondsPerTile: 0.07
+  minChargeDuration: 0.15
+  chargeEasing:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   pushDuration: 0.2

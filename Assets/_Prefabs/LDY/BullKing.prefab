@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4668678308450700154}
   - component: {fileID: 3815942609657825246}
   - component: {fileID: 6982409620830444211}
-  - component: {fileID: 6207475165797997739}
   - component: {fileID: 379644851776920866}
   - component: {fileID: 5705605435717741344}
   m_Layer: 0
@@ -72,19 +71,6 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: -1
   modelTransform: {fileID: 4668678308450700154}
---- !u!114 &6207475165797997739
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5836292567115136890}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
-  healthThreshold: 15
 --- !u!114 &379644851776920866
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,6 +97,32 @@ MonoBehaviour:
   rageChainRange: 1
   maxRageChainPerCharge: 3
   rageChainHitsBullKing: 1
+  chargeSecondsPerTile: 0.07
+  minChargeDuration: 0.15
+  chargeEasing:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   pushDuration: 0.2
 --- !u!114 &5705605435717741344
 MonoBehaviour:

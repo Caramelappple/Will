@@ -301,7 +301,7 @@ RectTransform:
   m_GameObject: {fileID: 1477545854950431822}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4.9649, y: 7.0989, z: 1}
+  m_LocalScale: {x: 5.345211, y: 7.6426754, z: 1.0766}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 581186619072854957}
@@ -1416,7 +1416,6 @@ MonoBehaviour:
   handContainer: {fileID: 1956698979295497679}
   handSpacing: 150
   uiCamera: {fileID: 0}
-  targetCardScale: {x: 1, y: 1, z: 1}
   moveDuration: 0.6
   flipAnimDuration: 2
   cardAnimInterval: 2
@@ -1767,6 +1766,7 @@ MonoBehaviour:
   closeButton: {fileID: 3665995680291257330}
   discardCardUI: {fileID: 4862069167101405155}
   outsideClickCatcher: {fileID: 0}
+  panelClickBlocker: {fileID: 5686508136518372752}
   animDuration: 0.7
   startYOffset: -1016
   startYRotation: -180

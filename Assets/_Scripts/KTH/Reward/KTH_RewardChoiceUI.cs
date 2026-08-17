@@ -1,65 +1,121 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening; // ⭐ DOTween 네임스페이스
+using DG.Tweening;
 
 public class KTH_RewardChoiceUI : MonoBehaviour
 {
     [Header("보상 UI 프리팹 및 부모")]
     [SerializeField] private KTH_RewardOptionUI rewardPrefab;
-    [SerializeField] private Transform rewardCanvas; // 카드 컨테이너 빈 오브젝트
+    [SerializeField] private Transform rewardCanvas;
 
     [Header("제어할 UI Group")]
-    [SerializeField] private CanvasGroup canvasGroup; // Fade 효과용 (없으면 자동 추가됨)
-    [SerializeField] private Transform popUpPanel;    // Scale 팝업 효과를 줄 패널/창
+    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private Transform popUpPanel;
+
+    [Header("백그라운드로 취급할 이미지(버튼)")]
+    [SerializeField] private Transform backgroundVisual;
 
     [Header("하단 보상 획득 버튼")]
     [SerializeField] private Button claimButton;
 
+    [Header("배경 애니메이션")]
+    [SerializeField] private float bgScaleDuration = 0.5f;
+
+    [Header("카드 생성 설정")]
+    [Tooltip("카드 프리팹이 생성되는 사이의 간격")]
+    [SerializeField] private float cardInstantiateInterval = 0.05f;
+
+    [Header("카드 등장 애니메이션")]
+    [Tooltip("카드 등장 애니메이션이 시작되기 전 대기 시간")]
+    [SerializeField] private float delayBeforeCardSpawn = 0.15f;
+
+    [Tooltip("카드 팝업 등장 사이의 간격")]
+    [SerializeField] private float cardSpawnInterval = 0.15f;
+
     private readonly List<KTH_RewardOptionUI> spawnedRewards = new();
+
     private KTH_RewardOptionUI currentlySelectedUI;
+
     private bool isClaimed = false;
 
-    public static KTH_RewardChoiceUI Instance { get; private set; }
+    public event System.Action OnRewardResolved;
+
+    private static KTH_RewardChoiceUI instance;
+
+    public static KTH_RewardChoiceUI Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindFirstObjectByType<KTH_RewardChoiceUI>(
+                    FindObjectsInactive.Include
+                );
+
+                if (instance == null)
+                {
+                    var allObjects =
+                        Resources.FindObjectsOfTypeAll<KTH_RewardChoiceUI>();
+
+                    foreach (var obj in allObjects)
+                    {
+                        if (obj.gameObject.scene.isLoaded ||
+                            obj.gameObject.hideFlags == HideFlags.None)
+                        {
+                            instance = obj;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return instance;
+        }
+    }
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
+        // 중복 인스턴스 제거
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        if (canvasGroup == null)
+        instance = this;
+
+        // DontDestroyOnLoad는 루트 오브젝트에서만 가능
+        if (transform.parent != null)
         {
-            canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            transform.SetParent(null);
         }
 
-        if (popUpPanel == null)
-        {
-            popUpPanel = transform;
-        }
+        DontDestroyOnLoad(gameObject);
 
         if (claimButton != null)
         {
             claimButton.onClick.AddListener(OnClickClaimButton);
             claimButton.interactable = false;
         }
+
+        ResetUIState();
+
+        gameObject.SetActive(false);
     }
 
-    // =========================================================
-    // 보상 UI 등장 애니메이션
-    // =========================================================
     public void ShowRewards(List<KTH_RewardOption> options)
     {
-        gameObject.SetActive(true);
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        StopAllCoroutines();
 
         ClearRewards();
+
         isClaimed = false;
         currentlySelectedUI = null;
 
@@ -70,67 +126,148 @@ public class KTH_RewardChoiceUI : MonoBehaviour
 
         if (options == null || options.Count == 0)
         {
-            Debug.LogWarning("[KTH_RewardChoiceUI] 표시할 보상이 없습니다.");
+            Debug.LogWarning(
+                "[KTH_RewardChoiceUI] 표시할 보상이 없습니다."
+            );
+
+            gameObject.SetActive(false);
+
+            OnRewardResolved?.Invoke();
+
             return;
         }
 
-        // 1. 카드 생성
+        // 배경 애니메이션 초기화
+        Transform bgTarget =
+            backgroundVisual != null
+                ? backgroundVisual
+                : popUpPanel;
+
+        if (bgTarget != null)
+        {
+            bgTarget.DOKill();
+            bgTarget.localScale = Vector3.zero;
+        }
+
+        // CanvasGroup 초기화
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        StartCoroutine(Co_ShowSequence(options));
+    }
+
+    private IEnumerator Co_ShowSequence(
+        List<KTH_RewardOption> options)
+    {
+        Transform bgTarget =
+            backgroundVisual != null
+                ? backgroundVisual
+                : popUpPanel;
+
+        // ==========================================
+        // 1. 배경 등장
+        // ==========================================
+
+        if (bgTarget != null)
+        {
+            Tweener bgTween = bgTarget
+                .DOScale(Vector3.one, bgScaleDuration)
+                .SetEase(Ease.OutBack);
+
+            yield return bgTween.WaitForCompletion();
+        }
+
+        // ==========================================
+        // 2. 카드 프리팹을 조금씩 간격을 두고 생성
+        // ==========================================
+
         foreach (KTH_RewardOption option in options)
         {
-            if (option == null) continue;
+            if (option == null)
+                continue;
 
-            KTH_RewardOptionUI rewardUI = Instantiate(rewardPrefab, rewardCanvas);
+            KTH_RewardOptionUI rewardUI =
+                Instantiate(rewardPrefab, rewardCanvas);
+
             rewardUI.SetReward(option, this);
+
+            rewardUI.transform.localScale = Vector3.zero;
+
             spawnedRewards.Add(rewardUI);
+
+            // 다음 프리팹 생성까지 대기
+            if (cardInstantiateInterval > 0f)
+            {
+                yield return new WaitForSeconds(
+                    cardInstantiateInterval
+                );
+            }
         }
 
-        // Layout 즉시 강제 갱신
+        // ==========================================
+        // 3. 레이아웃 갱신
+        // ==========================================
+
         if (rewardCanvas is RectTransform rectTransform)
         {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(
+                rectTransform
+            );
         }
 
-        // 2. DOTween 등장 연출 시작
-        PlayShowAnimation();
-    }
+        // 레이아웃 반영
+        yield return null;
 
-    private void PlayShowAnimation()
-    {
-        // 이전 트윈 중단
-        popUpPanel.DOKill();
-        canvasGroup.DOKill();
+        // ==========================================
+        // 4. 카드 등장 전 대기
+        // ==========================================
 
-        // 초기 상태 설정
-        canvasGroup.alpha = 0f;
-        popUpPanel.localScale = Vector3.one * 0.7f;
-
-        // Sequence로 창 등장 후 카드 순차 연출
-        Sequence showSequence = DOTween.Sequence();
-
-        // 팝업 창 FadeIn + ScaleUp
-        showSequence.Append(canvasGroup.DOFade(1f, 0.25f));
-        showSequence.Join(popUpPanel.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack));
-
-        // 카드들 순차적으로 애니메이션 실행
-        showSequence.AppendCallback(() =>
+        if (delayBeforeCardSpawn > 0f)
         {
-            for (int i = 0; i < spawnedRewards.Count; i++)
+            yield return new WaitForSeconds(
+                delayBeforeCardSpawn
+            );
+        }
+
+        // ==========================================
+        // 5. 카드 순차 팝업
+        // ==========================================
+
+        for (int i = 0; i < spawnedRewards.Count; i++)
+        {
+            KTH_RewardOptionUI rewardUI =
+                spawnedRewards[i];
+
+            if (rewardUI != null)
             {
-                spawnedRewards[i].PlaySpawnAnimation(i * 0.08f); // 0.08초 시차 등장
+                rewardUI.PlaySpawnAnimation(0f);
             }
-        });
+
+            if (cardSpawnInterval > 0f)
+            {
+                yield return new WaitForSeconds(
+                    cardSpawnInterval
+                );
+            }
+        }
     }
 
-    // =========================================================
-    // 카드 선택 처리
-    // =========================================================
-    public void OnSelectCard(KTH_RewardOptionUI selectedUI)
+    public void OnSelectCard(
+        KTH_RewardOptionUI selectedUI)
     {
-        if (isClaimed) return;
+        if (isClaimed)
+            return;
 
-        foreach (var ui in spawnedRewards)
+        foreach (KTH_RewardOptionUI ui in spawnedRewards)
         {
-            ui.SetSelected(ui == selectedUI);
+            if (ui != null)
+            {
+                ui.SetSelected(ui == selectedUI);
+            }
         }
 
         currentlySelectedUI = selectedUI;
@@ -141,42 +278,111 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // 하단 [보상 획득] 클릭 시 퇴장 애니메이션
-    // =========================================================
     private void OnClickClaimButton()
     {
-        if (isClaimed || currentlySelectedUI == null) return;
+        if (isClaimed ||
+            currentlySelectedUI == null)
+        {
+            return;
+        }
 
         isClaimed = true;
 
-        KTH_RewardOption selectedOption = currentlySelectedUI.Option;
-        Debug.Log($"🎁 [KTH_RewardChoiceUI] 최종 보상 획득: {selectedOption.GetName()}");
+        if (claimButton != null)
+        {
+            claimButton.interactable = false;
+        }
+
+        KTH_RewardOption selectedOption =
+            currentlySelectedUI.Option;
+
+        Debug.Log(
+            $"🎁 [KTH_RewardChoiceUI] 최종 보상 획득: {selectedOption.GetName()}"
+        );
 
         if (KTH_Reward.Instance != null)
         {
-            KTH_Reward.Instance.ClaimReward(selectedOption);
+            KTH_Reward.Instance.ClaimReward(
+                selectedOption
+            );
         }
 
-        // DOTween 퇴장 연출 후 UI 닫기
         PlayHideAnimation();
     }
 
     private void PlayHideAnimation()
     {
-        popUpPanel.DOKill();
-        canvasGroup.DOKill();
+        Transform bgTarget =
+            backgroundVisual != null
+                ? backgroundVisual
+                : popUpPanel;
+
+        if (bgTarget != null)
+        {
+            bgTarget.DOKill();
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.interactable = false;
+        }
 
         Sequence hideSequence = DOTween.Sequence();
 
-        hideSequence.Append(popUpPanel.DOScale(Vector3.one * 0.8f, 0.2f).SetEase(Ease.InBack));
-        hideSequence.Join(canvasGroup.DOFade(0f, 0.2f));
+        foreach (KTH_RewardOptionUI rewardUI in spawnedRewards)
+        {
+            if (rewardUI != null)
+            {
+                hideSequence.Join(
+                    rewardUI.transform
+                        .DOScale(
+                            Vector3.zero,
+                            0.2f
+                        )
+                        .SetEase(Ease.InBack)
+                );
+            }
+        }
+
+        if (bgTarget != null)
+        {
+            hideSequence.Append(
+                bgTarget
+                    .DOScale(
+                        Vector3.zero,
+                        0.25f
+                    )
+                    .SetEase(Ease.InOutQuad)
+            );
+        }
 
         hideSequence.OnComplete(() =>
         {
             ClearRewards();
+
             gameObject.SetActive(false);
+
+            OnRewardResolved?.Invoke();
         });
+    }
+
+    private void ResetUIState()
+    {
+        Transform bgTarget =
+            backgroundVisual != null
+                ? backgroundVisual
+                : popUpPanel;
+
+        if (bgTarget != null)
+        {
+            bgTarget.DOKill();
+            bgTarget.localScale = Vector3.zero;
+        }
+
+        if (claimButton != null)
+        {
+            claimButton.interactable = false;
+        }
     }
 
     private void ClearRewards()
@@ -185,7 +391,8 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         {
             if (reward != null)
             {
-                reward.transform.DOKill();
+                DOTween.Kill(reward.transform);
+
                 Destroy(reward.gameObject);
             }
         }
@@ -195,10 +402,26 @@ public class KTH_RewardChoiceUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (claimButton != null)
-            claimButton.onClick.RemoveListener(OnClickClaimButton);
+        if (instance == this)
+        {
+            instance = null;
+        }
 
-        popUpPanel.DOKill();
-        canvasGroup.DOKill();
+        if (claimButton != null)
+        {
+            claimButton.onClick.RemoveListener(
+                OnClickClaimButton
+            );
+        }
+
+        Transform bgTarget =
+            backgroundVisual != null
+                ? backgroundVisual
+                : popUpPanel;
+
+        if (bgTarget != null)
+        {
+            bgTarget.DOKill();
+        }
     }
 }

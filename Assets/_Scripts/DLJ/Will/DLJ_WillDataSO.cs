@@ -2,23 +2,25 @@ using UnityEngine;
 
 namespace _Scripts.LSO.Will
 {
-    /// <summary>Standalone settings asset for one will type.</summary>
-    [CreateAssetMenu(fileName = "DLJ_WillData", menuName = "DLJ/Will/Data")]
-    public sealed class DLJ_WillDataSO : ScriptableObject
+    /// <summary>Common metadata shared by every will data asset.</summary>
+    public abstract class DLJ_WillDataSO : ScriptableObject
     {
-        [Header("Type")]
-        public LSO_WillType willType;
+        public abstract LSO_WillType WillType { get; }
 
-        [Header("System")]
-        public int damage;
-        public int range;
-        public int duration;
+        [Header("Tool Tip")]
+        [TextArea(3, 10)]
+        public string description;
+
+        [Header("Icon")]
+        public Sprite icon;
 
         [Header("Effect")]
         public GameObject effectPrefab;
-        public float expandTime = 0.25f;
-        public float holdTime = 0.3f;
-        public float effectHeight = 0.12f;
-        public float moveDuration = 1f;
+
+        public virtual int DisplayDamage => 0;
+        public virtual int DisplayRange => 0;
+        public virtual int DisplayDuration => 0;
+        public virtual int DisplayBuffAmount => 0;
+        public virtual int DisplayDebuffAmount => 0;
     }
 }

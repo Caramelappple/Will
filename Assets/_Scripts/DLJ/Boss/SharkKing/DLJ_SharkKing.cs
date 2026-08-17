@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO;
+using _Scripts.LSO.Manager;
 using UnityEngine;
 
 /// <summary>

@@ -27,6 +27,9 @@ MonoBehaviour:
   - animal: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
     scorers:
     - rid: 8291755045211078727
+  - animal: {fileID: 11400000, guid: 1d9e8c97bd2fb7c4985b41ff11da4d32, type: 2}
+    scorers:
+    - rid: 8291755045211078728
   references:
     version: 2
     RefIds:
@@ -46,3 +49,10 @@ MonoBehaviour:
         wallSlamBonus: 20
         approachWeight: 10
         nonChargePenalty: 200
+    - rid: 8291755045211078728
+      type: {class: DLJ_SharkKingScorer, ns: , asm: Assembly-CSharp}
+      data:
+        attackBonus: 50
+        predationTargetBonus: 40
+        killBonus: 80
+        movePenalty: 10000
