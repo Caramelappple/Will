@@ -350,6 +350,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &70646589
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -454,7 +456,36 @@ MonoBehaviour:
   rageChainRange: 1
   maxRageChainPerCharge: 3
   rageChainHitsBullKing: 1
+  chargeDuration: 2
+  chargeEasing:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  chargeSfx: 6
+  shakeDuration: 0.25
+  shakeStrength: 0.15
   pushDuration: 0.2
+  pushArcHeight: 0.35
 --- !u!114 &70646593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3149,6 +3180,7 @@ MonoBehaviour:
   closeButton: {fileID: 681692062}
   discardCardUI: {fileID: 0}
   outsideClickCatcher: {fileID: 0}
+  panelClickBlocker: {fileID: 0}
   animDuration: 0.7
   startYOffset: -1016
   startYRotation: -180
@@ -3675,6 +3707,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &571457310
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6121,7 +6155,7 @@ MonoBehaviour:
   actionPoints: {fileID: 944642608}
   actionDelay: 0.5
   scorers: []
-  scorerRegistry: {fileID: 0}
+  scorerRegistry: {fileID: 11400000, guid: da64d110778c92845b6b2188eb977d86, type: 2}
   enableDecisionLog: 1
   references:
     version: 2
@@ -7755,6 +7789,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1219364775
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8052,6 +8088,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 5
   <MinValue>k__BackingField: 0
   _value: 5
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1273964883
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10312,6 +10350,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 6
   <MinValue>k__BackingField: 0
   _value: 6
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &1621688124
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10581,10 +10621,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e839e4a50cd564cb7bad641e2b944b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckDataPersistent
-  savedInventory:
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  _savedInventory: []
 --- !u!4 &1663589429
 Transform:
   m_ObjectHideFlags: 0
@@ -12438,6 +12475,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 4
   <MinValue>k__BackingField: 0
   _value: 4
+  logDamage: 1
+  logRecover: 1
 --- !u!23 &2073800961
 MeshRenderer:
   m_ObjectHideFlags: 0
