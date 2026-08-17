@@ -17,7 +17,13 @@ public sealed class DLJ_SuccessionSystem : MonoBehaviour
 
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_SuccessionWill(context, data);
+        if (data is not DLJ_SuccessionWillDataSO successionData)
+        {
+            Debug.LogError($"Succession requires {nameof(DLJ_SuccessionWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_SuccessionWill(context, successionData);
     }
 }
 
@@ -34,14 +40,14 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly LDY_Animal animal;
     private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
-    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_SuccessionWillDataSO data;
     private readonly bool isEnhanced;
     private readonly DLJ_IWillEffect effect = new DLJ_SuccessionEffect();
     private GameObject effectInstance;
     private bool hasInvoked;
     private bool isWaitingForAttackAnimation;
 
-    internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_WillDataSO data)
+    internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_SuccessionWillDataSO data)
     {
         animal = context.animal;
         attackSystem = context.attackSystem;

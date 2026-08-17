@@ -28,15 +28,16 @@ public sealed class DLJ_SuccessionEffect : DLJ_IWillEffect
         if (effectObject != null)
             UnityEngine.Object.Destroy(effectObject);
 
-        DLJ_WillDataSO data = context.data;
-        Color lineColor = data != null
-            ? data.successionEffect.successionLineColor
+        DLJ_SuccessionWillDataSO data = context.data as DLJ_SuccessionWillDataSO;
+        DLJ_SuccessionEffectSO visual = data != null ? data.successionEffect : null;
+        Color lineColor = visual != null
+            ? visual.successionLineColor
             : new Color(0.72f, 0.92f, 1f, 0.9f);
-        float lineWidth = data != null ? data.successionEffect.successionLineWidth : 0.025f;
-        float lineHeight = data != null ? data.successionEffect.successionLineHeight : 0.35f;
+        float lineWidth = visual != null ? visual.successionLineWidth : 0.025f;
+        float lineHeight = visual != null ? visual.successionLineHeight : 0.35f;
         float travelDuration = data != null ? data.moveDuration : 1f;
-        float absorbDuration = data != null ? data.successionEffect.successionAbsorbDuration : 0.22f;
-        float flashDuration = data != null ? data.successionEffect.successionFlashDuration : 0.18f;
+        float absorbDuration = visual != null ? visual.successionAbsorbDuration : 0.22f;
+        float flashDuration = visual != null ? visual.successionFlashDuration : 0.18f;
 
         Vector3 start = context.origin + Vector3.up * lineHeight;
         Vector3 end = context.targetPosition + Vector3.up * lineHeight;
@@ -200,19 +201,20 @@ public sealed class DLJ_SuccessionEffect : DLJ_IWillEffect
         public SuccessionGlowState(
             GameObject target,
             Color sourceColor,
-            DLJ_WillDataSO data)
+            DLJ_SuccessionWillDataSO data)
         {
             renderers = CaptureRenderers(target);
             glowColor = Color.Lerp(sourceColor, Color.white, 0.7f);
             glowColor.a = 1f;
-            lightIntensity = data != null ? data.successionEffect.successionLightIntensity : 1.8f;
+            DLJ_SuccessionEffectSO visual = data != null ? data.successionEffect : null;
+            lightIntensity = visual != null ? visual.successionLightIntensity : 1.8f;
 
             lightObject = new GameObject("Succession Target Light");
             lightObject.transform.position = target.transform.position + Vector3.up * 0.45f;
             pointLight = lightObject.AddComponent<Light>();
             pointLight.type = LightType.Point;
             pointLight.color = glowColor;
-            pointLight.range = data != null ? data.successionEffect.successionLightRange : 1.6f;
+            pointLight.range = visual != null ? visual.successionLightRange : 1.6f;
             pointLight.intensity = 0f;
             pointLight.shadows = LightShadows.None;
 
@@ -227,7 +229,7 @@ public sealed class DLJ_SuccessionEffect : DLJ_IWillEffect
             Bloom bloom = volumeProfile.Add<Bloom>();
             bloom.active = true;
             bloom.threshold.Override(0.75f);
-            bloom.intensity.Override(data != null ? data.successionEffect.successionBloomIntensity : 0.8f);
+            bloom.intensity.Override(visual != null ? visual.successionBloomIntensity : 0.8f);
             bloom.scatter.Override(0.65f);
             bloom.tint.Override(glowColor);
             volume.sharedProfile = volumeProfile;
