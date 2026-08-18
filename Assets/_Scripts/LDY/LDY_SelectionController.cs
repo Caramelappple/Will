@@ -44,6 +44,24 @@ namespace _Scripts.LDY
                 targetCamera = Camera.main;
         }
 
+        private void OnEnable()
+        {
+            _Scripts.LSO.Will.LSO_WillSelection.BoardInteractionLockChanged += HandleBoardInteractionLockChanged;
+        }
+
+        private void OnDisable()
+        {
+            _Scripts.LSO.Will.LSO_WillSelection.BoardInteractionLockChanged -= HandleBoardInteractionLockChanged;
+        }
+
+        private void HandleBoardInteractionLockChanged(bool locked)
+        {
+            if (!locked) return;
+
+            Deselect();
+            InspectEnemy(null);
+        }
+
         private void Update()
         {
             if (Mouse.current == null) return;
@@ -60,6 +78,7 @@ namespace _Scripts.LDY
 
             if (turnManager != null && turnManager.CurrentTurn != LDY_Team.Player) return;
             if (cardPlacer != null && cardPlacer.IsPlacing) return; // 카드 배치 위치 선택 중엔 이동/공격 클릭을 막는다.
+            if (_Scripts.LSO.Will.LSO_WillSelection.IsBoardInteractionLocked) return;
 
             bool leftClicked = Mouse.current.leftButton.wasPressedThisFrame;
             bool rightClicked = Mouse.current.rightButton.wasPressedThisFrame;

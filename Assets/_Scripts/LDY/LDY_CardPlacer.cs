@@ -106,6 +106,9 @@ namespace _Scripts.LDY
             _onPlaced = null;
 
             LDY_Animal animal = PlaceCard(card, team, pos);
+            if (animal == null && team == LDY_Team.Player)
+                LSO_WillSelection.EndBoardInteractionLock();
+
             onPlaced?.Invoke(animal);
         }
 
@@ -183,13 +186,32 @@ namespace _Scripts.LDY
         private void RequestWill(LSO_CardSO card, LDY_Animal animal)
         {
             // 플레이어가 직접 놓은 기물만 고를 수 있다.
-            if (animal == null || animal.team != LDY_Team.Player) return;
+            if (animal == null || animal.team != LDY_Team.Player)
+                return;
+
+            IReadOnlyList<LSO_WillType> wills = SelectableWills;
+            bool opensSelectionWindow = LSO_WillSelection.HasSelector && wills is { Count: > 1 };
+
+            // 배치 위치를 고르는 동안에는 화면을 가리지 않는다.
+            // 실제로 선택 창이 열리는 경우에만 보드 입력과 화면을 잠근다.
+            if (opensSelectionWindow)
+                LSO_WillSelection.BeginBoardInteractionLock();
 
             LSO_WillSelection.Request(
                 card,
-                SelectableWills,
+                wills,
                 card.DefaultWill,
-                onSelected: selected => Apply(animal, selected));
+                onSelected: selected =>
+                {
+                    Apply(animal, selected);
+                    if (opensSelectionWindow)
+                        LSO_WillSelection.EndBoardInteractionLock();
+                },
+                onCancelled: () =>
+                {
+                    if (opensSelectionWindow)
+                        LSO_WillSelection.EndBoardInteractionLock();
+                });
         }
 
         private static void Apply(LDY_Animal animal, LSO_WillType willType)
@@ -275,6 +297,9 @@ namespace _Scripts.LDY
             IsPlacing = false;
             ClearPlacementHighlights();
             _pendingCard = null;
+
+            if (_pendingTeam == LDY_Team.Player)
+                LSO_WillSelection.EndBoardInteractionLock();
 
             Action cancelled = _onCancelled;
             _onCancelled = null;

@@ -716,6 +716,8 @@ MonoBehaviour:
   isTest: 1
   nodeContainerRect: {fileID: 1671757774}
   mapSceneName: KTH_StageScene
+  deathSceneName: KTH_Death Scene
+  bossClearSceneName: KTH_Boss Clear Scene
   editorChapterIndex: 1
   editorStageIndex: 1
   nodePositions:
@@ -2610,6 +2612,10 @@ MonoBehaviour:
     cameraOrthographicSize: 5
     cameraFieldOfView: 60
     cameraPositionOffset: {x: 0, y: 0, z: -10}
+  stageEnterDuration: 1.5
+  stageEnterZoom: 1.6
+  stageEnterFadeStart: 0.25
+  stageEnterFadeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!222 &2084838560
 CanvasRenderer:
   m_ObjectHideFlags: 0
