@@ -18,7 +18,7 @@ MonoBehaviour:
   damage: 3
   cost: 0
   moveRange: 6
-  range: 0
-  abilities: 1800000019000000
+  range: 4
+  abilities: 1c0000001d000000
   defaultWill: -1
   unitPrefab: {fileID: 4209428674623069864, guid: 6a1eb50b876bb9747bf4ae16d8d7dcde, type: 3}

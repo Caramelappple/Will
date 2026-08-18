@@ -16,6 +16,15 @@ namespace _Scripts.LDY
     /// </summary>
     public interface LDY_IOnMoved
     {
+        /// <summary>
+        /// 자리를 옮긴 것이 확정되고 연출이 시작될 때. 울음소리처럼 출발을 알리는 연출이 여기 붙는다.
+        /// 격자상으로는 이미 도착한 뒤라, 보드를 조회하면 목적지에 서 있는 상태로 보인다.
+        /// </summary>
+        void OnMoveStarted(LDY_Animal self, Vector3Int from, Vector3Int to);
+
+        /// <summary>
+        /// 이동 연출까지 끝나 실제로 도착했을 때. 충돌처럼 닿는 순간에 일어나야 하는 것이 여기 붙는다.
+        /// </summary>
         /// <param name="self">움직인 기물. 이 특성의 소유자다.</param>
         /// <param name="from">떠나온 칸.</param>
         /// <param name="to">도착한 칸.</param>

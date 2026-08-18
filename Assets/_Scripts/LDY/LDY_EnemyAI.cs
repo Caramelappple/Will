@@ -87,12 +87,23 @@ namespace _Scripts.LDY
                     // 여기서 actedThisPass를 올리면 같은 상태로 무한히 반복하게 된다.
                     if (ActEnemy(enemy))
                         actedThisPass = true;
+
+                    // 연출이 끝날 때까지 기다린다. actionDelay만으로는 부족하다 —
+                    // 황소왕의 돌진처럼 연출이 그 시간보다 길면 다음 적이 그 위에 겹쳐 움직이고,
+                    // 밀려나는 기물이 아직 날아가는 중인데 판이 또 바뀐다.
+                    yield return new WaitWhile(IsAnimating);
                 }
 
                 if (!actedThisPass) break; // 아무도 더 할 행동이 없으면 종료 (무한 루프 방지)
             }
 
             Debug.Log("[LDY_EnemyAI] 적 턴 종료");
+        }
+
+        /// <summary>이동·공격 연출이 하나라도 재생 중인지. LDY_TurnManager가 턴 전환을 막는 기준과 같다.</summary>
+        private bool IsAnimating()
+        {
+            return moveSystem.IsBusy || attackSystem.IsBusy;
         }
 
         private bool CanAct(LDY_Animal enemy)

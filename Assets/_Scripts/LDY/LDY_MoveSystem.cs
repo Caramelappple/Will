@@ -80,6 +80,11 @@ namespace _Scripts.LDY
             Vector3Int from = animal.pos;
             board.Move(animal, animal.pos, target);
 
+            // 검증과 행동력 소모를 모두 통과해 실제로 자리를 옮긴 뒤에만 알린다.
+            // 밀려남은 board.Move를 직접 쓰므로 여기로 오지 않는다 — "스스로 움직였다"만 이 신호를 탄다.
+            LSO_AbilityNotify.Notify<LDY_IOnMoved>(
+                animal.Abilities, a => a.OnMoveStarted(animal, from, animal.pos));
+
             // board.Move가 높이(y)를 유지한 채 animal.pos를 갱신하므로, 연출도 그 최종 위치를 따라간다.
             StartCoroutine(MoveVisual(animal, from, board.GridToWorld(animal.pos)));
         }
