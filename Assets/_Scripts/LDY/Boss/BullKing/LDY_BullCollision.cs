@@ -35,11 +35,17 @@ namespace _Scripts.LDY.Boss.BullKing
             LDY_ChargePath.CollectPushChain(board, line.Blocker, line.Direction, rule.maxChainPush, _chain);
             if (_chain.Count == 0) return;
 
+            // 부딪히는 순간에 흔든다. 밀어내기 전에 불러야 화면이 먼저 튀고 기물이 뒤따라 날아간다.
+            // 연쇄 충돌도 한 번의 부딪힘이므로 흔들림도 한 번이다.
+            boss.ShakeOnCollision();
+
             // 줄이 맞닿아 있으므로 맨 끝이 못 가면 아무도 못 간다. 한 번만 물어보면 된다.
             bool advanced = LDY_ChargePath.CanAdvance(board, _chain[_chain.Count - 1], line.Direction);
 
             if (advanced)
                 PushChain(board, boss, line.Direction);
+            else
+                SlamChain(board, boss);
 
             _deathTiles.Clear();
             ApplyDamage(bull, rule, deaths, advanced);
@@ -75,6 +81,21 @@ namespace _Scripts.LDY.Boss.BullKing
 
                 board.Move(pushed, from, to);
                 boss.PlayPush(pushed, board.GridToWorld(pushed.pos));
+            }
+        }
+
+        /// <summary>
+        /// 갈 곳이 없어 밀려나지 못한 줄. 자리는 그대로여도 부딪힌 충격은 보여야 하므로
+        /// 제자리에서 튀어오르게 한다.
+        /// </summary>
+        private void SlamChain(LDY_BoardManager board, LDY_BullKingBoss boss)
+        {
+            for (int i = 0; i < _chain.Count; i++)
+            {
+                LDY_Animal victim = _chain[i];
+                if (victim == null) continue;
+
+                boss.PlaySlamHop(victim, board.GridToWorld(victim.pos));
             }
         }
 

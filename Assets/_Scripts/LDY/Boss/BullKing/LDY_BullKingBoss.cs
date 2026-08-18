@@ -46,13 +46,13 @@ namespace _Scripts.LDY.Boss.BullKing
                  "황소왕은 방금 들이받은 기물 바로 옆에 서 있으므로 켜두면 자기 피해가 상당하다.")]
         [SerializeField] private bool rageChainHitsBullKing = true;
 
-        [Header("연출")]
-        [Tooltip("돌진으로 한 칸을 지나는 데 걸리는 시간. 작을수록 빠르다.\n" +
-                 "일반 기물의 이동 속도(LDY_MoveSystem의 moveDuration)와 무관하게 이 값이 쓰인다.")]
-        [SerializeField, Min(0.005f)] private float chargeSecondsPerTile = 0.07f;
+        [Header("연출 — 돌진")]
+        [Tooltip("최대 거리를 꽉 채워 달릴 때의 시간. 짧은 돌진은 거리에 비례해 짧아진다.\n" +
+                 "즉 이 값은 속도를 정한다 — 작을수록 빠르다.")]
+        [SerializeField, Min(0.05f)] private float chargeDuration = 1f;
 
-        [Tooltip("짧은 돌진이 한 번 튀고 마는 것을 막는 하한.")]
-        [SerializeField, Min(0f)] private float minChargeDuration = 0.15f;
+        [Tooltip("한두 칸짜리 돌진이 순간이동처럼 보이는 것을 막는 하한.")]
+        [SerializeField, Min(0f)] private float minChargeDuration = 0.2f;
 
         [Tooltip("돌진의 가속 곡선. 뒤로 갈수록 가팔라야 '달려들어 박는' 느낌이 난다.\n" +
                  "끝값을 1보다 크게 만들면 목적지를 살짝 지나쳤다가 돌아온다.")]
@@ -60,11 +60,37 @@ namespace _Scripts.LDY.Boss.BullKing
             new Keyframe(0f, 0f, 0f, 0f),
             new Keyframe(1f, 1f, 2f, 2f));
 
-        [Tooltip("밀려나는 기물이 한 칸 미끄러지는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float pushDuration = 0.2f;
+        [Tooltip("돌진을 시작할 때 낼 소리. 사운드 매니저가 씬에 없으면 조용히 넘어간다.")]
+        [SerializeField] private SfxID chargeSfx = SfxID.BullCharge;
+
+        [Header("연출 — 충돌")]
+        [Tooltip("부딪혔을 때 화면을 흔드는 시간.")]
+        [SerializeField, Min(0f)] private float shakeDuration = 0.25f;
+
+        [Tooltip("화면 흔들림 폭(월드 단위). 카메라 거리에 따라 체감이 달라지니 보면서 맞출 것.")]
+        [SerializeField, Min(0f)] private float shakeStrength = 0.15f;
+
+        [Tooltip("맞은 기물이 떠오르는 데 걸리는 시간. 뒤로 밀려나는 수평 이동도 이 구간에서 끝난다.")]
+        [SerializeField, Min(0f)] private float riseDuration = 0.3f;
+
+        [Tooltip("꼭대기에서 떠 있는 시간. 이 동안은 공중에 멈춰 있다.")]
+        [SerializeField, Min(0f)] private float hangDuration = 0.15f;
+
+        [Tooltip("내려앉는 데 걸리는 시간.")]
+        [SerializeField, Min(0f)] private float fallDuration = 0.3f;
+
+        [Tooltip("밀려나면서 떠오르는 높이. 0이면 바닥으로 미끄러지기만 한다.")]
+        [SerializeField, Min(0f)] private float pushArcHeight = 0.35f;
+
+        [Tooltip("밀려나지 못하고 벽에 박힌 기물이 제자리에서 솟는 높이.\n" +
+                 "받은 충격은 같지만 갈 곳이 없어 위로만 솟는다는 뜻이라 밀려날 때보다 높게 잡아도 된다.")]
+        [SerializeField, Min(0f)] private float slamHopHeight = 0.5f;
 
         private LDY_Animal _animal;
         private LSO_BossPhase _phase;
+
+        // 기물별로 돌고 있는 피격 연출. 아직 떠 있는 기물이 또 맞았을 때 앞의 것을 멈추려고 들고 있는다.
+        private readonly Dictionary<Transform, Coroutine> _arcs = new();
 
         /// <summary>현재 페이즈. LSO_BossPhase가 원본이다.</summary>
         public int Phase => BossPhase != null ? BossPhase.CurrentPhase : 1;
@@ -74,10 +100,34 @@ namespace _Scripts.LDY.Boss.BullKing
 
         public AnimationCurve ChargeEasing => chargeEasing;
 
-        /// <summary>이만큼 달릴 때 연출에 쓸 시간.</summary>
+        /// <summary>
+        /// 이만큼 달릴 때 연출에 쓸 시간.
+        ///
+        /// 거리에 비례시키는 이유는 짧은 돌진이 생겼기 때문이다.
+        /// 거리와 무관하게 같은 시간을 쓰면 한 칸 돌진이 여섯 칸 돌진과 같은 시간을 끌어
+        /// 굼뜨게 보이고, 속도가 거리마다 달라져 "일정하게 내달린다"가 깨진다.
+        /// </summary>
         public float ChargeDuration(int distance)
         {
-            return Mathf.Max(minChargeDuration, Mathf.Max(1, distance) * chargeSecondsPerTile);
+            int longest = Mathf.Max(1, Rule.chargeRange);
+            float ratio = Mathf.Clamp01(Mathf.Max(1, distance) / (float)longest);
+
+            return Mathf.Max(minChargeDuration, chargeDuration * ratio);
+        }
+
+        /// <summary>돌진을 시작할 때 우는 소리. 사운드 매니저가 없으면 아무 일도 없다.</summary>
+        public void PlayChargeCry()
+        {
+            KTH_SoundManager manager = KTH_SoundManager.Instance;
+            if (manager == null) return;
+
+            manager.PlaySfx(chargeSfx);
+        }
+
+        /// <summary>부딪힌 충격으로 화면을 흔든다.</summary>
+        public void ShakeOnCollision()
+        {
+            LDY_CameraShake.Shake(shakeDuration, shakeStrength);
         }
 
         public int RageChainDamage => rageChainDamage;
@@ -145,39 +195,99 @@ namespace _Scripts.LDY.Boss.BullKing
         /// </summary>
         internal void PlayPush(LDY_Animal pushed, Vector3 targetWorldPos)
         {
-            if (pushed == null) return;
+            PlayArc(pushed, targetWorldPos, pushArcHeight);
+        }
 
-            Transform t = pushed.modelTransform;
+        /// <summary>
+        /// 밀려나지 못한 기물이 제자리에서 튀어오른다.
+        ///
+        /// 자리가 안 바뀐다고 연출까지 없으면 피해만 조용히 들어가서, 맞았다는 것 자체가 안 보인다.
+        /// 벽에 박히는 쪽이 피해는 더 큰데 반응이 없으면 앞뒤가 맞지 않는다.
+        /// </summary>
+        internal void PlaySlamHop(LDY_Animal victim, Vector3 worldPos)
+        {
+            PlayArc(victim, worldPos, slamHopHeight);
+        }
+
+        private void PlayArc(LDY_Animal target, Vector3 targetWorldPos, float liftHeight)
+        {
+            if (target == null) return;
+
+            Transform t = target.modelTransform;
             if (t == null) return;
 
-            if (pushDuration <= 0f)
+            if (riseDuration + hangDuration + fallDuration <= 0f)
             {
                 t.position = targetWorldPos;
                 return;
             }
 
-            StartCoroutine(PushVisual(t, targetWorldPos));
+            // 아직 떠 있는 기물이 또 맞을 수 있다(연달아 돌진하는 경우).
+            // 두 코루틴이 같은 Transform에 값을 쓰면 서로 덮어써서 위치가 튄다.
+            if (_arcs.TryGetValue(t, out Coroutine running) && running != null)
+                StopCoroutine(running);
+
+            _arcs[t] = StartCoroutine(ArcVisual(t, targetWorldPos, liftHeight));
         }
 
-        private IEnumerator PushVisual(Transform t, Vector3 targetWorldPos)
+        /// <summary>
+        /// 떠오름 → 체공 → 내려앉음. 수평 이동은 떠오르는 구간에서 끝나므로,
+        /// 밀려난 기물은 날아가면서 솟았다가 새 칸 위에 잠깐 머물다 내려온다.
+        ///
+        /// 모델만 움직인다. 격자 좌표(LDY_Animal.pos)는 건드리지 않으므로
+        /// 공격 판정·유언 범위·AI 판단은 떠 있는 동안에도 평소와 같다.
+        /// </summary>
+        private IEnumerator ArcVisual(Transform t, Vector3 targetWorldPos, float liftHeight)
         {
-            Vector3 startPos = t.position;
-            float elapsed = 0f;
-
-            while (elapsed < pushDuration)
+            try
             {
-                // 밀려난 기물은 충돌 피해로 그 자리에서 죽을 수 있다.
-                // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 난다.
-                // (LDY_MoveSystem.MoveVisual이 같은 이유로 같은 검사를 한다.)
+                Vector3 startPos = t.position;
+                Vector3 peak = targetWorldPos + Vector3.up * liftHeight;
+
+                float elapsed = 0f;
+                while (elapsed < riseDuration)
+                {
+                    // 맞은 기물은 충돌 피해로 그 자리에서 죽을 수 있다.
+                    // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 난다.
+                    // (LDY_MoveSystem.Travel이 같은 이유로 같은 검사를 한다.)
+                    if (t == null) yield break;
+
+                    elapsed += Time.deltaTime;
+
+                    // 처음이 빠르고 꼭대기에서 느려진다. 솟구쳤다 힘이 빠지는 모양.
+                    float eased = Mathf.Sin(Mathf.Clamp01(elapsed / riseDuration) * Mathf.PI * 0.5f);
+                    t.position = Vector3.Lerp(startPos, peak, eased);
+                    yield return null;
+                }
+
                 if (t == null) yield break;
+                t.position = peak;
 
-                elapsed += Time.deltaTime;
-                t.position = Vector3.Lerp(startPos, targetWorldPos, elapsed / pushDuration);
-                yield return null;
+                if (hangDuration > 0f)
+                    yield return new WaitForSeconds(hangDuration);
+
+                elapsed = 0f;
+                while (elapsed < fallDuration)
+                {
+                    if (t == null) yield break;
+
+                    elapsed += Time.deltaTime;
+
+                    // 갈수록 빨라진다. 떨어지는 것이므로 위와 반대 모양이어야 한다.
+                    float eased = 1f - Mathf.Cos(Mathf.Clamp01(elapsed / fallDuration) * Mathf.PI * 0.5f);
+                    t.position = Vector3.Lerp(peak, targetWorldPos, eased);
+                    yield return null;
+                }
+
+                if (t != null)
+                    t.position = targetWorldPos;
             }
-
-            if (t != null)
-                t.position = targetWorldPos;
+            finally
+            {
+                // 중간에 빠져나가도 표에 남지 않도록 finally에서 지운다.
+                if (t != null)
+                    _arcs.Remove(t);
+            }
         }
 
         private void LogPhaseChange(int phase)

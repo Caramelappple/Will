@@ -31,11 +31,20 @@ namespace _Scripts.LDY.AI.Boss
         [Tooltip("줄이 막혀 벽 충돌이 나는 경우의 가산점.")]
         [SerializeField] private int wallSlamBonus = 20;
 
-        [Tooltip("아무도 못 들이받는 돌진의 점수 기울기. 가장 가까운 상대에 한 칸 다가갈 때마다 이만큼.\n" +
-                 "상하좌우에 아무도 없고 대각선에만 있을 때 그쪽으로 붙는 것이 이 점수다.")]
+        [Tooltip("돌진한 자리에서 다음에 들이받을 수 있게 되는 상대 1기물당 가산점.\n" +
+                 "'각을 만드는' 재배치가 이 점수로 일어난다.")]
+        [SerializeField] private int lineupBonus = 30;
+
+        [Tooltip("아무도 못 들이받는 돌진의 점수 기울기. 가장 가까운 상대에 한 칸 다가갈 때마다 이만큼.")]
         [SerializeField] private int approachWeight = 10;
 
-        [Tooltip("돌진이 아닌 이동에 매기는 감점. 대기(0점)를 확실히 이기지 못할 만큼 커야 한다.")]
+        [Tooltip("제자리에 서 있는 것에 매기는 감점.\n" +
+                 "황소왕은 멈춰 서지 않는다 — 갈 곳이 마땅찮아도 일단 달린다.\n" +
+                 "돌진 감점(nonChargePenalty)보다는 작아야 '대각선으로 비켜서기'까지 하지는 않는다.")]
+        [Min(0)]
+        [SerializeField] private int waitPenalty = 100;
+
+        [Tooltip("돌진이 아닌 이동에 매기는 감점. 대기 감점보다 커야 한다.")]
         [Min(0)]
         [SerializeField] private int nonChargePenalty = 200;
 
@@ -44,12 +53,22 @@ namespace _Scripts.LDY.AI.Boss
 
         public int Score(LDY_Animal self, in LDY_EnemyAction action, LDY_BoardManager board)
         {
-            if (action.Kind != LDY_ActionKind.Move) return 0;
             if (self == null || board == null) return 0;
 
             // 황소왕이 아닌 기물에는 관여하지 않는다. 레지스트리 배선이 잘못돼도 남의 판단을 망치지 않는다.
             LDY_BullKingBoss boss = self.GetComponent<LDY_BullKingBoss>();
             if (boss == null) return 0;
+
+            // 멈춰 서는 것 자체에 감점을 준다.
+            //
+            // 돌진은 항상 끝까지 달리므로 목적지를 고를 수 없고, 그래서 상대를 지나쳐 버리는 일이 잦다.
+            // 그런 돌진은 거리가 줄지 않아 0점 근처가 되는데, 대기도 0점이라 동점이면 대기가 이긴다
+            // (LDY_EnemyBrain이 먼저 열거된 후보를 남긴다). 그 결과 각이 안 맞으면 아예 굳어버렸다.
+            //
+            // 황소왕은 멈춰 서는 기물이 아니다. 갈 곳이 마땅찮아도 일단 달리게 한다.
+            if (action.Kind == LDY_ActionKind.Wait) return -waitPenalty;
+
+            if (action.Kind != LDY_ActionKind.Move) return 0;
 
             LDY_BullChargeRule rule = boss.Rule;
 
@@ -58,7 +77,7 @@ namespace _Scripts.LDY.AI.Boss
 
             return line.Collides
                 ? ScoreCollision(self, board, line, rule)
-                : ScoreApproach(self, board, line);
+                : ScoreApproach(self, board, line, rule);
         }
 
         /// <summary>부딪히는 돌진. 밀려날 줄을 미리 세워보고 예상 피해로 점수를 매긴다.</summary>
@@ -100,19 +119,52 @@ namespace _Scripts.LDY.AI.Boss
         }
 
         /// <summary>
-        /// 아무도 못 만나는 돌진. 가장 가까운 상대에 얼마나 가까워지는지로만 고른다.
+        /// 아무도 못 만나는 돌진. "다음 턴에 들이받을 각이 서는가"를 먼저 보고, 그다음 거리를 본다.
         ///
-        /// 기획서의 "상하좌우에 기물이 없고 대각선에만 있으면 그쪽으로 가까워지는 방향" 규칙이 이것이다.
-        /// 방향을 따로 특수 처리하지 않아도, 대각선 상대에 붙는 쪽이 자연히 높은 점수를 받는다.
+        /// 거리만으로는 부족하다. 돌진은 항상 끝까지 달려서 상대를 지나쳐 버리기 때문에,
+        /// 어느 방향으로 가도 거리가 줄지 않는 자리가 흔하다. 그런 자리에서 거리만 보면
+        /// 모든 후보가 0점이 되어 아무 데도 못 간다.
+        ///
+        /// 각 점수는 그 자리를 "지금 얼마나 가까운가"가 아니라 "다음에 뭘 할 수 있는가"로 평가한다.
+        /// 기획서의 "대각선에만 기물이 있으면 가까워지는 방향으로" 규칙도 결국 이걸 노린 것이다 —
+        /// 대각선 상대와 같은 줄에 서야 들이받을 수 있으니, 줄을 맞추는 자리가 높은 점수를 받는다.
         /// </summary>
-        private int ScoreApproach(LDY_Animal self, LDY_BoardManager board, in LDY_ChargeLine line)
+        private int ScoreApproach(
+            LDY_Animal self, LDY_BoardManager board, in LDY_ChargeLine line, LDY_BullChargeRule rule)
         {
+            int score = CountLineups(board, self, line.Destination, rule.chargeRange) * lineupBonus;
+
             int now = NearestOpponentDistance(self.pos, self.team, board);
             int there = NearestOpponentDistance(line.Destination, self.team, board);
 
-            if (now < 0 || there < 0) return 0;
+            if (now >= 0 && there >= 0)
+                score += (now - there) * approachWeight; // 가까워지면 +, 멀어지면 −
 
-            return (now - there) * approachWeight; // 가까워지면 +, 멀어지면 −
+            return score;
+        }
+
+        /// <summary>
+        /// 이 자리에 섰을 때 상하좌우로 들이받을 수 있는 상대의 수.
+        ///
+        /// 아직 옮기기 전이라 황소왕은 출발 칸에 서 있다. 그대로 재면 자기 자신이 길을 막은 것으로
+        /// 보이므로 계산에서 빼달라고 넘긴다.
+        /// </summary>
+        private static int CountLineups(
+            LDY_BoardManager board, LDY_Animal self, Vector3Int from, int maxSteps)
+        {
+            int count = 0;
+
+            IReadOnlyList<Vector3Int> directions = LDY_ChargePath.Directions;
+            for (int i = 0; i < directions.Count; i++)
+            {
+                LDY_ChargeLine probe =
+                    LDY_ChargePath.Resolve(board, from, directions[i], maxSteps, self);
+
+                if (probe.Collides && probe.Blocker.team != self.team)
+                    count++;
+            }
+
+            return count;
         }
 
         /// <summary>
