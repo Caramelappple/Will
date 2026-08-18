@@ -23,6 +23,14 @@ namespace _Scripts.LSO.Will
         public static bool HasSelector => Current != null;
 
         /// <summary>
+        /// 지금 플레이어의 답을 기다리는 중인지.
+        ///
+        /// 창이 떠 있는 동안 보드를 만지면 뒤에서 이동·공격·소환이 일어난다.
+        /// 조작을 받는 쪽은 이 값을 보고 클릭을 흘려보낼 것.
+        /// </summary>
+        public static bool IsSelecting => Current is { IsSelecting: true };
+
+        /// <summary>
         /// 해금된 유언을 돌려주는 함수. 해금 시스템을 가진 쪽이 등록한다.
         ///
         /// 이 자리에 함수를 두는 이유는 소환 코드가 해금 시스템을 직접 참조하지 않게 하기 위해서다.

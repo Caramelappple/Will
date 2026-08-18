@@ -1,4 +1,5 @@
 using System;
+using _Scripts.LSO.Will;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -59,6 +60,11 @@ namespace _Scripts.LDY
             }
 
             if (turnManager != null && turnManager.CurrentTurn != LDY_Team.Player) return;
+
+            // 유언 창이 답을 기다리는 동안엔 창 뒤의 보드를 만질 수 없게 한다.
+            // 턴 가드보다 뒤에 둬도 되는 것은, 턴이 넘어가면 LDY_CardPlacer가 창을 닫기 때문이다.
+            if (LSO_WillSelection.IsSelecting) return;
+
             if (cardPlacer != null && cardPlacer.IsPlacing) return; // 카드 배치 위치 선택 중엔 이동/공격 클릭을 막는다.
 
             bool leftClicked = Mouse.current.leftButton.wasPressedThisFrame;
