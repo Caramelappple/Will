@@ -56,6 +56,16 @@ namespace _Scripts.LDY.Boss.BullKing
 
         public AnimationCurve MoveEasing => _boss != null ? _boss.ChargeEasing : null;
 
+        /// <summary>
+        /// 달리기 시작할 때 운다. 도착이 아니라 출발에 붙여야 소리가 이동을 이끈다.
+        /// </summary>
+        public void OnMoveStarted(LDY_Animal self, Vector3Int from, Vector3Int to)
+        {
+            if (self != _owner || _boss == null) return;
+
+            _boss.PlayChargeCry();
+        }
+
         public void OnMoved(LDY_Animal self, Vector3Int from, Vector3Int to)
         {
             // 알림은 소유자의 특성 목록에서만 오지만, 남의 이동에 반응하지 않는다는 걸 못박아 둔다.
