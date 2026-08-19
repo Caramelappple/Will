@@ -206,7 +206,8 @@ MonoBehaviour:
   iconImage: {fileID: 3360264093101402799}
   selectionOutline: {fileID: 82604209050939680}
   frontUI: {fileID: 3314906525856238341}
-  selectRiseHeight: 55
+  backUI: {fileID: 0}
+  selectDropHeight: 100
   selectMoveSpeed: 10
   selectedSortingOrder: 10
 --- !u!223 &6039921073457620876
@@ -229,7 +230,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: -1231915761
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &3401565660252102616

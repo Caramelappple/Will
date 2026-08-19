@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform))]
+[RequireComponent(typeof(Canvas))]
 public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 {
     [Header("참조")]
@@ -19,6 +20,8 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
     [SerializeField] private float selectDropHeight = 100f;
     [SerializeField] private float selectMoveSpeed = 10f;
     [SerializeField] private int selectedSortingOrder = 10;
+
+
 
     private const float OffsetSnapThreshold = 0.05f;
 
@@ -43,6 +46,7 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
     public Vector2 OriginBasePosition
     {
         get => _originBasePosition;
+
         set
         {
             _originBasePosition = value;
@@ -53,6 +57,7 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
     public Vector2 BasePosition
     {
         get => _basePosition;
+
         set
         {
             _basePosition = value;
@@ -103,7 +108,6 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
     private void UpdateSelectionOffset()
     {
-        // 선택되면 아래로 내려간다.
         float targetOffset = _isSelected
             ? -selectDropHeight
             : 0f;
@@ -168,11 +172,41 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
     public void SnapRotationToFront()
     {
         _originRotation = Quaternion.identity;
-        transform.localRotation = Quaternion.identity;
 
-        // 회전 보간 루프가 다시 덮어쓰지 않도록 정지
+        transform.localRotation =
+            Quaternion.identity;
+
         _isOffsetSettled = true;
+
+        UpdateCardFace();
     }
+
+    public void OnPointerClick(
+    PointerEventData eventData)
+    {
+        if (_data == null)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardView] {name}: 데이터가 없어 클릭을 처리할 수 없습니다.",
+                this
+            );
+
+            return;
+        }
+
+        if (_onClicked == null)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardView] {name}: 클릭 콜백이 등록되지 않았습니다.",
+                this
+            );
+
+            return;
+        }
+
+        _onClicked.Invoke(this);
+    }
+
     public void Setup(
         LSO_CardSO cardData,
         Action<KTH_HandCardView> onClicked)
@@ -235,16 +269,7 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
     public void SetSelected(bool selected)
     {
-        if (_isSelected == selected)
-            return;
-
         _isSelected = selected;
-
-        // 회전 트윈이 도중에 끊긴 경우를 대비해 원점 회전을 정면으로 재설정
-        _originRotation = Quaternion.identity;
-        transform.localRotation = Quaternion.identity;
-
-        _isOffsetSettled = false;
 
         if (selectionOutline != null)
             selectionOutline.SetActive(selected);
@@ -253,16 +278,20 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
         {
             _canvas.overrideSorting = selected;
 
-            if (selected)
-            {
-                _canvas.sortingOrder =
-                    selectedSortingOrder;
-            }
-            else
-            {
-                _canvas.sortingOrder = 0;
-            }
+            _canvas.sortingOrder =
+                selected
+                    ? selectedSortingOrder
+                    : 0;
         }
+
+        // ⭐ 선택된 카드를 UI 계층의 가장 앞으로 이동
+        if (selected)
+        {
+            transform.SetAsLastSibling();
+        }
+
+        // 선택/해제 시 내려갔다 올라오는 연출 유지
+        _isOffsetSettled = false;
     }
 
     public void ResetSelectionOffset()
@@ -280,38 +309,42 @@ public class KTH_HandCardView : MonoBehaviour, IPointerClickHandler
 
         _yOffset = 0f;
 
-        transform.localRotation = _originRotation;
+        transform.localRotation =
+            _originRotation;
 
         _isOffsetSettled = true;
 
         ApplyPosition();
-
         UpdateCardFace();
     }
 
-    public void OnPointerClick(
-        PointerEventData eventData)
+    /// <summary>
+    /// 배치 취소 등으로 카드의 시각적 상태를 완전히 초기화한다.
+    /// </summary>
+    public void ResetCardVisualState()
     {
-        if (_data == null)
-        {
-            Debug.LogWarning(
-                $"[KTH_HandCardView] {name}: 데이터가 없어 클릭을 처리할 수 없습니다.",
-                this
-            );
+        _isSelected = false;
 
-            return;
+        if (selectionOutline != null)
+            selectionOutline.SetActive(false);
+
+        if (_canvas != null)
+        {
+            _canvas.overrideSorting = false;
+            _canvas.sortingOrder = 0;
         }
 
-        if (_onClicked == null)
-        {
-            Debug.LogWarning(
-                $"[KTH_HandCardView] {name}: 클릭 콜백이 등록되지 않았습니다.",
-                this
-            );
+        _yOffset = 0f;
 
-            return;
-        }
+        _originRotation = Quaternion.identity;
 
-        _onClicked.Invoke(this);
+        transform.localRotation =
+            Quaternion.identity;
+
+        _isOffsetSettled = true;
+
+        ApplyPosition();
+        UpdateCardFace();
     }
+
 }

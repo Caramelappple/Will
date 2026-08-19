@@ -97,6 +97,15 @@ public class KTH_DeckBuilderManager : MonoBehaviour
             nextButton.onClick.AddListener(OnNextPageButtonClick);
         }
 
+        StartCoroutine(InitializeDeckBuilderDelayed());
+    }
+
+    private System.Collections.IEnumerator InitializeDeckBuilderDelayed()
+    {
+        // ItemLibraryManager Awake가 아직 안 돌았을 경우 대비
+        if (ItemLibraryManager.Instance == null)
+            yield return null;
+
         InitializeDeckBuilder();
     }
 
@@ -118,39 +127,27 @@ public class KTH_DeckBuilderManager : MonoBehaviour
 
         if (ItemLibraryManager.Instance != null)
         {
-            // 해금된 기물(Pieces) 리스트 검사
             if (ItemLibraryManager.Instance.UnlockedPieces != null)
             {
                 foreach (var piece in ItemLibraryManager.Instance.UnlockedPieces)
                 {
                     if (piece == null) continue;
 
-                    // 1. piece 자체가 LSO_CardSO인 경우
                     if ((object)piece is LSO_CardSO cardSO)
                     {
-                        if (!cardDatabase.Contains(cardSO))
-                        {
-                            cardDatabase.Add(cardSO);
-                        }
+                        // Contains 체크 제거 -> 중복 허용
+                        cardDatabase.Add(cardSO);
                     }
-                    // 2. piece가 LSO_AnimalSO이고, 이를 포함하는 LSO_CardSO를 수집해야 하는 경우
                     else if ((object)piece is LSO_AnimalSO animalSO)
                     {
-                        // initialInventoryCards 등에 등록되어 있던 카드 중 해당 동물을 가진 카드를 탐색
                         LSO_CardSO matchedCard = initialInventoryCards.Find(c => c != null && c.Animal == animalSO);
-                        if (matchedCard != null && !cardDatabase.Contains(matchedCard))
+                        if (matchedCard != null)
                         {
-                            cardDatabase.Add(matchedCard);
+                            cardDatabase.Add(matchedCard); // 여기도 Contains 체크 제거
                         }
                     }
                 }
             }
-
-            Debug.Log($"🎴 [KTH_DeckBuilderManager] 카드 데이터베이스 {cardDatabase.Count}개 동기화 완료!");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ [KTH_DeckBuilderManager] ItemLibraryManager 인스턴스를 찾을 수 없습니다.");
         }
     }
 
