@@ -56,8 +56,14 @@ namespace _Scripts.LDY.Boss.BullKing
         /// <summary>
         /// 아직 움직이지 않은 상태에서 이 방향으로 달리면 어떻게 되는지 계산한다.
         /// </summary>
+        /// <param name="ignore">
+        /// 없는 셈 치고 지나갈 기물. "저 자리로 옮기면 다음에 뭘 들이받을 수 있나"를
+        /// 미리 재볼 때 자기 자신을 넘긴다. 그러지 않으면 아직 출발 칸에 서 있는 자신을
+        /// 장애물로 집어서, 실제로는 뚫린 길을 막혔다고 판단한다.
+        /// </param>
         public static LDY_ChargeLine Resolve(
-            LDY_BoardManager board, Vector3Int origin, Vector3Int direction, int maxSteps)
+            LDY_BoardManager board, Vector3Int origin, Vector3Int direction, int maxSteps,
+            LDY_Animal ignore = null)
         {
             if (board == null || maxSteps <= 0) return default;
 
@@ -74,7 +80,7 @@ namespace _Scripts.LDY.Boss.BullKing
                 if (!board.IsInside(tile)) break;
 
                 LDY_Animal occupant = board.Get(tile);
-                if (occupant != null)
+                if (occupant != null && occupant != ignore)
                 {
                     blocker = occupant;
                     break;
@@ -89,31 +95,42 @@ namespace _Scripts.LDY.Boss.BullKing
         /// <summary>
         /// 이 이동 후보가 돌진인지 판정한다. AI가 후보 하나하나를 훑을 때 쓴다.
         ///
-        /// 직선 위에 있어도 중간에 멈추는 이동은 돌진이 아니다.
-        /// 돌진은 "멈출 이유가 생길 때까지 달리는" 행동이라 목적지를 고를 수 없기 때문이다.
+        /// 직선 위에 있고 최대 거리 안이면 몇 칸이든 돌진이다 — 중간에 멈춰도 된다.
+        /// 예전에는 "막힐 때까지 끝까지"만 인정했는데, 그러면 황소왕이 자리를 고를 수가 없어서
+        /// 상대를 지나쳐 벽까지 달렸다가 되돌아오기만 반복했다.
         /// </summary>
         public static bool TryPlan(
             LDY_BoardManager board, Vector3Int origin, Vector3Int destination, int maxSteps,
             out LDY_ChargeLine line)
         {
             line = default;
-            if (board == null) return false;
+            if (board == null || maxSteps <= 0) return false;
 
             if (!TryGetDirection(origin, destination, out Vector3Int direction)) return false;
 
-            LDY_ChargeLine resolved = Resolve(board, origin, direction, maxSteps);
-            if (!resolved.Moves || resolved.Destination != Flatten(destination)) return false;
+            Vector3Int start = Flatten(origin);
+            Vector3Int end = Flatten(destination);
 
-            line = resolved;
+            int steps = Distance(start, end);
+            if (steps > maxSteps) return false;
+
+            // 이동 후보는 모퉁이를 돌아오는 길로도 만들어진다.
+            // 돌진은 직선으로만 달리므로, 그 직선이 실제로 비어 있는지 여기서 확인한다.
+            for (int i = 1; i <= steps; i++)
+            {
+                if (!board.IsEmpty(start + direction * i)) return false;
+            }
+
+            line = new LDY_ChargeLine(direction, end, steps, BlockerAhead(board, end, direction));
             return true;
         }
 
         /// <summary>
         /// 이미 끝난 이동이 돌진이었는지 되짚는다. 이동 알림(LDY_IOnMoved)에서 쓴다.
         ///
-        /// 도착 칸에는 이제 움직인 본인이 서 있으므로 경로를 다시 훑을 수 없다.
-        /// 대신 "돌진이라면 반드시 멈출 이유가 있었다"를 검사한다 —
-        /// 최대 거리를 다 썼거나, 앞에 기물이 있거나, 판 끝이거나.
+        /// 경로를 다시 훑지 않는 것은 도착 칸을 움직인 본인이 차지하고 있어서다.
+        /// 어차피 실행된 이동이라 경로가 비어 있었던 건 이미 증명됐고,
+        /// 여기서 알아야 할 것은 "바로 앞에 누가 있느냐"뿐이다.
         /// </summary>
         public static bool TryIdentify(
             LDY_BoardManager board, Vector3Int from, Vector3Int to, int maxSteps,
@@ -124,26 +141,33 @@ namespace _Scripts.LDY.Boss.BullKing
 
             if (!TryGetDirection(from, to, out Vector3Int direction)) return false;
 
-            Vector3Int start = Flatten(from);
             Vector3Int end = Flatten(to);
 
-            int steps = Mathf.Abs(end.x - start.x) + Mathf.Abs(end.z - start.z);
+            int steps = Distance(Flatten(from), end);
             if (steps > maxSteps) return false;
 
-            Vector3Int next = end + direction;
-            bool insideNext = board.IsInside(next);
-            LDY_Animal ahead = insideNext ? board.Get(next) : null;
-
-            // 최대 거리를 다 쓴 돌진은 앞에 기물이 서 있어도 거기까지 닿지 못한 것이다.
-            // 그건 충돌이 아니라 그냥 힘이 다한 것이라 밀어내기가 생기지 않는다.
-            // (이동 전 계산인 Resolve도 같은 이유로 그 칸을 아예 들여다보지 않는다. 둘의 답이 같아야 한다.)
-            LDY_Animal blocker = steps < maxSteps ? ahead : null;
-
-            bool stoppedForReason = steps == maxSteps || ahead != null || !insideNext;
-            if (!stoppedForReason) return false;
-
-            line = new LDY_ChargeLine(direction, end, steps, blocker);
+            line = new LDY_ChargeLine(direction, end, steps, BlockerAhead(board, end, direction));
             return true;
+        }
+
+        /// <summary>
+        /// 멈춰 선 자리 바로 앞의 기물. 이게 있으면 들이받은 것이다.
+        ///
+        /// 최대 거리를 다 썼는지는 보지 않는다. 짧은 돌진이 가능해진 뒤로는
+        /// "힘이 다해 멈춘 것"과 "스스로 멈춘 것"이 판 위에서 구분되지 않기 때문이다.
+        /// 앞에 서 있으면 받힌다 — 규칙이 단순해야 플레이어가 경로를 읽을 수 있다.
+        /// </summary>
+        private static LDY_Animal BlockerAhead(
+            LDY_BoardManager board, Vector3Int destination, Vector3Int direction)
+        {
+            Vector3Int next = destination + direction;
+            return board.IsInside(next) ? board.Get(next) : null;
+        }
+
+        /// <summary>직선 위 두 칸 사이의 칸 수.</summary>
+        private static int Distance(Vector3Int a, Vector3Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.z - b.z);
         }
 
         /// <summary>

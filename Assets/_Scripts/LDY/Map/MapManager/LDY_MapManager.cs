@@ -537,6 +537,12 @@ public class LDY_MapManager : MonoBehaviour
         int prevIndex = CurrentNodeIndex;
         CurrentNodeIndex = index;
 
+        // Inspector에 프리팹 에셋이 연결되어 있을 수 있으므로 이동 전에 반드시
+        // 현재 맵 씬의 토큰 인스턴스로 교체합니다. 프리팹 원본 Transform을
+        // SetParent/이동하려 하면 Unity가 데이터 손상 방지 오류를 발생시킵니다.
+        if (IsValidIndex(prevIndex))
+            EnsureScenePlayerToken(prevIndex);
+
         if (ldy_play != null && IsValidIndex(prevIndex))
         {
             List<Vector2> path = new List<Vector2>
@@ -866,6 +872,21 @@ public class LDY_MapManager : MonoBehaviour
         }
     }
 
+    private void EnsureScenePlayerToken(int nodeIndex)
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        bool hasSceneInstance = ldy_play != null
+            && ldy_play.gameObject.scene.IsValid()
+            && ldy_play.gameObject.scene == activeScene;
+
+        if (hasSceneInstance) return;
+
+        // SetTokenPositionToNode가 현재 씬의 토큰을 찾거나, 없으면 프리팹으로부터
+        // 새 인스턴스를 만든 뒤 시작 노드 위치에 배치합니다.
+        ldy_play = null;
+        SetTokenPositionToNode(nodeIndex);
+    }
+
     private bool IsValidIndex(int index) => index >= 0 && index < Nodes.Count;
 
     private void EnsureNodeContainer()
@@ -912,6 +933,16 @@ public class LDY_MapManager : MonoBehaviour
 
         Debug.Log($"[LDY_MapManager] 라우터 기반 씬 이동 시작 -> Target Scene: {targetSceneName}");
 
+        LDY_MapCameraController cameraController = FindFirstObjectByType<LDY_MapCameraController>();
+        if (cameraController != null)
+        {
+            cameraController.PlayStageEnterTransition(
+                screenUV,
+                () => KTH_LoadingSceneController.LoadScene(targetSceneName));
+            return;
+        }
+
+        Debug.LogWarning("[LDY_MapManager] 맵 카메라 컨트롤러가 없어 진입 연출 없이 씬을 이동합니다.", this);
         KTH_LoadingSceneController.LoadScene(targetSceneName);
     }
 

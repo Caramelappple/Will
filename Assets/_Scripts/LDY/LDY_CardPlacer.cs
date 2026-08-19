@@ -185,11 +185,24 @@ namespace _Scripts.LDY
             // 플레이어가 직접 놓은 기물만 고를 수 있다.
             if (animal == null || animal.team != LDY_Team.Player) return;
 
+            // 유언 창이 떠 있는 동안 보드를 누르면 창 뒤에서 소환이 또 일어난다.
+            // 창이 어떻게 닫히든 반드시 풀어야 하므로 두 콜백 모두에서 되돌린다.
+            //
+            // LSO_WillPanel.Finish가 선택/취소 중 하나를 정확히 한 번만 부르고,
+            // 창이 꺼지거나 턴이 넘어가 Abort될 때도 취소 쪽이 불린다.
+            // 선택지가 하나뿐이거나 씬에 창이 없으면 아래 호출 안에서 즉시 풀린다.
+            SetBoardActive(false);
+
             LSO_WillSelection.Request(
                 card,
                 SelectableWills,
                 card.DefaultWill,
-                onSelected: selected => Apply(animal, selected));
+                onSelected: selected =>
+                {
+                    SetBoardActive(true);
+                    Apply(animal, selected);
+                },
+                onCancelled: () => SetBoardActive(true));
         }
 
         private static void Apply(LDY_Animal animal, LSO_WillType willType)
@@ -345,6 +358,33 @@ namespace _Scripts.LDY
                 }
             }
             return null;
+        }
+        
+        private LayerMask _savedBoardLayerMask;
+        private bool _boardBlocked;
+
+        /// <summary>
+        /// 보드 칸 클릭을 막거나 푼다. 유언 창처럼 답을 기다리는 UI가 떠 있을 때 쓴다.
+        ///
+        /// 레이캐스트 마스크를 잠시 비우는 방식이라 하이라이트나 다른 표시는 그대로 남는다.
+        /// 여러 번 불러도 안전하다. 막힌 상태에서 또 막아도 원래 마스크를 잃지 않는다.
+        /// </summary>
+        public void SetBoardActive(bool active)
+        {
+            if (active)
+            {
+                if (!_boardBlocked) return;
+
+                boardLayerMask = _savedBoardLayerMask;
+                _boardBlocked = false;
+                return;
+            }
+
+            if (_boardBlocked) return;
+
+            _savedBoardLayerMask = boardLayerMask;
+            boardLayerMask = default;
+            _boardBlocked = true;
         }
     }
 }
