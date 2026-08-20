@@ -167,6 +167,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1894927142337889901, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -177.99994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2124816435725468248, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -177.99994
+      objectReference: {fileID: 0}
+    - target: {fileID: 2957046209306702380, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -177.99994
+      objectReference: {fileID: 0}
     - target: {fileID: 3105528344661264322, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
       propertyPath: m_Name
       value: CardDrowUI (1)
@@ -175,6 +187,22 @@ PrefabInstance:
       propertyPath: uiCamera
       value: 
       objectReference: {fileID: 257224524}
+    - target: {fileID: 4624453546101990596, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: deckAnimDuration
+      value: 0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 5618028824780289772, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -177.99994
+      objectReference: {fileID: 0}
+    - target: {fileID: 9024803836754680155, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -177.99994
+      objectReference: {fileID: 0}
+    - target: {fileID: 9073092725452221603, guid: a05c51c786b3b7049b49ff63d46352d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -178
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

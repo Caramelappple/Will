@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git -C \"c:/Dev/Will\" log --oneline -3 -- Assets/_Scripts/LDY/LDY_Animal.cs)",
       "Bash(git -C \"c:/Dev/Will\" diff HEAD -- Assets/_Scripts/LDY/LDY_Animal.cs)",
-      "Bash(xargs -I{} basename {})"
+      "Bash(xargs -I{} basename {})",
+      "Bash(python -c ' *)"
     ]
   }
 }
