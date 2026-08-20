@@ -297,6 +297,11 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             : new GameObject("Succession Effect Origin");
         effectInstance.transform.position = animal.transform.position;
         effectInstance.SetActive(true);
+        
+        DLJ_SuccessionNotify notify =
+            Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
+                FindObjectsInactive.Include);
+        notify?.ShowAndPlay();
 
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
@@ -327,6 +332,11 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             Debug.LogWarning("Succession target must be on the same team.");
             return false;
         }
+        
+        DLJ_SuccessionNotify notify =
+            Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
+                FindObjectsInactive.Include);
+        notify?.Unable();
 
         isCompletingSuccession = true;
         successionSource.MoveEffectAndApply(target);

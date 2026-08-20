@@ -28,5 +28,5 @@ MonoBehaviour:
   successionCameraOrbitAngle: 24
   successionCameraRestoreDuration: 0.45
   successionCameraStartDelay: 0.4
-  successionCameraMoveDuration: 5.5
+  successionCameraMoveDuration: 5.8
   successionCameraTrackingSwitchPoint: 0.1

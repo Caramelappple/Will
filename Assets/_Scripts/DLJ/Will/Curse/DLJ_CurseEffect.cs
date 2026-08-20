@@ -26,7 +26,9 @@ public sealed class DLJ_CurseEffect : DLJ_IWillEffect
             context.areaSize.z);
         effectTransform.localScale = Vector3.zero;
         effectObject.SetActive(true);
-        effectTransform.DOScale(targetScale, expandTime).SetEase(Ease.Linear);
+        effectTransform.DOScale(targetScale, expandTime)
+            .SetEase(Ease.Linear)
+            .SetLink(effectObject);
         onComplete?.Invoke();
     }
 }
