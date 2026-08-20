@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LDY_MapCameraController : MonoBehaviour
 {
@@ -62,6 +64,22 @@ public class LDY_MapCameraController : MonoBehaviour
         new ChapterUISetting { chapter = 1, zoomScale = 1.0f, positionOffset = Vector2.zero },
         new ChapterUISetting { chapter = 2, zoomScale = 0.8f, positionOffset = Vector2.zero }
     };
+
+    [Header("스테이지 진입 연출")]
+    [Tooltip("스테이지 클릭 후 화면이 확대되고 완전히 어두워질 때까지 걸리는 시간")]
+    [SerializeField, Min(0.01f)] private float stageEnterDuration = 0.8f;
+
+    [Tooltip("스테이지 진입 시 적용할 최종 확대 배율")]
+    [SerializeField, Min(1f)] private float stageEnterZoom = 1.6f;
+
+    [Tooltip("전체 연출 중 페이드가 시작되는 시점 (0~1)")]
+    [SerializeField, Range(0f, 0.95f)] private float stageEnterFadeStart = 0.25f;
+
+    [SerializeField] private Color stageEnterFadeColor = Color.black;
+
+    private bool isStageEnterPlaying;
+
+    public bool IsStageEnterPlaying => isStageEnterPlaying;
 
     private void Awake()
     {
@@ -145,5 +163,108 @@ public class LDY_MapCameraController : MonoBehaviour
         {
             targetCamera.fieldOfView = useCustom ? setting.cameraFieldOfView : globalCameraFOV;
         }
+    }
+
+    /// <summary>
+    /// 클릭한 스테이지를 화면 중앙으로 당겨 확대하면서 화면을 덮은 뒤 다음 동작을 실행합니다.
+    /// </summary>
+    public void PlayStageEnterTransition(Vector2 screenUV, Action onCovered)
+    {
+        if (isStageEnterPlaying) return;
+        StartCoroutine(Co_PlayStageEnterTransition(screenUV, onCovered));
+    }
+
+    private IEnumerator Co_PlayStageEnterTransition(Vector2 screenUV, Action onCovered)
+    {
+        isStageEnterPlaying = true;
+        screenUV = new Vector2(Mathf.Clamp01(screenUV.x), Mathf.Clamp01(screenUV.y));
+
+        RectTransform canvasRect = GetComponentInParent<Canvas>()?.transform as RectTransform;
+        Image fadeImage = CreateFadeImage(canvasRect);
+
+        int targetCount = targetUIs != null ? targetUIs.Count : 0;
+        Vector3[] startScales = new Vector3[targetCount];
+        Vector2[] startPositions = new Vector2[targetCount];
+
+        for (int i = 0; i < targetCount; i++)
+        {
+            RectTransform target = targetUIs[i];
+            if (target == null) continue;
+
+            startScales[i] = target.localScale;
+            startPositions[i] = target.anchoredPosition;
+        }
+
+        Vector2 focusOffset = Vector2.zero;
+        if (canvasRect != null)
+        {
+            Vector2 canvasSize = canvasRect.rect.size;
+            focusOffset = new Vector2(
+                (0.5f - screenUV.x) * canvasSize.x,
+                (0.5f - screenUV.y) * canvasSize.y);
+        }
+
+        float duration = Mathf.Max(0.01f, stageEnterDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float normalized = Mathf.Clamp01(elapsed / duration);
+            float eased = Mathf.SmoothStep(0f, 1f, normalized);
+
+            for (int i = 0; i < targetCount; i++)
+            {
+                RectTransform target = targetUIs[i];
+                if (target == null) continue;
+
+                target.localScale = Vector3.LerpUnclamped(
+                    startScales[i],
+                    startScales[i] * stageEnterZoom,
+                    eased);
+                target.anchoredPosition = Vector2.LerpUnclamped(
+                    startPositions[i],
+                    startPositions[i] + focusOffset * (stageEnterZoom - 1f),
+                    eased);
+            }
+
+            if (fadeImage != null)
+            {
+                float fadeT = Mathf.InverseLerp(stageEnterFadeStart, 1f, normalized);
+                Color color = stageEnterFadeColor;
+                color.a *= Mathf.SmoothStep(0f, 1f, fadeT);
+                fadeImage.color = color;
+            }
+
+            yield return null;
+        }
+
+        onCovered?.Invoke();
+        isStageEnterPlaying = false;
+    }
+
+    private Image CreateFadeImage(RectTransform canvasRect)
+    {
+        if (canvasRect == null) return null;
+
+        GameObject fadeObject = new GameObject(
+            "StageEnterFade",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        RectTransform fadeRect = (RectTransform)fadeObject.transform;
+        fadeRect.SetParent(canvasRect, false);
+        fadeRect.anchorMin = Vector2.zero;
+        fadeRect.anchorMax = Vector2.one;
+        fadeRect.offsetMin = Vector2.zero;
+        fadeRect.offsetMax = Vector2.zero;
+        fadeRect.SetAsLastSibling();
+
+        Image fadeImage = fadeObject.GetComponent<Image>();
+        Color color = stageEnterFadeColor;
+        color.a = 0f;
+        fadeImage.color = color;
+        fadeImage.raycastTarget = true;
+        return fadeImage;
     }
 }

@@ -593,7 +593,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -799,7 +799,7 @@ Canvas:
   m_GameObject: {fileID: 881147946}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 634524079}
   m_PlaneDistance: 0.5
   m_PixelPerfect: 0
@@ -1820,6 +1820,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3542717047054104763, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 3840
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542717047054104763, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 2160
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542717047054104763, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 528
+      objectReference: {fileID: 0}
     - target: {fileID: 3909029685163327351, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1838,7 +1850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4286082550720430744, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4976155727419384940, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_Name

@@ -17,10 +17,33 @@ namespace _Scripts.LSO.Will
     /// </summary>
     public static class LSO_WillSelection
     {
+        private const float DefaultUnlockDelay = 0.14f;
+
         /// <summary>씬의 선택 UI. 구현체가 켜질 때 스스로 등록한다.</summary>
         public static LSO_IWillSelector Current { get; private set; }
 
+        private static bool _interactionRequested;
+        private static float _unlockAtUnscaledTime;
+
+        /// <summary>
+        /// 손패 카드를 고른 뒤부터 유언 선택 창이 완전히 사라질 때까지 보드 조작을 막는다.
+        /// 배치 입력은 LDY_CardPlacer가 별도로 처리하므로 이 잠금의 영향을 받지 않는다.
+        /// </summary>
+        public static bool IsBoardInteractionLocked =>
+            _interactionRequested || Time.unscaledTime < _unlockAtUnscaledTime;
+
+        /// <summary>페이드 배경이 잠금 상태를 따라갈 때 쓰는 알림.</summary>
+        public static event Action<bool> BoardInteractionLockChanged;
+
         public static bool HasSelector => Current != null;
+
+        /// <summary>
+        /// 지금 플레이어의 답을 기다리는 중인지.
+        ///
+        /// 창이 떠 있는 동안 보드를 만지면 뒤에서 이동·공격·소환이 일어난다.
+        /// 조작을 받는 쪽은 이 값을 보고 클릭을 흘려보낼 것.
+        /// </summary>
+        public static bool IsSelecting => Current is { IsSelecting: true };
 
         /// <summary>
         /// 해금된 유언을 돌려주는 함수. 해금 시스템을 가진 쪽이 등록한다.
@@ -87,6 +110,22 @@ namespace _Scripts.LSO.Will
                 Current.Abort();
         }
 
+        public static void BeginBoardInteractionLock()
+        {
+            _interactionRequested = true;
+            _unlockAtUnscaledTime = 0f;
+            BoardInteractionLockChanged?.Invoke(true);
+        }
+
+        public static void EndBoardInteractionLock(float unlockDelay = DefaultUnlockDelay)
+        {
+            if (!_interactionRequested && _unlockAtUnscaledTime <= 0f) return;
+
+            _interactionRequested = false;
+            _unlockAtUnscaledTime = Time.unscaledTime + Mathf.Max(0f, unlockDelay);
+            BoardInteractionLockChanged?.Invoke(false);
+        }
+
         private static void DoNothing()
         {
         }
@@ -100,6 +139,9 @@ namespace _Scripts.LSO.Will
         {
             Current = null;
             UnlockedWillsProvider = null;
+            _interactionRequested = false;
+            _unlockAtUnscaledTime = 0f;
+            BoardInteractionLockChanged = null;
         }
     }
 }

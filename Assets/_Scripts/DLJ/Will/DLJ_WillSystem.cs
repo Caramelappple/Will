@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Manager;
 using _Scripts.LSO;
@@ -71,7 +73,17 @@ public static class DLJ_WillRuntime
         };
 
         LSO_IWill will = LSO_WillFactory.Create(animal.WillType, context, data);
-        will?.InvokeWill();
+        DLJ_DeathPreludeSO deathPrelude =
+            (data as DLJ_ContractWillDataSO)?.deathPrelude;
+        if (deathPrelude != null)
+        {
+            DLJ_WillPrelude.Begin(animal, deathPrelude);
+            will?.InvokeWill();
+        }
+        else
+        {
+            will?.InvokeWill();
+        }
         return will;
     }
 
@@ -86,4 +98,204 @@ public static class DLJ_WillRuntime
         return database;
     }
 
+}
+
+/// <summary>
+/// 사망과 유언 발동 사이의 짧은 정적과 문양 등장을 담당한다.
+/// 문양 Sprite가 비어 있어도 동일한 위치와 크기의 빈 렌더러를 만들어,
+/// 이미지가 준비된 뒤 데이터 에셋에 연결하는 것만으로 연출이 보이게 한다.
+/// </summary>
+public static class DLJ_WillPrelude
+{
+    private static DLJ_WillPreludeRunner runner;
+    private static readonly List<System.Action> pendingRevealCallbacks = new();
+    private static int activePreludeCount;
+    private static float timeScaleBeforePrelude = 1f;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        runner = null;
+        pendingRevealCallbacks.Clear();
+        activePreludeCount = 0;
+        timeScaleBeforePrelude = 1f;
+    }
+
+    /// <summary>
+    /// 유언 로직은 원래 호출 흐름을 유지하되, 같은 프레임에 전장을 정지시킨다.
+    /// 기존 유언 이펙트는 scaled time을 사용하므로 문양이 드러난 뒤 정지가 풀릴 때부터 움직인다.
+    /// </summary>
+    public static void Begin(
+        LDY_Animal animal,
+        DLJ_DeathPreludeSO settings,
+        System.Action onRevealed = null)
+    {
+        if (animal == null || settings == null)
+        {
+            onRevealed?.Invoke();
+            return;
+        }
+
+        EnsureRunner();
+        GameObject sigil = CreateSigilPlaceholder(animal, settings);
+        AcquirePause();
+        runner.StartCoroutine(Animate(sigil, settings, onRevealed));
+    }
+
+    private static IEnumerator Animate(
+        GameObject sigil,
+        DLJ_DeathPreludeSO settings,
+        System.Action onRevealed)
+    {
+        try
+        {
+            yield return WaitRealtime(settings.silenceDuration);
+
+            if (sigil == null)
+                yield break;
+
+            Transform sigilTransform = sigil.transform;
+            Vector3 targetScale = Vector3.one;
+            sigilTransform.localScale = Vector3.zero;
+
+            float duration = Mathf.Max(
+                0f,
+                settings.revealDuration);
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                if (sigil == null)
+                    yield break;
+
+                elapsed += Time.unscaledDeltaTime;
+                float t = duration > 0f ? Mathf.Clamp01(elapsed / duration) : 1f;
+                sigilTransform.localScale = Vector3.LerpUnclamped(
+                    Vector3.zero,
+                    targetScale,
+                    1f - Mathf.Pow(1f - t, 3f));
+                yield return null;
+            }
+
+            if (sigil != null)
+                sigilTransform.localScale = targetScale;
+        }
+        finally
+        {
+            ReleasePause(onRevealed);
+        }
+
+        if (sigil == null)
+            yield break;
+
+        yield return WaitRealtime(settings.holdDuration);
+
+        SpriteRenderer renderer = sigil.GetComponent<SpriteRenderer>();
+        Color startColor = renderer != null ? renderer.color : Color.clear;
+        float fadeDuration = Mathf.Max(
+            0f,
+            settings.fadeDuration);
+        float fadeElapsed = 0f;
+
+        while (sigil != null && fadeElapsed < fadeDuration)
+        {
+            fadeElapsed += Time.unscaledDeltaTime;
+            float t = fadeDuration > 0f
+                ? Mathf.Clamp01(fadeElapsed / fadeDuration)
+                : 1f;
+            if (renderer != null)
+            {
+                Color color = startColor;
+                color.a = Mathf.Lerp(startColor.a, 0f, t);
+                renderer.color = color;
+            }
+            yield return null;
+        }
+
+        if (sigil != null)
+            UnityEngine.Object.Destroy(sigil);
+    }
+
+    private static GameObject CreateSigilPlaceholder(
+        LDY_Animal animal,
+        DLJ_DeathPreludeSO settings)
+    {
+        GameObject sigil = new GameObject($"Will Sigil - {animal.WillType}");
+        sigil.transform.position = animal.transform.position + Vector3.up * 0.01f;
+        sigil.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        sigil.transform.localScale = Vector3.zero;
+
+        SpriteRenderer renderer = sigil.AddComponent<SpriteRenderer>();
+        renderer.sprite = settings.sigilSprite;
+        renderer.color = settings.sigilColor;
+        renderer.sortingOrder = 1;
+        return sigil;
+    }
+
+    private static void EnsureRunner()
+    {
+        if (runner != null)
+            return;
+
+        GameObject runnerObject = new GameObject("DLJ Will Prelude Runner");
+        UnityEngine.Object.DontDestroyOnLoad(runnerObject);
+        runner = runnerObject.AddComponent<DLJ_WillPreludeRunner>();
+    }
+
+    private static void AcquirePause()
+    {
+        if (activePreludeCount == 0)
+            timeScaleBeforePrelude = Time.timeScale;
+
+        activePreludeCount++;
+        Time.timeScale = 0f;
+    }
+
+    private static void ReleasePause(System.Action onRevealed)
+    {
+        if (onRevealed != null)
+            pendingRevealCallbacks.Add(onRevealed);
+
+        activePreludeCount = Mathf.Max(0, activePreludeCount - 1);
+        if (activePreludeCount > 0)
+            return;
+
+        Time.timeScale = timeScaleBeforePrelude;
+
+        if (pendingRevealCallbacks.Count == 0)
+            return;
+
+        System.Action[] callbacks = pendingRevealCallbacks.ToArray();
+        pendingRevealCallbacks.Clear();
+        foreach (System.Action callback in callbacks)
+            callback?.Invoke();
+    }
+
+    private static IEnumerator WaitRealtime(float duration)
+    {
+        float remaining = Mathf.Max(0f, duration);
+        while (remaining > 0f)
+        {
+            remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+    }
+
+    internal static void CancelAll()
+    {
+        if (activePreludeCount == 0)
+            return;
+
+        Time.timeScale = timeScaleBeforePrelude;
+        activePreludeCount = 0;
+        pendingRevealCallbacks.Clear();
+    }
+}
+
+[AddComponentMenu("")]
+public sealed class DLJ_WillPreludeRunner : MonoBehaviour
+{
+    private void OnDestroy()
+    {
+        DLJ_WillPrelude.CancelAll();
+    }
 }

@@ -12,7 +12,7 @@ namespace _Scripts.LSO.Will
         {
             foreach (DLJ_WillDataSO will in wills)
             {
-                if (will != null && will.willType == willType)
+                if (will != null && will.WillType == willType)
                     return will;
             }
 

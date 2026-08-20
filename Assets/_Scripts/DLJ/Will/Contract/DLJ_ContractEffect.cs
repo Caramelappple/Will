@@ -11,8 +11,9 @@ public sealed class DLJ_ContractEffect : DLJ_IWillEffect
         if (effectObject != null)
         {
             effectObject.SetActive(true);
-            float lifetime = context?.data != null
-                ? Mathf.Max(0f, context.data.holdTime)
+            DLJ_ContractWillDataSO data = context?.data as DLJ_ContractWillDataSO;
+            float lifetime = data != null
+                ? Mathf.Max(0f, data.holdTime)
                 : 0f;
             UnityEngine.Object.Destroy(effectObject, lifetime);
         }

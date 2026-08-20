@@ -9,7 +9,13 @@ public sealed class DLJ_ContractSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_ContractWill(context, data);
+        if (data is not DLJ_ContractWillDataSO contractData)
+        {
+            Debug.LogError($"Contract requires {nameof(DLJ_ContractWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_ContractWill(context, contractData);
     }
 }
 
@@ -20,10 +26,10 @@ internal sealed class DLJ_ContractWill : LSO_IWill
     private readonly DLJ_ContractRefund refundService;
     private readonly bool isEnhanced;
     private readonly GameObject owner;
-    private readonly DLJ_WillDataSO data;
+    private readonly DLJ_ContractWillDataSO data;
     private readonly DLJ_IWillEffect effect = new DLJ_ContractEffect();
 
-    internal DLJ_ContractWill(DLJ_WillContext context, DLJ_WillDataSO sourceData)
+    internal DLJ_ContractWill(DLJ_WillContext context, DLJ_ContractWillDataSO sourceData)
     {
         unitCost = context.animal != null && context.animal.data != null
             ? Mathf.Max(0, context.animal.data.cost)

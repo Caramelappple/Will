@@ -179,7 +179,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
                 {
                     // NOTE: 이름은 willType 이넘 값을 그대로 사용.
                     // 한글 표시명이 필요하면 이넘 -> 한글 매핑으로 교체.
-                    nameText.text = will.willType.ToString();
+                    nameText.text = will.WillType.ToString();
                 }
 
                 if (descriptionText != null)
@@ -197,17 +197,17 @@ public class KTH_RewardOptionUI : MonoBehaviour
 
                 if (statText1 != null)
                 {
-                    statText1.text = $"피해량 : {will.damage}";
+                    statText1.text = $"피해량 : {will.DisplayDamage}";
                 }
 
                 if (statText2 != null)
                 {
-                    statText2.text = $"범위 : {will.range}";
+                    statText2.text = $"범위 : {will.DisplayRange}";
                 }
 
                 if (statText3 != null)
                 {
-                    statText3.text = $"지속시간 : {will.duration}";
+                    statText3.text = $"지속시간 : {will.DisplayDuration}";
                 }
 
                 // NOTE: buffAmount / debuffAmount도 DLJ_WillDataSO에 추가된다는 전제.
@@ -215,16 +215,16 @@ public class KTH_RewardOptionUI : MonoBehaviour
                 if (statText4 != null)
                 {
                     statText4.text =
-                        will.buffAmount != 0
-                            ? $"버프 : {will.buffAmount}"
+                        will.DisplayBuffAmount != 0
+                            ? $"버프 : {will.DisplayBuffAmount}"
                             : "";
                 }
 
                 if (statText5 != null)
                 {
                     statText5.text =
-                        will.debuffAmount != 0
-                            ? $"디버프 : {will.debuffAmount}"
+                        will.DisplayDebuffAmount != 0
+                            ? $"디버프 : {will.DisplayDebuffAmount}"
                             : "";
                 }
             }

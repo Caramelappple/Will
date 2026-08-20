@@ -108,19 +108,26 @@ public class KTH_InfoPanelController : MonoBehaviour
         if (panelRoot == null)
             return;
 
-        if (outsideClickCatcher == null &&
-            panelRoot.parent != null)
+        // 최상위 Canvas를 찾아서 그 바로 아래에 catcher를 둔다.
+        // (체스판 스크립트는 건드리지 않고, 이 catcher가 화면 전체를 UI 레이어에서 덮도록만 한다.)
+        Canvas rootCanvas =
+            panelRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+
+        Transform blockerParent =
+            rootCanvas != null
+                ? rootCanvas.transform
+                : panelRoot.parent;
+
+        if (blockerParent == null)
+            return;
+
+        if (outsideClickCatcher == null)
         {
             Transform existing =
-                panelRoot.parent.Find(
-                    "OutsideClickCatcher"
-                );
+                blockerParent.Find("OutsideClickCatcher");
 
             if (existing != null)
-            {
-                outsideClickCatcher =
-                    existing.GetComponent<Button>();
-            }
+                outsideClickCatcher = existing.GetComponent<Button>();
         }
 
         if (outsideClickCatcher != null)
@@ -134,53 +141,28 @@ public class KTH_InfoPanelController : MonoBehaviour
                 typeof(Button)
             );
 
-        RectTransform rect =
-            catcher.GetComponent<RectTransform>();
-
-        rect.SetParent(
-            panelRoot.parent,
-            false
-        );
-
+        RectTransform rect = catcher.GetComponent<RectTransform>();
+        rect.SetParent(blockerParent, false);
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
-
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image image =
-            catcher.GetComponent<Image>();
-
-        image.color =
-            new Color(
-                0f,
-                0f,
-                0f,
-                0f
-            );
-
+        Image image = catcher.GetComponent<Image>();
+        image.color = new Color(0f, 0f, 0f, 0f);
         image.raycastTarget = true;
 
-        outsideClickCatcher =
-            catcher.GetComponent<Button>();
+        outsideClickCatcher = catcher.GetComponent<Button>();
 
-        ColorBlock colors =
-            outsideClickCatcher.colors;
-
+        ColorBlock colors = outsideClickCatcher.colors;
         colors.normalColor = Color.clear;
         colors.highlightedColor = Color.clear;
         colors.pressedColor = Color.clear;
         colors.selectedColor = Color.clear;
         colors.disabledColor = Color.clear;
+        outsideClickCatcher.colors = colors;
 
-        outsideClickCatcher.colors =
-            colors;
-
-        outsideClickCatcher
-            .onClick
-            .AddListener(
-                HandleOutsideClick
-            );
+        outsideClickCatcher.onClick.AddListener(HandleOutsideClick);
     }
 
     private void SetupPanelClickBlocker()
@@ -257,6 +239,26 @@ public class KTH_InfoPanelController : MonoBehaviour
     {
         if (data == null)
             return;
+
+        // ----------------------------------------------------------------
+        // [수정] 이미 다른 카드에 대해 패널이 열려 있는 상태에서
+        // 새 카드를 선택하면, 기존 카드의 취소 콜백(_onCancel)을
+        // 먼저 실행해줘야 한다.
+        // 이 콜백은 보통 이전에 선택된 핸드카드를
+        // SetSelected(false) / ResetSelectionOffset() 등으로
+        // 원래 상태로 복구시키는 역할을 한다.
+        // 이걸 호출하지 않고 그냥 _onCancel을 덮어쓰면
+        // 이전 카드가 선택된 채로(내려간 상태 / sortingOrder 변경 상태 등)
+        // 방치되어 다음 로직(핸드 재배치 등)에서 사라지거나
+        // 이상하게 보이는 문제가 발생한다.
+        // ----------------------------------------------------------------
+        if (_onCancel != null &&
+            _currentCardView != null)
+        {
+            Action previousCancel = _onCancel;
+            _onCancel = null;
+            previousCancel.Invoke();
+        }
 
         // 기존 애니메이션 완전히 제거
         if (panelRoot != null)
@@ -404,6 +406,12 @@ public class KTH_InfoPanelController : MonoBehaviour
             LSO_CardSO targetData =
                 _currentData;
 
+            // [수정] Place 버튼으로 정상적으로 카드를 사용/배치하는
+            // 경로이므로, 여기서는 _onCancel을 호출하지 않고
+            // 그냥 비워서 HideWithAnim() 내부에서 다시
+            // 호출되지 않도록 한다. (중복 실행 방지)
+            _onCancel = null;
+
             HideWithAnim();
 
             if (targetCard != null)
@@ -431,9 +439,9 @@ public class KTH_InfoPanelController : MonoBehaviour
     }
 
     private void PlayDiscardDirectly(
-        KTH_HandCardView cardView,
-        LSO_CardSO cardData,
-        Action onComplete)
+    KTH_HandCardView cardView,
+    LSO_CardSO cardData,
+    Action onComplete)
     {
         if (discardCardUI == null)
         {
@@ -443,26 +451,26 @@ public class KTH_InfoPanelController : MonoBehaviour
                 );
         }
 
+        // 버린 카드 UI가 없으면
+        // 바로 다음 단계로 진행
         if (discardCardUI == null ||
             discardCardUI.DiscardCardTransform == null)
         {
             if (cardData != null &&
                 discardCardUI != null)
             {
-                discardCardUI
-                    .AddToDiscardPile(
-                        cardData
-                    );
+                discardCardUI.AddToDiscardPile(cardData);
             }
 
-            cardView.gameObject.SetActive(false);
-
+            // ⭐ 카드 비활성화하지 않음
+            // ⭐ enabled = false 하지 않음
+            //
+            // 실제 삭제는 DeckManager의
+            // FinalizeCardPlacement()에서 한다.
             onComplete?.Invoke();
 
             return;
         }
-
-        cardView.enabled = false;
 
         RectTransform cardRect =
             cardView.GetComponent<RectTransform>();
@@ -472,6 +480,7 @@ public class KTH_InfoPanelController : MonoBehaviour
 
         cardRect.DOKill();
 
+        // 버리는 연출 중에는 다른 UI보다 위에 표시
         cardRect.SetAsLastSibling();
 
         RectTransform parentRect =
@@ -482,8 +491,7 @@ public class KTH_InfoPanelController : MonoBehaviour
 
         Camera uiCamera =
             parentCanvas != null &&
-            parentCanvas.renderMode !=
-            RenderMode.ScreenSpaceOverlay
+            parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay
                 ? parentCanvas.worldCamera
                 : null;
 
@@ -536,17 +544,18 @@ public class KTH_InfoPanelController : MonoBehaviour
             )
             .OnComplete(() =>
             {
+                // 버린 카드 데이터 등록
                 if (cardData != null)
                 {
-                    discardCardUI
-                        .AddToDiscardPile(
-                            cardData
-                        );
+                    discardCardUI.AddToDiscardPile(
+                        cardData
+                    );
                 }
 
-                cardView.gameObject
-                    .SetActive(false);
-
+                // ⭐ 여기서 절대 SetActive(false) 하지 않는다.
+                // ⭐ 여기서 절대 Destroy() 하지 않는다.
+                //
+                // 연출이 끝났으면 실제 배치 로직으로 넘긴다.
                 onComplete?.Invoke();
             });
     }
