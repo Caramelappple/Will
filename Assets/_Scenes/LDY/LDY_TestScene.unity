@@ -457,6 +457,7 @@ MonoBehaviour:
   maxRageChainPerCharge: 3
   rageChainHitsBullKing: 1
   chargeDuration: 2
+  minChargeDuration: 0.2
   chargeEasing:
     serializedVersion: 2
     m_Curve:
@@ -484,8 +485,11 @@ MonoBehaviour:
   chargeSfx: 6
   shakeDuration: 0.25
   shakeStrength: 0.15
-  pushDuration: 0.2
+  riseDuration: 0.3
+  hangDuration: 0.15
+  fallDuration: 0.3
   pushArcHeight: 0.35
+  slamHopHeight: 0.5
 --- !u!114 &70646593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6100,6 +6104,7 @@ GameObject:
   - component: {fileID: 944642609}
   - component: {fileID: 944642614}
   - component: {fileID: 944642608}
+  - component: {fileID: 944642616}
   m_Layer: 0
   m_Name: LDY_GameSystems
   m_TagString: Untagged
@@ -6259,6 +6264,23 @@ MonoBehaviour:
   boardOrigin: {fileID: 958312794}
   cellSize: 1
   heightStep: 1
+--- !u!114 &944642616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 944642606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5379709b668c434491eaa5c2898555c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_EscapeKeyHandler
+  escapeTargets: []
+  menuActions: {fileID: 0}
+  cardPlacer: {fileID: 881993166}
+  moveSystem: {fileID: 944642612}
+  attackSystem: {fileID: 944642611}
 --- !u!1 &958312793
 GameObject:
   m_ObjectHideFlags: 0
@@ -10582,6 +10604,8 @@ MonoBehaviour:
   isTest: 0
   nodeContainerRect: {fileID: 0}
   mapSceneName: MapScene
+  deathSceneName: KTH_Death Scene
+  bossClearSceneName: KTH_Boss Clear Scene
   editorChapterIndex: 1
   editorStageIndex: 1
   nodePositions: []
@@ -12872,6 +12896,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2c7403a4e0441843a0967bdfdb52236, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_GameEndManager
+  turnManager: {fileID: 0}
   onBossClear:
     m_PersistentCalls:
       m_Calls: []
