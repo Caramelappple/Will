@@ -15,8 +15,18 @@ MonoBehaviour:
   successionLineColor: {r: 0.72, g: 0.92, b: 1, a: 0.9}
   successionLineWidth: 0.025
   successionLineHeight: 0.35
-  successionAbsorbDuration: 0.22
+  successionRotation: {x: 0, y: 0, z: 360}
+  successionAbsorbDuration: 0.78
   successionFlashDuration: 2.02
   successionBloomIntensity: 0.4
   successionLightIntensity: 0.19
   successionLightRange: 1.6
+  successionCameraEnabled: 1
+  successionCameraZoomDuration: 0.35
+  successionCameraZoomRatio: 0.55
+  successionCameraFocusHeight: 0.45
+  successionCameraOrbitAngle: 24
+  successionCameraRestoreDuration: 0.45
+  successionCameraStartDelay: 0.4
+  successionCameraMoveDuration: 5.5
+  successionCameraTrackingSwitchPoint: 0.1

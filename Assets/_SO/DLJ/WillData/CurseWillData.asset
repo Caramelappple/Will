@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CurseWillDataSO
   description: 
   icon: {fileID: 0}
+  material: {fileID: 0}
   effectPrefab: {fileID: 7744833713677540377, guid: a584a6010b9e1a047a40d279be450a5f, type: 3}
   damage: 1
   range: 1
   duration: 2
   expandTime: 0.25
-  effectHeight: 0.12
+  effectHeight: 0.045
