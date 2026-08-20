@@ -124,6 +124,24 @@ namespace _Scripts.LDY.Save
             SaveMeta();
         }
 
+        /// <summary>
+        /// 런과 메타를 모두 지운다. 되돌릴 수 없다.
+        ///
+        /// ClearRun과 다르다. 저쪽은 "런 하나가 끝났다"라서 totalRuns를 올리고 메타를 다시 쓴다.
+        /// 이쪽은 "기록 자체를 없앤다"이므로 메타 파일도 지우고 아무것도 되쓰지 않는다.
+        ///
+        /// 파일만 지우면 이 인스턴스에 남은 Meta가 다음 SaveMeta에서 그대로 되살아난다.
+        /// 그래서 캐시도 같이 비운다.
+        /// </summary>
+        public void ClearAll()
+        {
+            _repository.Delete(RunKey);
+            _repository.Delete(MetaKey);
+
+            Meta = new LDY_MetaSaveData();
+            _metaLoaded = false;
+        }
+
         public void SaveMeta()
         {
             // 먼저 읽어두지 않으면 totalRuns 같은, 공급자가 없어 메모리에만 있는 값이 0으로 덮인다.
