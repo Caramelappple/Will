@@ -144,6 +144,24 @@ public class LDY_MapManager : MonoBehaviour
     /// </summary>
     private bool _firstMapEntryPending = true;
 
+    /// <summary>
+    /// 방금 클리어한 Battle 노드의 인덱스. 맵으로 돌아왔을 때 그 노드에만 연출을 한 번 틀기 위한 표시다.
+    ///
+    /// 세이브 대상이 아니다. 씬 전환 한 번을 건너가는 신호일 뿐이라 파일에 남기지 않는다.
+    /// 이 매니저가 DontDestroyOnLoad라 전투 씬을 거쳐 맵으로 돌아올 때까지 값이 그대로 살아남으므로
+    /// 따로 옮겨줄 자리를 만들 필요가 없다.
+    ///
+    /// Battle에만 남긴다. Boss는 CompleteNode가 챕터를 넘기면서 노드를 통째로 다시 만들어
+    /// 인덱스가 의미를 잃고, Shop/Event는 맵 씬을 떠나지 않아 이 신호가 필요 없다.
+    /// </summary>
+    private int _pendingClearedNodeIndex = -1;
+
+    /// <summary>
+    /// 맵이 다 자리잡은 뒤, 방금 클리어한 노드의 인덱스를 한 번만 알린다.
+    /// 예전에 클리어해둔 노드는 여기에 실리지 않으므로 맵에 다시 들어와도 연출 없이 그대로 보인다.
+    /// </summary>
+    public event Action<int> OnNodeJustCleared;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -304,6 +322,27 @@ public class LDY_MapManager : MonoBehaviour
         yield return null;
 
         yield return StartCoroutine(Co_DelayedInitToken());
+
+        // 여기까지 와야 노드 뷰 재생성(onMapChanged)이 더 이상 예약돼 있지 않다.
+        // 더 이른 곳에서 알리면 방금 만든 뷰가 곧바로 다시 지워져 연출이 보이지 않는다.
+        NotifyPendingClearedNode();
+    }
+
+    /// <summary>
+    /// 맵이 다 자리잡은 뒤에 "방금 클리어한 노드"를 한 번 알리고 표시를 지운다.
+    /// 한 번 소비하고 나면 다음 맵 진입은 이 신호를 물려받지 않는다.
+    /// </summary>
+    private void NotifyPendingClearedNode()
+    {
+        if (_pendingClearedNodeIndex < 0) return;
+
+        int clearedIndex = _pendingClearedNodeIndex;
+        _pendingClearedNodeIndex = -1;
+
+        // 돌아온 사이에 노드 구성이 달라졌다면(챕터 전환 등) 엉뚱한 노드에 연출이 붙는다. 조용히 버린다.
+        if (!IsValidIndex(clearedIndex)) return;
+
+        OnNodeJustCleared?.Invoke(clearedIndex);
     }
 
     public void SetChapterAndStage(int chapter, int stage)
@@ -845,6 +884,9 @@ public class LDY_MapManager : MonoBehaviour
 
             Debug.Log($"[LDY_MapManager] 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
 
+            // 맵으로 돌아왔을 때 이 노드에만 클리어 연출을 틀기 위한 표시.
+            _pendingClearedNodeIndex = index;
+
             TriggerStageReward(clearedChapter, clearedStage);
 
             currentStage++;
@@ -1050,6 +1092,7 @@ public class LDY_MapManager : MonoBehaviour
         isNodeActionInProgress = false;
         waitingForRewardBeforeMapReturn = false;
         _sceneLoadPending = false;
+        _pendingClearedNodeIndex = -1;
 
         // 1챕터 맵 다시 불러오기
         LoadChapterToEditor(1);
