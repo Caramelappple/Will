@@ -39,6 +39,7 @@ namespace _Scripts.LDY.Save
         }
 
         private readonly LDY_ISaveRepository _repository;
+        private readonly LDY_RunSeedGateway _seed;
         private readonly LDY_DeckSaveGateway _deck;
         private readonly LDY_UnlockSaveGateway _unlocks;
         private readonly LDY_MapProgressGateway _map;
@@ -58,6 +59,7 @@ namespace _Scripts.LDY.Save
         public LDY_SaveService(LDY_ISaveRepository repository, LDY_CardCatalogSO catalog)
         {
             _repository = repository;
+            _seed = new LDY_RunSeedGateway();
             _deck = new LDY_DeckSaveGateway(catalog);
             _unlocks = new LDY_UnlockSaveGateway();
             _map = new LDY_MapProgressGateway();
@@ -81,6 +83,9 @@ namespace _Scripts.LDY.Save
         {
             var data = new LDY_RunSaveData { schemaVersion = CurrentSchemaVersion };
 
+            // 시드를 가장 먼저 담는다. 아직 없으면 여기서 확정되므로,
+            // 이후 어떤 저장 시점에 들어와도 파일에는 항상 같은 시드가 적힌다.
+            _seed.Capture(data);
             _map.Capture(data);
             _deck.Capture(data);
             _unlocks.Capture(data);
@@ -104,6 +109,10 @@ namespace _Scripts.LDY.Save
                     "그대로 읽어보지만 값이 어긋날 수 있습니다.");
             }
 
+            // 시드를 먼저 되돌린다. 맵이 서면서 노드를 고를 수 있게 되므로,
+            // 그전에 시드가 자리를 잡아야 이어하기가 저장 당시와 같은 보스를 뽑는다.
+            _seed.Restore(data);
+
             // 맵을 먼저 되돌린다. 진행도가 서야 덱과 해금이 어느 시점의 것인지 뜻이 통한다.
             _map.Restore(data);
             _deck.Restore(data);
@@ -113,6 +122,10 @@ namespace _Scripts.LDY.Save
         public void ClearRun()
         {
             _repository.Delete(RunKey);
+
+            // 런이 끝났다. 시드를 비워두지 않으면 다음 런이 같은 시드를 물려받아
+            // 매번 같은 보스가 나온다.
+            LDY_RunSeed.Clear();
 
             // 임시 조치다. 런이 끝날 때 해금을 비우는 곳이 지금은 여기뿐이라 여기서 부른다.
             // 팀이 "런 시작" 흐름을 만들면 그쪽으로 옮길 것.
@@ -137,6 +150,8 @@ namespace _Scripts.LDY.Save
         {
             _repository.Delete(RunKey);
             _repository.Delete(MetaKey);
+
+            LDY_RunSeed.Clear();
 
             Meta = new LDY_MetaSaveData();
             _metaLoaded = false;

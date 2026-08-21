@@ -17,8 +17,11 @@ namespace _Scripts.LDY.Save
         public int schemaVersion = 1;
 
         /// <summary>
-        /// 런 재현용 시드. 아직 게임이 시드를 쓰지 않으므로 자리만 잡아둔다.
-        /// (상점 진열이나 이벤트에 무작위가 들어오면 그때 채운다.)
+        /// 런 재현용 시드. 지금은 보스 스테이지 추첨(LDY_StageRouter)이 이 값을 쓴다.
+        /// 상점 진열이나 이벤트에 무작위가 들어오면 그쪽도 이 시드를 함께 쓰면 된다.
+        ///
+        /// 0은 "아직 정해지지 않음"이다. 시드가 생기기 전에 만들어진 세이브가 그렇다.
+        /// 값을 채우고 되돌리는 일은 LDY_RunSeedGateway가 맡는다.
         /// </summary>
         public int runSeed;
 

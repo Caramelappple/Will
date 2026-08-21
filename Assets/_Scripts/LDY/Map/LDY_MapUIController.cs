@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +15,15 @@ public class LDY_MapUIController : MonoBehaviour
     [SerializeField] private LDY_MapNodeView nodeViewPrefab;
     [SerializeField] private Image linePrefab;
     [SerializeField] private Image backgroundPanel;
+
+    // 배너에 띄울 문구. 바꿀 일이 거의 없어 인스펙터에 열지 않는다.
+    private const string ClearMessage = "Clear";
+
+    [Header("클리어 연출")]
+    [Tooltip("클리어 문구를 띄우는 배너. MapCanvas 아래에 만들어서 연결한다.")]
+    [SerializeField] private LDY_ClearBanner clearBanner;
+    [Tooltip("배너가 먼저 뜨고 노드의 X가 팝 하기까지의 간격(초)")]
+    [SerializeField, Min(0f)] private float clearPopDelay = 0.15f;
 
     private readonly List<LDY_MapNodeView> nodeViews = new List<LDY_MapNodeView>();
     private int currentPlayerNodeIndex = -1;
@@ -32,6 +42,7 @@ public class LDY_MapUIController : MonoBehaviour
 
         // ★ onMapChanged 발생 시 노드/라인을 전부 재구성하도록 변경
         mapManager.onMapChanged.AddListener(RebuildMap);
+        mapManager.OnNodeJustCleared += HandleNodeJustCleared;
 
         RebuildMap();
     }
@@ -39,7 +50,41 @@ public class LDY_MapUIController : MonoBehaviour
     private void OnDestroy()
     {
         if (mapManager != null)
+        {
             mapManager.onMapChanged.RemoveListener(RebuildMap);
+            mapManager.OnNodeJustCleared -= HandleNodeJustCleared;
+        }
+    }
+
+    // 방금 클리어한 노드가 하나 있을 때만 불린다. 맵이 다 자리잡은 뒤라 노드 뷰가 더 지워지지 않는다.
+    private void HandleNodeJustCleared(int nodeIndex)
+    {
+        if (clearBanner != null)
+            clearBanner.Show(ClearMessage);
+        else
+            Debug.LogWarning("[LDY_MapUIController] clearBanner가 연결되지 않아 클리어 문구를 띄우지 못했습니다.", this);
+
+        // 글자가 먼저 눈에 들어오고 그 위에 X가 겹쳐 찍히는 편이 자연스럽다.
+        StartCoroutine(Co_PlayClearPopAfterBanner(nodeIndex));
+    }
+
+    private IEnumerator Co_PlayClearPopAfterBanner(int nodeIndex)
+    {
+        if (clearPopDelay > 0f)
+            yield return new WaitForSecondsRealtime(clearPopDelay);
+
+        PlayClearAnimationAt(nodeIndex);
+    }
+
+    /// <summary>지정한 노드에만 클리어 표시가 찍히는 연출을 한 번 재생한다.</summary>
+    public void PlayClearAnimationAt(int index)
+    {
+        if (index < 0 || index >= nodeViews.Count) return;
+
+        LDY_MapNodeView view = nodeViews[index];
+        if (view == null) return;
+
+        view.PlayClearPop();
     }
 
     // ★ 맵(챕터/스테이지)이 바뀔 때마다 노드 뷰 + 연결선을 전부 새로 그림

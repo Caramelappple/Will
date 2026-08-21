@@ -187,7 +187,7 @@ namespace _Scripts.LDY.Save.Debugging
         {
             var text = new StringBuilder();
 
-            KTH_DeckDataPersistent deck = KTH_DeckDataPersistent.Instance;
+            /*KTH_DeckDataPersistent deck = KTH_DeckDataPersistent.Instance;
             text.Append(deck != null ? $"덱 {deck.SavedInventory.Count}장" : "덱 (매니저 없음)");
 
             LDY_MapManager map = LDY_MapManager.Instance;

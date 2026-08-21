@@ -38,6 +38,13 @@ public class LDY_MapManager : MonoBehaviour
 {
     public static LDY_MapManager Instance { get; private set; }
 
+    /// <summary>
+    /// 씬을 넘기기 전에 전투 연출을 기다려주는 상한(초).
+    /// 기획 수치가 아니라 멈춤 방지선이라 인스펙터에 열지 않는다.
+    /// 한 번의 공격 연출은 0.3초 남짓이므로 정상적인 경우 이 값에 닿지 않는다.
+    /// </summary>
+    private const float SceneLoadAnimationWaitTimeout = 3f;
+
     public LDY_StageSO CurrentStageSO { get; private set; }
 
     [Header("테스트용")]
@@ -110,6 +117,9 @@ public class LDY_MapManager : MonoBehaviour
 
     private bool waitingForRewardBeforeMapReturn = false;
 
+    /// <summary>전투 연출을 기다리며 씬 이동을 예약해둔 상태인지. 같은 이동이 두 번 걸리는 것을 막는다.</summary>
+    private bool _sceneLoadPending = false;
+
     /// <summary>
     /// 보상 대기 중일 때, 보상 UI가 끝난 뒤 어떤 씬으로 갈지 판단하기 위해
     /// 클리어한 노드의 타입을 잠깐 보관해두는 필드.
@@ -133,6 +143,24 @@ public class LDY_MapManager : MonoBehaviour
     /// 맵에 아직 한 번도 들어오지 않았는지. 첫 진입은 TryRestoreOnEntry가 맡으므로 자동저장하지 않는다.
     /// </summary>
     private bool _firstMapEntryPending = true;
+
+    /// <summary>
+    /// 방금 클리어한 Battle 노드의 인덱스. 맵으로 돌아왔을 때 그 노드에만 연출을 한 번 틀기 위한 표시다.
+    ///
+    /// 세이브 대상이 아니다. 씬 전환 한 번을 건너가는 신호일 뿐이라 파일에 남기지 않는다.
+    /// 이 매니저가 DontDestroyOnLoad라 전투 씬을 거쳐 맵으로 돌아올 때까지 값이 그대로 살아남으므로
+    /// 따로 옮겨줄 자리를 만들 필요가 없다.
+    ///
+    /// Battle에만 남긴다. Boss는 CompleteNode가 챕터를 넘기면서 노드를 통째로 다시 만들어
+    /// 인덱스가 의미를 잃고, Shop/Event는 맵 씬을 떠나지 않아 이 신호가 필요 없다.
+    /// </summary>
+    private int _pendingClearedNodeIndex = -1;
+
+    /// <summary>
+    /// 맵이 다 자리잡은 뒤, 방금 클리어한 노드의 인덱스를 한 번만 알린다.
+    /// 예전에 클리어해둔 노드는 여기에 실리지 않으므로 맵에 다시 들어와도 연출 없이 그대로 보인다.
+    /// </summary>
+    public event Action<int> OnNodeJustCleared;
 
     private void Awake()
     {
@@ -294,6 +322,27 @@ public class LDY_MapManager : MonoBehaviour
         yield return null;
 
         yield return StartCoroutine(Co_DelayedInitToken());
+
+        // 여기까지 와야 노드 뷰 재생성(onMapChanged)이 더 이상 예약돼 있지 않다.
+        // 더 이른 곳에서 알리면 방금 만든 뷰가 곧바로 다시 지워져 연출이 보이지 않는다.
+        NotifyPendingClearedNode();
+    }
+
+    /// <summary>
+    /// 맵이 다 자리잡은 뒤에 "방금 클리어한 노드"를 한 번 알리고 표시를 지운다.
+    /// 한 번 소비하고 나면 다음 맵 진입은 이 신호를 물려받지 않는다.
+    /// </summary>
+    private void NotifyPendingClearedNode()
+    {
+        if (_pendingClearedNodeIndex < 0) return;
+
+        int clearedIndex = _pendingClearedNodeIndex;
+        _pendingClearedNodeIndex = -1;
+
+        // 돌아온 사이에 노드 구성이 달라졌다면(챕터 전환 등) 엉뚱한 노드에 연출이 붙는다. 조용히 버린다.
+        if (!IsValidIndex(clearedIndex)) return;
+
+        OnNodeJustCleared?.Invoke(clearedIndex);
     }
 
     public void SetChapterAndStage(int chapter, int stage)
@@ -704,7 +753,7 @@ public class LDY_MapManager : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(mapSceneName);
+        LoadSceneAfterAnimations(mapSceneName);
     }
 
     /// <summary>
@@ -716,11 +765,83 @@ public class LDY_MapManager : MonoBehaviour
         if (clearedNodeType == LDY_NodeType.Boss && !string.IsNullOrEmpty(bossClearSceneName))
         {
             Debug.Log($"[LDY_MapManager] 보스 클리어 씬 이동 -> {bossClearSceneName}");
-            SceneManager.LoadScene(bossClearSceneName);
+            LoadSceneAfterAnimations(bossClearSceneName);
             return;
         }
 
         GoToMapScene();
+    }
+
+    /// <summary>
+    /// 전투 연출이 끝난 뒤에 씬을 넘긴다.
+    ///
+    /// 마지막 적을 죽인 공격은 데미지가 들어간 뒤에도 제자리로 돌아오는 연출이 남아 있다
+    /// (LDY_AttackSystem.StrikeOnce). 승리 판정은 데미지 한 프레임 뒤에 떨어지므로,
+    /// 곧바로 씬을 넘기면 그 복귀 애니메이션이 잘리고 재생 중이던 트윈이 파괴된 대상을 붙들어
+    /// DOTween 경고가 뜬다. 그래서 넘기기 전에 연출이 끝나기를 기다린다.
+    ///
+    /// 기다림 여부만 여기서 정하고 "지금 연출 중인가"는 LDY_TurnManager.IsAnimating에게 묻는다.
+    /// 턴 전환이 연출을 기다릴 때 쓰는 것과 같은 판단이라, 규칙이 두 벌로 갈리지 않게 한다.
+    /// </summary>
+    private void LoadSceneAfterAnimations(string targetSceneName)
+    {
+        if (string.IsNullOrEmpty(targetSceneName))
+        {
+            Debug.LogWarning("[LDY_MapManager] 이동할 씬 이름이 비어 있습니다.", this);
+            return;
+        }
+
+        // 예전에는 여기서 곧바로 LoadScene을 불렀기 때문에 두 번 부르는 것이 문제가 되지 않았다.
+        // 이제는 기다리는 사이가 생겨서, 그 틈에 다른 클리어 경로가 한 번 더 들어오면
+        // 씬 이동이 두 번 걸린다. 먼저 잡은 쪽만 통과시킨다.
+        if (_sceneLoadPending)
+        {
+            Debug.LogWarning(
+                $"[LDY_MapManager] 이미 씬 이동을 기다리는 중이라 '{targetSceneName}' 요청을 무시합니다.", this);
+            return;
+        }
+
+        _sceneLoadPending = true;
+
+        StartCoroutine(Co_LoadSceneAfterAnimations(targetSceneName));
+    }
+
+    private IEnumerator Co_LoadSceneAfterAnimations(string targetSceneName)
+    {
+        // 전투 씬에만 있는 컴포넌트다. 맵이나 팝업에서 부르면 못 찾는 것이 정상이며,
+        // 그때는 기다릴 연출이 없으므로 그대로 넘어간다.
+        _Scripts.LDY.LDY_TurnManager turnManager = FindFirstObjectByType<_Scripts.LDY.LDY_TurnManager>();
+
+        if (turnManager != null)
+        {
+            // 연출이 끝나지 않는 상황에서 씬 전환이 영영 멈추는 쪽이 잘리는 것보다 나쁘다.
+            // 상한을 두고, 넘겼다면 조용히 넘어가지 않고 남긴다.
+            float deadline = Time.unscaledTime + SceneLoadAnimationWaitTimeout;
+
+            while (turnManager != null && turnManager.IsAnimating())
+            {
+                if (Time.unscaledTime >= deadline)
+                {
+                    Debug.LogWarning(
+                        $"[LDY_MapManager] 전투 연출이 {SceneLoadAnimationWaitTimeout:0.#}초 안에 끝나지 않아 " +
+                        $"기다리지 않고 '{targetSceneName}'(으)로 넘어갑니다.", this);
+                    break;
+                }
+
+                yield return null;
+            }
+        }
+
+        try
+        {
+            SceneManager.LoadScene(targetSceneName);
+        }
+        finally
+        {
+            // 씬 이동이 실패해도(빌드 설정에 없는 이름 등) 깃발이 켜진 채 남으면
+            // 이후 모든 씬 전환이 함께 막힌다. 성공·실패와 무관하게 되돌린다.
+            _sceneLoadPending = false;
+        }
     }
 
     /// <summary>
@@ -762,6 +883,9 @@ public class LDY_MapManager : MonoBehaviour
             int clearedStage = currentStage;
 
             Debug.Log($"[LDY_MapManager] 스테이지 클리어 완료! (Chapter: {clearedChapter}, Stage: {clearedStage})");
+
+            // 맵으로 돌아왔을 때 이 노드에만 클리어 연출을 틀기 위한 표시.
+            _pendingClearedNodeIndex = index;
 
             TriggerStageReward(clearedChapter, clearedStage);
 
@@ -967,6 +1091,8 @@ public class LDY_MapManager : MonoBehaviour
         isWaitingSecondClick = false;
         isNodeActionInProgress = false;
         waitingForRewardBeforeMapReturn = false;
+        _sceneLoadPending = false;
+        _pendingClearedNodeIndex = -1;
 
         // 1챕터 맵 다시 불러오기
         LoadChapterToEditor(1);
