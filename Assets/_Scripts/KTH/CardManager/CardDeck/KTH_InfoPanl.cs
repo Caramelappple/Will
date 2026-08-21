@@ -2,7 +2,6 @@
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Deck.Data;
 using TMPro;
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using UnityEngine.UI;
 
