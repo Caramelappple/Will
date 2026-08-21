@@ -16,6 +16,10 @@ namespace _Scripts.LDY.Save
         public void SetFlag()
         {
             LDY_RunEntryState.IsStartingNewRun = true;
+
+            // 새 런은 새 시드로 시작한다. 이어하기와 달리 되돌릴 시드가 없으므로,
+            // 여기서 비워두지 않으면 방금 끝낸 런의 시드가 그대로 이어져 같은 보스가 또 나온다.
+            LDY_RunSeed.Clear();
         }
     }
 }
