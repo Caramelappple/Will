@@ -30,6 +30,7 @@ public sealed class DLJ_RageEffect : DLJ_IWillEffect
             .Append(effectTransform.DOScale(targetScale, data.expandTime).SetEase(Ease.Linear))
             .AppendInterval(data.holdTime)
             .Append(effectTransform.DOScale(Vector3.zero, data.expandTime).SetEase(Ease.Linear))
+            .SetLink(effectObject)
             .OnComplete(() =>
             {
                 UnityEngine.Object.Destroy(effectObject);

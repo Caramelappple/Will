@@ -935,6 +935,9 @@ MonoBehaviour:
   - chapter: 2
     nodeType: 1
     stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
+  bossStagePool:
+  - {fileID: 11400000, guid: 97c9f405dad1d8449b676a23c536989e, type: 2}
+  - {fileID: 11400000, guid: 427b531330924821938552f33dc2b77b, type: 2}
 --- !u!114 &1062778836
 MonoBehaviour:
   m_ObjectHideFlags: 0
