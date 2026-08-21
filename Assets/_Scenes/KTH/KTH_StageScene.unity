@@ -2044,6 +2044,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemLibraryManager
   unlockedPieces:
   - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   unlockedWills: []
 --- !u!1 &1569990472
 GameObject:
@@ -2743,6 +2756,10 @@ MonoBehaviour:
     cameraOrthographicSize: 5
     cameraFieldOfView: 60
     cameraPositionOffset: {x: 0, y: 0, z: -10}
+  stageEnterDuration: 0.8
+  stageEnterZoom: 1.6
+  stageEnterFadeStart: 0.25
+  stageEnterFadeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!222 &2084838560
 CanvasRenderer:
   m_ObjectHideFlags: 0
