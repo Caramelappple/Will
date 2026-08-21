@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git -C \"c:/Dev/Will\" log --oneline -3 -- Assets/_Scripts/LDY/LDY_Animal.cs)",
       "Bash(git -C \"c:/Dev/Will\" diff HEAD -- Assets/_Scripts/LDY/LDY_Animal.cs)",
-      "Bash(xargs -I{} basename {})"
+      "Bash(xargs -I{} basename {})",
+      "Bash(python -c ' *)",
+      "Bash(dotnet '/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/DotNetSdkRoslyn/csc.dll' @C:/Users/이도윤/AppData/Local/Temp/claude/c--Dev-Will/e90f870c-82f5-484b-8ec9-0be430ce95ba/scratchpad/probe.rsp -nowarn:649)",
+      "Bash(dotnet '/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/DotNetSdkRoslyn/csc.dll' @C:/Users/이도윤/AppData/Local/Temp/claude/c--Dev-Will/e90f870c-82f5-484b-8ec9-0be430ce95ba/scratchpad/probe.rsp -nowarn:649 -define:UNITY_EDITOR)"
     ]
   }
 }

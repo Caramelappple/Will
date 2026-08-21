@@ -43,6 +43,10 @@ namespace _Scripts.LDY
         {
             if (targetCamera == null)
                 targetCamera = Camera.main;
+
+            // 선택 연출은 모든 전투 씬에서 동일하게 동작해야 하므로 별도 씬 배선 없이 보장한다.
+            if (!TryGetComponent<DLJ_ObjectHovering>(out _))
+                gameObject.AddComponent<DLJ_ObjectHovering>();
         }
 
         private void OnEnable()
@@ -114,8 +118,9 @@ namespace _Scripts.LDY
             if (Selected == null) return;
             if (!moveSystem.GetMovableTiles(Selected).Contains(gridPos)) return;
 
-            moveSystem.MoveTo(Selected, gridPos);
+            LDY_Animal movingAnimal = Selected;
             Deselect();
+            moveSystem.MoveTo(movingAnimal, gridPos);
         }
 
         private void HandleSelectOrAttackClick(LDY_Animal occupant)
@@ -138,8 +143,9 @@ namespace _Scripts.LDY
             // 사거리 안의 적을 클릭한 것은 "공격"이 우선이다. 정보를 보려면 선택을 푼 뒤 클릭하면 된다.
             if (occupant != null && attackSystem.GetAttackTargets(Selected).Contains(occupant))
             {
-                attackSystem.Attack(Selected, occupant);
+                LDY_Animal attacker = Selected;
                 Deselect();
+                attackSystem.Attack(attacker, occupant);
                 return;
             }
 

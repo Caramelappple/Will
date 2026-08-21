@@ -1,58 +1,89 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+/// <summary>
+/// 플레이어의 손패(Hand)를 관리하는 매니저.
+/// 카드 드로우, 손패 표시/재정렬, 카드 선택, 그리드 배치 연동을 담당한다.
+/// </summary>
 public class KTH_DeckManager : MonoBehaviour
 {
     [Header("그리드 보드 연동")]
-    public LDY_CardPlacer cardPlacer;
+    [Tooltip("카드를 실제 그리드 보드에 배치할 때 사용하는 컴포넌트.")]
+    [SerializeField] private LDY_CardPlacer cardPlacer;
 
     [Header("카드 데이터베이스")]
-    public List<LSO_CardSO> cardDatabase =
+    [SerializeField]
+    private List<LSO_CardSO> cardDatabase =
         new List<LSO_CardSO>();
 
     [Header("프리팹")]
-    public KTH_HandCardView handCardPrefab;
+    [SerializeField] private KTH_HandCardView handCardPrefab;
 
     [Header("배치 위치")]
-    public RectTransform handContainer;
-    public float handSpacing = 220f;
+    [SerializeField] private RectTransform handContainer;
+
+    [Tooltip("카드 사이의 가로 간격")]
+    [SerializeField] private float handSpacing = 220f;
 
     [Header("UI 카메라")]
-    public Camera uiCamera;
+    [SerializeField] private Camera uiCamera;
 
     [Header("DOTween 기본 이동 연출")]
-    public float moveDuration = 0.5f;
+    [SerializeField] private float moveDuration = 0.5f;
 
     [Header("카드 회전 속도/시간")]
-    public float flipAnimDuration = 0.25f;
-    public float cardAnimInterval = 0.08f;
-    public float startYAngle = 180f;
+    [SerializeField] private float flipAnimDuration = 0.25f;
+
+    [SerializeField] private float cardAnimInterval = 0.08f;
+
+    [SerializeField] private float startYAngle = 180f;
 
     [Header("손패 누적 설정")]
-    public int drawCountPerTurn = 2;
-    public int maxHandSize = 6;
-    public float rearrangeDuration = 0.25f;
+    [SerializeField] private int drawCountPerTurn = 2;
+
+    [SerializeField] private int maxHandSize = 6;
+
+    [SerializeField] private float rearrangeDuration = 0.25f;
 
     [Header("UI")]
-    public Button drawButton;
-    public KTH_InfoPanelController infoPanel;
+    [SerializeField] private Button drawButton;
+
+    [SerializeField] private KTH_InfoPanelController infoPanel;
 
     [Header("소환 시 덱 창 연출")]
-    public RectTransform deckPanelRoot;
-    public float deckHideYOffset = -300f;
-    public float deckAnimDuration = 0.3f;
+    [SerializeField] private RectTransform deckPanelRoot;
 
+    [SerializeField] private float deckHideYOffset = -300f;
+
+    [SerializeField] private float deckAnimDuration = 0.3f;
+
+    /// <summary>
+    /// 덱 패널의 원래 위치
+    /// </summary>
     private Vector2 _deckPanelOriginalPos;
 
+    /// <summary>
+    /// 현재 손패
+    /// </summary>
     private readonly List<KTH_HandCardView> currentHand =
         new List<KTH_HandCardView>();
 
+    /// <summary>
+    /// 드로우 애니메이션 중인지 여부
+    /// </summary>
     private bool isDrawing;
+
+
+    // ============================================================
+    // Unity
+    // ============================================================
 
     private void Awake()
     {
@@ -69,6 +100,7 @@ public class KTH_DeckManager : MonoBehaviour
         }
 
         if (KTH_DeckDataPersistent.Instance != null &&
+            KTH_DeckDataPersistent.Instance.SavedInventory != null &&
             KTH_DeckDataPersistent.Instance.SavedInventory.Count > 0)
         {
             cardDatabase =
@@ -77,8 +109,7 @@ public class KTH_DeckManager : MonoBehaviour
                 );
 
             Debug.Log(
-                $"[KTH_DeckManager] " +
-                $"카드 {cardDatabase.Count}장을 불러왔습니다."
+                $"[KTH_DeckManager] 카드 {cardDatabase.Count}장을 불러왔습니다."
             );
         }
     }
@@ -89,6 +120,11 @@ public class KTH_DeckManager : MonoBehaviour
 
         UpdateDrawButtonState();
     }
+
+
+    // ============================================================
+    // Draw Button
+    // ============================================================
 
     public void UpdateDrawButtonState()
     {
@@ -106,6 +142,11 @@ public class KTH_DeckManager : MonoBehaviour
             hasDrawable &&
             hasSlot;
     }
+
+
+    // ============================================================
+    // Card Database
+    // ============================================================
 
     private List<LSO_CardSO> GetDrawableCards()
     {
@@ -127,48 +168,33 @@ public class KTH_DeckManager : MonoBehaviour
         );
     }
 
+
+    // ============================================================
+    // Selection
+    // ============================================================
+
+    /// <summary>
+    /// 모든 카드의 선택 상태를 해제한다.
+    /// 카드의 Raycast는 절대로 건드리지 않는다.
+    /// </summary>
     public void DeselectAllCards()
     {
         foreach (var card in currentHand)
         {
-            if (card != null)
-                card.SetSelected(false);
+            if (card == null)
+                continue;
+
+            card.SetSelected(false);
         }
 
-        SetUnselectedCardsVisible(true);
+        // 선택 해제 → 손패 전체가 다시 올라옴
+        SetAllCardsVisible(true);
     }
-
-    private void SetCardRaycast(
-        KTH_HandCardView cardView,
-        bool enabled)
-    {
-        if (cardView == null)
-            return;
-
-        CanvasGroup canvasGroup =
-            cardView.GetComponent<CanvasGroup>();
-
-        if (canvasGroup != null)
-        {
-            canvasGroup.blocksRaycasts = enabled;
-            canvasGroup.interactable = enabled;
-
-            return;
-        }
-
-        Graphic[] graphics =
-            cardView.GetComponentsInChildren<Graphic>(
-                true
-            );
-
-        foreach (Graphic graphic in graphics)
-        {
-            graphic.raycastTarget = enabled;
-        }
-    }
-
-    public void SetUnselectedCardsVisible(
-        bool visible)
+    /// <summary>
+    /// 카드 위치만 변경한다.
+    /// Raycast / interactable은 건드리지 않는다.
+    /// </summary>
+    public void SetUnselectedCardsVisible(bool visible)
     {
         for (int i = 0; i < currentHand.Count; i++)
         {
@@ -195,11 +221,6 @@ public class KTH_DeckManager : MonoBehaviour
                           deckHideYOffset
                       );
 
-            SetCardRaycast(
-                card,
-                visible
-            );
-
             DOTween.To(
                     () => card.BasePosition,
                     value => card.BasePosition = value,
@@ -216,16 +237,100 @@ public class KTH_DeckManager : MonoBehaviour
         }
     }
 
+
+    /// <summary>
+    /// 카드를 선택한다.
+    /// </summary>
+    public void SelectCard(KTH_HandCardView card)
+    {
+        if (card == null || card.Data == null)
+            return;
+
+        if (isDrawing)
+            return;
+
+        if (Mouse.current != null &&
+            Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (cardPlacer != null && cardPlacer.IsPlacing)
+        {
+            cardPlacer.CancelPlacement();
+        }
+
+        card.transform.DOKill(true);
+
+        // 선택 상태 변경
+        foreach (KTH_HandCardView currentCard in currentHand)
+        {
+            if (currentCard != null)
+            {
+                currentCard.SetSelected(currentCard == card);
+            }
+        }
+
+        if (infoPanel != null)
+        {
+            infoPanel.Show(
+                card,
+                showPlaceButton: true,
+                onPlace: () => PlaceCard(card),
+                onCancel: DeselectAllCards
+            );
+        }
+
+        SetAllCardsVisible(false);
+    }
+
+
+    // ============================================================
+    // Draw Cards
+    // ============================================================
+
     public void DrawCards()
     {
         if (isDrawing)
             return;
 
+
+        // --------------------------------------------------------
+        // 현재 배치 중이었다면 배치만 취소
+        // 카드 삭제는 절대 하지 않는다.
+        // --------------------------------------------------------
+
+        if (cardPlacer != null &&
+            cardPlacer.IsPlacing)
+        {
+            cardPlacer.CancelPlacement();
+
+            SetDeckPanelVisible(true);
+
+            DeselectAllCards();
+
+            if (infoPanel != null)
+                infoPanel.Hide();
+
+            SetAllCardsVisible(true);
+        }
+
+
+        // --------------------------------------------------------
+        // 손패 슬롯 확인
+        // --------------------------------------------------------
+
         if (GetRemainingHandSlots() <= 0)
         {
+            RearrangeHand();
             UpdateDrawButtonState();
             return;
         }
+
+
+        // --------------------------------------------------------
+        // 드로우 가능한 카드 확인
+        // --------------------------------------------------------
 
         List<LSO_CardSO> drawableCards =
             GetDrawableCards();
@@ -233,20 +338,23 @@ public class KTH_DeckManager : MonoBehaviour
         if (drawableCards.Count == 0)
         {
             Debug.LogWarning(
-                "[KTH_DeckManager] " +
-                "드로우 가능한 카드가 없습니다."
+                "[KTH_DeckManager] 드로우 가능한 카드가 없습니다."
             );
 
+            RearrangeHand();
             UpdateDrawButtonState();
 
             return;
         }
 
-        // 기존 선택 상태와 정보 패널을 먼저 정리한다.
-        DeselectAllCards();
 
         if (infoPanel != null)
             infoPanel.Hide();
+
+
+        // --------------------------------------------------------
+        // 드로우 개수
+        // --------------------------------------------------------
 
         int remainingSlots =
             GetRemainingHandSlots();
@@ -259,16 +367,14 @@ public class KTH_DeckManager : MonoBehaviour
 
         isDrawing = true;
 
+
         if (drawButton != null)
             drawButton.interactable = false;
 
-        // 드로우(회전) 애니메이션이 재생되는 동안에는
-        // 기존 손패 카드까지 전부 클릭을 막는다.
-        // -> 애니메이션 도중 카드가 비스듬한 상태로 클릭되는 상황 자체를 방지.
-        foreach (KTH_HandCardView existingCard in currentHand)
-        {
-            SetCardRaycast(existingCard, false);
-        }
+
+        // --------------------------------------------------------
+        // 카드 뽑기
+        // --------------------------------------------------------
 
         List<LSO_CardSO> drawn =
             new List<LSO_CardSO>();
@@ -287,6 +393,11 @@ public class KTH_DeckManager : MonoBehaviour
                 drawableCards[randomIndex]
             );
         }
+
+
+        // --------------------------------------------------------
+        // 드로우 버튼 위치
+        // --------------------------------------------------------
 
         Vector2 buttonStartPosition =
             Vector2.zero;
@@ -308,6 +419,11 @@ public class KTH_DeckManager : MonoBehaviour
                     out buttonStartPosition
                 );
         }
+
+
+        // --------------------------------------------------------
+        // 새 카드 생성
+        // --------------------------------------------------------
 
         List<KTH_HandCardView> newlyDrawnViews =
             new List<KTH_HandCardView>();
@@ -349,16 +465,21 @@ public class KTH_DeckManager : MonoBehaviour
             currentHand.Add(view);
             newlyDrawnViews.Add(view);
 
-            // 생성 직후에는 클릭을 막는다.
-            SetCardRaycast(
-                view,
-                false
-            );
+            // 중요:
+            // Raycast를 끄지 않는다.
+            // SelectCard 내부에서 isDrawing을 검사한다.
         }
 
+
+        // --------------------------------------------------------
+        // 카드 배치 애니메이션
+        // --------------------------------------------------------
+
         int completedCount = 0;
+
         int totalAnimCount =
             currentHand.Count;
+
 
         for (int i = 0;
              i < currentHand.Count;
@@ -381,6 +502,7 @@ public class KTH_DeckManager : MonoBehaviour
 
             cardTransform.DOKill();
 
+
             Sequence sequence =
                 DOTween.Sequence();
 
@@ -391,6 +513,7 @@ public class KTH_DeckManager : MonoBehaviour
             sequence.SetLink(
                 view.gameObject
             );
+
 
             if (isNewCard)
             {
@@ -416,7 +539,9 @@ public class KTH_DeckManager : MonoBehaviour
                             Vector3.one,
                             flipAnimDuration
                         )
-                        .SetEase(Ease.OutBack)
+                        .SetEase(
+                            Ease.OutBack
+                        )
                 );
 
                 sequence.Join(
@@ -425,7 +550,9 @@ public class KTH_DeckManager : MonoBehaviour
                             Vector3.zero,
                             flipAnimDuration
                         )
-                        .SetEase(Ease.OutCubic)
+                        .SetEase(
+                            Ease.OutCubic
+                        )
                 );
             }
             else
@@ -439,6 +566,7 @@ public class KTH_DeckManager : MonoBehaviour
                 );
             }
 
+
             sequence.OnComplete(() =>
             {
                 completedCount++;
@@ -451,7 +579,8 @@ public class KTH_DeckManager : MonoBehaviour
             });
         }
 
-        // 혹시 Tween OnComplete가 누락되는 상황 대비
+
+        // 혹시 Tween이 정상적으로 완료되지 않았을 때
         DOVirtual.DelayedCall(
             moveDuration +
             flipAnimDuration +
@@ -466,6 +595,7 @@ public class KTH_DeckManager : MonoBehaviour
         );
     }
 
+
     private void FinishDraw()
     {
         if (!isDrawing)
@@ -473,24 +603,23 @@ public class KTH_DeckManager : MonoBehaviour
 
         isDrawing = false;
 
-        // 드로우가 완전히 끝난 뒤 카드 클릭을 허용한다.
-        foreach (KTH_HandCardView card in currentHand)
-        {
-            if (card != null)
-                SetCardRaycast(card, true);
-        }
-
         UpdateDrawButtonState();
     }
+
+
+    // ============================================================
+    // Hand Position
+    // ============================================================
 
     private Vector2 GetHandSlotPosition(
         int index,
         int handCount)
     {
         float targetX =
-            (index -
-             (handCount - 1) / 2f)
-            * handSpacing;
+            (
+                index -
+                (handCount - 1) / 2f
+            ) * handSpacing;
 
         return new Vector2(
             targetX,
@@ -498,12 +627,14 @@ public class KTH_DeckManager : MonoBehaviour
         );
     }
 
+
     private Tween TweenBasePosition(
         KTH_HandCardView view,
         Vector2 target,
         float duration)
     {
-        view.OriginBasePosition = target;
+        view.OriginBasePosition =
+            target;
 
         return DOTween.To(
                 () => view.BasePosition,
@@ -511,67 +642,161 @@ public class KTH_DeckManager : MonoBehaviour
                 target,
                 duration
             )
-            .SetEase(Ease.OutCubic)
-            .SetTarget(view.transform)
-            .SetLink(view.gameObject);
+            .SetEase(
+                Ease.OutCubic
+            )
+            .SetTarget(
+                view.transform
+            )
+            .SetLink(
+                view.gameObject
+            );
     }
 
-    public void SelectCard(
+
+    // ============================================================
+    // 카드 배치
+    // ============================================================
+
+    private void PlaceCard(
         KTH_HandCardView card)
     {
-        if (card == null ||
-            card.Data == null)
+        if (card == null)
             return;
 
-        // 드로우 애니메이션 진행 중에는 선택을 막는다.
-        // (SetCardRaycast로 이미 막혀 있지만, 이중 안전장치)
-        if (isDrawing)
+        LSO_CardSO data =
+            card.Data;
+
+        if (data == null ||
+            !data.IsValid)
             return;
 
-        // 카드에 걸린 이동/스케일/회전 Tween을
-        // 중간값이 아닌 "최종 목표값"까지 완료시킨 뒤 정리한다.
-        // -> 회전 도중 클릭되어 비스듬한 상태로 멈추는 문제 방지.
-        card.transform.DOKill(true);
 
-        foreach (KTH_HandCardView currentCard
-                 in currentHand)
+        // --------------------------------------------------------
+        // 코스트 확인
+        // --------------------------------------------------------
+
+        if (cardPlacer != null)
         {
-            if (currentCard != null)
+            if (!cardPlacer.CanAfford(data))
             {
-                currentCard.SetSelected(
-                    currentCard == card
+                Debug.Log(
+                    $"[KTH_DeckManager] 코스트가 부족합니다: {data.AnimalName}"
                 );
+
+                DeselectAllCards();
+
+                return;
             }
-        }
 
-        if (infoPanel != null)
-        {
-            infoPanel.Show(
+
+            if (infoPanel != null)
+                infoPanel.Hide();
+
+            SetDeckPanelVisible(false);
+
+            BeginCardPlacement(
                 card,
-                showPlaceButton: true,
-                onPlace: () => PlaceCard(card),
-                onCancel: DeselectAllCards
+                data
             );
+
+            return;
         }
 
-        SetAllCardsVisible(false);
+
+        // CardPlacer가 없는 경우
+        // 바로 배치 완료 처리
+        FinalizeCardPlacement(
+            card,
+            data
+        );
     }
 
-    public void SetAllCardsVisible(
-        bool visible)
+
+    private void BeginCardPlacement(
+        KTH_HandCardView card,
+        LSO_CardSO data)
     {
-        for (int i = 0;
-             i < currentHand.Count;
-             i++)
+        if (cardPlacer == null)
+            return;
+
+
+        bool started =
+            cardPlacer.BeginPlacement(
+                data,
+                LDY_Team.Player,
+
+                // ==================================================
+                // 실제 배치 결과
+                // ==================================================
+
+                onPlaced: animal =>
+                {
+                    SetDeckPanelVisible(true);
+
+
+                    // 배치 실패 / 취소
+                    // 카드 유지
+                    if (animal == null)
+                    {
+                        DeselectAllCards();
+                        UpdateDrawButtonState();
+
+                        return;
+                    }
+
+
+                    // =================================================
+                    // ⭐ 진짜 배치 성공
+                    // ⭐ 이때만 카드 삭제
+                    // =================================================
+
+                    FinalizeCardPlacement(
+                        card,
+                        data
+                    );
+                },
+
+
+                // ==================================================
+                // 배치 취소
+                // ==================================================
+
+                onCancelled: () =>
+                {
+                    Debug.Log(
+                        "[KTH_DeckManager] 카드 배치 취소 - 카드를 유지합니다."
+                    );
+
+                    SetDeckPanelVisible(true);
+
+                    // 카드 삭제하지 않음
+                    // Raycast도 건드리지 않음
+                    DeselectAllCards();
+
+                    UpdateDrawButtonState();
+                }
+            );
+
+
+        if (!started)
         {
-            KTH_HandCardView card =
-                currentHand[i];
+            SetDeckPanelVisible(true);
+
+            DeselectAllCards();
+
+            UpdateDrawButtonState();
+        }
+    }
+
+    public void SetAllCardsVisible(bool visible)
+    {
+        for (int i = 0; i < currentHand.Count; i++)
+        {
+            KTH_HandCardView card = currentHand[i];
 
             if (card == null)
                 continue;
-
-            if (visible)
-                card.ResetSelectionOffset();
 
             RectTransform cardRect =
                 (RectTransform)card.transform;
@@ -581,19 +806,56 @@ public class KTH_DeckManager : MonoBehaviour
             Vector2 originPosition =
                 card.OriginBasePosition;
 
-            Vector2 targetPosition =
-                visible
-                    ? originPosition
-                    : originPosition +
-                      new Vector2(
-                          0f,
-                          deckHideYOffset
-                      );
+            Vector2 targetPosition;
 
-            SetCardRaycast(
-                card,
-                visible
-            );
+            if (visible)
+            {
+                // 다시 원래 자리로 올라옴
+                targetPosition = originPosition;
+
+                // 선택 상태도 해제
+                card.ResetSelectionOffset();
+
+                SetCardRaycast(
+                    card,
+                    true
+                );
+            }
+            else
+            {
+                // =========================================================
+                // 화면 아래로 완전히 이동
+                // =========================================================
+
+                float screenHeight = 0f;
+
+                if (handContainer != null)
+                {
+                    screenHeight =
+                        handContainer.rect.height;
+                }
+
+                // 화면 높이보다 더 아래로 이동시켜
+                // 카드가 화면에 전혀 보이지 않도록 한다.
+                float hideDistance =
+                    screenHeight +
+                    cardRect.rect.height +
+                    200f;
+
+                targetPosition =
+                    originPosition +
+                    new Vector2(
+                        0f,
+                        -hideDistance
+                    );
+
+                // 화면 아래로 내려가는 동안에는
+                // 클릭되지 않도록 한다.
+                SetCardRaycast(
+                    card,
+                    false
+                );
+            }
 
             DOTween.To(
                     () => card.BasePosition,
@@ -610,92 +872,42 @@ public class KTH_DeckManager : MonoBehaviour
                 .SetLink(card.gameObject);
         }
     }
+    private void SetCardRaycast(
+        KTH_HandCardView card,
+        bool enabled)
+    {
+        if (card == null)
+            return;
+
+        Graphic[] graphics =
+            card.GetComponentsInChildren<Graphic>(true);
+
+        foreach (Graphic graphic in graphics)
+        {
+            if (graphic == null)
+                continue;
+
+            graphic.raycastTarget = enabled;
+        }
+    }
 
     public void ShowPlacedUnitInfo(
         LSO_CardSO data)
     {
         if (infoPanel != null)
+        {
             infoPanel.Show(
                 data,
                 false,
                 null
             );
-    }
-
-    private void PlaceCard(
-        KTH_HandCardView card)
-    {
-        if (card == null)
-            return;
-
-        LSO_CardSO data =
-            card.Data;
-
-        if (data == null ||
-            !data.IsValid)
-            return;
-
-        if (cardPlacer != null)
-        {
-            if (!cardPlacer.CanAfford(data))
-            {
-                Debug.Log(
-                    $"[KTH_DeckManager] " +
-                    $"코스트가 부족합니다: {data.AnimalName}"
-                );
-
-                DeselectAllCards();
-
-                return;
-            }
-
-            if (infoPanel != null)
-                infoPanel.Hide();
-
-            SetDeckPanelVisible(false);
-
-            bool started =
-                cardPlacer.BeginPlacement(
-                    data,
-                    LDY_Team.Player,
-
-                    onPlaced: animal =>
-                    {
-                        SetDeckPanelVisible(true);
-
-                        if (animal == null)
-                        {
-                            DeselectAllCards();
-                            return;
-                        }
-
-                        FinalizeCardPlacement(
-                            card,
-                            data
-                        );
-                    },
-
-                    onCancelled: () =>
-                    {
-                        SetDeckPanelVisible(true);
-                        DeselectAllCards();
-                    }
-                );
-
-            if (!started)
-            {
-                SetDeckPanelVisible(true);
-                DeselectAllCards();
-            }
-
-            return;
         }
-
-        FinalizeCardPlacement(
-            card,
-            data
-        );
     }
+
+
+    // ============================================================
+    // 덱 패널
+    // ============================================================
 
     public void SetDeckPanelVisible(
         bool visible)
@@ -703,7 +915,9 @@ public class KTH_DeckManager : MonoBehaviour
         if (deckPanelRoot == null)
             return;
 
+
         deckPanelRoot.DOKill();
+
 
         Vector2 targetPosition =
             visible
@@ -713,6 +927,7 @@ public class KTH_DeckManager : MonoBehaviour
                       0f,
                       deckHideYOffset
                   );
+
 
         deckPanelRoot
             .DOAnchorPos(
@@ -725,28 +940,38 @@ public class KTH_DeckManager : MonoBehaviour
                     : Ease.InCubic
             );
     }
-
     private void FinalizeCardPlacement(
-        KTH_HandCardView card,
-        LSO_CardSO data)
+    KTH_HandCardView card,
+    LSO_CardSO data)
     {
+        if (card == null)
+            return;
+
+        // 손패 목록에서 먼저 제거
         currentHand.Remove(card);
 
-        if (card != null)
-        {
-            card.transform.DOKill();
-            Destroy(card.gameObject);
-        }
+        // ⭐ 실제 카드 사용/배치가 완료된 순간에만 삭제
+        card.transform.DOKill();
+
+        Destroy(card.gameObject);
 
         if (infoPanel != null)
             infoPanel.Hide();
 
+        // 남은 카드 선택 해제
         DeselectAllCards();
 
+        // 손패 재정렬
         RearrangeHand();
 
+        // 드로우 버튼 상태 갱신
         UpdateDrawButtonState();
     }
+
+
+    // ============================================================
+    // 손패 재정렬
+    // ============================================================
 
     private void RearrangeHand()
     {
@@ -760,7 +985,9 @@ public class KTH_DeckManager : MonoBehaviour
             if (card == null)
                 continue;
 
+
             card.transform.DOKill();
+
 
             TweenBasePosition(
                 card,

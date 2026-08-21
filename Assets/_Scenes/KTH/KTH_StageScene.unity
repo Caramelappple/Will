@@ -831,7 +831,7 @@ MonoBehaviour:
   - {x: 216.66669, y: 221}
   - {x: 358.66675, y: 175}
   - {x: 352, y: -39.666687}
-  - {x: 549.3334, y: 113.66666}
+  - {x: 222.66669, y: -146.33337}
   nodeTypes: 01000000010000000100000001000000010000000100000004000000
   connections:
   - fromIndex: 0
@@ -935,6 +935,9 @@ MonoBehaviour:
   - chapter: 2
     nodeType: 1
     stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
+  bossStagePool:
+  - {fileID: 11400000, guid: 97c9f405dad1d8449b676a23c536989e, type: 2}
+  - {fileID: 11400000, guid: 427b531330924821938552f33dc2b77b, type: 2}
 --- !u!114 &1062778836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2743,6 +2746,10 @@ MonoBehaviour:
     cameraOrthographicSize: 5
     cameraFieldOfView: 60
     cameraPositionOffset: {x: 0, y: 0, z: -10}
+  stageEnterDuration: 0.8
+  stageEnterZoom: 1.6
+  stageEnterFadeStart: 0.25
+  stageEnterFadeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!222 &2084838560
 CanvasRenderer:
   m_ObjectHideFlags: 0

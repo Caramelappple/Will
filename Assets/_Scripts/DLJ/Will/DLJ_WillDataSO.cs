@@ -13,6 +13,9 @@ namespace _Scripts.LSO.Will
 
         [Header("Icon")]
         public Sprite icon;
+        
+        [Header("Material")]
+        public Material material;
 
         [Header("Effect")]
         public GameObject effectPrefab;
