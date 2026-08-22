@@ -23,7 +23,7 @@ namespace _Scripts.LDY.Save
         {
             data.deckCardIds.Clear();
 
-            KTH_DeckDataPersistent holder = KTH_DeckDataPersistent.Instance;
+            /*KTH_DeckDataPersistent holder = KTH_DeckDataPersistent.Instance;
             if (holder == null)
             {
                 Debug.LogWarning("[LDY_DeckSaveGateway] KTH_DeckDataPersistent가 없어 덱을 읽지 못했습니다.");
@@ -35,12 +35,12 @@ namespace _Scripts.LDY.Save
                 if (card == null) continue;
 
                 data.deckCardIds.Add(card.Id);
-            }
+            }*/
         }
 
         public void Restore(LDY_RunSaveData data)
         {
-            KTH_DeckDataPersistent holder = KTH_DeckDataPersistent.Instance;
+           /* KTH_DeckDataPersistent holder = KTH_DeckDataPersistent.Instance;
             if (holder == null)
             {
                 Debug.LogWarning("[LDY_DeckSaveGateway] KTH_DeckDataPersistent가 없어 덱을 되돌리지 못했습니다.");
@@ -69,8 +69,10 @@ namespace _Scripts.LDY.Save
 
                 deck.Add(card);
             }
+            
 
-            holder.SaveInventory(deck);
+            holder.SaveInventory(deck); */
+
         }
     }
 }
