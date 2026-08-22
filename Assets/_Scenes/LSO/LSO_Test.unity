@@ -600,6 +600,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 662376839460450822, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: maxDeckSize
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 662376839460450822, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: turnManager
+      value: 
+      objectReference: {fileID: 944642614}
     - target: {fileID: 3232749601487917276, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0
@@ -696,20 +704,31 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 1.198
       objectReference: {fileID: 0}
+    - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: maxHandSize
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5510506159955024284, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9077985853559209825, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2711361573863623869, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1304885400}
+    - targetCorrespondingSourceObject: {fileID: 2711361573863623869, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1304885401}
     - targetCorrespondingSourceObject: {fileID: 7259640776467860790, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 163273567}
     - targetCorrespondingSourceObject: {fileID: 6142500573758209229, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 163273569}
+    - targetCorrespondingSourceObject: {fileID: 6142500573758209229, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 163273570}
   m_SourcePrefab: {fileID: 100100000, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
 --- !u!114 &163273565 stripped
 MonoBehaviour:
@@ -759,6 +778,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_StartCardSet
   startingHandCount: 5
   drawInterval: 0.12
+--- !u!114 &163273570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163273568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e183b7c4687d84a8d70f2d890d5a0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckUi
+  deckRect: {fileID: 693088521}
+  turnManager: {fileID: 944642614}
+  hideOffsetY: 300
+  moveDuration: 0.35
+  hideEase: 26
+  showEase: 27
 --- !u!1 &165363250
 GameObject:
   m_ObjectHideFlags: 0
@@ -3465,6 +3502,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0590d3dc33c63c46abd62ca159688e3, type: 3}
+--- !u!224 &693088521 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7014349032689234810, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+  m_PrefabInstance: {fileID: 163273564}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &703835177
 GameObject:
   m_ObjectHideFlags: 0
@@ -5300,6 +5342,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
   deck: []
+  turnManager: {fileID: 0}
+  discardPile: {fileID: 0}
+  autoReshuffleFromDiscard: 1
+  ignoreDrawLimit: 0
+  maxDrawsPerTurn: 2
 --- !u!1 &1056996184
 GameObject:
   m_ObjectHideFlags: 0
@@ -7059,6 +7106,21 @@ MonoBehaviour:
   discardCardTransform: {fileID: 1304885398}
   discardCountText: {fileID: 1858254593}
   countBumpDuration: 0.2
+--- !u!114 &1304885401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1304885399}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35077cfd34965b84e89bfb17bfa852db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardCardManager
+  deckManager: {fileID: 0}
+  handLayout: {fileID: 0}
+  discardPile: {fileID: 0}
 --- !u!1 &1307432157
 GameObject:
   m_ObjectHideFlags: 0

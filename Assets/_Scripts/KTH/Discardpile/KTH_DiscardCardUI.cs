@@ -1,6 +1,6 @@
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -19,6 +19,11 @@ public class KTH_DiscardCardUI : MonoBehaviour
     public RectTransform DiscardCardTransform => discardCardTransform;
     public int Count => _discardCardList.Count;
 
+    /// <summary>
+    /// 버린 카드 더미에 카드가 새로 추가될 때마다 발생. (현재 버린 카드 총 개수)
+    /// </summary>
+    public event Action<int> OnCardAdded;
+
     private void Awake()
     {
         UpdateUI();
@@ -32,6 +37,9 @@ public class KTH_DiscardCardUI : MonoBehaviour
         _discardCardList.Add(cardData);
         UpdateUI();
         AnimateCountText();
+
+        Debug.Log($"[KTH_DiscardCardUI:{GetInstanceID()}] 카드 추가됨: {(cardData != null ? cardData.name : "Unknown")} | 현재 총 {_discardCardList.Count}장");
+        OnCardAdded?.Invoke(_discardCardList.Count);
     }
 
     /// <summary>

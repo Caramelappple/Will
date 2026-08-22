@@ -33,7 +33,9 @@ public class KTH_StartCardSet : MonoBehaviour
 
         for (int i = 0; i < startingHandCount; i++)
         {
-            bool success = spawnCard.SpawnOneCardPublic();
+            // 시작 핸드는 턴당 드로우 횟수 제한을 무시하고 지급된다.
+            // 덱에 남은 카드가 startingHandCount보다 적으면 있는 만큼만 받고 자동으로 멈춘다.
+            bool success = spawnCard.SpawnOneCardPublic(bypassDrawLimit: true);
             if (!success) break;
 
             yield return new WaitForSeconds(drawInterval);

@@ -172,6 +172,10 @@ public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
         }
         else
         {
+            // discardPile이 연결되어 있지 않으면 카드가 버린 카드 더미에 기록되지 않고 그냥 파괴된다.
+            // 이 경고가 보인다면 KTH_InfoPanl(또는 이 메서드를 호출하는 곳)의 Inspector에서
+            // discardPile 필드에 실제 KTH_DiscardCardUI 오브젝트가 연결되어 있는지 확인할 것.
+            Debug.LogWarning($"[KTH_HandCard] discardPile이 비어있어 '{(cardData != null ? cardData.name : "Unknown")}' 카드가 버린 카드 더미에 기록되지 않고 파괴됩니다! Inspector 연결을 확인하세요.");
             Destroy(gameObject);
         }
     }
@@ -200,6 +204,7 @@ public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
         seq.Join(transform.DOLocalMove(targetLocalPos, discardDuration).SetEase(Ease.InQuad));
         seq.Join(transform.DOScale(Vector3.zero, discardDuration).SetEase(Ease.InQuad));
         seq.Join(transform.DOLocalRotate(new Vector3(0f, 0f, randomTilt), discardDuration, RotateMode.FastBeyond360));
+        seq.Join(cg.DOFade(0f, discardDuration * 0.85f));
 
         seq.OnComplete(() =>
         {
