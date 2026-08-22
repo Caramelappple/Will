@@ -894,7 +894,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfbd6ecc664e3a64e89279975227741f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_FinalCardList
-  cardList: []
+  finalSelectedCards: []
 --- !u!4 &666359202
 Transform:
   m_ObjectHideFlags: 0
@@ -1413,7 +1413,7 @@ MonoBehaviour:
   deckLayoutArea: {fileID: 955319489}
   selectedCards: []
   pageBuckets: []
-  sceneName: KTH_TestScene
+  sceneName: LSO_Test
 --- !u!1 &1259842420
 GameObject:
   m_ObjectHideFlags: 0
