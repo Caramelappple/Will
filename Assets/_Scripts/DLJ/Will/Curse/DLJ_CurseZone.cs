@@ -14,6 +14,7 @@ public class DLJ_CurseZone : MonoBehaviour
     private LDY_Team sourceTeam;
     private Vector3Int center;
     private GameObject effectInstance;
+    private float effectFadeOutTime;
     private readonly HashSet<LDY_Animal> animalsInside = new();
     private readonly HashSet<LDY_Animal> currentAnimalsInside = new();
 
@@ -42,6 +43,7 @@ public class DLJ_CurseZone : MonoBehaviour
         sourceTeam = data.sourceTeam;
         center = data.center;
         effectInstance = visualInstance;
+        effectFadeOutTime = Mathf.Max(0f, data.effectFadeOutTime);
 
         turnManager.OnTurnChanged += HandleTurnChanged;
         DamageAnimalsInArea();
@@ -166,9 +168,66 @@ public class DLJ_CurseZone : MonoBehaviour
     private void Expire()
     {
         Unsubscribe();
-        if (effectInstance != null)
-            Destroy(effectInstance);
+        FadeOutEffect();
         Destroy(gameObject);
+    }
+
+    private void FadeOutEffect()
+    {
+        if (effectInstance == null)
+            return;
+
+        GameObject fadingEffect = effectInstance;
+        effectInstance = null;
+
+        if (effectFadeOutTime <= 0f)
+        {
+            Destroy(fadingEffect);
+            return;
+        }
+
+        ParticleSystem[] particleSystems =
+            fadingEffect.GetComponentsInChildren<ParticleSystem>(true);
+
+        foreach (ParticleSystem particleSystem in particleSystems)
+        {
+            ParticleSystem.MainModule main = particleSystem.main;
+            main.loop = false;
+
+            particleSystem.Stop(
+                false,
+                ParticleSystemStopBehavior.StopEmitting);
+
+            int particleCount = particleSystem.particleCount;
+            if (particleCount == 0)
+                continue;
+
+            ParticleSystem.Particle[] particles =
+                new ParticleSystem.Particle[particleCount];
+            int aliveCount = particleSystem.GetParticles(particles);
+
+            for (int i = 0; i < aliveCount; i++)
+            {
+                float elapsedLifetime =
+                    particles[i].startLifetime - particles[i].remainingLifetime;
+                float remainingLifetime = Mathf.Min(
+                    particles[i].remainingLifetime,
+                    effectFadeOutTime);
+
+                particles[i].startLifetime = elapsedLifetime + remainingLifetime;
+                particles[i].remainingLifetime = remainingLifetime;
+            }
+
+            particleSystem.SetParticles(particles, aliveCount);
+        }
+
+        if (particleSystems.Length == 0)
+        {
+            Destroy(fadingEffect);
+            return;
+        }
+
+        Destroy(fadingEffect, effectFadeOutTime + 0.1f);
     }
 
     private void Unsubscribe()

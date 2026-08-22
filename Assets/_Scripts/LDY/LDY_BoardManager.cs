@@ -17,6 +17,16 @@ namespace _Scripts.LDY
         [SerializeField] private float cellSize = 0.75f;
         [SerializeField] private float heightStep = 1f;
 
+        /// <summary>정사각형 보드 루트에 적용된 실제 월드 스케일.</summary>
+        public float UniformWorldScale
+        {
+            get
+            {
+                Transform scaleSource = boardOrigin != null ? boardOrigin : transform;
+                return Mathf.Abs(scaleSource.lossyScale.x);
+            }
+        }
+
         // 격자 저장은 x/z만 사용한다. pos.y(높이)는 표시 전용이라 점유 판정에 영향을 주지 않는다.
         private readonly LDY_Animal[,] _grid = new LDY_Animal[Size, Size];
 

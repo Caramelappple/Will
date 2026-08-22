@@ -13,8 +13,13 @@ public sealed class DLJ_CurseWillDataSO : DLJ_WillDataSO
     public int duration;
 
     [Header("Visual")]
-    public float expandTime = 0.25f;
-    public float effectHeight = 0.12f;
+    [Tooltip("저주 영역의 월드 크기 1당 파티클 프리팹 스케일")]
+    [Min(0f)]
+    public float effectScalePerWorldUnit = 0.03111111f;
+
+    [Tooltip("저주 종료 후 남은 파티클이 사라지는 시간")]
+    [Min(0f)]
+    public float effectFadeOutTime = 0.75f;
 
     public override int DisplayDamage => damage;
     public override int DisplayRange => range;
