@@ -15,16 +15,13 @@ namespace _Scripts.LSO.UI
     /// LDY_SelectionController가 알려주는 대상만 따라 그린다.
     /// 어떤 기물을 볼지는 이 창이 정하지 않는다.
     ///
-    /// 아군(OnSelectionChanged)과 적(OnEnemyInspectedChanged) 중 무엇을 따라갈지는 인스펙터에서 고른다.
-    /// 창을 두 개 두고 각각 다른 쪽을 구독하면 아군용/적용 창이 따로 뜬다.
+    /// 아군 선택과 적 조회를 한 창이 함께 받는다. 마지막에 알려온 쪽을 그리고,
+    /// 한쪽이 비면 다른 쪽으로 넘어간다. 창은 씬에 하나만 두면 된다.
     /// </summary>
     public class LSO_AnimalInfoPanel : MonoBehaviour
     {
         [Header("정보 출처")]
         [SerializeField] private LDY_SelectionController selection;
-
-        [Tooltip("켜면 적 기물 조회를, 끄면 내 기물 선택을 따라간다.")]
-        [SerializeField] private bool followEnemy;
 
         [Tooltip("볼 대상이 없을 때 끌 오브젝트. 비우면 자기 자신을 끈다.")]
         [SerializeField] private GameObject content;
@@ -38,6 +35,12 @@ namespace _Scripts.LSO.UI
         [SerializeField] private TextMeshProUGUI will;
         [SerializeField] private TextMeshProUGUI desc;
 
+        [Tooltip("한 번에 움직일 수 있는 칸 수. 슬롯을 비워두면 표시하지 않는다.")]
+        [SerializeField] private TextMeshProUGUI moveRange;
+
+        [Tooltip("소환 코스트. 슬롯을 비워두면 표시하지 않는다.")]
+        [SerializeField] private TextMeshProUGUI cost;
+
         [Header("이름 색")]
         [SerializeField] private Color allyColor = Color.white;
         [SerializeField] private Color enemyColor = Color.red;
@@ -50,6 +53,12 @@ namespace _Scripts.LSO.UI
         [Tooltip("나열할 최대 특성 수. 넘으면 '외 N개'로 접는다. 0이면 접지 않는다.\n" +
                  "되먹임으로 특성이 늘어난 보스는 이름만 나열해도 한 줄을 훌쩍 넘는다.")]
         [SerializeField, Min(0)] private int maxAbilityCount = 3;
+
+        [Tooltip("글자가 칸을 넘으면 자동으로 줄인다. 프리팹 레이아웃이 정리되면 꺼도 된다.")]
+        [SerializeField] private bool autoFitText = true;
+
+        [Tooltip("자동 축소로 줄어들 수 있는 최소 글자 크기.")]
+        [SerializeField, Min(1f)] private float minFontSize = 12f;
 
         private LDY_Animal _target;
         private LDY_BoardManager _board;
@@ -66,6 +75,7 @@ namespace _Scripts.LSO.UI
         // OnEnable에서 구독했다면 한 번 닫힌 뒤로는 선택 신호를 영영 못 받는다.
         private void Awake()
         {
+            AutoFitTexts();
             SubscribeManager();
 
             if (selection == null)
@@ -74,21 +84,19 @@ namespace _Scripts.LSO.UI
                 return;
             }
 
-            if (followEnemy)
-                selection.OnEnemyInspectedChanged += Bind;
-            else
-                selection.OnSelectionChanged += Bind;
+            selection.OnSelectionChanged += HandleSelectionChanged;
+            selection.OnEnemyInspectedChanged += HandleEnemyInspected;
 
-            // 씬에 저장된 상태와 무관하게 "볼 대상 없음"에서 시작한다.
-            Bind(followEnemy ? selection.InspectedEnemy : selection.Selected);
+            // 씬에 저장된 상태와 무관하게 지금 보고 있는 것에서 시작한다.
+            Bind(selection.Selected != null ? selection.Selected : selection.InspectedEnemy);
         }
 
         private void OnDestroy()
         {
             if (selection != null)
             {
-                selection.OnEnemyInspectedChanged -= Bind;
-                selection.OnSelectionChanged -= Bind;
+                selection.OnSelectionChanged -= HandleSelectionChanged;
+                selection.OnEnemyInspectedChanged -= HandleEnemyInspected;
             }
 
             Unsubscribe(_target);
@@ -97,6 +105,18 @@ namespace _Scripts.LSO.UI
                 GameManager.Instance.BoardChanged -= BindBoard;
 
             BindBoard(null);
+        }
+
+        // 한쪽이 비었다고 바로 닫지 않고 다른 쪽으로 넘어간다.
+        // 아군을 고른 채 적을 들여다보다가 아군 선택이 풀리면, 보던 적이 그대로 남아야 자연스럽다.
+        private void HandleSelectionChanged(LDY_Animal animal)
+        {
+            Bind(animal != null ? animal : selection.InspectedEnemy);
+        }
+
+        private void HandleEnemyInspected(LDY_Animal animal)
+        {
+            Bind(animal != null ? animal : selection.Selected);
         }
 
         /// <summary>볼 대상을 바꾼다. null이면 창을 닫는다.</summary>
@@ -205,9 +225,12 @@ namespace _Scripts.LSO.UI
             SetText(health, $"Hp: {HealthValue}/{MaxHealthValue}");
             SetText(damage, $"Atk: {_target.GetAtk()}");
 
-            SetText(range, _target.RangeType.ToString());
+            SetText(range, LSO_DisplayNames.Of(_target.RangeType));
             SetText(ability, _abilityText);
-            SetText(will, _target.WillType.ToString());
+            SetText(will, LSO_DisplayNames.Of(_target.WillType));
+
+            SetText(moveRange, $"이동: {MoveRangeValue}");
+            SetText(cost, $"코스트: {CostValue}");
 
             SetText(desc, _detailText);
 
@@ -232,7 +255,7 @@ namespace _Scripts.LSO.UI
             {
                 if (i > 0) sb.Append(", ");
 
-                sb.Append(types[i]);
+                sb.Append(LSO_DisplayNames.Of(types[i]));
             }
 
             int hidden = types.Count - shown;
@@ -264,6 +287,43 @@ namespace _Scripts.LSO.UI
         private int HealthValue => _target.health != null ? _target.health.Value : 0;
 
         private int MaxHealthValue => _target.health != null ? _target.health.MaxValue : 0;
+
+        private int MoveRangeValue => _target.data != null ? _target.data.MoveRange : 1;
+
+        private int CostValue => _target.data != null ? _target.data.cost : 0;
+
+        /// <summary>
+        /// 글자가 칸을 넘지 않게 자동 축소를 켠다.
+        ///
+        /// 프리팹의 칸은 "근거리" 같은 짧은 한글 더미로 폭이 잡혀 있는데,
+        /// 실제로는 그보다 긴 값이 들어와 두 번째 줄이 생기고 아래 요소 위로 흘러내린다.
+        /// ContentSizeFitter와 LayoutGroup을 제대로 넣는 것이 정석이지만,
+        /// 그 전까지 글자가 칸 밖으로 나가는 것만이라도 여기서 막는다.
+        /// </summary>
+        private void AutoFitTexts()
+        {
+            if (!autoFitText) return;
+
+            AutoFit(animalName);
+            AutoFit(health);
+            AutoFit(damage);
+            AutoFit(range);
+            AutoFit(ability);
+            AutoFit(will);
+            AutoFit(moveRange);
+            AutoFit(cost);
+            AutoFit(desc);
+        }
+
+        private void AutoFit(TMP_Text target)
+        {
+            if (target == null) return;
+
+            target.enableAutoSizing = true;
+            target.fontSizeMin = Mathf.Max(1f, minFontSize);
+            target.fontSizeMax = target.fontSize;
+            target.overflowMode = TextOverflowModes.Ellipsis;
+        }
 
         // 오브젝트 이름은 소환하면 "(Clone)"이 붙는다. 동물 데이터의 이름이 있으면 그쪽이 정확하다.
         private string ResolveName()

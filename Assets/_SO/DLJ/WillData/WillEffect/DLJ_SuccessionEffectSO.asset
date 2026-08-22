@@ -21,12 +21,12 @@ MonoBehaviour:
   successionBloomIntensity: 0.4
   successionLightIntensity: 0.19
   successionLightRange: 1.6
-  successionCameraEnabled: 1
+  successionCameraEnabled: 0
   successionCameraZoomDuration: 0.35
   successionCameraZoomRatio: 0.55
   successionCameraFocusHeight: 0.45
   successionCameraOrbitAngle: 24
   successionCameraRestoreDuration: 0.45
-  successionCameraStartDelay: 0.4
+  successionCameraStartDelay: 0
   successionCameraMoveDuration: 5.8
   successionCameraTrackingSwitchPoint: 0.1

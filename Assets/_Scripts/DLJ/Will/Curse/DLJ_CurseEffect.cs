@@ -1,5 +1,4 @@
 using System;
-using DG.Tweening;
 using UnityEngine;
 
 public sealed class DLJ_CurseEffect : DLJ_IWillEffect
@@ -9,26 +8,33 @@ public sealed class DLJ_CurseEffect : DLJ_IWillEffect
         DLJ_WillEffectContext context,
         Action onComplete = null)
     {
-        if (effectObject == null || context == null)
+        DLJ_CurseWillDataSO data = context?.data as DLJ_CurseWillDataSO;
+        if (effectObject == null || context == null || data == null)
         {
             onComplete?.Invoke();
             return;
         }
 
-        DLJ_CurseWillDataSO data = context.data as DLJ_CurseWillDataSO;
-        float height = data != null ? data.effectHeight : 0.12f;
-        float expandTime = data != null ? data.expandTime : 0.25f;
         Transform effectTransform = effectObject.transform;
-        effectTransform.position = context.origin + Vector3.up * (height * 0.5f);
-        Vector3 targetScale = new Vector3(
-            context.areaSize.x,
-            height,
-            context.areaSize.z);
-        effectTransform.localScale = Vector3.zero;
+        effectTransform.position = context.origin;
+
+        float areaWorldSize =
+            (Mathf.Abs(context.areaSize.x) + Mathf.Abs(context.areaSize.z)) * 0.5f;
+        float effectScale = areaWorldSize * data.effectScalePerWorldUnit;
+        effectTransform.localScale = Vector3.one * effectScale;
+
         effectObject.SetActive(true);
-        effectTransform.DOScale(targetScale, expandTime)
-            .SetEase(Ease.Linear)
-            .SetLink(effectObject);
+
+        ParticleSystem[] particleSystems =
+            effectObject.GetComponentsInChildren<ParticleSystem>(true);
+
+        foreach (ParticleSystem particleSystem in particleSystems)
+        {
+            ParticleSystem.MainModule main = particleSystem.main;
+            main.loop = true;
+            particleSystem.Play(false);
+        }
+
         onComplete?.Invoke();
     }
 }
