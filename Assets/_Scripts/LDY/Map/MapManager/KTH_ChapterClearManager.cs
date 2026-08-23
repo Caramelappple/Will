@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -77,8 +78,9 @@ public class KTH_ChapterClearManager : MonoBehaviour
                 $"다음 챕터 준비 완료: Chapter {mapManager.CurrentChapter}"
             );
 
-            // 스테이지 선택 화면으로 돌아감
-            SceneManager.LoadScene(mapSceneName);
+            // 마지막 타격의 복귀 애니메이션이 아직 돌고 있으면 기다렸다가 씬을 넘긴다.
+            // LDY_MapManager.LoadSceneAfterAnimations와 같은 이유.
+            StartCoroutine(Co_LoadMapSceneAfterAnimations());
         }
         else
         {
@@ -88,8 +90,23 @@ public class KTH_ChapterClearManager : MonoBehaviour
             );
 
             // 마지막 챕터이므로 기존 보스 클리어 처리
+            // (LDY_MapManager.CompleteActiveNodeAndReturnToMap 내부에서
+            //  이미 씬 전환 전 연출 대기를 처리한다)
             mapManager.CompleteActiveNodeAndReturnToMap();
         }
+    }
+
+    private IEnumerator Co_LoadMapSceneAfterAnimations()
+    {
+        LDY_TurnManager turnManager = FindFirstObjectByType<LDY_TurnManager>();
+
+        if (turnManager != null)
+        {
+            while (turnManager.IsAnimating())
+                yield return null;
+        }
+
+        SceneManager.LoadScene(mapSceneName);
     }
 
     /// <summary>

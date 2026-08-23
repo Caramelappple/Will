@@ -313,6 +313,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
             )
             .SetDelay(delay)
             .SetEase(Ease.OutQuad)
+            .SetLink(gameObject)
             .OnComplete(() =>
             {
                 // 마지막 위치 확실하게 고정
@@ -364,6 +365,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
             basePosition;
 
         Sequence sequence = DOTween.Sequence();
+        sequence.SetLink(gameObject);
 
         // 위로 살짝
         sequence.Append(
@@ -408,7 +410,8 @@ public class KTH_RewardOptionUI : MonoBehaviour
 
         transform
             .DOScale(Vector3.one * targetScale, 0.15f)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetLink(gameObject);
     }
 
     // ==========================================

@@ -404,6 +404,22 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
         }
 
+        StartCoroutine(Co_ClearStage());
+    }
+
+    /// <summary>
+    /// 마지막 타격의 복귀 애니메이션(LDY_AttackSystem.StrikeOnce)이 아직 돌고 있으면
+    /// 씬 전환/승리 판정 전달을 기다린다. 안 그러면 씬이 넘어가면서
+    /// 트윈이 물고 있던 Transform이 파괴돼 DOTween 경고가 뜬다.
+    /// </summary>
+    private IEnumerator Co_ClearStage()
+    {
+        if (turnManager != null)
+        {
+            while (turnManager.IsAnimating())
+                yield return null;
+        }
+
         LDY_NodeType stageType = ResolveCurrentStageType();
 
         Debug.Log(

@@ -176,7 +176,8 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         {
             Tweener bgTween = bgTarget
                 .DOScale(Vector3.one, bgScaleDuration)
-                .SetEase(Ease.OutBack);
+                .SetEase(Ease.OutBack)
+                .SetLink(bgTarget.gameObject);
 
             yield return bgTween.WaitForCompletion();
         }
@@ -328,6 +329,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         }
 
         Sequence hideSequence = DOTween.Sequence();
+        hideSequence.SetLink(gameObject);
 
         foreach (KTH_RewardOptionUI rewardUI in spawnedRewards)
         {
@@ -340,6 +342,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
                             0.2f
                         )
                         .SetEase(Ease.InBack)
+                        .SetLink(rewardUI.gameObject)
                 );
             }
         }
@@ -353,6 +356,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
                         0.25f
                     )
                     .SetEase(Ease.InOutQuad)
+                    .SetLink(bgTarget.gameObject)
             );
         }
 
