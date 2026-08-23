@@ -1062,12 +1062,12 @@ public class LDY_MapManager : MonoBehaviour
         {
             cameraController.PlayStageEnterTransition(
                 screenUV,
-                () => KTH_LoadingSceneController.LoadScene(targetSceneName));
+                () => SceneManager.LoadScene(targetSceneName));
             return;
         }
 
         Debug.LogWarning("[LDY_MapManager] 맵 카메라 컨트롤러가 없어 진입 연출 없이 씬을 이동합니다.", this);
-        KTH_LoadingSceneController.LoadScene(targetSceneName);
+        SceneManager.LoadScene(targetSceneName);
     }
 
     public void ResetProgress()

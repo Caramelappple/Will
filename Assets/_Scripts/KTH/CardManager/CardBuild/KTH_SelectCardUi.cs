@@ -42,12 +42,21 @@ public class KTH_SelectCardUi :
         }
 
         canvas = GetComponentInParent<Canvas>();
+    
+       
     }
 
     public void Setup(LSO_CardSO card, int pageIndex = 0, float spawnDelay = 0f, bool playAnimation = false)
     {
         cardData = card;
         OriginalPageIndex = pageIndex;
+
+        Debug.Log($"[Setup] card={card?.name}, image={card?.Image}, cardImageRef={cardImage}");
+
+        if (cardImage != null && cardData != null)
+        {
+            cardImage.sprite = cardData.Image;
+        }
         originalParent = transform.parent;
         IsInInventory = false;
         isPendingDestroy = false;

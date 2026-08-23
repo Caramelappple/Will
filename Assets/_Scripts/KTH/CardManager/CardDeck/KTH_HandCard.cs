@@ -42,11 +42,14 @@ public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
     public void Setup(LSO_CardSO data)
     {
         cardData = data;
+        SettingUi(); // 데이터가 세팅될 때마다 즉시 UI 갱신
     }
 
     private void Start()
     {
-        SettingUi();
+        // cardData가 이미 Setup에서 세팅됐다면 중복 호출 방지
+        if (cardData != null)
+            SettingUi();
     }
 
     public void SettingUi()
