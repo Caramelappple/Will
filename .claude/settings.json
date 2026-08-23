@@ -8,7 +8,17 @@
       "Bash(dotnet '/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/DotNetSdkRoslyn/csc.dll' @C:/Users/이도윤/AppData/Local/Temp/claude/c--Dev-Will/e90f870c-82f5-484b-8ec9-0be430ce95ba/scratchpad/probe.rsp -nowarn:649)",
       "Bash(dotnet '/c/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/DotNetSdkRoslyn/csc.dll' @C:/Users/이도윤/AppData/Local/Temp/claude/c--Dev-Will/e90f870c-82f5-484b-8ec9-0be430ce95ba/scratchpad/probe.rsp -nowarn:649 -define:UNITY_EDITOR)",
       "Bash(awk '/^--- !u!1 &/{f=1} f&&/m_Name:/{print NR\": \"$0; f=0}' Assets/_Scenes/LDY/LDY_MapScene.unity)",
-      "Bash(grep -v \"m_Name: $\")"
+      "Bash(grep -v \"m_Name: $\")",
+      "Bash(python prefabs.py)",
+      "Bash(python -)",
+      "Bash(python tex.py)",
+      "Bash(python census.py)",
+      "Bash(dotnet 'C:/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/DotNetSdkRoslyn/csc.dll' @C:/Users/이도윤/AppData/Local/Temp/claude/c--Dev-Will/a107bec1-0afb-4a6d-b98a-a48fdd459517/scratchpad/probe.rsp)",
+      "Bash(echo \"Mask:\")",
+      "Bash(grep -c m_ShowMaskGraphic Assets/_Prefabs/LSO/WillPanel.prefab)",
+      "Bash(echo \"RectMask2D:\")",
+      "Bash(grep -c m_Softness Assets/_Prefabs/LSO/WillPanel.prefab)",
+      "Bash(echo \"Image:\")"
     ]
   }
 }
