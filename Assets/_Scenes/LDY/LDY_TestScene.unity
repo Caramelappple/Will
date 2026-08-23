@@ -8910,6 +8910,7 @@ MonoBehaviour:
     nodeIndex: 0
     stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
   typeStages: []
+  bossStagePool: []
 --- !u!1 &1345992235
 GameObject:
   m_ObjectHideFlags: 0
