@@ -6605,6 +6605,8 @@ MonoBehaviour:
   cardPlacer: {fileID: 881993166}
   cardDatabase:
   - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: 64a796d6dcc7c9a4eb7e31b2227b1bb4, type: 2}
+  - {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
   handCardPrefab: {fileID: 5094566040124373414, guid: 4866ed4a06a7922409ff39120982d3d8, type: 3}
   handContainer: {fileID: 1843615345}
   handSpacing: 150
