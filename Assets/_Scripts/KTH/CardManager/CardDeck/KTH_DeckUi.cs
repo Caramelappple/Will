@@ -26,8 +26,6 @@ public class KTH_DeckUi : MonoBehaviour
 
     private void Awake()
     {
-        if (deckRect == null) deckRect = GetComponent<RectTransform>();
-        if (turnManager == null) turnManager = FindAnyObjectByType<LDY_TurnManager>();
 
         if (deckRect != null)
             originalAnchoredPos = deckRect.anchoredPosition;

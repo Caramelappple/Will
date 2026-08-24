@@ -798,7 +798,6 @@ GameObject:
   - component: {fileID: 1062778833}
   - component: {fileID: 1062778835}
   - component: {fileID: 1062778836}
-  - component: {fileID: 1062778837}
   m_Layer: 0
   m_Name: MapManager
   m_TagString: Untagged
@@ -951,29 +950,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecdb95e5abe460549b85c5188d4cddbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_ChapterClearManager
-  mapSceneName: KTH_StageScene
---- !u!114 &1062778837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1062778832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 304ef88dba3ac904e902a037e69818f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_StartMessage
-  canvasGroup: {fileID: 0}
-  targetCanvas: {fileID: 0}
-  stageText: {fileID: 0}
-  stageTextFormat: STAGE {0}-{1}
-  randomText: {fileID: 0}
-  fadeInDuration: 0.5
-  maxAlpha: 1
-  holdDuration: 0.3
-  fadeOutDuration: 0.5
-  startDelay: 0
 --- !u!114 &1071272902
 MonoBehaviour:
   m_ObjectHideFlags: 0
