@@ -14,9 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
   stageName: SampleScene
   description: "[\uC608\uC2DC \uC124\uBA85]"
-  sceneName: SampleScene
+  sceneName: 
   enemies:
-  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 0, y: 0, z: 0}
+  - card: {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
+    pos: {x: 1, y: 0, z: 2}
+  - card: {fileID: 11400000, guid: 40b97fe1d6cb9b045b009b667e8298aa, type: 2}
+    pos: {x: 3, y: 0, z: 5}
+  - card: {fileID: 11400000, guid: 2261c8396a33f0f4bae25486519331f8, type: 2}
+    pos: {x: 4, y: 0, z: 6}
   actionPointsPerTurn: 0
   summonCostPerTurn: 0

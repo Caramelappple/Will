@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e8f9f69fceb3ea46afe040eb1ec6353, type: 3}
+  m_Name: DLJ_SuccessionEffectSO
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_SuccessionEffectSO
+  successionLineColor: {r: 0.72, g: 0.92, b: 1, a: 0.9}
+  successionLineWidth: 0.025
+  successionLineHeight: 0.35
+  successionRotation: {x: 0, y: 0, z: 360}
+  successionAbsorbDuration: 0.78
+  successionFlashDuration: 2.02
+  successionBloomIntensity: 0.4
+  successionLightIntensity: 0.19
+  successionLightRange: 1.6
+  successionCameraEnabled: 0
+  successionCameraZoomDuration: 0.35
+  successionCameraZoomRatio: 0.55
+  successionCameraFocusHeight: 0.45
+  successionCameraOrbitAngle: 24
+  successionCameraRestoreDuration: 0.45
+  successionCameraStartDelay: 0
+  successionCameraMoveDuration: 5.8
+  successionCameraTrackingSwitchPoint: 0.1

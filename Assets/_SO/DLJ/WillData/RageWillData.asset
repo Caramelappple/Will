@@ -9,15 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a8e4d51be6d40e8a6b4674861445c38, type: 3}
+  m_Script: {fileID: 11500000, guid: f45300591e9c4be49bbcd49696e2ea3f, type: 3}
   m_Name: RageWillData
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.DLJ_WillDataSO
-  willType: 1
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_RageWillDataSO
+  description: aaaaaa
+  icon: {fileID: 21300000, guid: 87bcde1484a3e40449c3d41e66c987f6, type: 3}
+  effectPrefab: {fileID: 5257914839725481267, guid: e0971c241268a5e4a8de9ea920980e24, type: 3}
   damage: 1
   range: 1
-  duration: 0
-  effectPrefab: {fileID: 5931541003730214521, guid: 0ed4e6e8196f4e04291a12483fe9df55, type: 3}
+  buffAmount: 1
+  debuffAmount: 2
   expandTime: 0.25
   holdTime: 0.3
   effectHeight: 0.12
-  moveDuration: 1

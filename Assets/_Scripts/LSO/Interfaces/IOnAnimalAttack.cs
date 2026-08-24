@@ -1,3 +1,5 @@
+using _Scripts.LSO.Animal.Data;
+
 namespace _Scripts.LSO
 {
     public interface IOnAnimalAttack

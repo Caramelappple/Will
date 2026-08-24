@@ -9,6 +9,7 @@ public class DLJ_CurseActivationData
     public Vector3Int center;
     public Vector3 centerWorld;
     public Vector3 areaSize;
+    public float effectFadeOutTime;
     public LDY_Team sourceTeam;
     public LDY_TurnManager turnManager;
     public LDY_BoardManager board;

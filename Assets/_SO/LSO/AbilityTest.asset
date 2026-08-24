@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: AbilityTest
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
-  animalName: Crow
-  description: "\uC660\uC9C0 \uD574\uD0B9\uC744 \uC88B\uC544\uD560 \uAC83 \uAC19\uC740\n\uC5C4\uCCAD\uB09C
-    1\uB2EC\uC758 \uACE0\uC720\uD55C \uC5ED\uC0AC\uB97C \uAC00\uC9C4 \uAE4C\uB9C8\uADC0
-    \uC785\uB2C8\uB2E4"
-  maxHealth: 1
-  damage: 1
-  cost: 0
+  animalName: Test
+  description: "\uD14C\uC2A4\uD2B8\uC6A9 \uAE30\uBB3C\uC785\uB2C8\uB2E4"
+  maxHealth: 3
+  damage: 10
+  cost: 1
+  moveRange: 1
   range: 0
-  ability: 0
+  abilities: 07000000
+  defaultWill: 1
   unitPrefab: {fileID: 4337957452496197285, guid: caaab4fd8563b364592b616c5c55fb1b, type: 3}

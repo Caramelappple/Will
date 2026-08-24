@@ -1,35 +1,40 @@
-using DG.Tweening;
+using System;
 using UnityEngine;
 
-[AddComponentMenu("")]
-public sealed class DLJ_CurseEffect : MonoBehaviour
+public sealed class DLJ_CurseEffect : DLJ_IWillEffect
 {
-    public static void Play(
-        DLJ_CurseActivationData data,
-        GameObject effectPrefab,
-        float expandTime,
-        float effectHeight)
+    public void Play(
+        GameObject effectObject,
+        DLJ_WillEffectContext context,
+        Action onComplete = null)
     {
-        if (data == null)
-            return;
-
-        if (effectPrefab == null)
+        DLJ_CurseWillDataSO data = context?.data as DLJ_CurseWillDataSO;
+        if (effectObject == null || context == null || data == null)
         {
-            Debug.LogError("Curse effect prefab is missing.");
+            onComplete?.Invoke();
             return;
         }
 
-        Vector3 position = data.centerWorld + Vector3.up * (effectHeight * 0.5f);
-        Vector3 targetScale = new Vector3(data.areaSize.x, effectHeight, data.areaSize.z);
-        GameObject instance = Object.Instantiate(effectPrefab, position, Quaternion.identity);
-        instance.transform.localScale = Vector3.zero;
-        instance.SetActive(true);
+        Transform effectTransform = effectObject.transform;
+        effectTransform.position = context.origin;
 
-        DLJ_CurseZone zone = instance.GetComponent<DLJ_CurseZone>();
-        if (zone == null)
-            zone = instance.AddComponent<DLJ_CurseZone>();
+        float areaWorldSize =
+            (Mathf.Abs(context.areaSize.x) + Mathf.Abs(context.areaSize.z)) * 0.5f;
+        float effectScale = areaWorldSize * data.effectScalePerWorldUnit;
+        effectTransform.localScale = Vector3.one * effectScale;
 
-        zone.Initialize(data);
-        instance.transform.DOScale(targetScale, expandTime).SetEase(Ease.Linear);
+        effectObject.SetActive(true);
+
+        ParticleSystem[] particleSystems =
+            effectObject.GetComponentsInChildren<ParticleSystem>(true);
+
+        foreach (ParticleSystem particleSystem in particleSystems)
+        {
+            ParticleSystem.MainModule main = particleSystem.main;
+            main.loop = true;
+            particleSystem.Play(false);
+        }
+
+        onComplete?.Invoke();
     }
 }

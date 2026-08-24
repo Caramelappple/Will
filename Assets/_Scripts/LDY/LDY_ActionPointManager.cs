@@ -37,16 +37,39 @@ namespace _Scripts.LDY
 
         private void Awake()
         {
+            // 중복을 파괴하지 않고 경고만 남긴다. 이 컴포넌트는 여러 시스템이 인스펙터로 직접 참조하므로
+            // 여기서 없애면 그 참조들이 한꺼번에 끊어져 원인 파악이 더 어려워진다.
+            //
+            // 대신 조용히 두면 안 된다. instance 폴백을 쓰는 쪽(LDY_CardPlacer, DLJ_CostRefund)만
+            // 다른 풀에서 값을 빼게 되어, 소환·환급만 어긋나는 형태로 드러나기 때문이다.
             if (instance == null)
                 instance = this;
-                
+            else if (instance != this)
+                Debug.LogError(
+                    $"{name}: 씬에 LDY_ActionPointManager가 둘 이상 있습니다(기존: {instance.name}). " +
+                    "instance 폴백을 쓰는 쪽이 어느 풀을 쓸지 보장되지 않으므로 하나만 남기세요.", this);
+
             Current = maxActionPoints;
-            _current = Current;
         }
 
+        private void OnDestroy()
+        {
+            // 자기가 대표일 때만 비운다. 중복 인스턴스가 사라지면서 대표를 지워버리지 않게 한다.
+            if (instance == this)
+                instance = null;
+        }
+
+        /// <summary>
+        /// 턴이 바뀔 때 행동력을 최대치로 되돌린다.
+        ///
+        /// 남은 값과 비교하지 않고 그냥 대입한다. Current 세터는 하한만 클램프하므로
+        /// AddActionPoints(계약 유언 등)로 최대치를 넘긴 값이 들어올 수 있는데,
+        /// 큰 쪽을 남기면 그 초과분이 매 턴 리셋을 통과해 전투가 끝날 때까지 눌러앉는다.
+        /// 풀은 플레이어와 적이 함께 쓰므로 적 턴까지 그 이득을 물려받게 된다.
+        /// </summary>
         public void ResetPoints()
         {
-            Current = Mathf.Max(Current, maxActionPoints);
+            Current = maxActionPoints;
         }
 
         /// <summary>
@@ -61,9 +84,18 @@ namespace _Scripts.LDY
             ResetPoints();
         }
 
+        /// <summary>차감하지 않고 되는지만 본다. UI가 미리 회색 처리할 때 쓴다.</summary>
+        public bool CanAfford(int amount = 1)
+        {
+            return amount >= 0 && Current >= amount;
+        }
+
         public bool TryConsume(int amount = 1)
         {
-            if (Current < amount) return false;
+            // 딱 맞을 때(Current == amount)도 써야 한다.
+            // <= 로 두면 마지막 1을 못 쓰고 "부족하다"가 뜬다.
+            if (!CanAfford(amount)) return false;
+
             Current -= amount;
             return true;
         }

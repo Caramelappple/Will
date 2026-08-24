@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Animal.Data;
+using _Scripts.LSO.Attributes;
 using UnityEngine;
 
 namespace _Scripts.LDY.AI
@@ -18,8 +20,12 @@ namespace _Scripts.LDY.AI
             [SerializeField] private LSO_AnimalSO animal;
 
             // 인터페이스 목록은 SerializeReference로만 직렬화된다.
-            // 인스펙터의 타입 선택기에서 scorer 구현을 직접 골라 붙인다.
-            [SerializeReference] private List<LDY_IActionScorer> scorers = new();
+            //
+            // 다만 SerializeReference는 저장만 해결한다. 유니티 기본 인스펙터에는
+            // 구현 타입을 고를 UI가 없어서, 요소를 추가해도 계속 null로 남는다.
+            // LSO_SubclassPicker가 그 드롭다운을 그려준다.
+            [SerializeReference, LSO_SubclassPicker]
+            private List<LDY_IActionScorer> scorers = new();
 
             public LSO_AnimalSO Animal => animal;
             public IReadOnlyList<LDY_IActionScorer> Scorers => scorers;

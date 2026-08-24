@@ -1,53 +1,81 @@
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 
 public class KTH_AudioSourcePool : MonoBehaviour
 {
-    [SerializeField]private AudioSource audioSourcePrefabs;
-    [SerializeField]private int initialPoolSize = 10;
+    [SerializeField] private AudioSource prefab;
+    [SerializeField] private int initialSize = 5;
 
-    private readonly Queue<AudioSource> audioSourcePool = new Queue<AudioSource>();
+    private readonly Queue<AudioSource> pool = new Queue<AudioSource>();
 
     private void Awake()
     {
-        for (int i = 0; i < initialPoolSize; i++) 
-            Create();
-        
+        // MonoBehaviour에서는 생성자(new) 대신 Awake/Start에서 초기화해야 합니다.
+        InitializePool();
     }
 
-    private AudioSource Create()
+    private void InitializePool()
     {
-        AudioSource audio = Instantiate(audioSourcePrefabs, transform);
-        audio.gameObject.SetActive(false);
+        for (int i = 0; i < initialSize; i++)
+        {
+            CreateNewAudioSource();
+        }
+    }
 
-        audioSourcePool.Enqueue(audio);
+    private AudioSource CreateNewAudioSource()
+    {
+        AudioSource instance;
 
-        return audio;
+        if (prefab != null)
+        {
+            instance = Instantiate(prefab, transform);
+        }
+        else
+        {
+            // 프리팹이 없을 경우 새로 빈 오브젝트 생성
+            GameObject go = new GameObject("PooledAudioSource");
+            go.transform.SetParent(transform);
+            instance = go.AddComponent<AudioSource>();
+        }
+
+        instance.gameObject.SetActive(false);
+        pool.Enqueue(instance);
+        return instance;
     }
 
     public AudioSource Get()
     {
-        if (audioSourcePool.Count == 0)
-            Create();
-        
-        AudioSource audio = audioSourcePool.Dequeue();
-        audio.gameObject.SetActive(true);
-        
-        return audio;
+        AudioSource instance;
+
+        if (pool.Count > 0)
+        {
+            instance = pool.Dequeue();
+        }
+        else
+        {
+            instance = CreateNewAudioSource();
+        }
+
+        if (instance != null)
+        {
+            instance.gameObject.SetActive(true);
+        }
+
+        return instance;
     }
 
-    public void Return(AudioSource source)
+    public void Return(AudioSource instance)
     {
-        source.Stop();
+        if (instance == null) return;
 
-        source.clip = null;
-        source.volume = 1f;
-        source.pitch = 1f;
-        source.loop = false;
+        instance.Stop();
+        instance.clip = null;
+        instance.gameObject.SetActive(false);
 
-        source.gameObject.SetActive(false);
-
-        audioSourcePool.Enqueue(source);
+        // 중복 반환 방지
+        if (!pool.Contains(instance))
+        {
+            pool.Enqueue(instance);
+        }
     }
 }

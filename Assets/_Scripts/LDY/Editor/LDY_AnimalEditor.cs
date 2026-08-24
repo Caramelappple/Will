@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using _Scripts.LSO.Ability;
 using UnityEditor;
 using UnityEngine;
 
@@ -38,7 +40,7 @@ namespace _Scripts.LDY.Editor
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUILayout.TextField("이름", animal.data.animalName);
-                EditorGUILayout.EnumPopup("특성", animal.AbilityType);
+                EditorGUILayout.TextField("특성", DescribeAbilities(animal));
                 EditorGUILayout.EnumPopup("사거리", animal.RangeType);
                 EditorGUILayout.IntField("최대 체력", animal.data.maxHealth);
                 EditorGUILayout.IntField("기본 공격력", animal.data.damage);
@@ -47,6 +49,16 @@ namespace _Scripts.LDY.Editor
 
             if (!string.IsNullOrEmpty(animal.data.description))
                 EditorGUILayout.HelpBox(animal.data.description, MessageType.None);
+        }
+
+        // 특성은 여러 개일 수 있어 EnumPopup으로는 다 보여줄 수 없다.
+        // 어차피 읽기 전용 표시라 한 줄로 이어 붙인다.
+        private static string DescribeAbilities(LDY_Animal animal)
+        {
+            IReadOnlyList<LSO_AbilityType> types = animal.AbilityTypes;
+            if (types == null || types.Count == 0) return "없음";
+
+            return string.Join(", ", types);
         }
 
         // 팩토리가 만들어낸 실제 특성 인스턴스는 재생 중에만 존재한다.

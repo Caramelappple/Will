@@ -1,4 +1,7 @@
 using _Scripts.LDY;
+using _Scripts.LSO.CoreLib;
+using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability
@@ -9,7 +12,7 @@ namespace _Scripts.LSO.Ability
     /// 기본값 0.6 기준으로 라운드당 약 84%.
     /// 직접 파괴하지 않고 사망 창구를 거치므로 유언과 사망 이벤트가 정상적으로 발동한다.
     /// </summary>
-    public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable
+    public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier
     {
         private const float DefaultDeathChance = 0.33f;
 
@@ -38,25 +41,22 @@ namespace _Scripts.LSO.Ability
             if (owner.health != null && owner.health.IsDestroyed) return;
             if (Random.value >= DeathChance) return;
 
-            Debug.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
+            LSO_AbilityLog.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
 
-            LSO_IDeathServiceHolder.KillThrough(_context, owner);
+            LSO_AbilityDeath.KillThrough(_context, owner);
         }
-    }
 
-    /// <summary>사망 창구가 없을 때의 처리를 한 곳에 모아둔다.</summary>
-    internal static class LSO_IDeathServiceHolder
-    {
-        public static void KillThrough(LSO_AbilityContext context, LDY_Animal victim)
+        /// <summary>
+        /// 0으로 두는 것은 의도다.
+        /// 회피·저주 면역(-1000)이 먼저 돌고, 여기서 0이 된 값을 옹골참(1000)이 받는다.
+        /// 무효화 계열보다 앞에 두면 그 특성들이 헛되이 발동한 것으로 기록된다.
+        /// </summary>
+        public int Priority => 0;
+
+        /// <summary>피해를 전부 무시한다. 허약은 맞아서 죽지 않고 턴 판정으로만 쓰러진다.</summary>
+        public int ModifyIncomingDamage(DamageableResources target, DamageData data, int damage)
         {
-            if (context?.Deaths != null)
-            {
-                context.Deaths.Kill(victim, null);
-                return;
-            }
-
-            Debug.LogWarning(
-                $"{victim.name}: 씬에 LDY_DeathHandler가 없어 사망 처리를 건너뜁니다.", victim);
+            return 0;
         }
     }
 }

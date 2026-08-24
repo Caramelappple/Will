@@ -27,7 +27,7 @@ RectTransform:
   m_GameObject: {fileID: 1796407459142249546}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.7311549, y: 2.7117836, z: 0.47679713}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7366835173222510378}
@@ -35,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 154.6, y: 244.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7706338142137775069
 CanvasRenderer:
@@ -102,7 +102,7 @@ RectTransform:
   m_GameObject: {fileID: 6323644397786800221}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.1972876, y: 3.4419613, z: 0.60518}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7366835173222510378}
@@ -110,7 +110,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 194.3, y: 299.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3263441075845117410
 CanvasRenderer:
@@ -160,7 +160,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7366835173222510378}
   - component: {fileID: 289750506039621943}
-  - component: {fileID: 6183207813101924754}
+  - component: {fileID: 754760187658188605}
   m_Layer: 5
   m_Name: Card 1
   m_TagString: Untagged
@@ -201,7 +201,7 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &6183207813101924754
+--- !u!114 &754760187658188605
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -210,9 +210,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8713857391794134239}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: afa96d555aeac3a43aec7b5a5d9b9941, type: 3}
+  m_Script: {fileID: 11500000, guid: 42ab7dd567eeca347b7540297991801b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_CardDragUI
-  iconImage: {fileID: 8687971361382688685}
-  frontUI: {fileID: 1796407459142249546}
-  backUI: {fileID: 6323644397786800221}
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_SelectCardUi
+  cardImage: {fileID: 8687971361382688685}

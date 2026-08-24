@@ -4,6 +4,8 @@ using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -17,7 +19,12 @@ namespace _Scripts.LDY
         [SerializeField] private float attackDuration = 0.3f;
         [SerializeField] private float lungeRatio = 0.4f;
 
+        // 특성이 공격 횟수를 잘못 계산했을 때 연출이 끝나지 않는 것을 막는 상한.
+        // 기획상 필요한 값이 아니라 폭주 방지선이므로 인스펙터에 열지 않는다.
+        private const int MaxAttackCount = 8;
+
         // 공격 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
+        // 다단 타격은 한 번의 공격 행동이므로 횟수와 무관하게 1로 센다.
         public bool IsBusy => _activeCount > 0;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         private int _activeCount;
@@ -27,9 +34,39 @@ namespace _Scripts.LDY
             if (attacker == null) return new List<Vector3Int>();
             if (actionPoints != null && !actionPoints.HasActionPoints) return new List<Vector3Int>();
 
+            return AttackableTilesFrom(attacker, attacker.pos, board);
+        }
+
+        /// <summary>
+        /// 아직 가보지 않은 좌표에서 공격할 대상이 있는지 묻는다.
+        /// 행동을 고르는 평가 단계용이라 행동력을 보지 않는다 — 실행이 아니므로 소모 여부와 무관하다.
+        /// 인스턴스 상태가 필요 없는 순수 판정이라 보드를 인자로 받는다.
+        /// </summary>
+        public static bool HasTargetFrom(LDY_Animal attacker, Vector3Int from, LDY_BoardManager board)
+        {
+            if (attacker == null || board == null) return false;
+
+            foreach (var tile in AttackableTilesFrom(attacker, from, board))
+            {
+                var occupant = board.Get(tile);
+                if (occupant != null && occupant.team != attacker.team)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>연결된 보드를 기준으로 한 HasTargetFrom.</summary>
+        public bool HasTargetFrom(LDY_Animal attacker, Vector3Int from)
+        {
+            return HasTargetFrom(attacker, from, board);
+        }
+
+        // 순수 사거리 판정. 판정 자체는 항상 LDY_IAttackRange 구현에 위임한다.
+        private static List<Vector3Int> AttackableTilesFrom(LDY_Animal attacker, Vector3Int from, LDY_BoardManager board)
+        {
             var strategy = LDY_AttackRangeFactory.Create(attacker.RangeType);
             return strategy != null
-                ? strategy.GetAttackableTiles(attacker.pos, board)
+                ? strategy.GetAttackableTiles(from, board)
                 : new List<Vector3Int>();
         }
 
@@ -56,50 +93,82 @@ namespace _Scripts.LDY
             StartCoroutine(AttackRoutine(attacker, target));
         }
 
-        // 공격 대상 쪽으로 살짝 달려들었다가 원위치로 돌아오는 연출. 데미지는 달려든 시점(절반 지점)에 적용한다.
+        /// <summary>
+        /// 한 번의 공격 행동을 처리한다. 특성에 따라 여러 번 때릴 수 있다.
+        /// 행동력은 Attack에서 이미 한 번만 소모했으므로 여기서는 건드리지 않는다.
+        /// </summary>
         private IEnumerator AttackRoutine(LDY_Animal attacker, LDY_Animal target)
         {
             _activeCount++;
             try
             {
-                Transform t = attacker.modelTransform;
-                Vector3 startPos = t.position;
-                Vector3 lungePos = Vector3.Lerp(startPos, target.modelTransform.position, lungeRatio);
-                float half = attackDuration * 0.5f;
+                int count = ResolveAttackCount(attacker, target);
 
-                yield return LerpPosition(t, startPos, lungePos, half);
-
-                // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
-                if (target != null)
+                for (int i = 0; i < count; i++)
                 {
-                    if (target.health != null && attacker.health != null)
-                    {
+                    // 앞선 타격으로 대상이 죽었거나 공격자가 사라졌으면 남은 횟수는 버린다.
+                    if (attacker == null || target == null) break;
+                    if (target.health == null || target.health.IsDestroyed) break;
 
-                        // 피해량은 때리는 쪽의 공격력이다. 출처를 함께 실어 보내면
-                        // "근접 공격을 받으면 반격" 같은 특성이 판단할 수 있다.
-                        DamageData data = DamageData.Create(
-                            attacker.health,
-                            attacker.GetAtk(),
-                            ToDamageSource(attacker.RangeType));
-
-                        NotifyAttackAbilities(attacker);
-                        target.health.GetDamage(data);
-                        if (target.health.IsDestroyed)
-                            HandleDeath(target, attacker);
-                    }
-                    else
-                    {
-                        Debug.Log("체력이 존재하지 않습니다");
-                    }
+                    yield return StrikeOnce(attacker, target);
                 }
-
-                if (attacker != null)
-                    yield return LerpPosition(t, t.position, startPos, half);
             }
             finally
             {
                 _activeCount--;
             }
+        }
+
+        /// <summary>
+        /// 특성들에게 몇 번 때릴지 물어본다. 아무도 손대지 않으면 1이다.
+        /// </summary>
+        private static int ResolveAttackCount(LDY_Animal attacker, LDY_Animal target)
+        {
+            if (attacker == null) return 1;
+
+            int count = LSO_AbilityNotify.Accumulate<LSO_IAbilityCountModifier>(
+                attacker.Abilities, 1, (mod, value) => mod.ModifyAttackCount(attacker, target, value));
+
+            // 0 이하가 나오면 행동력만 쓰고 아무 일도 안 일어난다.
+            // 위쪽 한계는 특성이 잘못 계산했을 때 연출이 끝나지 않는 것을 막는 안전장치다.
+            return Mathf.Clamp(count, 1, MaxAttackCount);
+        }
+
+        // 공격 대상 쪽으로 살짝 달려들었다가 원위치로 돌아오는 연출. 데미지는 달려든 시점(절반 지점)에 적용한다.
+        private IEnumerator StrikeOnce(LDY_Animal attacker, LDY_Animal target)
+        {
+            Transform t = attacker.modelTransform;
+            Vector3 startPos = t.position;
+            Vector3 lungePos = Vector3.Lerp(startPos, target.modelTransform.position, lungeRatio);
+            float half = attackDuration * 0.5f;
+
+            yield return LerpPosition(t, startPos, lungePos, half);
+
+            // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
+            if (target != null)
+            {
+                if (target.health != null && attacker.health != null)
+                {
+                    // 피해량은 때리는 쪽의 공격력이다. 출처를 함께 실어 보내면
+                    // "근접 공격을 받으면 반격" 같은 특성이 판단할 수 있다.
+                    DamageData data = DamageData.Create(
+                        attacker.health,
+                        attacker.GetAtk(),
+                        ToDamageSource(attacker.RangeType));
+
+                    NotifyAttackAbilities(attacker);
+                    target.health.GetDamage(data);
+                    if (target.health.IsDestroyed)
+                        HandleDeath(target, attacker);
+                }
+                else
+                {
+                    Debug.Log("체력이 존재하지 않습니다");
+                }
+            }
+
+            if (attacker != null)
+                yield return LerpPosition(t, t.position, startPos, half);
         }
 
         private static IEnumerator LerpPosition(Transform t, Vector3 from, Vector3 to, float duration)
@@ -147,13 +216,20 @@ namespace _Scripts.LDY
             }
 
             board.Remove(target);
-            RaiseEnemyDead(target);
+            DLJ_CombatKillEvents.Raise(target, killer);
+            RaiseAnimalDead(target);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(target, board);
 
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
+            {
                 Destroy(target.gameObject);
+                return;
+            }
+
+            // LDY_DeathHandler와 같은 이유로 기록한다. 이쪽은 핸들러가 없을 때 쓰이는 예전 경로다.
+            LDY_DeferredDeaths.Record(target);
         }
 
         private static LSO_DamageSource ToDamageSource(LDY_RangeType rangeType)
@@ -171,22 +247,21 @@ namespace _Scripts.LDY
         {
             if (attacker == null) return;
 
-            foreach (LSO_IAbility ability in attacker.Abilities)
-            {
-                if (ability is IOnAnimalAttack listener)
-                    listener.OnAttack(attacker.data);
-            }
+            LSO_AbilityNotify.Notify<IOnAnimalAttack>(
+                attacker.Abilities, a => a.OnAttack(attacker.data));
         }
 
-        private static void RaiseEnemyDead(LDY_Animal target)
+        // 팀을 가리지 않고 모든 죽음을 알린다. 누가 적인지는 받는 특성이 판단한다.
+        // LDY_DeathHandler.RaiseAnimalDead와 반드시 같게 유지할 것.
+        private static void RaiseAnimalDead(LDY_Animal target)
         {
-            if (target == null || target.team != LDY_Team.Enemy) return;
+            if (target == null) return;
             if (!GameManager.HasInstance) return;
 
             GameEventDispatcher dispatcher = GameManager.Instance.EventDispatcher;
             if (dispatcher == null) return;
 
-            dispatcher.RaiseEnemyDead(target);
+            dispatcher.RaiseAnimalDead(target);
         }
     }
 }

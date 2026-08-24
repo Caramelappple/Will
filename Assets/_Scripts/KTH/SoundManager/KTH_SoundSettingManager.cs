@@ -11,7 +11,8 @@ public class KTH_SoundSettingManager : MonoBehaviour
 
     private void Start()
     {
-        settingPanel.SetActive(false);
+        if (settingPanel.activeSelf)
+            settingPanel.SetActive(false);
 
         masterSlider.value = 1f;
         bgmSlider.value = 1f;
@@ -20,14 +21,6 @@ public class KTH_SoundSettingManager : MonoBehaviour
         masterSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
         bgmSlider.onValueChanged.AddListener(OnBGMVolumeChanged);
         sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            settingPanel.SetActive(!settingPanel.activeSelf);
-        }
     }
 
     private void OnMasterVolumeChanged(float value)

@@ -5,15 +5,14 @@ namespace _Scripts.LSO.CoreLib
     public class MonoSingleton<T> : MonoBehaviour where T: MonoBehaviour
     {
         private static T _instance;
-        private static bool _isQuitting;
-        
-        public static bool HasInstance => !_isQuitting && _instance != null;
+
+        public static bool HasInstance => !LSO_ApplicationState.IsQuitting && _instance != null;
 
         public static T Instance
         {
             get
             {
-                if (_isQuitting) return null;
+                if (LSO_ApplicationState.IsQuitting) return null;
                 if (_instance != null) return _instance;
 
                 _instance = FindFirstObjectByType<T>();
@@ -45,7 +44,7 @@ namespace _Scripts.LSO.CoreLib
 
         protected virtual void OnApplicationQuit()
         {
-            _isQuitting = true;
+            LSO_ApplicationState.MarkQuitting();
         }
     }
 }

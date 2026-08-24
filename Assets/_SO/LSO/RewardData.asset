@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8712c7c745e5dd24f8b2b12642eb08ba, type: 3}
+  m_Name: RewardData
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_RewardTableSO
+  stages:
+  - chapter: 1
+    stage: 1
+    rewardChoiceCount: 3
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+      weight: 1
+    possibleWills:
+    - willSO: {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+      weight: 1
+    - willSO: {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
+      weight: 1

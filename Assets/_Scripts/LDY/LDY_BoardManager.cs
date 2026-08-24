@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO;
 using UnityEngine;
 
@@ -15,8 +17,32 @@ namespace _Scripts.LDY
         [SerializeField] private float cellSize = 0.75f;
         [SerializeField] private float heightStep = 1f;
 
+        /// <summary>정사각형 보드 루트에 적용된 실제 월드 스케일.</summary>
+        public float UniformWorldScale
+        {
+            get
+            {
+                Transform scaleSource = boardOrigin != null ? boardOrigin : transform;
+                return Mathf.Abs(scaleSource.lossyScale.x);
+            }
+        }
+
         // 격자 저장은 x/z만 사용한다. pos.y(높이)는 표시 전용이라 점유 판정에 영향을 주지 않는다.
         private readonly LDY_Animal[,] _grid = new LDY_Animal[Size, Size];
+
+        /// <summary>
+        /// 기물 배치가 바뀌었을 때 발행된다(소환 · 이동 · 퇴장 · 초기화).
+        ///
+        /// 값을 싣지 않는 "다시 계산해라" 신호다.
+        /// 공격력처럼 특성이 매번 계산해서 만드는 값은 대입되는 순간이 없어서 정확한 값을 실을 수가 없다.
+        /// 대신 그런 값이 결국 의존하는 건 보드 상태이므로, 여기서 알리면 구독자가 필요할 때 다시 계산한다.
+        ///
+        /// 새 특성이 무엇에 의존하든 이 신호에 따라오기 때문에 특성을 추가할 때 손볼 곳이 없다.
+        /// </summary>
+        public event Action OnBoardChanged;
+
+        // Awake에서 씬의 기물을 한꺼번에 등록할 때 기물 수만큼 신호가 나가는 걸 막는다.
+        private bool _suppressChangeNotice;
 
         private void Awake()
         {
@@ -24,9 +50,22 @@ namespace _Scripts.LDY
             GameManager.Instance?.RegisterBoard(this);
 
             // 씬에 이미 배치된 3D 기물들을 각자의 pos 필드(Inspector에서 미리 설정)를 기준으로 보드에 등록한다.
+            // 이 구간은 "여러 번의 변화"가 아니라 "한 번의 초기 구성"이므로 신호를 묶어서 한 번만 보낸다.
+            _suppressChangeNotice = true;
+
             var animals = FindObjectsByType<LDY_Animal>(FindObjectsSortMode.None);
             foreach (var animal in animals)
                 Place(animal, animal.pos);
+
+            _suppressChangeNotice = false;
+            RaiseBoardChanged();
+        }
+
+        private void RaiseBoardChanged()
+        {
+            if (_suppressChangeNotice) return;
+
+            OnBoardChanged?.Invoke();
         }
 
         private void OnDestroy()
@@ -50,13 +89,36 @@ namespace _Scripts.LDY
             return IsInside(p) ? _grid[p.x, p.z] : null;
         }
 
+        /// <summary>
+        /// 기물을 칸에 등록한다. 이미 다른 기물이 서 있으면 놓지 않는다.
+        ///
+        /// 덮어쓰기를 허용하면 밀려난 기물은 씬 오브젝트로는 살아 있는데 격자에서만 사라진다.
+        /// 그 기물은 GetAllByTeam·공격 대상·AI 판단에서 전부 빠지므로 죽일 수도 없는 유령이 되고,
+        /// 원인이 된 호출은 아무 흔적도 남기지 않는다. 조용히 지우느니 놓지 않는 편이 낫다.
+        /// </summary>
         public void Place(LDY_Animal animal, Vector3Int p)
         {
             if (animal == null || !IsInside(p)) return;
 
+            LDY_Animal occupant = _grid[p.x, p.z];
+            if (occupant != null && occupant != animal)
+            {
+                Debug.LogWarning(
+                    $"[LDY_BoardManager] {p} 칸에 이미 {occupant.name}이(가) 있어 {animal.name}을(를) 놓지 않는다. " +
+                    "인스펙터의 pos가 겹쳤거나 소환 전 빈 칸 검사를 건너뛴 것이다.", animal);
+                return;
+            }
+
+            // 다른 칸에 등록돼 있던 기물을 옮겨 놓는 경우다.
+            // 이전 칸을 비우지 않으면 같은 기물이 두 칸에서 동시에 조회되어, 있지도 않은 자리가 공격 대상이 된다.
+            if (IsInside(animal.pos) && _grid[animal.pos.x, animal.pos.z] == animal)
+                _grid[animal.pos.x, animal.pos.z] = null;
+
             _grid[p.x, p.z] = animal;
             animal.pos = p;
             animal.modelTransform.position = GridToWorld(p);
+
+            RaiseBoardChanged();
         }
 
         public void Move(LDY_Animal animal, Vector3Int from, Vector3Int to)
@@ -64,16 +126,34 @@ namespace _Scripts.LDY
             if (animal == null || !IsInside(from) || !IsInside(to)) return;
             if (_grid[from.x, from.z] != animal) return;
 
+            // Place와 같은 이유로 막는다. 점유된 칸으로 밀고 들어가면 원래 있던 기물이 유령이 된다.
+            // 호출부(LDY_MoveSystem)는 빈 칸만 후보로 주므로, 이 경고가 뜬다면 검증과 실행 사이에서
+            // 보드가 바뀐 것이니 그 경로를 찾아야 한다.
+            LDY_Animal occupant = _grid[to.x, to.z];
+            if (occupant != null && occupant != animal)
+            {
+                Debug.LogWarning(
+                    $"[LDY_BoardManager] {to} 칸에 {occupant.name}이(가) 있어 {animal.name}을(를) 옮기지 않는다.", animal);
+                return;
+            }
+
             _grid[from.x, from.z] = null;
             _grid[to.x, to.z] = animal;
             animal.pos = new Vector3Int(to.x, animal.pos.y, to.z);
+
+            RaiseBoardChanged();
         }
 
         public void Remove(LDY_Animal animal)
         {
             if (animal == null || !IsInside(animal.pos)) return;
-            if (_grid[animal.pos.x, animal.pos.z] == animal)
-                _grid[animal.pos.x, animal.pos.z] = null;
+
+            // 실제로 지운 경우에만 알린다. 이미 없는 기물에 Remove가 또 들어와도 헛신호가 나가지 않는다.
+            if (_grid[animal.pos.x, animal.pos.z] != animal) return;
+
+            _grid[animal.pos.x, animal.pos.z] = null;
+
+            RaiseBoardChanged();
         }
 
         /// <summary>보드 위의 모든 기물을 격자에서 지우고 오브젝트도 파괴한다. 스테이지를 갈아끼울 때 쓴다.</summary>
@@ -90,6 +170,9 @@ namespace _Scripts.LDY
                         Destroy(animal.gameObject);
                 }
             }
+
+            // 칸마다 알리면 최대 64번이 나간다. 스테이지 교체는 한 번의 변화로 취급한다.
+            RaiseBoardChanged();
         }
 
         public List<LDY_Animal> GetAllByTeam(LDY_Team team)

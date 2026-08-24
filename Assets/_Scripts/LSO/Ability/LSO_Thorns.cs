@@ -1,5 +1,7 @@
 using _Scripts.LDY;
+using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability
@@ -42,7 +44,7 @@ namespace _Scripts.LSO.Ability
             attacker.health.GetDamage(
                 DamageData.Create(self.health, ReflectDamage, LSO_DamageSource.Ability));
 
-            Debug.Log($"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>", self);
+            LSO_AbilityLog.Log($"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>", self);
 
             // 반사로 상대가 죽었다면 사망 처리까지 이어줘야 보드에서 사라진다.
             if (attacker.health.IsDestroyed)

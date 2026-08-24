@@ -1,8 +1,9 @@
-using _Scripts.HealthSystem;
 using _Scripts.LDY;
 using _Scripts.LSO;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 public sealed class DLJ_LifeSteal : LSO_IAbility, IOnTurnStart, IOnAnimalAttack,
@@ -59,15 +60,8 @@ public sealed class DLJ_LifeSteal : LSO_IAbility, IOnTurnStart, IOnAnimalAttack,
             return;
         }
 
-        LDY_AttackSystem attackSystem = Object.FindFirstObjectByType<LDY_AttackSystem>();
-        if (attackSystem != null)
-        {
-            attackSystem.HandleDeath(owner);
-            return;
-        }
-
         Debug.LogError(
-            $"{owner.name}: No death handler or attack system could process death.",
+            $"{owner.name}: No death service was provided through the ability context.",
             owner);
     }
 }

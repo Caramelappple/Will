@@ -1,4 +1,5 @@
 using _Scripts.LDY;
+using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -8,7 +9,13 @@ public sealed class DLJ_SacrificeSystem : MonoBehaviour
 {
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
-        return new DLJ_SacrificeWill(context.animal, context.board);
+        if (data is not DLJ_SacrificeWillDataSO sacrificeData)
+        {
+            Debug.LogError($"Sacrifice requires {nameof(DLJ_SacrificeWillDataSO)}.", data);
+            return null;
+        }
+
+        return new DLJ_SacrificeWill(context.animal, context.board, sacrificeData);
     }
 }
 
@@ -29,11 +36,19 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
     private const int StatBonus = 1;
     private readonly LDY_Animal owner;
     private readonly LDY_BoardManager board;
+    private readonly int healthBonus;
+    private readonly DLJ_SacrificeWillDataSO data;
+    private readonly DLJ_IWillEffect effect = new DLJ_SacrificeEffect();
 
-    internal DLJ_SacrificeWill(LDY_Animal sourceOwner, LDY_BoardManager sourceBoard)
+    internal DLJ_SacrificeWill(
+        LDY_Animal sourceOwner,
+        LDY_BoardManager sourceBoard,
+        DLJ_SacrificeWillDataSO sourceData)
     {
         owner = sourceOwner;
         board = sourceBoard;
+        healthBonus = DLJ_WillEnhancement.IsActive(owner) ? 2 : StatBonus;
+        data = sourceData;
     }
 
     public void InvokeWill()
@@ -61,13 +76,31 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
             if (ally.health == null || ally.health.IsDestroyed)
                 continue;
 
-            int increasedHealth = ally.health.Value + StatBonus;
-            ally.health.Init(ally.health.MaxValue + StatBonus, false);
+            int increasedHealth = ally.health.Value + healthBonus;
+            ally.health.Init(ally.health.MaxValue + healthBonus, false);
             ally.health.Value = increasedHealth;
             ally.baseAtk += StatBonus;
             buffedCount++;
         }
 
         Debug.Log($"Sacrifice buffed {buffedCount} adjacent allies.");
+
+        if (buffedCount > 0)
+            DLJ_WillBenefitEvents.Raise(owner, LSO_WillType.Sacrifice);
+
+        GameObject effectObject = data.effectPrefab != null
+            ? Object.Instantiate(
+                data.effectPrefab,
+                owner.transform.position,
+                Quaternion.identity)
+            : null;
+        effect.Play(
+            effectObject,
+            new DLJ_WillEffectContext
+            {
+                data = data,
+                owner = owner.gameObject,
+                origin = owner.transform.position
+            });
     }
 }

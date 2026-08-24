@@ -1,5 +1,7 @@
 using System;
+using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability
@@ -27,7 +29,7 @@ namespace _Scripts.LSO.Ability
             if (damage <= survivableDamage) return damage;
 
             HasTriggered = true;
-            Debug.Log($"특성 발동 {this.ToString()} {survivableDamage}");
+            LSO_AbilityLog.Log($"<color=yellow>{target.name}의 옹골참: 치명타를 버티고 HP 1이 남았습니다</color>", target);
             Triggered?.Invoke(target);
 
             return survivableDamage;

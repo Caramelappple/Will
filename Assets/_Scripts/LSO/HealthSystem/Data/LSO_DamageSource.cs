@@ -1,4 +1,4 @@
-namespace _Scripts.LSO.HealthSystem
+namespace _Scripts.LSO.HealthSystem.Data
 {
     /// <summary>
     /// 피해가 어디서 왔는지 구분한다.
