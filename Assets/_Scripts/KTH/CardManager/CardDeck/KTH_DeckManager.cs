@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
+using _Scripts.LSO.Deck;
 using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 
@@ -75,18 +76,24 @@ public class KTH_DeckManager : MonoBehaviour
             turnManager.OnTurnChanged -= HandleTurnChanged;
     }
 
+    // 덱의 정본은 LSO_RunDeck 하나다. 덱 구성 화면이 확정할 때 채우고,
+    // 세이브를 되돌릴 때도 같은 곳으로 들어온다.
+    //
+    // 여기서 씬을 뒤져 찾지 않는 이유는 LSO_RunDeck이 DontDestroyOnLoad로 넘어오기 때문이다.
     private void InitDeck()
     {
-        var finalCardList = KTH_FinalCardList.Instance != null
-            ? KTH_FinalCardList.Instance
-            : FindAnyObjectByType<KTH_FinalCardList>();
+        LSO_RunDeck runDeck = LSO_RunDeck.Instance;
 
-        if (finalCardList != null && finalCardList.FinalSelectedCards != null)
+        if (runDeck == null || !runDeck.HasDeck)
         {
-            deck.Clear();
-            deck.AddRange(finalCardList.FinalSelectedCards);
-            Debug.Log($"[KTH_DeckManager] 총 {deck.Count}장의 카드를 덱에 로드했습니다.");
+            Debug.LogWarning("[KTH_DeckManager] 확정된 덱이 없습니다. 덱 구성 화면을 거치지 않고 전투에 들어왔는지 확인하세요.");
+            return;
         }
+
+        deck.Clear();
+        deck.AddRange(runDeck.Cards);
+
+        Debug.Log($"[KTH_DeckManager] 총 {deck.Count}장의 카드를 덱에 로드했습니다.");
     }
 
     /// <summary>

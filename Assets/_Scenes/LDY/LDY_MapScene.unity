@@ -1144,6 +1144,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5d71aced3b38894e9c6a1c3ea9778d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapManager
+  isTest: 0
+  nodeContainerRect: {fileID: 0}
+  mapSceneName: MapScene
+  deathSceneName: KTH_Death Scene
+  bossClearSceneName: KTH_Boss Clear Scene
+  editorChapterIndex: 1
+  editorStageIndex: 1
   nodePositions:
   - {x: 103, y: -0.9000244}
   - {x: 274.2, y: 55.899994}
@@ -1163,17 +1170,27 @@ MonoBehaviour:
     toIndex: 4
   - fromIndex: 4
     toIndex: 5
+  chapterMaps: []
   battleSceneName: BattleScene
   bossSceneName: BossScene
+  stageRouterSource: {fileID: 0}
+  playerTokenPrefab: {fileID: 0}
+  ldy_play: {fileID: 0}
   onShopNodeSelected:
     m_PersistentCalls:
       m_Calls: []
   onEventNodeSelected:
     m_PersistentCalls:
       m_Calls: []
+  onStageChanged:
+    m_PersistentCalls:
+      m_Calls: []
   onMapChanged:
     m_PersistentCalls:
       m_Calls: []
+  currentChapter: 1
+  currentStage: 1
+  giveReward: {fileID: 0}
   activeNodeIndex: -1
 --- !u!4 &693395807
 Transform:
@@ -1226,7 +1243,8 @@ MonoBehaviour:
   nodeViewPrefab: {fileID: 4602573340324321884, guid: 6db63d69bd8314b48bad021fc73d4d25, type: 3}
   linePrefab: {fileID: 3648804017643619440, guid: 3f982829c63573a4e95b9be91082c176, type: 3}
   backgroundPanel: {fileID: 1965809185}
-  playerTokenPrefab: {fileID: 7399001943102410221, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
+  clearBanner: {fileID: 0}
+  clearPopDelay: 0.15
 --- !u!4 &715007008
 Transform:
   m_ObjectHideFlags: 0
@@ -1571,7 +1589,7 @@ Transform:
   m_GameObject: {fileID: 1412003718}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2034,21 +2052,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e53dc837e3375f1478b5234c3653a190, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LDY_MapCameraController
-  mapManager: {fileID: 693395806}
-  nodeContainer: {fileID: 1924203970}
-  lineContainer: {fileID: 1090059910}
-  viewportRect: {fileID: 36003979}
-  canvas: {fileID: 36003978}
-  minZoom: 0.4
-  maxZoom: 1
-  introMaxZoom: 3
-  panBoundsPadding: 150
-  overviewPadding: 80
-  focusPadding: 220
-  autoZoomToFrontier: 1
-  overviewHoldTime: 1
-  zoomInDuration: 1.2
-  scrollZoomSpeed: 0.15
+  targetCamera: {fileID: 1412003720}
+  targetUIs: []
+  globalRotation: {x: 0, y: 0, z: 0}
+  globalCameraOrthoSize: 5
+  globalCameraFOV: 60
+  globalCameraPosition: {x: 0, y: 0, z: -10}
+  globalCameraRotation: {x: 0, y: 0, z: 0}
+  chapterSettings:
+  - chapter: 1
+    zoomScale: 1
+    positionOffset: {x: 0, y: 0}
+    useCustomCameraSetting: 0
+    cameraOrthographicSize: 5
+    cameraFieldOfView: 60
+    cameraPositionOffset: {x: 0, y: 0, z: -10}
+  - chapter: 2
+    zoomScale: 0.8
+    positionOffset: {x: 0, y: 0}
+    useCustomCameraSetting: 0
+    cameraOrthographicSize: 5
+    cameraFieldOfView: 60
+    cameraPositionOffset: {x: 0, y: 0, z: -10}
+  stageEnterDuration: 0.8
+  stageEnterZoom: 1.6
+  stageEnterFadeStart: 0.25
+  stageEnterFadeColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!222 &1965809187
 CanvasRenderer:
   m_ObjectHideFlags: 0

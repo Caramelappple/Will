@@ -112,8 +112,8 @@ namespace _Scripts.LSO.HealthSystem
 
             int damage = data.damage;
 
-            for (int i = 0; i < _modifierBuffer.Count; i++)
-                damage = _modifierBuffer[i].ModifyIncomingDamage(this, data, damage);
+            foreach (var modifier in _modifierBuffer)
+                damage = modifier.ModifyIncomingDamage(this, data, damage);
 
             return Mathf.Max(0, damage);
         }
