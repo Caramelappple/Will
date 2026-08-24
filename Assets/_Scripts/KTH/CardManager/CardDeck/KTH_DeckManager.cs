@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
-using _Scripts.LSO.Deck;
 using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 
@@ -70,24 +69,42 @@ public class KTH_DeckManager : MonoBehaviour
             turnManager.OnTurnChanged -= HandleTurnChanged;
     }
 
-    // 덱의 정본은 LSO_RunDeck 하나다. 덱 구성 화면이 확정할 때 채우고,
-    // 세이브를 되돌릴 때도 같은 곳으로 들어온다.
+    // 획득한 카드가 곧 덱이다. 따로 고르는 단계가 없으므로
+    // ItemLibraryManager가 들고 있는 목록을 그대로 가져온다.
     //
-    // 여기서 씬을 뒤져 찾지 않는 이유는 LSO_RunDeck이 DontDestroyOnLoad로 넘어오기 때문이다.
+    // 목록을 복사해 담는다. 참조를 그대로 쓰면 전투 중 드로우가
+    // 보유 목록에서 카드를 지워버려 다음 판에 카드가 사라진다.
+    //
+    // 여기서 씬을 뒤져 찾지 않는 이유는 ItemLibraryManager가 DontDestroyOnLoad로 넘어오기 때문이다.
     private void InitDeck()
     {
-        LSO_RunDeck runDeck = LSO_RunDeck.Instance;
+        ItemLibraryManager library = ItemLibraryManager.Instance;
 
-        if (runDeck == null || !runDeck.HasDeck)
+        if (library == null)
         {
-            Debug.LogWarning("[KTH_DeckManager] 확정된 덱이 없습니다. 덱 구성 화면을 거치지 않고 전투에 들어왔는지 확인하세요.");
+            Debug.LogWarning("[KTH_DeckManager] ItemLibraryManager가 없어 인스펙터에 넣어둔 덱을 그대로 씁니다.");
+            return;
+        }
+
+        List<LSO_CardSO> owned = library.UnlockedPieces;
+
+        if (owned == null || owned.Count == 0)
+        {
+            Debug.LogWarning("[KTH_DeckManager] 보유한 카드가 없습니다. 전투를 카드 없이 시작합니다.");
+            deck.Clear();
             return;
         }
 
         deck.Clear();
-        deck.AddRange(runDeck.Cards);
 
-        Debug.Log($"[KTH_DeckManager] 총 {deck.Count}장의 카드를 덱에 로드했습니다.");
+        foreach (LSO_CardSO card in owned)
+        {
+            if (card == null) continue;
+
+            deck.Add(card);
+        }
+
+        Debug.Log($"[KTH_DeckManager] 보유 카드 {deck.Count}장을 덱에 로드했습니다.");
     }
 
     /// <summary>
