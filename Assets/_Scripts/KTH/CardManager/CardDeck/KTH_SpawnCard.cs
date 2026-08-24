@@ -9,13 +9,6 @@ public class KTH_SpawnCard : MonoBehaviour
     [SerializeField] private KTH_HandCard cardPrefab;
     [SerializeField] private KTH_HandCardLayout handLayout;
 
-    private void Awake()
-    {
-        if (deckManager == null) deckManager = FindAnyObjectByType<KTH_DeckManager>();
-        if (drawButton == null) drawButton = FindAnyObjectByType<KTH_DrawButton>();
-        if (handLayout == null) handLayout = FindAnyObjectByType<KTH_HandCardLayout>();
-    }
-
     private void OnEnable()
     {
         if (drawButton != null) drawButton.OnDrawRequested += SpawnNextCard;

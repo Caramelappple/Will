@@ -55,12 +55,6 @@ public class KTH_DeckManager : MonoBehaviour
     /// </summary>
     public event System.Action<int> OnDeckReshuffled;
 
-    private void Awake()
-    {
-        if (turnManager == null) turnManager = FindAnyObjectByType<LDY_TurnManager>();
-        if (discardPile == null) discardPile = FindAnyObjectByType<KTH_DiscardCardUI>();
-    }
-
     private void Start()
     {
         InitDeck();

@@ -246,7 +246,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: -131}
+  m_AnchoredPosition: {x: -0, y: -108.2}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7925780461579060172
@@ -376,7 +376,7 @@ RectTransform:
   m_GameObject: {fileID: 3314906525856238341}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3418, y: 1.3418, z: 1.3418}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8193831351396606713}
@@ -384,7 +384,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 30}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 123.3, y: 126.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3078193654863484833
 CanvasRenderer:
@@ -662,6 +662,11 @@ MonoBehaviour:
   title: {fileID: 3628000310502491027}
   cost: {fileID: 3483478452464298760}
   power: {fileID: 4306098565866539661}
+  selectScale: 1.1
+  selectMoveY: 80
+  selectDuration: 0.25
+  discardDuration: 0.35
+  infoHoverDelay: 0.5
 --- !u!1 &6966577663820710879
 GameObject:
   m_ObjectHideFlags: 0

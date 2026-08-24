@@ -43,21 +43,9 @@ public class KTH_GameEndManager : MonoBehaviour
         RegisterEnemies();
         RegisterAllies();
 
-        // Inspector에 연결하지 않았다면 자동 검색
-        if (turnManager == null)
-        {
-            turnManager = FindFirstObjectByType<LDY_TurnManager>();
-        }
-
         if (turnManager != null)
         {
             turnManager.OnTurnChanged += HandleTurnChanged;
-        }
-        else
-        {
-            Debug.LogWarning(
-                "[KTH_GameEndManager] LDY_TurnManager를 찾지 못했습니다."
-            );
         }
 
         // 게임 시작 직후 상태 확인

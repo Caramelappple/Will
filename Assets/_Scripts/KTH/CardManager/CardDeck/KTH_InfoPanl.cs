@@ -52,9 +52,6 @@ public class KTH_InfoPanl : MonoBehaviour
     {
         Instance = this;
 
-        if (infoPanlRect == null)
-            infoPanlRect = infoPanl.GetComponent<RectTransform>();
-
         originalPos = infoPanlRect.anchoredPosition;
         infoPanl.SetActive(false);
     }
@@ -140,6 +137,10 @@ public class KTH_InfoPanl : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 정보패널의 소환(셀렉트) 버튼을 눌렀을 때 호출됨.
+    /// 실제로 배치 모드가 시작될 때만 핸드 컨테이너가 내려감.
+    /// </summary>
     public void SelectInfoPanl()
     {
         if (cardData == null || !cardData.IsValid)
@@ -157,35 +158,43 @@ public class KTH_InfoPanl : MonoBehaviour
         LSO_CardSO cardToPlace = cardData;
         KTH_HandCard cardToRemove = currentCard;
 
-        // 정보패널을 먼저 닫는다 (보드 칸을 클릭해야 하므로 패널이 화면을 가리면 안 됨)
         currentSequence?.Kill();
         infoPanl.SetActive(false);
 
-        // 선택 상태를 풀어서 카드가 손패 자리로 다시 내려가게 함 (아직 소환 확정 아님, 배치 대기 중)
         if (cardToRemove != null)
             cardToRemove.SetSelected(false);
 
         currentCard = null;
         cardData = null;
 
-        // 보드 칸을 클릭할 때까지 대기 → 클릭하면 그 자리에 소환됨
         bool started = cardPlacer.BeginPlacement(
             cardToPlace,
             team,
             onPlaced: animal =>
             {
+                // 배치 완료 → 핸드 컨테이너 원위치로 복귀
+                if (KTH_HandCardLayout.Instance != null)
+                    KTH_HandCardLayout.Instance.MoveUpFromPlacement();
+
                 if (animal != null && cardToRemove != null)
                 {
-                    // 소환 완료 시점에만 카드 제거 + 재정렬 + 버린카드 더미로 날아가는 연출
                     cardToRemove.ConsumeAndRearrange(discardPile);
                 }
             },
             onCancelled: () =>
             {
-                // 우클릭 등으로 취소하면 카드는 이미 손패 자리로 돌아가 있으므로 추가 처리 불필요
+                // 배치 취소 → 핸드 컨테이너 원위치로 복귀
+                if (KTH_HandCardLayout.Instance != null)
+                    KTH_HandCardLayout.Instance.MoveUpFromPlacement();
             });
 
-        if (!started)
+        if (started)
+        {
+            // 배치 모드 시작 성공 → 이때만 핸드 컨테이너를 아래로 내림
+            if (KTH_HandCardLayout.Instance != null)
+                KTH_HandCardLayout.Instance.MoveDownForPlacement();
+        }
+        else
         {
             Debug.LogWarning("[KTH_InfoPanl] 소환 시작 실패 (턴이 아니거나 코스트 부족).");
         }
