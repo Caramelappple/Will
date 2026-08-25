@@ -604,6 +604,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CardDrowUI (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 3392198647013307230, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: cardPlacer
       value: 
@@ -3813,7 +3817,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &749980570
 MonoBehaviour:
   m_ObjectHideFlags: 0
