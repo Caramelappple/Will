@@ -663,10 +663,13 @@ MonoBehaviour:
   cost: {fileID: 3483478452464298760}
   power: {fileID: 4306098565866539661}
   selectScale: 1.1
-  selectMoveY: 80
-  selectDuration: 0.25
-  discardDuration: 0.35
-  infoHoverDelay: 0.5
+  selectMoveY: 100
+  selectDuration: 0.5
+  drawStartScale: 0.3
+  drawDipDistance: 60
+  drawHookDistance: 25
+  discardDuration: 0.5
+  infoHoverDelay: 0.3
 --- !u!1 &6966577663820710879
 GameObject:
   m_ObjectHideFlags: 0

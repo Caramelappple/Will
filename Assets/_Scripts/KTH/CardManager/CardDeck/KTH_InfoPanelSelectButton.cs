@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class KTH_InfoPanlSelectButton : MonoBehaviour
+public class KTH_InfoPanelSelectButton : MonoBehaviour
 {
     [SerializeField] private Button selectButton;
 
@@ -16,6 +16,6 @@ public class KTH_InfoPanlSelectButton : MonoBehaviour
 
     public void ClickSelectButton()
     {
-        KTH_InfoPanl.Instance.SelectInfoPanl();
+        KTH_InfoPanel.Instance.SelectInfoPanl();
     }
 }

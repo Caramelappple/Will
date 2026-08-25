@@ -8,45 +8,44 @@ public class KTH_HandCardLayout : MonoBehaviour
     public static KTH_HandCardLayout Instance { get; private set; }
 
     [Header("Arc Layout Settings")]
-    [Tooltip("카드 간의 최대 horizontal 간격 (카드 수가 적을 때)")]
-    [SerializeField] private float maxCardSpacing = 200f;
+    [SerializeField] private float maxCardSpacing = 180f;
+    [SerializeField] private float minCardSpacing = 55f;
+    [SerializeField] private float maxHandWidth = 850f;
+    [SerializeField] private float arcHeight = 35f;
+    [SerializeField] private float maxRotation = 14f;
 
-    [Tooltip("카드 간의 최소 horizontal 간격 (카드 수가 많을 때)")]
-    [SerializeField] private float minCardSpacing = 60f;
-
-    [Tooltip("손패 전체가 차지할 수 있는 최대 폭")]
-    [SerializeField] private float maxHandWidth = 900f;
-
-    [Tooltip("중앙과 양 끝 카드의 Y축 높이 차이 (곡선 휘어짐 정도)")]
-    [SerializeField] private float arcHeight = 6f;
-
-    [Tooltip("양 끝 카드의 최대 Z축 기울기 각도")]
-    [SerializeField] private float maxRotation = 6f;
+    [Header("Organic Motion Settings")]
+    [SerializeField] private float staggerDelay = 0.025f;
+    [SerializeField] private Ease moveEase = Ease.OutCubic;
 
     [Header("Hand Settings")]
-    [Tooltip("손패에 들고 있을 수 있는 최대 카드 수 (0 이하면 제한 없음)")]
     [SerializeField] private int maxHandSize = 10;
 
     [Header("Draw Animation Settings")]
-    [SerializeField] private float drawDuration = 0.4f;
+    [SerializeField] private float drawDuration = 0.45f;
+
+    [Header("Selection Push Settings")]
+    [Tooltip("선택된 카드 바로 옆 카드가 밀리는 거리")]
+    [SerializeField] private float pushAmount = 60f;
+
+    [Tooltip("밀림/복귀 애니메이션 시간")]
+    [SerializeField] private float pushDuration = 0.28f;
+
+    [Tooltip("선택 카드에서 멀어질수록 적용되는 밀림 비율")]
+    [SerializeField] private float farCardPushMultiplier = 0.5f;
 
     [Header("Placement Mode Settings")]
-    [Tooltip("체크하면 셀렉트 버튼을 눌렀을 때 핸드 컨테이너가 내려감. 체크 해제하면 절대 안 내려감.")]
     [SerializeField] private bool enableMoveDown = true;
-
-    [Tooltip("배치 모드일 때 컨테이너가 내려가는 거리")]
     [SerializeField] private float placementMoveDownDistance = 150f;
-    [Tooltip("컨테이너 내려가고/올라올 때 걸리는 시간")]
     [SerializeField] private float placementMoveDuration = 0.3f;
 
-    private readonly List<KTH_HandCard> handCards = new List<KTH_HandCard>();
-    private Vector3 originalContainerLocalPos;
+    private readonly List<KTH_HandCard> handCards =
+        new List<KTH_HandCard>();
 
-    /// <summary>
-    /// 현재 컨테이너가 실제로 내려가 있는 상태인지 (중복 호출 방지용 내부 추적값).
-    /// Inspector에서 건드리는 값이 아님.
-    /// </summary>
+    private Vector3 originalContainerLocalPos;
     private bool isCurrentlyDown;
+
+    private KTH_HandCard selectedCard;
 
     public int HandCount => handCards.Count;
 
@@ -56,117 +55,386 @@ public class KTH_HandCardLayout : MonoBehaviour
         set => maxHandSize = value;
     }
 
-    public bool IsFull => maxHandSize > 0 && handCards.Count >= maxHandSize;
+    public bool IsFull =>
+        maxHandSize > 0 &&
+        handCards.Count >= maxHandSize;
 
     public event Action<int, int> OnHandCountChanged;
+
+    // =========================================================
+    // Awake
+    // =========================================================
 
     private void Awake()
     {
         Instance = this;
-        originalContainerLocalPos = transform.localPosition;
+
+        originalContainerLocalPos =
+            transform.localPosition;
+
         isCurrentlyDown = false;
     }
+
+    // =========================================================
+    // Hand Check
+    // =========================================================
 
     public bool CanAddCard()
     {
         return !IsFull;
     }
 
+    // =========================================================
+    // Add Card
+    // =========================================================
+
     public bool AddCard(KTH_HandCard card)
     {
-        if (card == null || handCards.Contains(card)) return false;
+        return AddCard(card, insertAtFront: false);
+    }
 
-        if (IsFull)
+    /// <summary>
+    /// 스포너의 월드 X좌표 "부호"를 기준으로 카드를 삽입할 방향을 자동으로 결정한다.
+    /// X가 음수(-)이면 왼쪽부터, 양수(+)이면 오른쪽부터 채워진다.
+    /// (CardLayoutCalculator는 reversedIndex를 쓰므로 리스트 앞쪽=화면 오른쪽,
+    ///  리스트 뒤쪽=화면 왼쪽에 대응한다)
+    /// </summary>
+    public bool AddCard(KTH_HandCard card, Vector3 spawnerWorldPos)
+    {
+        bool spawnerIsOnLeft =
+            spawnerWorldPos.x < 0f;
+
+        // 왼쪽부터 채우려면 새 카드가 화면 왼쪽(=리스트 뒤쪽)에 와야 하므로
+        // insertAtFront = false (뒤에 추가).
+        // 오른쪽부터 채우려면 새 카드가 화면 오른쪽(=리스트 앞쪽)에 와야 하므로
+        // insertAtFront = true (앞에 추가).
+        bool insertAtFront = !spawnerIsOnLeft;
+
+        return AddCard(card, insertAtFront);
+    }
+
+    public bool AddCard(KTH_HandCard card, bool insertAtFront)
+    {
+        if (card == null)
         {
-            Debug.LogWarning($"[KTH_HandCardLayout] 손패가 가득 찼습니다! ({handCards.Count}/{maxHandSize})");
             return false;
         }
 
-        // 새 카드가 들어오면 기존에 선택된 카드가 있을 경우 선택 해제
+        if (handCards.Contains(card))
+        {
+            return false;
+        }
+
+        if (IsFull)
+        {
+            Debug.LogWarning(
+                $"[KTH_HandCardLayout] 손패가 가득 찼습니다! " +
+                $"({handCards.Count}/{maxHandSize})"
+            );
+
+            return false;
+        }
+
         KTH_HandCard.DeselectCurrent();
 
-        handCards.Add(card);
+        if (insertAtFront)
+        {
+            handCards.Insert(0, card);
+        }
+        else
+        {
+            handCards.Add(card);
+        }
+
         UpdateHandLayout(card);
-        OnHandCountChanged?.Invoke(handCards.Count, maxHandSize);
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
+
         return true;
     }
 
+    // =========================================================
+    // Remove Card
+    // =========================================================
+
     public void RemoveCard(KTH_HandCard card)
     {
-        if (handCards.Remove(card))
+        if (selectedCard == card)
         {
-            UpdateHandLayout(null);
-            OnHandCountChanged?.Invoke(handCards.Count, maxHandSize);
+            selectedCard = null;
         }
+
+        if (!handCards.Remove(card))
+        {
+            return;
+        }
+
+        UpdateHandLayout(
+            null,
+            pushDuration,
+            false
+        );
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
     }
 
-    public void UpdateHandLayout(KTH_HandCard newlyDrawnCard = null, float duration = 0.35f)
-    {
-        int count = handCards.Count;
-        if (count == 0) return;
+    // =========================================================
+    // Selection Changed
+    // =========================================================
 
-        float cardSpacing = maxCardSpacing;
-        if (count > 1)
+    public void OnCardSelectionChanged(
+        KTH_HandCard card,
+        bool selected)
+    {
+        if (selected)
         {
-            cardSpacing = Mathf.Min(maxCardSpacing, maxHandWidth / (count - 1));
-            cardSpacing = Mathf.Max(cardSpacing, minCardSpacing);
+            // 동시에 하나만 선택되도록 보장한다.
+            // 이전에 선택돼 있던 다른 카드가 있다면 강제로 해제시킨다.
+            // (이 시점에서 selectedCard가 null이 아니고 card와 다르면
+            //  아직 SetSelected(false)가 전파되지 않은 상태이므로 여기서 정리한다)
+            if (selectedCard != null && selectedCard != card)
+            {
+                KTH_HandCard previous = selectedCard;
+
+                // 재귀적으로 다시 OnCardSelectionChanged가 불려도
+                // 아래에서 selectedCard를 곧바로 덮어쓸 것이므로 안전하다.
+                previous.SetSelected(false);
+            }
+
+            selectedCard = card;
+        }
+        else if (selectedCard == card)
+        {
+            selectedCard = null;
         }
 
-        float centerIndex = (count - 1) / 2f;
+        UpdateHandLayout(
+            null,
+            pushDuration,
+            false
+        );
+    }
+
+    // =========================================================
+    // Calculate Push
+    // =========================================================
+
+    private float CalculatePushAmount(
+        int cardIndex,
+        int selectedIndex)
+    {
+        if (selectedIndex < 0)
+        {
+            return 0f;
+        }
+
+        if (cardIndex == selectedIndex)
+        {
+            return 0f;
+        }
+
+        int distance =
+            Mathf.Abs(
+                cardIndex - selectedIndex
+            );
+
+        // 선택 카드 바로 옆
+        if (distance == 1)
+        {
+            return pushAmount;
+        }
+
+        // 멀어질수록 점점 적게 밀림
+        float multiplier =
+            Mathf.Pow(
+                farCardPushMultiplier,
+                distance - 1
+            );
+
+        return pushAmount * multiplier;
+    }
+
+    // =========================================================
+    // Update Layout
+    // =========================================================
+
+    public void UpdateHandLayout(
+        KTH_HandCard newlyDrawnCard = null,
+        float duration = 0.35f,
+        bool useStagger = true)
+    {
+        int count = handCards.Count;
+
+        if (count == 0)
+        {
+            return;
+        }
+
+        int selectedIndex =
+            selectedCard != null
+                ? handCards.IndexOf(selectedCard)
+                : -1;
 
         for (int i = 0; i < count; i++)
         {
-            float offset = i - centerIndex;
+            var transformData =
+                CardLayoutCalculator.CalculateCardTransform(
+                    i,
+                    count,
+                    maxCardSpacing,
+                    minCardSpacing,
+                    maxHandWidth,
+                    arcHeight,
+                    maxRotation
+                );
 
-            float posX = offset * cardSpacing;
-            float posY = -Mathf.Pow(offset, 2) * arcHeight;
-            float zRotation = (count > 1) ? -offset * (maxRotation / Mathf.Max(1f, centerIndex)) : 0f;
+            KTH_HandCard card =
+                handCards[i];
 
-            Vector3 targetLocalPos = new Vector3(posX, posY, 0f);
-
-            KTH_HandCard card = handCards[i];
+            // 카드 순서는 Layout에서만 관리
             card.transform.SetSiblingIndex(i);
+
+            // 밀기 적용 "전"의 순수 부채꼴 기준 위치.
+            // 이 값을 카드의 originalLocalPos로 저장해야
+            // 선택 해제 시 정확한 자리로 복귀하고, 다음 레이아웃 갱신 때도
+            // 흔들림 없이 같은 기준으로 재계산된다.
+            Vector3 basePos = transformData.LocalPosition;
+
+            // 실제로 이동할 위치 (밀기 적용 후)
+            Vector3 targetPos = basePos;
+
+            // =================================================
+            // 선택 카드 주변 밀기
+            // =================================================
+
+            if (selectedIndex >= 0 &&
+                i != selectedIndex)
+            {
+                float push =
+                    CalculatePushAmount(
+                        i,
+                        selectedIndex
+                    );
+
+                // 주의: CardLayoutCalculator는 reversedIndex를 사용하므로
+                // 리스트 인덱스가 작을수록 화면상으로는 "오른쪽"에 위치한다.
+                // 따라서 인덱스 대소 비교와 화면 좌우 이동 방향이 반대가 되어야
+                // 선택 카드 주변이 선택 카드로부터 "멀어지는" 방향으로 밀린다.
+                if (i < selectedIndex)
+                {
+                    targetPos.x += push;
+                }
+                else
+                {
+                    targetPos.x -= push;
+                }
+            }
+
+            // =================================================
+            // 새 카드
+            // =================================================
 
             if (card == newlyDrawnCard)
             {
-                card.PlayDrawAnimation(targetLocalPos, zRotation, drawDuration);
+                card.PlayDrawAnimation(
+                    targetPos,
+                    transformData.ZRotation,
+                    drawDuration
+                );
+
+                // 기준 위치는 밀기 적용 전 값(basePos)으로 저장
+                card.UpdateOriginalTransform(
+                    basePos,
+                    transformData.ZRotation
+                );
+
+                continue;
             }
-            else
+
+            // =================================================
+            // 일반 카드 이동
+            // =================================================
+
+            if (!card.IsSelected)
             {
-                card.MoveToHandPosition(targetLocalPos, zRotation, duration);
+                float delay =
+                    useStagger
+                        ? i * staggerDelay
+                        : 0f;
+
+                card.MoveToHandPositionWithDelay(
+                    targetPos,
+                    transformData.ZRotation,
+                    duration,
+                    delay,
+                    moveEase
+                );
             }
+
+            // =================================================
+            // 기준 위치 저장 (밀기 적용 전 값)
+            // =================================================
+
+            card.UpdateOriginalTransform(
+                basePos,
+                transformData.ZRotation
+            );
         }
     }
 
-    /// <summary>
-    /// 셀렉트 버튼을 눌러 배치 모드가 시작될 때 호출됨.
-    /// enableMoveDown이 체크되어 있을 때만 실제로 내려감.
-    /// </summary>
+    // =========================================================
+    // Placement
+    // =========================================================
+
     public void MoveDownForPlacement()
     {
-        if (!enableMoveDown) return;
-        if (isCurrentlyDown) return;
+        if (!enableMoveDown ||
+            isCurrentlyDown)
+        {
+            return;
+        }
+
         isCurrentlyDown = true;
 
-        transform.DOKill();
-        transform.DOLocalMoveY(
-            originalContainerLocalPos.y - placementMoveDownDistance,
-            placementMoveDuration
-        ).SetEase(Ease.OutCubic);
+        AnimateContainerY(
+            originalContainerLocalPos.y -
+            placementMoveDownDistance
+        );
     }
 
-    /// <summary>
-    /// 배치 완료/취소되어 원래 자리로 돌아올 때 호출됨.
-    /// </summary>
     public void MoveUpFromPlacement()
     {
-        if (!isCurrentlyDown) return;
+        if (!isCurrentlyDown)
+        {
+            return;
+        }
+
         isCurrentlyDown = false;
 
+        AnimateContainerY(
+            originalContainerLocalPos.y
+        );
+    }
+
+    // =========================================================
+    // Container Animation
+    // =========================================================
+
+    private void AnimateContainerY(float targetY)
+    {
         transform.DOKill();
-        transform.DOLocalMoveY(
-            originalContainerLocalPos.y,
-            placementMoveDuration
-        ).SetEase(Ease.OutCubic);
+
+        transform
+            .DOLocalMoveY(
+                targetY,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutCubic);
     }
 }
