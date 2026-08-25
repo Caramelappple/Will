@@ -78,8 +78,6 @@ namespace _Scripts.LDY.Editor
             EditorUtility.SetDirty(handler);
             EditorSceneManager.MarkSceneDirty(scene);
 
-            WarnAboutOldHandler(roots, lines);
-
             lines.Add(
                 $"전투 참조 — 배치: {(cardPlacer != null ? "연결됨" : "없음(맵 씬이면 정상)")}" +
                 $" / 이동: {(moveSystem != null ? "연결됨" : "없음")}" +
@@ -88,20 +86,6 @@ namespace _Scripts.LDY.Editor
             report.AppendLine($"● {scene.name}");
             foreach (string line in lines)
                 report.AppendLine($"    {line}");
-        }
-
-        /// <summary>
-        /// 한 씬에 ESC를 보는 컴포넌트가 둘이면 한 번의 입력을 양쪽이 각자 처리한다.
-        /// 컴파일도 되고 에러도 없이 "ESC 한 번에 두 가지가 일어나는" 상태라 눈으로 알아채기 어렵다.
-        /// </summary>
-        private static void WarnAboutOldHandler(GameObject[] roots, List<string> lines)
-        {
-            LDY_EscapeKeyHandler old = FindInScene<LDY_EscapeKeyHandler>(roots);
-            if (old == null) return;
-
-            lines.Add(
-                $"⚠ '{old.name}'에 LDY_EscapeKeyHandler가 남아 있습니다. 지우거나 비활성화하세요 — " +
-                "ESC 한 번을 두 컴포넌트가 각자 처리합니다.");
         }
 
         // ── 만들기 ──────────────────────────────────────────

@@ -19,6 +19,9 @@
       "Bash(echo \"RectMask2D:\")",
       "Bash(grep -c m_Softness Assets/_Prefabs/LSO/WillPanel.prefab)",
       "Bash(echo \"Image:\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\이도윤\\.claude\\projects\\c--Dev-Will\\memory"
     ]
   }
 }
