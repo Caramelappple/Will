@@ -30,13 +30,6 @@ public class KTH_StartMessage : MonoBehaviour
 
     private void Awake()
     {
-        if (canvasGroup == null)
-        {
-            canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
-
         canvasGroup.alpha = 0f;
     }
 

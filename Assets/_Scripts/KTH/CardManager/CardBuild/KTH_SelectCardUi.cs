@@ -13,10 +13,11 @@ public class KTH_SelectCardUi :
 {
     [SerializeField] private Image cardImage;
 
-    private LSO_CardSO cardData;
     private RectTransform rectTransform;
     private Canvas canvas;
     private CanvasGroup canvasGroup;
+
+    private LSO_CardSO cardData;
 
     private Transform originalParent;
     private bool droppedSuccessfully;
@@ -28,22 +29,19 @@ public class KTH_SelectCardUi :
 
     private void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
+        rectTransform = transform as RectTransform;
+
+        canvas = GetComponentInParent<Canvas>();
+        if (canvas != null)
+        {
+            canvas = canvas.rootCanvas;
+        }
 
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
-
-        if (cardImage == null)
-        {
-            cardImage = GetComponentInChildren<Image>();
-        }
-
-        canvas = GetComponentInParent<Canvas>();
-    
-       
     }
 
     public void Setup(LSO_CardSO card, int pageIndex = 0, float spawnDelay = 0f, bool playAnimation = false)
@@ -62,11 +60,6 @@ public class KTH_SelectCardUi :
         isPendingDestroy = false;
         droppedSuccessfully = false;
 
-        if (cardImage != null && cardData != null)
-        {
-            cardImage.sprite = cardData.Image; // 주석 해제하고 실제 필드명 사용
-        }
-
         if (playAnimation)
         {
             PlayFlipInAnimation(spawnDelay);
@@ -82,11 +75,6 @@ public class KTH_SelectCardUi :
     {
         droppedSuccessfully = false;
         isPendingDestroy = false;
-
-        if (canvas == null)
-        {
-            canvas = GetComponentInParent<Canvas>();
-        }
 
         if (canvas != null)
         {
@@ -104,7 +92,10 @@ public class KTH_SelectCardUi :
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.position = eventData.position;
+        if (rectTransform != null)
+        {
+            rectTransform.position = eventData.position;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -153,8 +144,12 @@ public class KTH_SelectCardUi :
         IsInInventory = true;
         transform.SetParent(inventoryParent, false);
         originalParent = inventoryParent;
-        rectTransform.localScale = Vector3.one;
-        rectTransform.anchoredPosition = Vector2.zero;
+
+        if (rectTransform != null)
+        {
+            rectTransform.localScale = Vector3.one;
+            rectTransform.anchoredPosition = Vector2.zero;
+        }
         transform.localRotation = Quaternion.identity;
     }
 
@@ -165,8 +160,12 @@ public class KTH_SelectCardUi :
         if (originalParent != null)
         {
             transform.SetParent(originalParent, false);
-            rectTransform.localScale = Vector3.one;
-            rectTransform.anchoredPosition = Vector2.zero;
+
+            if (rectTransform != null)
+            {
+                rectTransform.localScale = Vector3.one;
+                rectTransform.anchoredPosition = Vector2.zero;
+            }
             transform.localRotation = Quaternion.identity;
         }
     }

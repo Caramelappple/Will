@@ -81,9 +81,9 @@ public class LDY_MapManager : MonoBehaviour
     [Header("챕터별 맵 구조 데이터 목록")]
     [SerializeField] private List<LDY_ChapterMapData> chapterMaps = new List<LDY_ChapterMapData>();
 
-    [Header("씬 전환용 기본 씬 이름")]
-    [SerializeField] private string battleSceneName = "BattleScene";
-    [SerializeField] private string bossSceneName = "BossScene";
+    // 전투·보스 노드가 열 씬은 StageSO가 들고 있다(LDY_StageSO.SceneName).
+    // 맵에도 씬 이름을 적어두면 스테이지마다 씬이 갈릴 때 어느 쪽이 이겼는지 알 수 없고,
+    // 한쪽만 고쳐놓고 왜 안 바뀌는지 찾게 된다. 여기서는 들고 있지 않는다.
 
     [Header("스테이지 배정 (LDY_StageRouter 연결)")]
     [SerializeField] private MonoBehaviour stageRouterSource;
@@ -695,10 +695,10 @@ public class LDY_MapManager : MonoBehaviour
         {
             case LDY_NodeType.Battle:
                 BattleEntryCount++;
-                EnterStage(index, node, battleSceneName, screenUV);
+                EnterStage(index, node, screenUV);
                 break;
             case LDY_NodeType.Boss:
-                EnterStage(index, node, bossSceneName, screenUV);
+                EnterStage(index, node, screenUV);
                 break;
             case LDY_NodeType.Shop:
                 RequestPopup(screenUV, node, onShopNodeSelected);
@@ -1096,7 +1096,13 @@ public class LDY_MapManager : MonoBehaviour
         }
     }
 
-    private void EnterStage(int index, LDY_MapNode node, string fallbackSceneName, Vector2 screenUV)
+    /// <summary>
+    /// 노드에 배정된 스테이지를 골라 그 스테이지가 지정한 씬을 연다.
+    ///
+    /// 갈 곳은 StageSO.SceneName 하나로만 정해진다. 노드마다 다른 전투 씬을 쓰고 싶으면
+    /// 노드에 배정한 StageSO의 Scene Name만 바꾸면 되고, 맵은 고칠 것이 없다.
+    /// </summary>
+    private void EnterStage(int index, LDY_MapNode node, Vector2 screenUV)
     {
         LDY_StageSO stage = _stageRouter?.Resolve(index, node.type);
 

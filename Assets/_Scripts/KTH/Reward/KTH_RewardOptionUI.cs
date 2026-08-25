@@ -52,9 +52,6 @@ public class KTH_RewardOptionUI : MonoBehaviour
 
     private void Awake()
     {
-        cardButton = GetComponent<Button>();
-        rectTransform = GetComponent<RectTransform>();
-
         if (cardButton != null)
         {
             cardButton.onClick.AddListener(OnClickCard);

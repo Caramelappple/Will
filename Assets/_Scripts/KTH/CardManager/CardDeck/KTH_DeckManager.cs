@@ -55,12 +55,6 @@ public class KTH_DeckManager : MonoBehaviour
     /// </summary>
     public event System.Action<int> OnDeckReshuffled;
 
-    private void Awake()
-    {
-        if (turnManager == null) turnManager = FindAnyObjectByType<LDY_TurnManager>();
-        if (discardPile == null) discardPile = FindAnyObjectByType<KTH_DiscardCardUI>();
-    }
-
     private void Start()
     {
         InitDeck();
@@ -75,18 +69,42 @@ public class KTH_DeckManager : MonoBehaviour
             turnManager.OnTurnChanged -= HandleTurnChanged;
     }
 
+    // 획득한 카드가 곧 덱이다. 따로 고르는 단계가 없으므로
+    // ItemLibraryManager가 들고 있는 목록을 그대로 가져온다.
+    //
+    // 목록을 복사해 담는다. 참조를 그대로 쓰면 전투 중 드로우가
+    // 보유 목록에서 카드를 지워버려 다음 판에 카드가 사라진다.
+    //
+    // 여기서 씬을 뒤져 찾지 않는 이유는 ItemLibraryManager가 DontDestroyOnLoad로 넘어오기 때문이다.
     private void InitDeck()
     {
-        var finalCardList = KTH_FinalCardList.Instance != null
-            ? KTH_FinalCardList.Instance
-            : FindAnyObjectByType<KTH_FinalCardList>();
+        ItemLibraryManager library = ItemLibraryManager.Instance;
 
-        if (finalCardList != null && finalCardList.FinalSelectedCards != null)
+        if (library == null)
         {
-            deck.Clear();
-            deck.AddRange(finalCardList.FinalSelectedCards);
-            Debug.Log($"[KTH_DeckManager] 총 {deck.Count}장의 카드를 덱에 로드했습니다.");
+            Debug.LogWarning("[KTH_DeckManager] ItemLibraryManager가 없어 인스펙터에 넣어둔 덱을 그대로 씁니다.");
+            return;
         }
+
+        List<LSO_CardSO> owned = library.UnlockedPieces;
+
+        if (owned == null || owned.Count == 0)
+        {
+            Debug.LogWarning("[KTH_DeckManager] 보유한 카드가 없습니다. 전투를 카드 없이 시작합니다.");
+            deck.Clear();
+            return;
+        }
+
+        deck.Clear();
+
+        foreach (LSO_CardSO card in owned)
+        {
+            if (card == null) continue;
+
+            deck.Add(card);
+        }
+
+        Debug.Log($"[KTH_DeckManager] 보유 카드 {deck.Count}장을 덱에 로드했습니다.");
     }
 
     /// <summary>

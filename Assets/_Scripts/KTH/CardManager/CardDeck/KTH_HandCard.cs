@@ -1,13 +1,17 @@
+using System;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System;
 
-public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
+public class KTH_HandCard : MonoBehaviour,
+    IPointerClickHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler
 {
+    [Header("Card UI")]
     [SerializeField] private Image cardImage;
     [SerializeField] private Image outlineImage;
     [SerializeField] private TextMeshProUGUI title;
@@ -15,108 +19,395 @@ public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TextMeshProUGUI power;
 
     [Header("Select Animation Settings")]
-    [Tooltip("선택 시 위로 올라오는 Y 높이")]
-    [SerializeField] private float selectOffsetY = 150f;
-    [Tooltip("선택 시 크기 확대 비율")]
-    [SerializeField] private float selectScale = 1.25f;
-    [Tooltip("선택 애니메이션 지속 시간")]
-    [SerializeField] private float selectDuration = 0.25f;
+    [SerializeField] private float selectScale = 1.2f;
+    [SerializeField] private float selectMoveY = 25f;
+    [SerializeField] private float selectDuration = 0.22f;
+
+    [Header("Hover Settings")]
+    [SerializeField] private float hoverEnterDelay = 0.03f;
+    [SerializeField] private float hoverExitDelay = 0.12f;
+
+    [Header("Draw Animation Settings")]
+    [SerializeField] private float drawStartScale = 0.3f;
+    [SerializeField] private float drawDipDistance = 60f;
+    [SerializeField] private float drawHookDistance = 25f;
 
     [Header("Discard Animation Settings")]
     [SerializeField] private float discardDuration = 0.35f;
 
     private LSO_CardSO cardData;
-    private bool isSelected;
 
-    // 원래 상태 저장용
-    private int originalSiblingIndex;
+    private bool isSelected;
+    private bool isConfirmed;
+
     private Vector3 originalLocalPos;
     private float originalZRotation;
+
+    private Tween hoverEnterTween;
+    private Tween hoverExitTween;
 
     private static KTH_HandCard currentSelectedCard;
 
     public LSO_CardSO CardData => cardData;
+    public bool IsSelected => isSelected;
+    public bool IsConfirmed => isConfirmed;
+    public float SelectScale => selectScale;
+
+    public static bool HasConfirmedSelection =>
+        currentSelectedCard != null;
 
     public event Action<KTH_HandCard> OnCardClicked;
+
+    // =========================================================
+    // Setup
+    // =========================================================
 
     public void Setup(LSO_CardSO data)
     {
         cardData = data;
-        SettingUi(); // 데이터가 세팅될 때마다 즉시 UI 갱신
+        SettingUi();
     }
 
     private void Start()
     {
-        // cardData가 이미 Setup에서 세팅됐다면 중복 호출 방지
         if (cardData != null)
+        {
             SettingUi();
+        }
     }
 
     public void SettingUi()
     {
+        if (cardData == null)
+        {
+            return;
+        }
+
         cardImage.sprite = cardData.Image;
         title.text = cardData.Animal.animalName;
         cost.text = $"{cardData.Animal.cost}";
         power.text = $"{cardData.Animal.damage}";
+
         outlineImage.gameObject.SetActive(false);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        Debug.Log($"[{name}] OnPointerClick 호출됨");
+    // =========================================================
+    // Hover
+    // =========================================================
 
-        if (currentSelectedCard != null && currentSelectedCard != this)
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        KillHoverExitTween();
+
+        if (currentSelectedCard != null)
         {
-            currentSelectedCard.SetSelected(false);
+            return;
+        }
+
+        if (cardData == null)
+        {
+            return;
         }
 
         if (isSelected)
         {
-            SetSelected(false);
-            currentSelectedCard = null;
-            KTH_InfoPanl.Instance.CancleInfoPanl();
+            return;
+        }
+
+        KillHoverEnterTween();
+
+        hoverEnterTween = DOVirtual.DelayedCall(
+            hoverEnterDelay,
+            HandleHoverEnter
+        );
+    }
+
+    private void HandleHoverEnter()
+    {
+        hoverEnterTween = null;
+
+        if (currentSelectedCard != null)
+        {
+            return;
+        }
+
+        if (cardData == null)
+        {
+            return;
+        }
+
+        if (isSelected)
+        {
+            return;
+        }
+
+        // 카드 선택 연출
+        SetSelected(true);
+
+        // 한 번의 호버로
+        // 인포 패널 표시 + 배치 시작
+        if (KTH_InfoPanel.Instance != null)
+        {
+            KTH_InfoPanel.Instance.StartHoverPlacement(
+                cardData,
+                this
+            );
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        KillHoverEnterTween();
+
+        if (currentSelectedCard != null)
+        {
+            return;
+        }
+
+        if (isConfirmed)
+        {
+            return;
+        }
+
+        KillHoverExitTween();
+
+        hoverExitTween = DOVirtual.DelayedCall(
+            hoverExitDelay,
+            HandleHoverExit
+        );
+    }
+
+    private void HandleHoverExit()
+    {
+        hoverExitTween = null;
+
+        if (currentSelectedCard != null)
+        {
+            return;
+        }
+
+        if (isConfirmed)
+        {
+            return;
+        }
+
+        if (KTH_InfoPanel.Instance != null)
+        {
+            KTH_InfoPanel.Instance.CancelHoverSelection(this);
+        }
+
+        if (isSelected)
+        {
+            CancelSelectionState();
+        }
+    }
+
+    // =========================================================
+    // Click
+    // =========================================================
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+        {
+            return;
+        }
+
+        KillHoverEnterTween();
+        KillHoverExitTween();
+
+        if (currentSelectedCard != null &&
+            currentSelectedCard != this)
+        {
+            currentSelectedCard.CancelSelectionState();
+        }
+
+        if (isConfirmed)
+        {
+            CancelSelectionState();
+
+            if (KTH_InfoPanel.Instance != null)
+            {
+                KTH_InfoPanel.Instance.CancleInfoPanl();
+            }
         }
         else
         {
-            SetSelected(true);
+            isConfirmed = true;
             currentSelectedCard = this;
-            KTH_InfoPanl.Instance.StartInfoPanl(cardData, this);
+
+            SetSelected(true);
+
+            if (KTH_InfoPanel.Instance != null)
+            {
+                KTH_InfoPanel.Instance.StartInfoPanl(
+                    cardData,
+                    this
+                );
+            }
         }
 
         OnCardClicked?.Invoke(this);
     }
 
+    // =========================================================
+    // Complete Selection State Reset
+    // =========================================================
+
+    /// <summary>
+    /// 선택과 관련된 모든 상태를 완전히 초기화한다.
+    /// SetSelected(false)와 달리 클릭 확정 상태와
+    /// static currentSelectedCard까지 함께 제거한다.
+    /// </summary>
+    public void CancelSelectionState()
+    {
+        isConfirmed = false;
+
+        if (currentSelectedCard == this)
+        {
+            currentSelectedCard = null;
+        }
+
+        KillHoverEnterTween();
+        KillHoverExitTween();
+
+        SetSelected(false);
+    }
+
+    // =========================================================
+    // Tween
+    // =========================================================
+
+    private void KillHoverEnterTween()
+    {
+        if (hoverEnterTween == null)
+        {
+            return;
+        }
+
+        hoverEnterTween.Kill();
+        hoverEnterTween = null;
+    }
+
+    private void KillHoverExitTween()
+    {
+        if (hoverExitTween == null)
+        {
+            return;
+        }
+
+        hoverExitTween.Kill();
+        hoverExitTween = null;
+    }
+
+    // =========================================================
+    // Select
+    // =========================================================
+
     public void SetSelected(bool value)
     {
+        if (isSelected == value)
+        {
+            return;
+        }
+
         isSelected = value;
-        outlineImage.gameObject.SetActive(isSelected);
 
         transform.DOKill();
 
+        outlineImage.gameObject.SetActive(isSelected);
+
         if (isSelected)
         {
-            // 1. 현재 렌더링 순서 저장 및 UI 최상단으로 이동
-            originalSiblingIndex = transform.GetSiblingIndex();
-            transform.SetAsLastSibling();
-
-            // 2. 중앙(X=0), 위로 올라옴(Y=selectOffsetY), 정방향 회전(Z=0), 크기 확대 연출
-            Sequence seq = DOTween.Sequence();
-            seq.Join(transform.DOLocalMove(new Vector3(0f, selectOffsetY, 0f), selectDuration).SetEase(Ease.OutBack))
-               .Join(transform.DOLocalRotate(Vector3.zero, selectDuration).SetEase(Ease.OutCubic))
-               .Join(transform.DOScale(Vector3.one * selectScale, selectDuration).SetEase(Ease.OutBack));
+            PlaySelectAnimation();
         }
         else
         {
-            // 1. 원래 렌더링 순서로 복원
-            transform.SetSiblingIndex(originalSiblingIndex);
+            PlayDeselectAnimation();
+        }
 
-            // 2. 원래 손패 위치, 회전, 스케일(1,1,1)로 복원
-            Sequence seq = DOTween.Sequence();
-            seq.Join(transform.DOLocalMove(originalLocalPos, selectDuration).SetEase(Ease.OutCubic))
-               .Join(transform.DOLocalRotate(new Vector3(0, 0, originalZRotation), selectDuration).SetEase(Ease.OutCubic))
-               .Join(transform.DOScale(Vector3.one, selectDuration).SetEase(Ease.OutCubic));
+        if (KTH_HandCardLayout.Instance != null)
+        {
+            KTH_HandCardLayout.Instance.OnCardSelectionChanged(
+                this,
+                isSelected
+            );
         }
     }
+
+    private void PlaySelectAnimation()
+    {
+        Vector3 targetPos = originalLocalPos;
+        targetPos.y += selectMoveY;
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalMove(targetPos, selectDuration)
+                .SetEase(Ease.OutBack, 0.7f)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.one * selectScale,
+                    selectDuration
+                )
+                .SetEase(Ease.OutBack, 0.7f)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    selectDuration
+                )
+                .SetEase(Ease.OutBack, 0.7f)
+        );
+    }
+
+    private void PlayDeselectAnimation()
+    {
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalMove(
+                    originalLocalPos,
+                    selectDuration
+                )
+                .SetEase(Ease.OutCubic)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        originalZRotation
+                    ),
+                    selectDuration
+                )
+                .SetEase(Ease.OutCubic)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.one,
+                    selectDuration
+                )
+                .SetEase(Ease.OutCubic)
+        );
+    }
+
+    // =========================================================
+    // Spawn
+    // =========================================================
 
     public void SetSpawnPosition(Vector3 worldPos)
     {
@@ -125,104 +416,320 @@ public class KTH_HandCard : MonoBehaviour, IPointerClickHandler
         transform.localScale = Vector3.one;
     }
 
-    public void MoveToHandPosition(Vector3 localPos, float zRotation, float duration = 0.35f)
-    {
-        // 선택되어 있는 동안에는 레이아웃 재정렬로 위치가 덮어씌워지지 않도록 함
-        originalLocalPos = localPos;
-        originalZRotation = zRotation;
+    // =========================================================
+    // Layout
+    // =========================================================
 
-        if (isSelected) return;
+    public void UpdateOriginalTransform(
+        Vector3 pos,
+        float zRot)
+    {
+        originalLocalPos = pos;
+        originalZRotation = zRot;
+
+        if (!isSelected)
+        {
+            return;
+        }
+
+        Vector3 selectedPos = originalLocalPos;
+        selectedPos.y += selectMoveY;
 
         transform.DOKill();
 
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOLocalMove(localPos, duration).SetEase(Ease.OutCubic))
-                .Join(transform.DOLocalRotate(new Vector3(0, 0, zRotation), duration).SetEase(Ease.OutCubic));
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalMove(selectedPos, 0.15f)
+                .SetEase(Ease.OutCubic)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    0.15f
+                )
+                .SetEase(Ease.OutCubic)
+        );
     }
 
-    public void PlayDrawAnimation(Vector3 targetLocalPos, float targetZRotation, float duration = 0.4f)
+    public void MoveToHandPositionWithDelay(
+        Vector3 targetPos,
+        float targetRotZ,
+        float duration,
+        float delay,
+        Ease ease)
+    {
+        if (isSelected)
+        {
+            return;
+        }
+
+        transform.DOKill();
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalMove(targetPos, duration)
+                .SetDelay(delay)
+                .SetEase(ease)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    new Vector3(0f, 0f, targetRotZ),
+                    duration
+                )
+                .SetDelay(delay)
+                .SetEase(ease)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(Vector3.one, duration)
+                .SetDelay(delay)
+                .SetEase(ease)
+        );
+    }
+
+    // =========================================================
+    // Draw
+    // =========================================================
+
+    public void PlayDrawAnimation(
+        Vector3 targetLocalPos,
+        float targetZRotation,
+        float duration = 0.4f)
     {
         originalLocalPos = targetLocalPos;
         originalZRotation = targetZRotation;
 
         transform.DOKill();
 
+        transform.localScale =
+            Vector3.one * drawStartScale;
+
+        Vector3 startPos = transform.localPosition;
+
+        Vector3 midPos = Vector3.Lerp(
+            startPos,
+            targetLocalPos,
+            0.5f
+        );
+
+        midPos.y -= drawDipDistance;
+
+        Vector3 preTargetPos = targetLocalPos;
+        preTargetPos.y -= drawHookDistance;
+
+        preTargetPos.x -=
+            (targetLocalPos.x - startPos.x) * 0.08f;
+
+        Vector3[] path =
+        {
+            startPos,
+            midPos,
+            preTargetPos,
+            targetLocalPos
+        };
+
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOLocalMove(targetLocalPos, duration).SetEase(Ease.OutCubic))
-                .Join(transform.DOLocalRotate(new Vector3(0, 0, targetZRotation), duration).SetEase(Ease.OutCubic))
-                .Join(transform.DOScale(Vector3.one, duration).SetEase(Ease.OutBack));
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalPath(
+                    path,
+                    duration,
+                    PathType.CatmullRom
+                )
+                .SetEase(Ease.InOutSine)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        targetZRotation
+                    ),
+                    duration
+                )
+                .SetEase(Ease.OutCubic)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.one,
+                    duration
+                )
+                .SetEase(Ease.OutBack)
+        );
     }
 
-    /// <summary>
-    /// 소환이 확정된 카드를 손패에서 제거하고 재정렬한다.
-    /// discardPile이 주어지면 그쪽으로 날아가며 사라지고, 없으면 즉시 파괴된다.
-    /// KTH_InfoPanl의 Select 버튼(보드 배치 완료) 콜백에서 호출된다.
-    /// </summary>
-    public void ConsumeAndRearrange(KTH_DiscardCardUI discardPile = null)
+    // =========================================================
+    // Consume
+    // =========================================================
+
+    public void ConsumeAndRearrange(
+        KTH_DiscardCardUI discardPile = null)
     {
-        transform.DOKill();
+        CancelSelectionState();
 
-        if (currentSelectedCard == this)
-            currentSelectedCard = null;
+        transform.DOKill(true);
 
-        // 손패 목록에서는 즉시 제거하고 재정렬 (남은 카드들이 바로 자리를 채우도록)
         if (KTH_HandCardLayout.Instance != null)
+        {
             KTH_HandCardLayout.Instance.RemoveCard(this);
+        }
 
-        if (discardPile != null && discardPile.DiscardCardTransform != null)
+        if (discardPile != null &&
+            discardPile.DiscardCardTransform != null)
         {
             PlayDiscardAnimation(discardPile);
         }
         else
         {
-            // discardPile이 연결되어 있지 않으면 카드가 버린 카드 더미에 기록되지 않고 그냥 파괴된다.
-            // 이 경고가 보인다면 KTH_InfoPanl(또는 이 메서드를 호출하는 곳)의 Inspector에서
-            // discardPile 필드에 실제 KTH_DiscardCardUI 오브젝트가 연결되어 있는지 확인할 것.
-            Debug.LogWarning($"[KTH_HandCard] discardPile이 비어있어 '{(cardData != null ? cardData.name : "Unknown")}' 카드가 버린 카드 더미에 기록되지 않고 파괴됩니다! Inspector 연결을 확인하세요.");
+            Debug.LogWarning(
+                $"[KTH_HandCard] discardPile이 비어있어 " +
+                $"'{(cardData != null ? cardData.name : "Unknown")}' " +
+                $"카드가 버린 카드 더미에 기록되지 않고 파괴됩니다!"
+            );
+
             Destroy(gameObject);
         }
     }
 
-    /// <summary>
-    /// 버린 카드 더미 위치로 날아가며 축소·회전·페이드되다가 파괴된다.
-    /// </summary>
-    private void PlayDiscardAnimation(KTH_DiscardCardUI discardPile)
+    // =========================================================
+    // Discard
+    // =========================================================
+
+    private void PlayDiscardAnimation(
+        KTH_DiscardCardUI discardPile)
     {
-        CanvasGroup cg = GetComponent<CanvasGroup>();
-        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+        CanvasGroup canvasGroup =
+            GetComponent<CanvasGroup>();
 
-        // 날아가는 동안 클릭 등 입력 차단
-        cg.blocksRaycasts = false;
+        if (canvasGroup == null)
+        {
+            canvasGroup =
+                gameObject.AddComponent<CanvasGroup>();
+        }
 
-        // 버린 카드 더미와 동일한 부모로 옮겨서 좌표계를 맞춘다 (worldPositionStays: true로 현재 화면 위치는 유지)
-        Transform discardParent = discardPile.DiscardCardTransform.parent;
-        transform.SetParent(discardParent, worldPositionStays: true);
+        canvasGroup.blocksRaycasts = false;
 
-        // 목표는 버린 카드 더미의 로컬 좌표
-        Vector3 targetLocalPos = discardPile.DiscardCardTransform.localPosition;
+        Transform discardParent =
+            discardPile.DiscardCardTransform.parent;
 
-        float randomTilt = UnityEngine.Random.Range(-30f, 30f);
+        transform.SetParent(
+            discardParent,
+            true
+        );
 
-        Sequence seq = DOTween.Sequence();
-        seq.Join(transform.DOLocalMove(targetLocalPos, discardDuration).SetEase(Ease.InQuad));
-        seq.Join(transform.DOScale(Vector3.zero, discardDuration).SetEase(Ease.InQuad));
-        seq.Join(transform.DOLocalRotate(new Vector3(0f, 0f, randomTilt), discardDuration, RotateMode.FastBeyond360));
-        seq.Join(cg.DOFade(0f, discardDuration * 0.85f));
+        Vector3 targetLocalPos =
+            discardPile
+                .DiscardCardTransform
+                .localPosition;
 
-        seq.OnComplete(() =>
+        float randomTilt =
+            UnityEngine.Random.Range(
+                -30f,
+                30f
+            );
+
+        Sequence sequence = DOTween.Sequence();
+
+        sequence.Join(
+            transform
+                .DOLocalMove(
+                    targetLocalPos,
+                    discardDuration
+                )
+                .SetEase(Ease.InQuad)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.zero,
+                    discardDuration
+                )
+                .SetEase(Ease.InQuad)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        randomTilt
+                    ),
+                    discardDuration,
+                    RotateMode.FastBeyond360
+                )
+                .SetEase(Ease.OutQuad)
+        );
+
+        sequence.Join(
+            canvasGroup
+                .DOFade(
+                    0f,
+                    discardDuration * 0.85f
+                )
+                .SetEase(Ease.InQuad)
+        );
+
+        sequence.OnComplete(() =>
         {
             discardPile.AddToDiscardPile(cardData);
             Destroy(gameObject);
         });
     }
 
+    // =========================================================
+    // Destroy
+    // =========================================================
+
     private void OnDestroy()
     {
+        KillHoverEnterTween();
+        KillHoverExitTween();
+
         transform.DOKill();
 
         if (currentSelectedCard == this)
         {
             currentSelectedCard = null;
+        }
+    }
+
+    // =========================================================
+    // Static Deselect
+    // =========================================================
+
+    public static void DeselectCurrent()
+    {
+        if (currentSelectedCard == null)
+        {
+            return;
+        }
+
+        KTH_HandCard card = currentSelectedCard;
+
+        card.CancelSelectionState();
+
+        if (KTH_InfoPanel.Instance != null)
+        {
+            KTH_InfoPanel.Instance.CancleInfoPanl();
         }
     }
 }
