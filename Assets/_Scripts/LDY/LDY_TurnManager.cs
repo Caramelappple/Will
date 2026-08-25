@@ -53,10 +53,15 @@ namespace _Scripts.LDY
         ///
         /// 공격의 복귀 애니메이션은 데미지가 들어간 뒤에도 이어지므로,
         /// "마지막 적이 죽었다"와 "연출이 끝났다"는 서로 다른 시점이다. 넘기기 전에 이 값을 볼 것.
+        ///
+        /// 사망 디졸브도 같은 이유로 센다. KTH_GameEndManager는 데미지 한 프레임 뒤에 승리를 판정하는데,
+        /// 이게 없으면 마지막 적이 녹는 도중에 씬이 넘어간다.
         /// </summary>
         public bool IsAnimating()
         {
-            return (moveSystem != null && moveSystem.IsBusy) || (attackSystem != null && attackSystem.IsBusy);
+            return (moveSystem != null && moveSystem.IsBusy)
+                   || (attackSystem != null && attackSystem.IsBusy)
+                   || LDY_DissolveEffect.ActiveCount > 0;
         }
 
         public void EndPlayerTurn()

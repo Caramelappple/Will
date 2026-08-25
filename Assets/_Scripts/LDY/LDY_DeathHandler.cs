@@ -54,7 +54,8 @@ namespace _Scripts.LDY
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(victim.gameObject);
+                // 즉시 파괴 대신 디졸브를 재생한다. 파괴는 destroyOnComplete가 연출 뒤에 한다.
+                LDY_DissolveEffect.PlayOn(victim.gameObject);
                 return;
             }
 

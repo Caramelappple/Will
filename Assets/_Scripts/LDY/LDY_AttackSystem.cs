@@ -224,7 +224,8 @@ namespace _Scripts.LDY
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(target.gameObject);
+                // LDY_DeathHandler와 같게 유지할 것. 파괴는 디졸브가 끝난 뒤에 일어난다.
+                LDY_DissolveEffect.PlayOn(target.gameObject);
                 return;
             }
 
