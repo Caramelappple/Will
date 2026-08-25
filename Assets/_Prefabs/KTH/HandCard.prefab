@@ -573,6 +573,7 @@ GameObject:
   - component: {fileID: 6039921073457620876}
   - component: {fileID: 3401565660252102616}
   - component: {fileID: 4778553135287431493}
+  - component: {fileID: 4684213440564793425}
   m_Layer: 5
   m_Name: HandCard
   m_TagString: Untagged
@@ -665,11 +666,24 @@ MonoBehaviour:
   selectScale: 1.1
   selectMoveY: 100
   selectDuration: 0.5
+  hoverEnterDelay: 0.03
+  hoverExitDelay: 0.12
   drawStartScale: 0.3
   drawDipDistance: 60
   drawHookDistance: 25
   discardDuration: 0.5
-  infoHoverDelay: 0.3
+--- !u!114 &4684213440564793425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4868816943352158173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fdb10e69c7ada84c9a79b6301fda24c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_CardSorting
 --- !u!1 &6966577663820710879
 GameObject:
   m_ObjectHideFlags: 0

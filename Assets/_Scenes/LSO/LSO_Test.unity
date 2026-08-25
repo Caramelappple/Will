@@ -660,6 +660,10 @@ PrefabInstance:
       propertyPath: selectButton
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 5639325343422250549, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: willPanel
+      value: 
+      objectReference: {fileID: 669969723}
     - target: {fileID: 6673985997027937758, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -708,6 +712,10 @@ PrefabInstance:
       propertyPath: arcHeight
       value: 40
       objectReference: {fileID: 0}
+    - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: willPanel
+      value: 
+      objectReference: {fileID: 669969723}
     - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: maxRotation
       value: 15
@@ -3561,6 +3569,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0590d3dc33c63c46abd62ca159688e3, type: 3}
+--- !u!114 &669969723 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2177943842333895888, guid: b0590d3dc33c63c46abd62ca159688e3, type: 3}
+  m_PrefabInstance: {fileID: 669969722}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55a0867c5be487a439e29028b7c178a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!1 &703835177
 GameObject:
   m_ObjectHideFlags: 0

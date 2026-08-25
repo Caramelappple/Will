@@ -1,4 +1,5 @@
 using System;
+using _Scripts.LSO.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,7 +7,8 @@ using UnityEngine.UI;
 public class KTH_DrawButton : MonoBehaviour
 {
     [SerializeField]private Button button;
-
+    [SerializeField]private LSO_WillPanel willPanel;
+    
     // 드로우 요청 이벤트 (KTH_SpawnCard에서 수신)
     public event Action OnDrawRequested;
 
@@ -33,6 +35,9 @@ public class KTH_DrawButton : MonoBehaviour
 
     private void HandleClick()
     {
+        if(willPanel.IsSelecting)
+            return;
+        
         OnDrawRequested?.Invoke();
     }
 

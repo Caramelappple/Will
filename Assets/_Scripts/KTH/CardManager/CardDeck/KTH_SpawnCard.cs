@@ -92,7 +92,10 @@ public class KTH_SpawnCard : MonoBehaviour
         newCard.transform.localRotation = Quaternion.identity;
         newCard.transform.localScale = Vector3.one;
 
-        newCard.Setup(cardData);
+        handLayout.SetupCard(
+            newCard,
+            cardData
+        );
 
         // 2. 드로우 버튼 위치 설정 (시작 위치 저장)
         if (drawButton != null)

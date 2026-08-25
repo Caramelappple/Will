@@ -870,8 +870,6 @@ MonoBehaviour:
       toIndex: 5
     - fromIndex: 5
       toIndex: 6
-  battleSceneName: KTH_SoundManagerScene
-  bossSceneName: KTH_SoundManagerScene
   stageRouterSource: {fileID: 1062778835}
   playerTokenPrefab: {fileID: 5716994852695685956, guid: 7c2553f3730721141925ce06e2410a99, type: 3}
   ldy_play: {fileID: 242891968}
@@ -921,7 +919,7 @@ MonoBehaviour:
   nodeStages:
   - chapter: 1
     nodeIndex: 0
-    stage: {fileID: 11400000, guid: 9efdf403ceebdff47a1b69789d72dd6b, type: 2}
+    stage: {fileID: 11400000, guid: c2ad5c7b371c9f84d871d19659e504eb, type: 2}
   - chapter: 1
     nodeIndex: 6
     stage: {fileID: 11400000, guid: 97c9f405dad1d8449b676a23c536989e, type: 2}

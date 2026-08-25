@@ -1,5 +1,6 @@
 using System;
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.UI;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -35,16 +36,21 @@ public class KTH_HandCard : MonoBehaviour,
     [Header("Discard Animation Settings")]
     [SerializeField] private float discardDuration = 0.35f;
 
+    private LSO_WillPanel willPanel;
+
     private LSO_CardSO cardData;
 
     private bool isSelected;
     private bool isConfirmed;
+    private bool isPlacementMode;
 
     private Vector3 originalLocalPos;
     private float originalZRotation;
 
     private Tween hoverEnterTween;
     private Tween hoverExitTween;
+
+    private KTH_CardSorting cardSorting;
 
     private static KTH_HandCard currentSelectedCard;
 
@@ -62,9 +68,18 @@ public class KTH_HandCard : MonoBehaviour,
     // Setup
     // =========================================================
 
-    public void Setup(LSO_CardSO data)
+    private void Awake()
+    {
+        cardSorting = GetComponent<KTH_CardSorting>();
+    }
+
+    public void Setup(
+        LSO_CardSO data,
+        LSO_WillPanel panel)
     {
         cardData = data;
+        willPanel = panel;
+
         SettingUi();
     }
 
@@ -99,7 +114,14 @@ public class KTH_HandCard : MonoBehaviour,
     {
         KillHoverExitTween();
 
-        if (currentSelectedCard != null)
+        // 윌 선택 중이면 다른 카드 호버 불가
+        if (willPanel != null && willPanel.IsSelecting)
+        {
+            return;
+        }
+
+        if (currentSelectedCard != null &&
+            currentSelectedCard != this)
         {
             return;
         }
@@ -126,7 +148,14 @@ public class KTH_HandCard : MonoBehaviour,
     {
         hoverEnterTween = null;
 
-        if (currentSelectedCard != null)
+        // 윌 선택 중이면 호버 선택 방지
+        if (willPanel != null && willPanel.IsSelecting)
+        {
+            return;
+        }
+
+        if (currentSelectedCard != null &&
+            currentSelectedCard != this)
         {
             return;
         }
@@ -141,14 +170,11 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
-        // 카드 선택 연출
         SetSelected(true);
 
-        // 한 번의 호버로
-        // 인포 패널 표시 + 배치 시작
         if (KTH_InfoPanel.Instance != null)
         {
-            KTH_InfoPanel.Instance.StartHoverPlacement(
+            KTH_InfoPanel.Instance.StartHoverInfo(
                 cardData,
                 this
             );
@@ -158,11 +184,6 @@ public class KTH_HandCard : MonoBehaviour,
     public void OnPointerExit(PointerEventData eventData)
     {
         KillHoverEnterTween();
-
-        if (currentSelectedCard != null)
-        {
-            return;
-        }
 
         if (isConfirmed)
         {
@@ -180,11 +201,6 @@ public class KTH_HandCard : MonoBehaviour,
     private void HandleHoverExit()
     {
         hoverExitTween = null;
-
-        if (currentSelectedCard != null)
-        {
-            return;
-        }
 
         if (isConfirmed)
         {
@@ -213,6 +229,15 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
+        // =====================================================
+        // 윌 선택 중이면 카드 클릭 자체를 차단
+        // =====================================================
+
+        if (willPanel != null && willPanel.IsSelecting)
+        {
+            return;
+        }
+
         KillHoverEnterTween();
         KillHoverExitTween();
 
@@ -222,6 +247,10 @@ public class KTH_HandCard : MonoBehaviour,
             currentSelectedCard.CancelSelectionState();
         }
 
+        // =====================================================
+        // 이미 확정된 카드 다시 클릭
+        // =====================================================
+
         if (isConfirmed)
         {
             CancelSelectionState();
@@ -230,38 +259,91 @@ public class KTH_HandCard : MonoBehaviour,
             {
                 KTH_InfoPanel.Instance.CancleInfoPanl();
             }
+
+            OnCardClicked?.Invoke(this);
+            return;
         }
-        else
+
+        // =====================================================
+        // 클릭 확정 + 배치 시작
+        // =====================================================
+
+        isConfirmed = true;
+        isPlacementMode = true;
+        currentSelectedCard = this;
+
+        SetSelected(true);
+
+        cardSorting?.BringToFront();
+
+        MoveToPlacementCenter();
+
+        if (KTH_InfoPanel.Instance != null)
         {
-            isConfirmed = true;
-            currentSelectedCard = this;
-
-            SetSelected(true);
-
-            if (KTH_InfoPanel.Instance != null)
+            if (KTH_InfoPanel.Instance.CurrentCard != this)
             {
                 KTH_InfoPanel.Instance.StartInfoPanl(
                     cardData,
                     this
                 );
             }
+
+            KTH_InfoPanel.Instance.SelectInfoPanl();
         }
 
         OnCardClicked?.Invoke(this);
     }
 
     // =========================================================
+    // Placement Center
+    // =========================================================
+
+    private void MoveToPlacementCenter()
+    {
+        transform.DOKill();
+
+        Vector3 centerPosition = transform.localPosition;
+        centerPosition.x = 0f;
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(transform);
+
+        sequence.Join(
+            transform
+                .DOLocalMove(
+                    centerPosition,
+                    selectDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        sequence.Join(
+            transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    selectDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.one * selectScale,
+                    selectDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+    }
+
+    // =========================================================
     // Complete Selection State Reset
     // =========================================================
 
-    /// <summary>
-    /// 선택과 관련된 모든 상태를 완전히 초기화한다.
-    /// SetSelected(false)와 달리 클릭 확정 상태와
-    /// static currentSelectedCard까지 함께 제거한다.
-    /// </summary>
     public void CancelSelectionState()
     {
         isConfirmed = false;
+        isPlacementMode = false;
 
         if (currentSelectedCard == this)
         {
@@ -319,11 +401,15 @@ public class KTH_HandCard : MonoBehaviour,
 
         if (isSelected)
         {
+            cardSorting?.BringToFront();
+
             PlaySelectAnimation();
         }
         else
         {
             PlayDeselectAnimation();
+
+            cardSorting?.RestoreSorting();
         }
 
         if (KTH_HandCardLayout.Instance != null)
@@ -345,7 +431,10 @@ public class KTH_HandCard : MonoBehaviour,
 
         sequence.Join(
             transform
-                .DOLocalMove(targetPos, selectDuration)
+                .DOLocalMove(
+                    targetPos,
+                    selectDuration
+                )
                 .SetEase(Ease.OutBack, 0.7f)
         );
 
@@ -432,6 +521,38 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
+        if (isPlacementMode)
+        {
+            Vector3 centerPosition = originalLocalPos;
+            centerPosition.x = 0f;
+            centerPosition.y += selectMoveY;
+
+            transform.DOKill();
+
+            Sequence centerSequence = DOTween.Sequence();
+            centerSequence.SetTarget(transform);
+
+            centerSequence.Join(
+                transform
+                    .DOLocalMove(
+                        centerPosition,
+                        0.15f
+                    )
+                    .SetEase(Ease.OutCubic)
+            );
+
+            centerSequence.Join(
+                transform
+                    .DOLocalRotate(
+                        Vector3.zero,
+                        0.15f
+                    )
+                    .SetEase(Ease.OutCubic)
+            );
+
+            return;
+        }
+
         Vector3 selectedPos = originalLocalPos;
         selectedPos.y += selectMoveY;
 
@@ -442,7 +563,10 @@ public class KTH_HandCard : MonoBehaviour,
 
         sequence.Join(
             transform
-                .DOLocalMove(selectedPos, 0.15f)
+                .DOLocalMove(
+                    selectedPos,
+                    0.15f
+                )
                 .SetEase(Ease.OutCubic)
         );
 
@@ -475,15 +599,8 @@ public class KTH_HandCard : MonoBehaviour,
 
         sequence.Join(
             transform
-                .DOLocalMove(targetPos, duration)
-                .SetDelay(delay)
-                .SetEase(ease)
-        );
-
-        sequence.Join(
-            transform
-                .DOLocalRotate(
-                    new Vector3(0f, 0f, targetRotZ),
+                .DOLocalMove(
+                    targetPos,
                     duration
                 )
                 .SetDelay(delay)
@@ -492,7 +609,24 @@ public class KTH_HandCard : MonoBehaviour,
 
         sequence.Join(
             transform
-                .DOScale(Vector3.one, duration)
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        targetRotZ
+                    ),
+                    duration
+                )
+                .SetDelay(delay)
+                .SetEase(ease)
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    Vector3.one,
+                    duration
+                )
                 .SetDelay(delay)
                 .SetEase(ease)
         );
