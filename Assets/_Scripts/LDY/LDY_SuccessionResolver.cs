@@ -37,6 +37,7 @@ namespace _Scripts.LDY
                 // 계승이 끝났다. 기록이 다음 계승까지 넘어가 팀 판별을 흐리지 않도록 비운다.
                 if (_wasWaiting)
                 {
+                    PlayDeathDissolveOnPending();
                     LDY_DeferredDeaths.Clear();
                     _wasWaiting = false;
                 }
@@ -47,6 +48,26 @@ namespace _Scripts.LDY
             _wasWaiting = true;
 
             HandleSuccessionStarted();
+        }
+
+        /// <summary>
+        /// 유예된 사망이 확정되는 지점. 여기서만 디졸브를 시작한다.
+        ///
+        /// 데미지 시점에 재생하면 계승 대상을 고르는 동안 기물이 사라져 클릭할 것이 없어진다.
+        /// 대기가 풀리는 순간(= DLJ가 대상 선택을 받아들인 순간)이 "이제 확실히 죽는다"가 정해지는 때다.
+        ///
+        /// 실제 Object.Destroy는 DLJ_SuccessionWill.ApplySuccession이 계승 연출이 끝난 뒤에 부르는데,
+        /// 그쪽은 파괴된 참조를 걸러내고 진행하므로 디졸브가 먼저 지워도 문제되지 않는다.
+        /// 반대로 연출이 디졸브보다 먼저 끝나면 DLJ가 파괴하고, 디졸브는 OnDestroy에서 정리된다.
+        /// </summary>
+        private static void PlayDeathDissolveOnPending()
+        {
+            foreach (LDY_Animal victim in LDY_DeferredDeaths.Pending)
+            {
+                if (victim == null) continue;
+
+                LDY_DissolveEffect.PlayOn(victim.gameObject);
+            }
         }
 
         private void HandleSuccessionStarted()

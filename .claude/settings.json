@@ -18,7 +18,8 @@
       "Bash(grep -c m_ShowMaskGraphic Assets/_Prefabs/LSO/WillPanel.prefab)",
       "Bash(echo \"RectMask2D:\")",
       "Bash(grep -c m_Softness Assets/_Prefabs/LSO/WillPanel.prefab)",
-      "Bash(echo \"Image:\")"
+      "Bash(echo \"Image:\")",
+      "Bash(grep -o 'warning CS[0-9]*' __CMDSUB_OUTPUT__/out.txt)"
     ],
     "additionalDirectories": [
       "c:\\Users\\이도윤\\.claude\\projects\\c--Dev-Will\\memory"

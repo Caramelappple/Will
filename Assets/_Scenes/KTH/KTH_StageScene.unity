@@ -870,8 +870,6 @@ MonoBehaviour:
       toIndex: 5
     - fromIndex: 5
       toIndex: 6
-  battleSceneName: KTH_SoundManagerScene
-  bossSceneName: KTH_SoundManagerScene
   stageRouterSource: {fileID: 1062778835}
   playSelectRingAfterMove: 1
   selectRingHoldDuration: 0.25
