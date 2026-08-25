@@ -18,9 +18,6 @@ EditorBuildSettings:
     path: Assets/_Scenes/KTH/KTH_StageScene.unity
     guid: ceb83a3633c7c3149b502ad48d4511e4
   - enabled: 1
-    path: Assets/_Scenes/KTH/KTH_BuildDeckScene.unity
-    guid: 41865fb096a709d449a18e5b3eb88816
-  - enabled: 1
     path: Assets/_Scenes/KTH/KTH_LoadingScene.unity
     guid: 7c7763e920e65074db3a37edc2f0c967
   - enabled: 1

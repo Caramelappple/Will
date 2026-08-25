@@ -451,7 +451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b10c611388f4bc489a4e82f55864277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasScaler: {fileID: 365925209}
 --- !u!114 &365925208
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -761,7 +760,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b10c611388f4bc489a4e82f55864277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasScaler: {fileID: 702044925}
 --- !u!114 &702044924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2110,7 +2108,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3941744508390659837, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3941744508390659837, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 6459078002576491203}
+    - target: {fileID: 3941744508390659837, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RestartScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 3941744508390659837, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: _Scripts.LSO.UI.LSO_MenuActions, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3941744508390659837, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 4286082550720430744, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_IsActive

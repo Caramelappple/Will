@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a8bb26a341113e45b9036ab9dca32d8, type: 3}
+  m_Name: LSO_TurnPalette
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Effect.LSO_TurnPaletteSO
+  playerColor: {r: 1, g: 0.6901961, b: 0.3529412, a: 1}
+  enemyColor: {r: 0.69411767, g: 1, b: 0.80784315, a: 1}
+  transitionDuration: 0.42
+  ease: 4

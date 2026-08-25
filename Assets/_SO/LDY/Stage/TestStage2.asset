@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
   stageName: 
   description: 
-  sceneName: KTH_BuildDeckScene
+  sceneName: LDY_TestScene
   enemies: []
   actionPointsPerTurn: 0
   summonCostPerTurn: 0
