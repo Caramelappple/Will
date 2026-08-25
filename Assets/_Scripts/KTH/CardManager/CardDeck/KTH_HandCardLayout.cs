@@ -409,160 +409,88 @@ public class KTH_HandCardLayout : MonoBehaviour
     // 2단계: 중앙 이동이 끝난 후 나머지 카드를 밀어냄
     // =========================================================
 
-    private void UpdateHandLayoutForPlacement(
-    float duration)
-{
-    if (selectedCard == null)
+    private void UpdateHandLayoutForPlacement(float duration)
     {
-        return;
-    }
-
-    int count =
-        handCards.Count;
-
-    if (count == 0)
-    {
-        return;
-    }
-
-    int selectedIndex =
-        handCards.IndexOf(selectedCard);
-
-    if (selectedIndex < 0)
-    {
-        return;
-    }
-
-    float cardSpacing =
-        CalculatePlacementSpacing(count);
-
-    float centerIndex =
-        (count - 1) * 0.5f;
-
-    // =====================================================
-    // 선택 카드 + 나머지 카드를 동시에 애니메이션
-    // =====================================================
-
-    selectedCard.transform.DOKill();
-    selectedCard.transform.SetAsLastSibling();
-
-    Sequence centerSequence =
-        DOTween.Sequence();
-
-    centerSequence.SetTarget(
-        selectedCard.transform
-    );
-
-    centerSequence.Join(
-        selectedCard.transform
-            .DOLocalMove(
-                Vector3.zero,
-                duration
-            )
-            .SetEase(Ease.OutBack)
-    );
-
-    centerSequence.Join(
-        selectedCard.transform
-            .DOLocalRotate(
-                Vector3.zero,
-                duration
-            )
-            .SetEase(Ease.OutBack)
-    );
-
-    centerSequence.Join(
-        selectedCard.transform
-            .DOScale(
-                Vector3.one *
-                selectedCard.SelectScale,
-                duration
-            )
-            .SetEase(Ease.OutBack)
-    );
-
-    for (int i = 0; i < count; i++)
-    {
-        if (i == selectedIndex)
+        if (selectedCard == null)
         {
-            continue;
+            return;
         }
 
-        KTH_HandCard card =
-            handCards[i];
+        int count = handCards.Count;
 
-        int relativeIndex =
-            i - selectedIndex;
+        if (count == 0)
+        {
+            return;
+        }
 
-        float targetX =
-            -relativeIndex *
-            cardSpacing;
+        int selectedIndex = handCards.IndexOf(selectedCard);
 
-        float normalizedDistance =
-            count > 1
-                ? Mathf.Clamp01(
-                    Mathf.Abs(
-                        (float)relativeIndex
-                    ) /
-                    Mathf.Max(
-                        1f,
-                        centerIndex
-                    )
+        if (selectedIndex < 0)
+        {
+            return;
+        }
+
+        // =====================================================
+        // 선택 카드 중앙 이동
+        // =====================================================
+
+        selectedCard.transform.DOKill();
+        selectedCard.transform.SetAsLastSibling();
+
+        Sequence centerSequence = DOTween.Sequence();
+        centerSequence.SetTarget(selectedCard.transform);
+
+        centerSequence.Join(
+            selectedCard.transform
+                .DOLocalMove(
+                    Vector3.zero,
+                    duration
                 )
-                : 0f;
-
-        float targetY =
-            -normalizedDistance *
-            normalizedDistance *
-            arcHeight;
-
-        float targetRotation =
-            relativeIndex *
-            (maxRotation /
-             Mathf.Max(
-                 1f,
-                 centerIndex
-             ));
-
-        float push =
-            CalculatePushAmount(
-                i,
-                selectedIndex
-            );
-
-        if (i < selectedIndex)
-        {
-            targetX += push;
-        }
-        else
-        {
-            targetX -= push;
-        }
-
-        Vector3 targetPos =
-            new Vector3(
-                targetX,
-                targetY,
-                0f
-            );
-
-        card.transform.SetSiblingIndex(i);
-
-        // 같은 duration, 같은 ease로 함께 움직이도록 통일
-        card.MoveToHandPositionWithDelay(
-            targetPos,
-            targetRotation,
-            duration,
-            0f,
-            Ease.OutBack
+                .SetEase(Ease.OutBack)
         );
 
-        card.UpdateOriginalTransform(
-            targetPos,
-            targetRotation
+        centerSequence.Join(
+            selectedCard.transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    duration
+                )
+                .SetEase(Ease.OutBack)
         );
+
+        centerSequence.Join(
+            selectedCard.transform
+                .DOScale(
+                    Vector3.one * selectedCard.SelectScale,
+                    duration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        // =====================================================
+        // 선택 카드가 중앙으로 이동하는 동안
+        // 주변 카드는 기존 위치에 그대로 둔다.
+        // =====================================================
+
+        // 중앙 이동이 끝난 후 주변 카드를 밀어낸다.
+        centerSequence.OnComplete(() =>
+        {
+            if (selectedCard == null)
+            {
+                return;
+            }
+
+            if (!selectedCard.IsSelected)
+            {
+                return;
+            }
+
+            PushSideCardsForPlacement(
+                selectedIndex,
+                count
+            );
+        });
     }
-}
 
     // =========================================================
     // Push Side Cards
