@@ -43,6 +43,7 @@ public class LDY_MapUIController : MonoBehaviour
         // ★ onMapChanged 발생 시 노드/라인을 전부 재구성하도록 변경
         mapManager.onMapChanged.AddListener(RebuildMap);
         mapManager.OnNodeJustCleared += HandleNodeJustCleared;
+        mapManager.OnNodeSelected += HandleNodeSelected;
 
         RebuildMap();
     }
@@ -53,7 +54,29 @@ public class LDY_MapUIController : MonoBehaviour
         {
             mapManager.onMapChanged.RemoveListener(RebuildMap);
             mapManager.OnNodeJustCleared -= HandleNodeJustCleared;
+            mapManager.OnNodeSelected -= HandleNodeSelected;
         }
+    }
+
+    /// <summary>
+    /// 클릭이 받아들여진 노드. 한 번의 클릭에 한 번만 온다.
+    /// "현재 위치" 표시를 옮기고 링 연출을 재생한다.
+    /// </summary>
+    private void HandleNodeSelected(int nodeIndex)
+    {
+        OnPlayerArrivedAt(nodeIndex);
+        PlaySelectRingAt(nodeIndex);
+    }
+
+    /// <summary>지정한 노드에 선택 링 연출을 재생한다.</summary>
+    public void PlaySelectRingAt(int index)
+    {
+        if (index < 0 || index >= nodeViews.Count) return;
+
+        LDY_MapNodeView view = nodeViews[index];
+        if (view == null) return;
+
+        view.PlaySelectRing();
     }
 
     // 방금 클리어한 노드가 하나 있을 때만 불린다. 맵이 다 자리잡은 뒤라 노드 뷰가 더 지워지지 않는다.
