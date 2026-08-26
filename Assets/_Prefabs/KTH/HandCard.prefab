@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8340976328364929680
 RectTransform:
   m_ObjectHideFlags: 0
@@ -574,6 +574,7 @@ GameObject:
   - component: {fileID: 3401565660252102616}
   - component: {fileID: 4778553135287431493}
   - component: {fileID: 4684213440564793425}
+  - component: {fileID: 1957502303724078401}
   m_Layer: 5
   m_Name: HandCard
   m_TagString: Untagged
@@ -666,12 +667,12 @@ MonoBehaviour:
   selectScale: 1.1
   selectMoveY: 100
   selectDuration: 0.5
-  hoverEnterDelay: 0.03
+  hoverEnterDelay: 0.02
   hoverExitDelay: 0.12
+  infoPanelHoverDelay: 0.5
   drawStartScale: 0.3
   drawDipDistance: 60
   drawHookDistance: 25
-  discardDuration: 0.5
 --- !u!114 &4684213440564793425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -684,6 +685,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fdb10e69c7ada84c9a79b6301fda24c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_CardSorting
+--- !u!114 &1957502303724078401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4868816943352158173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81de8a477bc290d4ca69ed6d7913b245, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardAnimation
+  discardDuration: 0.25
+  minRandomTilt: 5
+  maxRandomTilt: 15
+  minStackOffset: 3
+  maxStackOffset: 5
+  landingDuration: 0.08
+  landingScale: 0.96
+  shadowBoost: 1.8
+  shadowDuration: 0.12
 --- !u!1 &6966577663820710879
 GameObject:
   m_ObjectHideFlags: 0

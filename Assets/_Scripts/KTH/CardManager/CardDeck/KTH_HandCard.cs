@@ -27,28 +27,27 @@ public class KTH_HandCard : MonoBehaviour,
     [Header("Hover Settings")]
     [SerializeField] private float hoverEnterDelay = 0.03f;
     [SerializeField] private float hoverExitDelay = 0.12f;
+    [SerializeField] private float infoPanelHoverDelay = 0.5f;
 
     [Header("Draw Animation Settings")]
     [SerializeField] private float drawStartScale = 0.3f;
     [SerializeField] private float drawDipDistance = 60f;
     [SerializeField] private float drawHookDistance = 25f;
 
-    [Header("Discard Animation Settings")]
-    [SerializeField] private float discardDuration = 0.35f;
-
     private LSO_WillPanel willPanel;
-
     private LSO_CardSO cardData;
 
     private bool isSelected;
     private bool isConfirmed;
     private bool isPlacementMode;
+    private bool isPointerOver;
 
     private Vector3 originalLocalPos;
     private float originalZRotation;
 
     private Tween hoverEnterTween;
     private Tween hoverExitTween;
+    private Tween infoPanelTween;
 
     private KTH_CardSorting cardSorting;
 
@@ -57,16 +56,14 @@ public class KTH_HandCard : MonoBehaviour,
     public LSO_CardSO CardData => cardData;
     public bool IsSelected => isSelected;
     public bool IsConfirmed => isConfirmed;
+    public bool IsPlacementMode => isPlacementMode;
     public float SelectScale => selectScale;
 
     public static bool HasConfirmedSelection =>
-        currentSelectedCard != null;
+        currentSelectedCard != null &&
+        currentSelectedCard.isConfirmed;
 
     public event Action<KTH_HandCard> OnCardClicked;
-
-    // =========================================================
-    // Setup
-    // =========================================================
 
     private void Awake()
     {
@@ -106,71 +103,101 @@ public class KTH_HandCard : MonoBehaviour,
         outlineImage.gameObject.SetActive(false);
     }
 
-    // =========================================================
-    // Hover
-    // =========================================================
-
-    public void OnPointerEnter(PointerEventData eventData)
+    public void OnPointerEnter(
+        PointerEventData eventData)
     {
+        isPointerOver = true;
+
         KillHoverExitTween();
 
-        // 윌 선택 중이면 다른 카드 호버 불가
-        if (willPanel != null && willPanel.IsSelecting)
+        if (willPanel != null &&
+            willPanel.IsSelecting)
         {
             return;
         }
 
         if (currentSelectedCard != null &&
-            currentSelectedCard != this)
+            currentSelectedCard != this &&
+            currentSelectedCard.isConfirmed)
         {
             return;
         }
 
-        if (cardData == null)
-        {
-            return;
-        }
-
-        if (isSelected)
+        if (cardData == null ||
+            isSelected)
         {
             return;
         }
 
         KillHoverEnterTween();
 
-        hoverEnterTween = DOVirtual.DelayedCall(
-            hoverEnterDelay,
-            HandleHoverEnter
-        );
+        hoverEnterTween =
+            DOVirtual.DelayedCall(
+                hoverEnterDelay,
+                HandleHoverEnter
+            );
     }
 
     private void HandleHoverEnter()
     {
         hoverEnterTween = null;
 
-        // 윌 선택 중이면 호버 선택 방지
-        if (willPanel != null && willPanel.IsSelecting)
+        if (!isPointerOver)
+        {
+            return;
+        }
+
+        if (willPanel != null &&
+            willPanel.IsSelecting)
         {
             return;
         }
 
         if (currentSelectedCard != null &&
-            currentSelectedCard != this)
+            currentSelectedCard != this &&
+            currentSelectedCard.isConfirmed)
         {
             return;
         }
 
-        if (cardData == null)
-        {
-            return;
-        }
-
-        if (isSelected)
+        if (cardData == null ||
+            isSelected)
         {
             return;
         }
 
         SetSelected(true);
+
+        StartInfoPanelDelay();
+    }
+
+    private void StartInfoPanelDelay()
+    {
+        KillInfoPanelTween();
+
+        if (isConfirmed)
+        {
+            return;
+        }
+
+        infoPanelTween =
+            DOVirtual.DelayedCall(
+                infoPanelHoverDelay,
+                ShowHoverInfo
+            );
+    }
+
+    private void ShowHoverInfo()
+    {
+        infoPanelTween = null;
+
+        if (!isPointerOver ||
+            !isSelected ||
+            isConfirmed ||
+            cardData == null)
+        {
+            return;
+        }
 
         if (KTH_InfoPanel.Instance != null)
         {
@@ -181,9 +208,13 @@ public class KTH_HandCard : MonoBehaviour,
         }
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnPointerExit(
+        PointerEventData eventData)
     {
+        isPointerOver = false;
+
         KillHoverEnterTween();
+        KillInfoPanelTween();
 
         if (isConfirmed)
         {
@@ -192,24 +223,28 @@ public class KTH_HandCard : MonoBehaviour,
 
         KillHoverExitTween();
 
-        hoverExitTween = DOVirtual.DelayedCall(
-            hoverExitDelay,
-            HandleHoverExit
-        );
+        hoverExitTween =
+            DOVirtual.DelayedCall(
+                hoverExitDelay,
+                HandleHoverExit
+            );
     }
 
     private void HandleHoverExit()
     {
         hoverExitTween = null;
 
-        if (isConfirmed)
+        if (isPointerOver ||
+            isConfirmed)
         {
             return;
         }
 
         if (KTH_InfoPanel.Instance != null)
         {
-            KTH_InfoPanel.Instance.CancelHoverSelection(this);
+            KTH_InfoPanel.Instance.CancelHoverSelection(
+                this
+            );
         }
 
         if (isSelected)
@@ -218,38 +253,30 @@ public class KTH_HandCard : MonoBehaviour,
         }
     }
 
-    // =========================================================
-    // Click
-    // =========================================================
-
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerClick(
+        PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left)
+        if (eventData.button !=
+            PointerEventData.InputButton.Left)
         {
             return;
         }
 
-        // =====================================================
-        // 윌 선택 중이면 카드 클릭 자체를 차단
-        // =====================================================
-
-        if (willPanel != null && willPanel.IsSelecting)
+        if (willPanel != null &&
+            willPanel.IsSelecting)
         {
             return;
         }
 
         KillHoverEnterTween();
         KillHoverExitTween();
+        KillInfoPanelTween();
 
         if (currentSelectedCard != null &&
             currentSelectedCard != this)
         {
             currentSelectedCard.CancelSelectionState();
         }
-
-        // =====================================================
-        // 이미 확정된 카드 다시 클릭
-        // =====================================================
 
         if (isConfirmed)
         {
@@ -264,19 +291,20 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
-        // =====================================================
-        // 클릭 확정 + 배치 시작
-        // =====================================================
-
         isConfirmed = true;
         isPlacementMode = true;
-        currentSelectedCard = this;
 
-        SetSelected(true);
+        currentSelectedCard = this;
 
         cardSorting?.BringToFront();
 
-        MoveToPlacementCenter();
+        SetSelected(true);
+
+        KTH_HandCardLayout.Instance?.EnterPlacementMode(
+            this
+        );
+
+        transform.SetAsLastSibling();
 
         if (KTH_InfoPanel.Instance != null)
         {
@@ -294,54 +322,10 @@ public class KTH_HandCard : MonoBehaviour,
         OnCardClicked?.Invoke(this);
     }
 
-    // =========================================================
-    // Placement Center
-    // =========================================================
-
-    private void MoveToPlacementCenter()
-    {
-        transform.DOKill();
-
-        Vector3 centerPosition = transform.localPosition;
-        centerPosition.x = 0f;
-
-        Sequence sequence = DOTween.Sequence();
-        sequence.SetTarget(transform);
-
-        sequence.Join(
-            transform
-                .DOLocalMove(
-                    centerPosition,
-                    selectDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        sequence.Join(
-            transform
-                .DOLocalRotate(
-                    Vector3.zero,
-                    selectDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        sequence.Join(
-            transform
-                .DOScale(
-                    Vector3.one * selectScale,
-                    selectDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-    }
-
-    // =========================================================
-    // Complete Selection State Reset
-    // =========================================================
-
     public void CancelSelectionState()
     {
+        bool wasPlacementMode = isPlacementMode;
+
         isConfirmed = false;
         isPlacementMode = false;
 
@@ -352,13 +336,15 @@ public class KTH_HandCard : MonoBehaviour,
 
         KillHoverEnterTween();
         KillHoverExitTween();
+        KillInfoPanelTween();
 
         SetSelected(false);
-    }
 
-    // =========================================================
-    // Tween
-    // =========================================================
+        if (wasPlacementMode)
+        {
+            KTH_HandCardLayout.Instance?.ExitPlacementMode();
+        }
+    }
 
     private void KillHoverEnterTween()
     {
@@ -382,9 +368,16 @@ public class KTH_HandCard : MonoBehaviour,
         hoverExitTween = null;
     }
 
-    // =========================================================
-    // Select
-    // =========================================================
+    private void KillInfoPanelTween()
+    {
+        if (infoPanelTween == null)
+        {
+            return;
+        }
+
+        infoPanelTween.Kill();
+        infoPanelTween = null;
+    }
 
     public void SetSelected(bool value)
     {
@@ -397,36 +390,46 @@ public class KTH_HandCard : MonoBehaviour,
 
         transform.DOKill();
 
-        outlineImage.gameObject.SetActive(isSelected);
+        outlineImage.gameObject.SetActive(
+            isSelected
+        );
 
         if (isSelected)
         {
             cardSorting?.BringToFront();
-
             PlaySelectAnimation();
         }
         else
         {
             PlayDeselectAnimation();
-
             cardSorting?.RestoreSorting();
         }
 
         if (KTH_HandCardLayout.Instance != null)
         {
-            KTH_HandCardLayout.Instance.OnCardSelectionChanged(
-                this,
-                isSelected
-            );
+            KTH_HandCardLayout.Instance
+                .OnCardSelectionChanged(
+                    this,
+                    isSelected
+                );
         }
     }
 
     private void PlaySelectAnimation()
     {
-        Vector3 targetPos = originalLocalPos;
+        if (isPlacementMode)
+        {
+            return;
+        }
+
+        Vector3 targetPos =
+            originalLocalPos;
+
         targetPos.y += selectMoveY;
 
-        Sequence sequence = DOTween.Sequence();
+        Sequence sequence =
+            DOTween.Sequence();
+
         sequence.SetTarget(transform);
 
         sequence.Join(
@@ -435,7 +438,10 @@ public class KTH_HandCard : MonoBehaviour,
                     targetPos,
                     selectDuration
                 )
-                .SetEase(Ease.OutBack, 0.7f)
+                .SetEase(
+                    Ease.OutBack,
+                    0.7f
+                )
         );
 
         sequence.Join(
@@ -444,22 +450,18 @@ public class KTH_HandCard : MonoBehaviour,
                     Vector3.one * selectScale,
                     selectDuration
                 )
-                .SetEase(Ease.OutBack, 0.7f)
-        );
-
-        sequence.Join(
-            transform
-                .DOLocalRotate(
-                    Vector3.zero,
-                    selectDuration
+                .SetEase(
+                    Ease.OutBack,
+                    0.7f
                 )
-                .SetEase(Ease.OutBack, 0.7f)
         );
     }
 
     private void PlayDeselectAnimation()
     {
-        Sequence sequence = DOTween.Sequence();
+        Sequence sequence =
+            DOTween.Sequence();
+
         sequence.SetTarget(transform);
 
         sequence.Join(
@@ -494,20 +496,21 @@ public class KTH_HandCard : MonoBehaviour,
         );
     }
 
-    // =========================================================
-    // Spawn
-    // =========================================================
-
-    public void SetSpawnPosition(Vector3 worldPos)
+    public void SetSpawnPosition(
+        Vector3 worldPos)
     {
         transform.position = worldPos;
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
 
-    // =========================================================
-    // Layout
-    // =========================================================
+    public void SetOriginalTransformSilently(
+        Vector3 pos,
+        float zRot)
+    {
+        originalLocalPos = pos;
+        originalZRotation = zRot;
+    }
 
     public void UpdateOriginalTransform(
         Vector3 pos,
@@ -515,69 +518,6 @@ public class KTH_HandCard : MonoBehaviour,
     {
         originalLocalPos = pos;
         originalZRotation = zRot;
-
-        if (!isSelected)
-        {
-            return;
-        }
-
-        if (isPlacementMode)
-        {
-            Vector3 centerPosition = originalLocalPos;
-            centerPosition.x = 0f;
-            centerPosition.y += selectMoveY;
-
-            transform.DOKill();
-
-            Sequence centerSequence = DOTween.Sequence();
-            centerSequence.SetTarget(transform);
-
-            centerSequence.Join(
-                transform
-                    .DOLocalMove(
-                        centerPosition,
-                        0.15f
-                    )
-                    .SetEase(Ease.OutCubic)
-            );
-
-            centerSequence.Join(
-                transform
-                    .DOLocalRotate(
-                        Vector3.zero,
-                        0.15f
-                    )
-                    .SetEase(Ease.OutCubic)
-            );
-
-            return;
-        }
-
-        Vector3 selectedPos = originalLocalPos;
-        selectedPos.y += selectMoveY;
-
-        transform.DOKill();
-
-        Sequence sequence = DOTween.Sequence();
-        sequence.SetTarget(transform);
-
-        sequence.Join(
-            transform
-                .DOLocalMove(
-                    selectedPos,
-                    0.15f
-                )
-                .SetEase(Ease.OutCubic)
-        );
-
-        sequence.Join(
-            transform
-                .DOLocalRotate(
-                    Vector3.zero,
-                    0.15f
-                )
-                .SetEase(Ease.OutCubic)
-        );
     }
 
     public void MoveToHandPositionWithDelay(
@@ -594,7 +534,9 @@ public class KTH_HandCard : MonoBehaviour,
 
         transform.DOKill();
 
-        Sequence sequence = DOTween.Sequence();
+        Sequence sequence =
+            DOTween.Sequence();
+
         sequence.SetTarget(transform);
 
         sequence.Join(
@@ -632,10 +574,6 @@ public class KTH_HandCard : MonoBehaviour,
         );
     }
 
-    // =========================================================
-    // Draw
-    // =========================================================
-
     public void PlayDrawAnimation(
         Vector3 targetLocalPos,
         float targetZRotation,
@@ -649,21 +587,26 @@ public class KTH_HandCard : MonoBehaviour,
         transform.localScale =
             Vector3.one * drawStartScale;
 
-        Vector3 startPos = transform.localPosition;
+        Vector3 startPos =
+            transform.localPosition;
 
-        Vector3 midPos = Vector3.Lerp(
-            startPos,
-            targetLocalPos,
-            0.5f
-        );
+        Vector3 midPos =
+            Vector3.Lerp(
+                startPos,
+                targetLocalPos,
+                0.5f
+            );
 
         midPos.y -= drawDipDistance;
 
-        Vector3 preTargetPos = targetLocalPos;
+        Vector3 preTargetPos =
+            targetLocalPos;
+
         preTargetPos.y -= drawHookDistance;
 
         preTargetPos.x -=
-            (targetLocalPos.x - startPos.x) * 0.08f;
+            (targetLocalPos.x - startPos.x) *
+            0.08f;
 
         Vector3[] path =
         {
@@ -673,7 +616,9 @@ public class KTH_HandCard : MonoBehaviour,
             targetLocalPos
         };
 
-        Sequence sequence = DOTween.Sequence();
+        Sequence sequence =
+            DOTween.Sequence();
+
         sequence.SetTarget(transform);
 
         sequence.Join(
@@ -709,10 +654,6 @@ public class KTH_HandCard : MonoBehaviour,
         );
     }
 
-    // =========================================================
-    // Consume
-    // =========================================================
-
     public void ConsumeAndRearrange(
         KTH_DiscardCardUI discardPile = null)
     {
@@ -722,121 +663,49 @@ public class KTH_HandCard : MonoBehaviour,
 
         if (KTH_HandCardLayout.Instance != null)
         {
-            KTH_HandCardLayout.Instance.RemoveCard(this);
+            KTH_HandCardLayout.Instance.RemoveCard(
+                this
+            );
         }
 
-        if (discardPile != null &&
-            discardPile.DiscardCardTransform != null)
+        if (discardPile == null ||
+            discardPile.DiscardCardTransform == null)
         {
-            PlayDiscardAnimation(discardPile);
+            Destroy(gameObject);
+            return;
         }
-        else
+
+        KTH_DiscardAnimation discardAnimation =
+            discardPile.GetComponent<KTH_DiscardAnimation>();
+
+        if (discardAnimation == null)
         {
-            Debug.LogWarning(
-                $"[KTH_HandCard] discardPile이 비어있어 " +
-                $"'{(cardData != null ? cardData.name : "Unknown")}' " +
-                $"카드가 버린 카드 더미에 기록되지 않고 파괴됩니다!"
+            discardAnimation =
+                FindAnyObjectByType<KTH_DiscardAnimation>();
+        }
+
+        if (discardAnimation == null)
+        {
+            discardPile.AddToDiscardPile(
+                cardData
             );
 
             Destroy(gameObject);
-        }
-    }
-
-    // =========================================================
-    // Discard
-    // =========================================================
-
-    private void PlayDiscardAnimation(
-        KTH_DiscardCardUI discardPile)
-    {
-        CanvasGroup canvasGroup =
-            GetComponent<CanvasGroup>();
-
-        if (canvasGroup == null)
-        {
-            canvasGroup =
-                gameObject.AddComponent<CanvasGroup>();
+            return;
         }
 
-        canvasGroup.blocksRaycasts = false;
-
-        Transform discardParent =
-            discardPile.DiscardCardTransform.parent;
-
-        transform.SetParent(
-            discardParent,
-            true
+        discardAnimation.Play(
+            this,
+            discardPile,
+            cardData
         );
-
-        Vector3 targetLocalPos =
-            discardPile
-                .DiscardCardTransform
-                .localPosition;
-
-        float randomTilt =
-            UnityEngine.Random.Range(
-                -30f,
-                30f
-            );
-
-        Sequence sequence = DOTween.Sequence();
-
-        sequence.Join(
-            transform
-                .DOLocalMove(
-                    targetLocalPos,
-                    discardDuration
-                )
-                .SetEase(Ease.InQuad)
-        );
-
-        sequence.Join(
-            transform
-                .DOScale(
-                    Vector3.zero,
-                    discardDuration
-                )
-                .SetEase(Ease.InQuad)
-        );
-
-        sequence.Join(
-            transform
-                .DOLocalRotate(
-                    new Vector3(
-                        0f,
-                        0f,
-                        randomTilt
-                    ),
-                    discardDuration,
-                    RotateMode.FastBeyond360
-                )
-                .SetEase(Ease.OutQuad)
-        );
-
-        sequence.Join(
-            canvasGroup
-                .DOFade(
-                    0f,
-                    discardDuration * 0.85f
-                )
-                .SetEase(Ease.InQuad)
-        );
-
-        sequence.OnComplete(() =>
-        {
-            discardPile.AddToDiscardPile(cardData);
-            Destroy(gameObject);
-        });
     }
-
-    // =========================================================
-    // Destroy
-    // =========================================================
 
     private void OnDestroy()
     {
         KillHoverEnterTween();
         KillHoverExitTween();
+        KillInfoPanelTween();
 
         transform.DOKill();
 
@@ -846,10 +715,6 @@ public class KTH_HandCard : MonoBehaviour,
         }
     }
 
-    // =========================================================
-    // Static Deselect
-    // =========================================================
-
     public static void DeselectCurrent()
     {
         if (currentSelectedCard == null)
@@ -857,7 +722,8 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
-        KTH_HandCard card = currentSelectedCard;
+        KTH_HandCard card =
+            currentSelectedCard;
 
         card.CancelSelectionState();
 

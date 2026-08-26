@@ -83,6 +83,9 @@ public class KTH_DeckManager : MonoBehaviour
         if (library == null)
         {
             Debug.LogWarning("[KTH_DeckManager] ItemLibraryManager가 없어 인스펙터에 넣어둔 덱을 그대로 씁니다.");
+
+            // 인스펙터에 미리 넣어둔 덱도 시작할 때 한 번 셔플해준다.
+            ShuffleList(deck);
             return;
         }
 
@@ -104,7 +107,10 @@ public class KTH_DeckManager : MonoBehaviour
             deck.Add(card);
         }
 
-        Debug.Log($"[KTH_DeckManager] 보유 카드 {deck.Count}장을 덱에 로드했습니다.");
+        // 시작할 때 덱을 한 번 셔플한다.
+        ShuffleList(deck);
+
+        Debug.Log($"[KTH_DeckManager] 보유 카드 {deck.Count}장을 덱에 로드하고 셔플했습니다.");
     }
 
     /// <summary>

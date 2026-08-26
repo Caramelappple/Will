@@ -664,6 +664,22 @@ PrefabInstance:
       propertyPath: willPanel
       value: 
       objectReference: {fileID: 669969723}
+    - target: {fileID: 5639325343422250549, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: turnManager
+      value: 
+      objectReference: {fileID: 944642614}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: discardCountText
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: discardCardPrefab
+      value: 
+      objectReference: {fileID: 4778553135287431493, guid: 4866ed4a06a7922409ff39120982d3d8, type: 3}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: drawPileTransform
+      value: 
+      objectReference: {fileID: 163273565}
     - target: {fileID: 6673985997027937758, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -717,6 +733,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 669969723}
     - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: pushAmount
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: maxRotation
       value: 15
       objectReference: {fileID: 0}
@@ -725,16 +745,27 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: placementCenterGap
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: placementMoveDownDistance
       value: 400
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5455802845873586488, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
     m_RemovedGameObjects:
     - {fileID: 6673985997027937758, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
     - {fileID: 1551348659607852783, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+    - {fileID: 7873947199974106590, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+--- !u!224 &163273565 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7863832342449520585, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+  m_PrefabInstance: {fileID: 163273564}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &165363250
 GameObject:
   m_ObjectHideFlags: 0
