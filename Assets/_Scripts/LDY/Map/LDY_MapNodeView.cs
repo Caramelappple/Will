@@ -31,6 +31,19 @@ public class LDY_MapNodeView : MonoBehaviour
     [Tooltip("팝 하는 순간 아이콘이 잠깐 커지는 배율. 원래 크기 대비 값이다.")]
     [SerializeField, Range(1f, 2f)] private float clearPopScale = 1.35f;
 
+    /// <summary>
+    /// 진입 판정을 통과한 노드 클릭을 알린다. 클릭 연출(링 등)을 붙이기 위한 신호일 뿐이라
+    /// 여기에 아무도 붙어있지 않아도 맵 동작은 그대로다.
+    ///
+    /// static인 이유: 노드 뷰는 맵이 갱신될 때마다 통째로 다시 만들어지므로(LDY_MapUIController.RebuildMap)
+    /// 인스턴스 이벤트로 두면 연출 쪽이 매번 다시 구독해야 한다.
+    /// 구독하는 쪽은 반드시 OnDisable/OnDestroy에서 해제할 것. static 이벤트는 씬을 넘겨도 살아남는다.
+    ///
+    /// System.Action을 풀네임으로 쓴 이유: 이 파일은 UnityEngine을 열어두고 Random.Range를 쓰는데,
+    /// using System;을 얹으면 System.Random과 겹쳐 CS0104가 난다.
+    /// </summary>
+    public static event System.Action<LDY_MapNodeView> NodeSelected;
+
     public RectTransform RectTransform => (RectTransform)transform;
     public int NodeIndex { get; private set; }
 
@@ -141,6 +154,15 @@ public class LDY_MapNodeView : MonoBehaviour
     }
 
     /// <summary>
+    /// 이 노드가 선택됐다고 알린다. 링 연출이 여기에 붙는다.
+    /// 매니저가 타이밍을 정해 LDY_MapUIController를 거쳐 불러준다.
+    /// </summary>
+    public void PlaySelectRing()
+    {
+        NodeSelected?.Invoke(this);
+    }
+
+    /// <summary>
     /// 클리어 표시(X)가 찍히는 순간을 한 번 보여준다.
     ///
     /// Refresh()가 이미 스프라이트를 X로 바꿔둔 뒤에 불린다. 여기서는 그 X를 투명한 상태에서
@@ -236,11 +258,12 @@ public class LDY_MapNodeView : MonoBehaviour
     private void HandleClick()
     {
         // 클릭 시 곧바로 이동하고자 하는 노드의 ScreenUV 기준 전환 이벤트 실행
+        //
+        // 연출과 "현재 위치" 표시는 여기서 건드리지 않는다. 클릭이 받아들여졌는지, 토큰이
+        // 언제 도착하는지는 매니저만 알기 때문이다. 매니저가 OnNodeSelected로 알려주면
+        // LDY_MapUIController가 받아서 이 뷰의 PlaySelectRing()을 부른다.
         if (manager != null)
-        {
-            uiController?.OnPlayerArrivedAt(NodeIndex);
             manager.OnNodeClicked(NodeIndex, GetScreenUV());
-        }
     }
 
     // 씬 전환 연출의 중심점으로 사용하기 위한 노드의 화면 비율 좌표(0~1) 계산

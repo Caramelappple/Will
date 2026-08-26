@@ -15,7 +15,7 @@ namespace _Scripts.LSO.UI
 
         [Header("연출 설정")]
         [Tooltip("축소 비율")]
-        [SerializeField, Range(0.5f, 1f)] private float shrinkRatio = 0.92f;
+        [SerializeField, Range(0.5f, 1.5f)] private float shrinkRatio = 0.92f;
 
         [Tooltip("축소 시간")]
         [SerializeField, Min(0f)] private float shrinkDuration = 0.07f;
@@ -37,6 +37,10 @@ namespace _Scripts.LSO.UI
 
         protected Transform Target => target != null ? target : transform;
 
+        protected Vector3 OriginalScale => _originalScale;
+
+        protected bool IgnoreTimeScale => ignoreTimeScale;
+
         protected virtual void Awake()
         {
             _originalScale = Target.localScale;
@@ -52,6 +56,22 @@ namespace _Scripts.LSO.UI
             _tween = DOTween.Sequence()
                 .Append(Target.DOScale(_originalScale * shrinkRatio, shrinkDuration).SetEase(easeIn))
                 .Append(Target.DOScale(_originalScale, restoreDuration).SetEase(easeOut))
+                .SetUpdate(ignoreTimeScale)
+                .SetLink(gameObject);
+        }
+
+        /// <summary>
+        /// 원래 크기의 ratio배로 옮기고 그대로 둔다.
+        ///
+        /// Play가 축소 후 스스로 되돌아오는 것과 달리 이쪽은 도착한 자리에 머문다.
+        /// 커서를 올려둔 동안 커진 채로 있어야 하는 연출에 쓴다.
+        /// </summary>
+        protected void ScaleTo(float ratio, float duration, Ease ease)
+        {
+            KillTween();
+
+            _tween = Target.DOScale(_originalScale * ratio, duration)
+                .SetEase(ease)
                 .SetUpdate(ignoreTimeScale)
                 .SetLink(gameObject);
         }

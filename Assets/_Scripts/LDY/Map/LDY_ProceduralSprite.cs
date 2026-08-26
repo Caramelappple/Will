@@ -24,7 +24,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
@@ -53,7 +53,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
@@ -87,7 +87,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         float center = height * 0.5f;
@@ -110,7 +110,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         float centerY = height * 0.5f;
@@ -143,7 +143,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
@@ -170,7 +170,7 @@ public static class LDY_ProceduralSprite
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
         {
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear
+            filterMode = FilterMode.Point
         };
 
         for (int y = 0; y < size; y++)

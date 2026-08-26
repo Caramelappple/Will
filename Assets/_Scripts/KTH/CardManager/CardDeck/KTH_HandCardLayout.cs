@@ -1,74 +1,651 @@
+using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.UI;
+using DG.Tweening;
 using UnityEngine;
 
 public class KTH_HandCardLayout : MonoBehaviour
 {
     public static KTH_HandCardLayout Instance { get; private set; }
 
+    [Header("References")]
+    [SerializeField] private LSO_WillPanel willPanel;
+
     [Header("Arc Layout Settings")]
-    [Tooltip("카드 간의 horizontal 간격 (값이 작을수록 카드가 많이 겹침)")]
-    [SerializeField] private float cardSpacing = 75f;
+    [SerializeField] private float maxCardSpacing = 200f;
+    [SerializeField] private float minCardSpacing = 60f;
+    [SerializeField] private float maxHandWidth = 800f;
+    [SerializeField] private float arcHeight = 40f;
+    [SerializeField] private float maxRotation = 15f;
 
-    [Tooltip("중앙과 양 끝 카드의 Y축 높이 차이 (곡선 휘어짐 정도)")]
-    [SerializeField] private float arcHeight = 6f;
+    [Header("Organic Motion Settings")]
+    [SerializeField] private float staggerDelay = 0.025f;
+    [SerializeField] private Ease moveEase = Ease.OutCubic;
 
-    [Tooltip("양 끝 카드의 최대 Z축 기울기 각도")]
-    [SerializeField] private float maxRotation = 6f;
+    [Header("Hand Settings")]
+    [SerializeField] private int maxHandSize = 8;
 
     [Header("Draw Animation Settings")]
     [SerializeField] private float drawDuration = 0.4f;
 
-    private readonly List<KTH_HandCard> handCards = new List<KTH_HandCard>();
+    [Header("Selection Push Settings")]
+    [SerializeField] private float pushAmount = 60f;
+    [SerializeField] private float pushDuration = 0.28f;
+    [SerializeField] private float farCardPushMultiplier = 0.5f;
+
+    [Header("Placement Mode Settings")]
+    [SerializeField] private bool enableMoveDown;
+    [SerializeField] private float placementMoveDownDistance = 150f;
+    [SerializeField] private float placementMoveDuration = 0.3f;
+    [SerializeField] private float placementCenterGap = 140f;
+
+    private readonly List<KTH_HandCard> handCards =
+        new List<KTH_HandCard>();
+
+    private Vector3 originalContainerLocalPos;
+    private bool isCurrentlyDown;
+    private KTH_HandCard selectedCard;
+
+    public int HandCount => handCards.Count;
+
+    public int MaxHandSize
+    {
+        get => maxHandSize;
+        set => maxHandSize = value;
+    }
+
+    public bool IsFull =>
+        maxHandSize > 0 &&
+        handCards.Count >= maxHandSize;
+
+    public event Action<int, int> OnHandCountChanged;
 
     private void Awake()
     {
         Instance = this;
+
+        originalContainerLocalPos =
+            transform.localPosition;
     }
 
-    public void AddCard(KTH_HandCard card)
+    private void OnDestroy()
     {
-        if (card == null || handCards.Contains(card)) return;
-
-        handCards.Add(card);
-        UpdateHandLayout(card);
-    }
-
-    public void RemoveCard(KTH_HandCard card)
-    {
-        if (handCards.Remove(card))
+        if (Instance == this)
         {
-            UpdateHandLayout(null);
+            Instance = null;
         }
     }
 
-    public void UpdateHandLayout(KTH_HandCard newlyDrawnCard = null, float duration = 0.35f)
+    public void SetupCard(
+        KTH_HandCard card,
+        LSO_CardSO cardData)
     {
-        int count = handCards.Count;
-        if (count == 0) return;
+        if (card == null)
+        {
+            return;
+        }
 
-        float centerIndex = (count - 1) / 2f;
+        card.Setup(
+            cardData,
+            willPanel
+        );
+    }
+
+    public bool CanAddCard()
+    {
+        return !IsFull;
+    }
+
+    public bool AddCard(KTH_HandCard card)
+    {
+        return AddCard(
+            card,
+            false
+        );
+    }
+
+    public bool AddCard(
+        KTH_HandCard card,
+        Vector3 spawnerWorldPos)
+    {
+        bool insertAtFront =
+            spawnerWorldPos.x >= 0f;
+
+        return AddCard(
+            card,
+            insertAtFront
+        );
+    }
+
+    public bool AddCard(
+        KTH_HandCard card,
+        bool insertAtFront)
+    {
+        if (card == null)
+        {
+            return false;
+        }
+
+        if (handCards.Contains(card))
+        {
+            return false;
+        }
+
+        if (IsFull)
+        {
+            return false;
+        }
+
+        KTH_HandCard.DeselectCurrent();
+
+        if (insertAtFront)
+        {
+            handCards.Insert(
+                0,
+                card
+            );
+        }
+        else
+        {
+            handCards.Add(card);
+        }
+
+        UpdateHandLayout(card);
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
+
+        return true;
+    }
+
+    public void RemoveCard(
+        KTH_HandCard card)
+    {
+        if (selectedCard == card)
+        {
+            selectedCard = null;
+        }
+
+        if (!handCards.Remove(card))
+        {
+            return;
+        }
+
+        UpdateHandLayout(
+            null,
+            pushDuration,
+            false
+        );
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
+    }
+
+    public void OnCardSelectionChanged(
+        KTH_HandCard card,
+        bool selected)
+    {
+        if (selected)
+        {
+            if (selectedCard != null &&
+                selectedCard != card)
+            {
+                selectedCard.SetSelected(false);
+            }
+
+            selectedCard = card;
+            return;
+        }
+
+        if (selectedCard == card)
+        {
+            selectedCard = null;
+
+            UpdateHandLayout(
+                null,
+                pushDuration,
+                false
+            );
+        }
+    }
+
+    public void EnterPlacementMode(
+        KTH_HandCard card)
+    {
+        if (card == null)
+        {
+            return;
+        }
+
+        if (!handCards.Contains(card))
+        {
+            return;
+        }
+
+        selectedCard = card;
+
+        MoveSelectedCardToCenter();
+    }
+
+    public void ExitPlacementMode()
+    {
+        selectedCard = null;
+
+        UpdateHandLayout(
+            null,
+            placementMoveDuration,
+            false
+        );
+    }
+
+    private void MoveSelectedCardToCenter()
+    {
+        if (selectedCard == null)
+        {
+            return;
+        }
+
+        selectedCard.transform.DOKill();
+        selectedCard.transform.SetAsLastSibling();
+
+        Sequence sequence =
+            DOTween.Sequence();
+
+        sequence.SetTarget(
+            selectedCard.transform
+        );
+
+        sequence.Join(
+            selectedCard.transform
+                .DOLocalMove(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        sequence.Join(
+            selectedCard.transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        sequence.Join(
+            selectedCard.transform
+                .DOScale(
+                    Vector3.one *
+                    selectedCard.SelectScale,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        sequence.OnComplete(() =>
+        {
+            if (selectedCard == null)
+            {
+                return;
+            }
+
+            if (!selectedCard.IsPlacementMode)
+            {
+                return;
+            }
+
+            SpreadCardsAroundCenter();
+        });
+    }
+
+    private void SpreadCardsAroundCenter()
+{
+    if (selectedCard == null)
+    {
+        return;
+    }
+
+    int count = handCards.Count;
+
+    if (count <= 1)
+    {
+        return;
+    }
+
+    List<KTH_HandCard> otherCards =
+        new List<KTH_HandCard>();
+
+    for (int i = 0; i < count; i++)
+    {
+        KTH_HandCard card = handCards[i];
+
+        if (card == null ||
+            card == selectedCard)
+        {
+            continue;
+        }
+
+        otherCards.Add(card);
+    }
+
+    int otherCount = otherCards.Count;
+
+    int leftCount =
+        otherCount / 2;
+
+    int rightCount =
+        otherCount - leftCount;
+
+    float spacing =
+        CalculatePlacementSpacing(otherCount + 1);
+
+    for (int i = 0; i < otherCount; i++)
+    {
+        KTH_HandCard card =
+            otherCards[i];
+
+        int relativeIndex;
+
+        if (i < leftCount)
+        {
+            relativeIndex =
+                i - leftCount;
+        }
+        else
+        {
+            relativeIndex =
+                i - leftCount + 1;
+        }
+
+        float targetX =
+            relativeIndex * spacing;
+
+        if (relativeIndex < 0)
+        {
+            targetX -= placementCenterGap;
+        }
+        else
+        {
+            targetX += placementCenterGap;
+        }
+
+        float normalized;
+
+        if (relativeIndex < 0)
+        {
+            normalized =
+                Mathf.Clamp01(
+                    Mathf.Abs(relativeIndex) /
+                    (float)Mathf.Max(1, leftCount)
+                );
+        }
+        else
+        {
+            normalized =
+                Mathf.Clamp01(
+                    relativeIndex /
+                    (float)Mathf.Max(1, rightCount)
+                );
+        }
+
+        float targetY =
+            -normalized *
+            normalized *
+            arcHeight;
+
+        float targetRotation;
+
+        if (relativeIndex < 0)
+        {
+            targetRotation =
+                normalized *
+                maxRotation;
+        }
+        else
+        {
+            targetRotation =
+                -normalized *
+                maxRotation;
+        }
+
+        Vector3 targetPosition =
+            new Vector3(
+                targetX,
+                targetY,
+                0f
+            );
+
+        card.transform.DOKill();
+
+        Sequence sequence =
+            DOTween.Sequence();
+
+        sequence.SetTarget(
+            card.transform
+        );
+
+        sequence.Join(
+            card.transform
+                .DOLocalMove(
+                    targetPosition,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        sequence.Join(
+            card.transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        targetRotation
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        sequence.Join(
+            card.transform
+                .DOScale(
+                    Vector3.one,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+    }
+
+    selectedCard.transform.DOKill();
+
+    Sequence selectedSequence =
+        DOTween.Sequence();
+
+    selectedSequence.SetTarget(
+        selectedCard.transform
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOLocalMove(
+                Vector3.zero,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOLocalRotate(
+                Vector3.zero,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOScale(
+                Vector3.one *
+                selectedCard.SelectScale,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedCard.transform.SetAsLastSibling();
+}
+    
+    private float CalculatePlacementSpacing(
+        int count)
+    {
+        if (count <= 1)
+        {
+            return maxCardSpacing;
+        }
+
+        float spacing =
+            Mathf.Min(
+                maxCardSpacing,
+                maxHandWidth /
+                (count - 1)
+            );
+
+        return Mathf.Max(
+            minCardSpacing,
+            spacing
+        );
+    }
+
+    public void UpdateHandLayout(
+        KTH_HandCard newlyDrawnCard = null,
+        float duration = 0.35f,
+        bool useStagger = true)
+    {
+        int count =
+            handCards.Count;
+
+        if (count == 0)
+        {
+            return;
+        }
 
         for (int i = 0; i < count; i++)
         {
-            float offset = i - centerIndex;
+            KTH_HandCard card =
+                handCards[i];
 
-            float posX = offset * cardSpacing;
-            float posY = -Mathf.Pow(offset, 2) * arcHeight;
-            float zRotation = (count > 1) ? -offset * (maxRotation / Mathf.Max(1f, centerIndex)) : 0f;
+            if (card == null)
+            {
+                continue;
+            }
 
-            Vector3 targetLocalPos = new Vector3(posX, posY, 0f);
+            var transformData =
+                CardLayoutCalculator
+                    .CalculateCardTransform(
+                        i,
+                        count,
+                        maxCardSpacing,
+                        minCardSpacing,
+                        maxHandWidth,
+                        arcHeight,
+                        maxRotation
+                    );
 
-            KTH_HandCard card = handCards[i];
-            card.transform.SetSiblingIndex(i);
+            Vector3 targetPosition =
+                transformData.LocalPosition;
 
             if (card == newlyDrawnCard)
             {
-                card.PlayDrawAnimation(targetLocalPos, zRotation, drawDuration);
+                card.PlayDrawAnimation(
+                    targetPosition,
+                    transformData.ZRotation,
+                    drawDuration
+                );
+
+                card.UpdateOriginalTransform(
+                    targetPosition,
+                    transformData.ZRotation
+                );
+
+                continue;
             }
-            else
+
+            if (!card.IsSelected)
             {
-                card.MoveToHandPosition(targetLocalPos, zRotation, duration);
+                float delay =
+                    useStagger
+                        ? i * staggerDelay
+                        : 0f;
+
+                card.MoveToHandPositionWithDelay(
+                    targetPosition,
+                    transformData.ZRotation,
+                    duration,
+                    delay,
+                    moveEase
+                );
             }
+
+            card.UpdateOriginalTransform(
+                targetPosition,
+                transformData.ZRotation
+            );
         }
+
+        if (selectedCard != null &&
+            selectedCard.IsSelected)
+        {
+            selectedCard.transform.SetAsLastSibling();
+        }
+    }
+
+    public void MoveDownForPlacement()
+    {
+        if (!enableMoveDown ||
+            isCurrentlyDown)
+        {
+            return;
+        }
+
+        isCurrentlyDown = true;
+
+        AnimateContainerY(
+            originalContainerLocalPos.y -
+            placementMoveDownDistance
+        );
+    }
+
+    public void MoveUpFromPlacement()
+    {
+        if (!isCurrentlyDown)
+        {
+            return;
+        }
+
+        isCurrentlyDown = false;
+
+        AnimateContainerY(
+            originalContainerLocalPos.y
+        );
+    }
+
+    private void AnimateContainerY(
+        float targetY)
+    {
+        transform.DOKill();
+
+        transform
+            .DOLocalMoveY(
+                targetY,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutCubic);
     }
 }
