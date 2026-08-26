@@ -48,18 +48,35 @@ namespace _Scripts.LDY
             NotifyOwnDeathAbilities(victim, killer);
             NotifyKillerAbilities(victim, killer);
             RaiseAnimalDead(victim);
+            
+            DLJ_PlayerHealth.Instance.TakeDamage(victim.data.playerHealthPoints);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
 
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(victim.gameObject);
+                PlayDeathAnimation(victim);
                 return;
             }
 
             // 파괴가 미뤄졌다. 계승처럼 뒤늦게 발동하는 유언은 주체를 알려주지 않으므로 여기서 적어둔다.
             LDY_DeferredDeaths.Record(victim);
+        }
+
+        private void PlayDeathAnimation(LDY_Animal victim)
+        {
+            DLJ_DeathAnimation animation = victim.GetComponent<DLJ_DeathAnimation>();
+            if (animation == null)
+                animation = victim.gameObject.AddComponent<DLJ_DeathAnimation>();
+
+            animation.Play(
+                victim.modelTransform,
+                () =>
+                {
+                    if (victim != null)
+                        Destroy(victim.gameObject);
+                });
         }
 
         /// <summary>죽는 본인의 특성에게 먼저 알린다. 파괴 전이라 아직 self를 쓸 수 있다.</summary>

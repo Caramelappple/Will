@@ -23,6 +23,7 @@ public class KTH_GameEndManager : MonoBehaviour
 
     private bool _isGameEnded;
     private Coroutine _enemyClearCheckCoroutine;
+    private Coroutine _allyDefeatCheckCoroutine;
 
     [Header("턴 매니저 참조")]
     [SerializeField] private LDY_TurnManager turnManager;
@@ -74,6 +75,12 @@ public class KTH_GameEndManager : MonoBehaviour
             _enemyClearCheckCoroutine = null;
         }
 
+        if (_allyDefeatCheckCoroutine != null)
+        {
+            StopCoroutine(_allyDefeatCheckCoroutine);
+            _allyDefeatCheckCoroutine = null;
+        }
+
         if (turnManager != null)
         {
             turnManager.OnTurnChanged -= HandleTurnChanged;
@@ -101,7 +108,7 @@ public class KTH_GameEndManager : MonoBehaviour
         // 안전을 위해 턴 변경 시에도 한 번 확인
         CheckGameClear();
 
-        // 아군 전멸은 턴 변경 시 검사
+        // 아군 전멸은 턴 변경 시 검사한다.
         CheckGameOver();
     }
 
@@ -263,6 +270,9 @@ public class KTH_GameEndManager : MonoBehaviour
     {
         yield return null;
 
+        while (HasPlayingDeathAnimation(_enemies))
+            yield return null;
+
         _enemyClearCheckCoroutine = null;
 
         if (_isGameEnded)
@@ -298,6 +308,10 @@ public class KTH_GameEndManager : MonoBehaviour
     private void CheckGameClear()
     {
         if (_isGameEnded)
+            return;
+
+        // 마지막 기물이 쓰러지기도 전에 씬을 바꾸지 않는다.
+        if (HasPlayingDeathAnimation(_enemies))
             return;
 
         if (_enemies.Count == 0)
@@ -347,6 +361,12 @@ public class KTH_GameEndManager : MonoBehaviour
         if (_isGameEnded)
             return;
 
+        if (HasPlayingDeathAnimation(_allies))
+        {
+            RequestGameOverCheck();
+            return;
+        }
+
         // 동적으로 생성된 아군이 있을 수 있으므로 다시 검색
         RegisterAllies();
 
@@ -375,6 +395,38 @@ public class KTH_GameEndManager : MonoBehaviour
 
         // 모든 아군 사망
         FailStage();
+    }
+
+    private void RequestGameOverCheck()
+    {
+        if (_isGameEnded || _allyDefeatCheckCoroutine != null)
+            return;
+
+        _allyDefeatCheckCoroutine = StartCoroutine(CheckGameOverAfterDeathAnimation());
+    }
+
+    private IEnumerator CheckGameOverAfterDeathAnimation()
+    {
+        while (HasPlayingDeathAnimation(_allies))
+            yield return null;
+
+        _allyDefeatCheckCoroutine = null;
+        CheckGameOver();
+    }
+
+    private static bool HasPlayingDeathAnimation(List<LDY_Animal> animals)
+    {
+        for (int i = 0; i < animals.Count; i++)
+        {
+            LDY_Animal animal = animals[i];
+            if (animal == null) continue;
+
+            DLJ_DeathAnimation animation = animal.GetComponent<DLJ_DeathAnimation>();
+            if (animation != null && animation.IsPlaying)
+                return true;
+        }
+
+        return false;
     }
 
 

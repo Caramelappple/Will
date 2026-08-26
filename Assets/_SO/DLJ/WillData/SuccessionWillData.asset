@@ -16,5 +16,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: c4a5f32d32d809b4d9252730a90307b1, type: 3}
   material: {fileID: 2100000, guid: 16f283b4d7e946c49ab97964e6373ab5, type: 2}
   effectPrefab: {fileID: 8113247536879051834, guid: aa8e862f5175d8f4cbbdd189e6f0a60f, type: 3}
+  cameraHoldDuration: 1.8
   moveDuration: 0.8
   successionEffect: {fileID: 11400000, guid: 15da5b46f21b08549bc0e5b69823dd52, type: 2}

@@ -224,12 +224,27 @@ namespace _Scripts.LDY
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(target.gameObject);
+                PlayDeathAnimation(target);
                 return;
             }
 
             // LDY_DeathHandler와 같은 이유로 기록한다. 이쪽은 핸들러가 없을 때 쓰이는 예전 경로다.
             LDY_DeferredDeaths.Record(target);
+        }
+
+        private void PlayDeathAnimation(LDY_Animal target)
+        {
+            DLJ_DeathAnimation animation = target.GetComponent<DLJ_DeathAnimation>();
+            if (animation == null)
+                animation = target.gameObject.AddComponent<DLJ_DeathAnimation>();
+
+            animation.Play(
+                target.modelTransform,
+                () =>
+                {
+                    if (target != null)
+                        Destroy(target.gameObject);
+                });
         }
 
         private static LSO_DamageSource ToDamageSource(LDY_RangeType rangeType)

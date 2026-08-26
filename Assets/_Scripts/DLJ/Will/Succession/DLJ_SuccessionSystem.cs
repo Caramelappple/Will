@@ -208,6 +208,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
     private readonly DLJ_SuccessionWillDataSO data;
+    private readonly DLJ_StatIncreaseEffectSO statIncreaseEffect;
     private readonly bool isEnhanced;
     private readonly DLJ_IWillEffect effect = new DLJ_SuccessionEffect();
     private GameObject effectInstance;
@@ -221,6 +222,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         attackSystem = context.attackSystem;
         this.data = data;
         effectPrefab = data.effectPrefab;
+        statIncreaseEffect = context.statIncreaseEffect;
         isEnhanced = DLJ_WillEnhancement.IsActive(animal);
     }
 
@@ -363,7 +365,10 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
                 owner = animal != null ? animal.gameObject : null,
                 target = target.gameObject,
                 origin = animal != null ? animal.transform.position : Vector3.zero,
-                targetPosition = target.transform.position
+                targetPosition = target.transform.position,
+                onStarted = () => DLJ_WillCameraFocus.Play(
+                    animal != null ? animal.transform.position : Vector3.zero,
+                    data.cameraHoldDuration)
             },
             () => ApplySuccession(target));
     }
@@ -378,6 +383,9 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
                 target,
                 successionHealthBonus,
                 successionAttackBonus);
+            DLJ_StatIncreaseEffectPlayer.Play(
+                target.gameObject,
+                source?.statIncreaseEffect);
         }
 
         FinishSuccession();

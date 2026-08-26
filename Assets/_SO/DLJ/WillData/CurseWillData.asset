@@ -15,6 +15,7 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   effectPrefab: {fileID: 8037587724461260317, guid: 8380c7c960d008b4786fff87dc31b533, type: 3}
+  cameraHoldDuration: 1.8
   damage: 1
   range: 1
   duration: 2

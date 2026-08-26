@@ -65,7 +65,8 @@ public sealed class DLJ_SuccessionEffect : DLJ_IWillEffect
                 targetGlow.Apply));
 
         Sequence sequence = DOTween.Sequence()
-            .AppendInterval(2f)
+            .AppendInterval(0.1f)
+            .AppendCallback(() => context.onStarted?.Invoke())
             .SetUpdate(true)
             .Append(effectTransform
                 .DOMove(end, Mathf.Max(0f, travelDuration))

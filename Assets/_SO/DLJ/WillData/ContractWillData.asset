@@ -15,5 +15,5 @@ MonoBehaviour:
   description:
   icon: {fileID: 0}
   effectPrefab: {fileID: 0}
+  cameraHoldDuration: 1.8
   holdTime: 0.3
-  deathPrelude: {fileID: 11400000, guid: a195dc1a4f1f46a8a1649a7e3ae39172, type: 2}
