@@ -504,6 +504,64 @@ public class KTH_HandCard : MonoBehaviour,
         transform.localScale = Vector3.one;
     }
 
+    /// <summary>
+    /// 오브젝트 풀에 반납되거나(꺼내지거나) 할 때 호출된다.
+    /// 선택/호버/배치 상태, 진행 중인 트윈, 인터랙션 관련 컴포넌트 상태를
+    /// 전부 초기 상태로 되돌려서 재사용해도 안전하게 만든다.
+    /// </summary>
+    public void ResetForPool()
+    {
+        transform.DOKill(true);
+
+        KillHoverEnterTween();
+        KillHoverExitTween();
+        KillInfoPanelTween();
+
+        isSelected = false;
+        isConfirmed = false;
+        isPlacementMode = false;
+        isPointerOver = false;
+
+        if (currentSelectedCard == this)
+        {
+            currentSelectedCard = null;
+        }
+
+        if (outlineImage != null)
+        {
+            outlineImage.gameObject.SetActive(false);
+        }
+
+        // 버림 더미에 편입되면서 꺼졌을 수 있는 인터랙션 요소들을 복구
+        enabled = true;
+
+        if (cardSorting == null)
+        {
+            cardSorting = GetComponent<KTH_CardSorting>();
+        }
+
+        if (cardSorting != null)
+        {
+            cardSorting.enabled = true;
+        }
+
+        CanvasGroup canvasGroup =
+            GetComponent<CanvasGroup>();
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable = true;
+            canvasGroup.alpha = 1f;
+        }
+
+        transform.localScale = Vector3.one;
+        transform.localRotation = Quaternion.identity;
+
+        cardData = null;
+        willPanel = null;
+    }
+
     public void SetOriginalTransformSilently(
         Vector3 pos,
         float zRot)
@@ -671,7 +729,7 @@ public class KTH_HandCard : MonoBehaviour,
         if (discardPile == null ||
             discardPile.DiscardCardTransform == null)
         {
-            Destroy(gameObject);
+            ReleaseOrDestroy();
             return;
         }
 
@@ -690,7 +748,7 @@ public class KTH_HandCard : MonoBehaviour,
                 cardData
             );
 
-            Destroy(gameObject);
+            ReleaseOrDestroy();
             return;
         }
 
@@ -699,6 +757,22 @@ public class KTH_HandCard : MonoBehaviour,
             discardPile,
             cardData
         );
+    }
+
+    /// <summary>
+    /// 카드를 더 이상 쓰지 않을 때 호출. 풀이 있으면 풀로 반납하고,
+    /// 없으면(풀 매니저가 씬에 없는 경우) 안전하게 파괴한다.
+    /// </summary>
+    private void ReleaseOrDestroy()
+    {
+        if (KTH_HandCardPool.Instance != null)
+        {
+            KTH_HandCardPool.Instance.Release(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void OnDestroy()
