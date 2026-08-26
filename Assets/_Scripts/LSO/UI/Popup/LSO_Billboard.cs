@@ -11,7 +11,7 @@ namespace _Scripts.LSO.UI.Popup
     public class LSO_Billboard : MonoBehaviour
     {
         [Tooltip("비우면 Camera.main을 쓴다.")]
-        [SerializeField] private Camera targetCamera;
+        [SerializeField] private UnityEngine.Camera targetCamera;
 
         [Tooltip("켜면 좌우로만 돈다. 위아래로 눕는 걸 막고 싶을 때.")]
         [SerializeField] private bool lockVerticalTilt;
@@ -24,7 +24,7 @@ namespace _Scripts.LSO.UI.Popup
             {
                 if (_cachedCamera != null) return _cachedCamera;
 
-                Camera cam = targetCamera != null ? targetCamera : Camera.main;
+                UnityEngine.Camera cam = targetCamera != null ? targetCamera : UnityEngine.Camera.main;
                 _cachedCamera = cam != null ? cam.transform : null;
 
                 return _cachedCamera;

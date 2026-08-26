@@ -45,7 +45,6 @@ GameObject:
   - component: {fileID: 3687984590945553440}
   - component: {fileID: 2208367893434534918}
   - component: {fileID: 5527950906685301301}
-  - component: {fileID: 236162218498577179}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -182,21 +181,6 @@ MonoBehaviour:
   gustScale: 0.95
   gustDuration: 0.35
   ignoreTimeScale: 0
---- !u!114 &236162218498577179
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3886192678272096542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bfb886305530914bb702d9ebbbcd54d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Effect.LSO_TurnCandle
-  palette: {fileID: 11400000, guid: 8d7ff9118c997fe42bab5877ece5ba46, type: 2}
-  targetLight: {fileID: 3687984590945553440}
-  flame: {fileID: 0}
 --- !u!1001 &2588440078992352715
 PrefabInstance:
   m_ObjectHideFlags: 0
