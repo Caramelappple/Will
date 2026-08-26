@@ -41,7 +41,7 @@ namespace _Scripts.LSO.UI
             ScaleTo(hoverRatio, enterDuration, enterEase);
         }
 
-        /// <summary>
+        /// <summary>   
         /// OnEnter 방식은 축소 → 복귀가 한 번에 끝나므로 이탈 시 할 일이 없다.
         /// WhileHovering 방식만 원래 크기로 되돌린다.
         /// </summary>

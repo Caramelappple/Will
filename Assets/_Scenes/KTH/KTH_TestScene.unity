@@ -1335,6 +1335,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
   deck: []
+  turnManager: {fileID: 0}
+  discardPile: {fileID: 0}
+  autoReshuffleFromDiscard: 1
+  ignoreDrawLimit: 0
+  maxDrawsPerTurn: 2
 --- !u!114 &3295565405823117420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2716,9 +2721,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 336677f6db07f6a438b73fa1b71079cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardLayout
-  cardSpacing: 110
+  maxCardSpacing: 200
+  minCardSpacing: 60
+  maxHandWidth: 900
   arcHeight: 15
   maxRotation: 12
+  maxHandSize: 10
+  drawDuration: 0.4
+  enableMoveDown: 1
+  placementMoveDownDistance: 150
+  placementMoveDuration: 0.3
 --- !u!224 &6886251986441758631
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3501,6 +3513,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_InfoPanl
   infoPanl: {fileID: 4717499886967212182}
+  infoPanlRect: {fileID: 6990056817287322366}
+  cardPlacer: {fileID: 0}
+  team: 0
+  discardPile: {fileID: 0}
   icon: {fileID: 308942798612488171}
   titleText: {fileID: 8411236796106659261}
   willExplanationText: {fileID: 3497709278280729278}
@@ -3510,6 +3526,10 @@ MonoBehaviour:
   costStateText: {fileID: 4676376526957636233}
   moveStateText: {fileID: 1213536464901986804}
   attackTypeStateText: {fileID: 3422298026047340187}
+  animDuration: 0.4
+  moveUpDistance: 100
+  rotateAngle: 360
+  animEase: 27
 --- !u!224 &8730957859718391550
 RectTransform:
   m_ObjectHideFlags: 0

@@ -24,7 +24,7 @@ namespace _Scripts.LSO.UI.Popup
         [SerializeField] private RectTransform container;
 
         [Tooltip("월드 좌표를 화면 좌표로 바꿀 카메라. 비우면 Camera.main.")]
-        [SerializeField] private Camera worldCamera;
+        [SerializeField] private UnityEngine.Camera worldCamera;
 
         [Header("풀")]
         [SerializeField, Min(1)] private int defaultCapacity = 16;
@@ -102,14 +102,14 @@ namespace _Scripts.LSO.UI.Popup
         {
             anchored = Vector2.zero;
 
-            Camera cam = worldCamera != null ? worldCamera : Camera.main;
+            UnityEngine.Camera cam = worldCamera != null ? worldCamera : UnityEngine.Camera.main;
             if (cam == null) return false;
 
             Vector3 screenPoint = cam.WorldToScreenPoint(worldPosition);
             if (screenPoint.z < 0f) return false;
 
             // Overlay 캔버스는 UI 카메라가 없어야 좌표가 맞는다.
-            Camera uiCamera = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            UnityEngine.Camera uiCamera = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
                 ? _canvas.worldCamera
                 : null;
 
