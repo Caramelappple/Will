@@ -1,3 +1,4 @@
+using System;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -10,4 +11,5 @@ public sealed class DLJ_WillEffectContext
     public Vector3 origin;
     public Vector3 targetPosition;
     public Vector3 areaSize;
+    public Action onStarted;
 }

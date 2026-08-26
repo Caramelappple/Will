@@ -19,6 +19,7 @@ namespace _Scripts.LSO.Animal.Data
         public int maxHealth;
         public int damage;
         public int cost;
+        public int playerHealthPoints;
 
         [Tooltip("한 번에 움직일 수 있는 칸 수. 2를 넣으면 2칸까지 이동한다.\n" +
                  "0으로 두면 기본값 1칸으로 취급한다(예전에 만든 에셋 호환용).")]
