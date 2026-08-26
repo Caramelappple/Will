@@ -5,7 +5,6 @@ public class DLJ_PlayerHealth : MonoBehaviour
 {
     public const int CandleCount = 3;
     public const int MaxHealthPerCandle = 100;
-    public const int BrightnessStep = 20;
 
     public static DLJ_PlayerHealth Instance { get; private set; }
 
@@ -62,27 +61,6 @@ public class DLJ_PlayerHealth : MonoBehaviour
             return 0;
 
         return candleHealth[index];
-    }
-
-    /// <summary>
-    /// 초의 밝기를 0~5 단계로 반환한다.
-    /// 0이면 꺼진 상태, 1~20은 1단계, 81~100은 5단계다.
-    /// </summary>
-    public int GetBrightnessLevel(int index)
-    {
-        int health = GetCandleHealth(index);
-
-        if (health <= 0)
-            return 0;
-
-        return Mathf.CeilToInt(health / (float)BrightnessStep);
-    }
-
-    /// <summary>Light.intensity 등에 바로 사용할 수 있도록 밝기를 0~1로 반환한다.</summary>
-    public float GetBrightnessNormalized(int index)
-    {
-        int maxBrightnessLevel = MaxHealthPerCandle / BrightnessStep;
-        return GetBrightnessLevel(index) / (float)maxBrightnessLevel;
     }
 
     /// <summary>
