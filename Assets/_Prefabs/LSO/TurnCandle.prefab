@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 333635460229939741}
   - component: {fileID: 1139244307479583890}
   - component: {fileID: 7919073575748333310}
-  - component: {fileID: 4384216179426903590}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -151,21 +150,6 @@ MonoBehaviour:
   swayRadius: 0.04
   swayDuration: 0.5
   ignoreTimeScale: 0
---- !u!114 &4384216179426903590
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1742537167615590678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bfb886305530914bb702d9ebbbcd54d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Effect.LSO_TurnCandle
-  palette: {fileID: 11400000, guid: 8d7ff9118c997fe42bab5877ece5ba46, type: 2}
-  targetLight: {fileID: 333635460229939741}
-  flame: {fileID: 0}
 --- !u!1 &2172636940424073851
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,7 +162,6 @@ GameObject:
   - component: {fileID: 6740497093916869156}
   - component: {fileID: 4849199446864746305}
   - component: {fileID: 7969414653147972978}
-  - component: {fileID: 2446072123435852802}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -317,21 +300,6 @@ MonoBehaviour:
   swayRadius: 0.04
   swayDuration: 0.5
   ignoreTimeScale: 0
---- !u!114 &2446072123435852802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2172636940424073851}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bfb886305530914bb702d9ebbbcd54d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Effect.LSO_TurnCandle
-  palette: {fileID: 11400000, guid: 8d7ff9118c997fe42bab5877ece5ba46, type: 2}
-  targetLight: {fileID: 6740497093916869156}
-  flame: {fileID: 0}
 --- !u!1 &5349704461397487101
 GameObject:
   m_ObjectHideFlags: 0

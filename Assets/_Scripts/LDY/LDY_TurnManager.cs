@@ -12,9 +12,21 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_AttackSystem attackSystem;
         [SerializeField] private LDY_ActionPointManager actionPoints;
 
+        [Header("자동 턴 종료")]
+        [Tooltip("켜면 행동력이 0이 되는 순간 턴이 저절로 넘어간다.\n" +
+                 "기본은 꺼둔다 — 기획서상 코스트를 다 써도 직접 버튼을 눌러 끝내야 한다.")]
+        [SerializeField] private bool autoEndTurn;
+
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         public event System.Action<LDY_Team> OnTurnChanged;
+
+        /// <summary>행동력이 떨어지면 저절로 턴이 넘어가는지. 튜토리얼처럼 잠깐 켜야 할 때 쓴다.</summary>
+        public bool AutoEndTurn
+        {
+            get => autoEndTurn;
+            set => autoEndTurn = value;
+        }
 
         private bool _isProcessingTurn;
         
@@ -35,11 +47,23 @@ namespace _Scripts.LDY
             OnTurnChanged?.Invoke(CurrentTurn);
         }
 
+        /// <summary>
+        /// 자동 턴 종료. 꺼져 있으면 아무 일도 하지 않는다.
+        ///
+        /// 기본을 끔으로 두는 이유는 기획서 때문이다.
+        /// "코스트를 모두 사용한 경우에도 직접 버튼을 눌러 턴을 종료한다."
+        ///
+        /// 자동으로 넘기면 마지막 행동의 연출이 끝나기도 전에 화면이 적 턴으로 바뀌어
+        /// 방금 무슨 일이 일어났는지 확인할 틈이 없다. 남은 기물의 배치를 다시 보거나
+        /// 기물 정보를 열어보는 것도 못 한다.
+        ///
+        /// 켜더라도 연출이 끝날 때까지는 기다린다. CanEndPlayerTurn이 IsAnimating을 보기 때문이다.
+        /// </summary>
         private void Update()
         {
-            if (_isProcessingTurn || CurrentTurn != LDY_Team.Player) return;
-            if (IsAnimating()) return;
-            if (actionPoints.HasActionPoints) return;
+            if (!autoEndTurn) return;
+            if (actionPoints == null || actionPoints.HasActionPoints) return;
+            if (!CanEndPlayerTurn()) return;
 
             EndPlayerTurn();
         }
@@ -64,8 +88,35 @@ namespace _Scripts.LDY
                    || LDY_DissolveEffect.ActiveCount > 0;
         }
 
+        /// <summary>
+        /// 지금 턴 종료 버튼을 눌러도 되는지. 버튼을 회색으로 만들 때 쓴다.
+        ///
+        /// 못 누르는 이유를 화면에 보여주지 않으면 "버튼이 안 먹는다"로 보인다.
+        /// </summary>
+        public bool CanEndPlayerTurn()
+        {
+            if (_isProcessingTurn) return false;
+            if (CurrentTurn != LDY_Team.Player) return false;
+            if (IsAnimating()) return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 플레이어 턴을 끝내고 적 턴으로 넘긴다. 턴 종료 버튼이 부른다.
+        ///
+        /// 검사를 여기서 한다. 예전에는 Update가 자동으로 넘기면서 같은 검사를 했고
+        /// 버튼은 그냥 통과했는데, 그러면 적 턴 중에 버튼을 또 누르거나
+        /// 공격 연출 도중에 눌렀을 때 턴이 겹쳐 진행된다.
+        ///
+        /// 반환값을 두지 않는다. 턴 종료 버튼이 씬에서 UnityEvent로 연결돼 있는데,
+        /// UnityEvent는 void 메서드만 목록에 올리므로 반환형을 바꾸면 그 연결이 끊긴다.
+        /// 눌러도 되는지는 CanEndPlayerTurn으로 미리 물어보면 된다.
+        /// </summary>
         public void EndPlayerTurn()
         {
+            if (!CanEndPlayerTurn()) return;
+
             _isProcessingTurn = true;
             CurrentTurn = LDY_Team.Enemy;
             actionPoints.ResetPoints();
