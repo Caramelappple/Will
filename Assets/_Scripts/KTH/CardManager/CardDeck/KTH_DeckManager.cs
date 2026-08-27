@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.Reward;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -153,8 +154,8 @@ public class KTH_DeckManager : MonoBehaviour
 
     private void InitDeck()
     {
-        ItemLibraryManager library =
-            ItemLibraryManager.Instance;
+        LSO_ItemLibraryManager library =
+            LSO_ItemLibraryManager.Instance;
 
         if (library == null)
         {
