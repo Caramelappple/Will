@@ -95,16 +95,27 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
-        cardImage.sprite = cardData.Image;
-        title.text = cardData.Animal.animalName;
-        cost.text = $"{cardData.Animal.cost}";
-        power.text = $"{cardData.Animal.damage}";
+        if (cardImage != null)
+            cardImage.sprite = cardData.Image;
 
-        outlineImage.gameObject.SetActive(false);
+        if (title != null)
+            title.text = cardData.Animal.animalName;
+
+        if (cost != null)
+            cost.text = $"{cardData.Animal.cost}";
+
+        if (power != null)
+            power.text = $"{cardData.Animal.damage}";
+
+        if (outlineImage != null)
+            outlineImage.gameObject.SetActive(false);
     }
 
-    public void OnPointerEnter(
-        PointerEventData eventData)
+    // ============================================================
+    // Hover
+    // ============================================================
+
+    public void OnPointerEnter(PointerEventData eventData)
     {
         isPointerOver = true;
 
@@ -143,9 +154,7 @@ public class KTH_HandCard : MonoBehaviour,
         hoverEnterTween = null;
 
         if (!isPointerOver)
-        {
             return;
-        }
 
         if (willPanel != null &&
             willPanel.IsSelecting)
@@ -176,9 +185,7 @@ public class KTH_HandCard : MonoBehaviour,
         KillInfoPanelTween();
 
         if (isConfirmed)
-        {
             return;
-        }
 
         infoPanelTween =
             DOVirtual.DelayedCall(
@@ -208,8 +215,7 @@ public class KTH_HandCard : MonoBehaviour,
         }
     }
 
-    public void OnPointerExit(
-        PointerEventData eventData)
+    public void OnPointerExit(PointerEventData eventData)
     {
         isPointerOver = false;
 
@@ -217,9 +223,7 @@ public class KTH_HandCard : MonoBehaviour,
         KillInfoPanelTween();
 
         if (isConfirmed)
-        {
             return;
-        }
 
         KillHoverExitTween();
 
@@ -253,8 +257,11 @@ public class KTH_HandCard : MonoBehaviour,
         }
     }
 
-    public void OnPointerClick(
-        PointerEventData eventData)
+    // ============================================================
+    // Click
+    // ============================================================
+
+    public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button !=
             PointerEventData.InputButton.Left)
@@ -322,6 +329,10 @@ public class KTH_HandCard : MonoBehaviour,
         OnCardClicked?.Invoke(this);
     }
 
+    // ============================================================
+    // Selection
+    // ============================================================
+
     public void CancelSelectionState()
     {
         bool wasPlacementMode = isPlacementMode;
@@ -349,9 +360,7 @@ public class KTH_HandCard : MonoBehaviour,
     private void KillHoverEnterTween()
     {
         if (hoverEnterTween == null)
-        {
             return;
-        }
 
         hoverEnterTween.Kill();
         hoverEnterTween = null;
@@ -360,9 +369,7 @@ public class KTH_HandCard : MonoBehaviour,
     private void KillHoverExitTween()
     {
         if (hoverExitTween == null)
-        {
             return;
-        }
 
         hoverExitTween.Kill();
         hoverExitTween = null;
@@ -371,9 +378,7 @@ public class KTH_HandCard : MonoBehaviour,
     private void KillInfoPanelTween()
     {
         if (infoPanelTween == null)
-        {
             return;
-        }
 
         infoPanelTween.Kill();
         infoPanelTween = null;
@@ -382,17 +387,18 @@ public class KTH_HandCard : MonoBehaviour,
     public void SetSelected(bool value)
     {
         if (isSelected == value)
-        {
             return;
-        }
 
         isSelected = value;
 
         transform.DOKill();
 
-        outlineImage.gameObject.SetActive(
-            isSelected
-        );
+        if (outlineImage != null)
+        {
+            outlineImage.gameObject.SetActive(
+                isSelected
+            );
+        }
 
         if (isSelected)
         {
@@ -418,9 +424,7 @@ public class KTH_HandCard : MonoBehaviour,
     private void PlaySelectAnimation()
     {
         if (isPlacementMode)
-        {
             return;
-        }
 
         Vector3 targetPos =
             originalLocalPos;
@@ -496,19 +500,21 @@ public class KTH_HandCard : MonoBehaviour,
         );
     }
 
-    public void SetSpawnPosition(
-        Vector3 worldPos)
+    // ============================================================
+    // Spawn
+    // ============================================================
+
+    public void SetSpawnPosition(Vector3 worldPos)
     {
         transform.position = worldPos;
         transform.localRotation = Quaternion.identity;
         transform.localScale = Vector3.one;
     }
 
-    /// <summary>
-    /// 오브젝트 풀에 반납되거나(꺼내지거나) 할 때 호출된다.
-    /// 선택/호버/배치 상태, 진행 중인 트윈, 인터랙션 관련 컴포넌트 상태를
-    /// 전부 초기 상태로 되돌려서 재사용해도 안전하게 만든다.
-    /// </summary>
+    // ============================================================
+    // Pool Reset
+    // ============================================================
+
     public void ResetForPool()
     {
         transform.DOKill(true);
@@ -532,7 +538,6 @@ public class KTH_HandCard : MonoBehaviour,
             outlineImage.gameObject.SetActive(false);
         }
 
-        // 버림 더미에 편입되면서 꺼졌을 수 있는 인터랙션 요소들을 복구
         enabled = true;
 
         if (cardSorting == null)
@@ -562,6 +567,10 @@ public class KTH_HandCard : MonoBehaviour,
         willPanel = null;
     }
 
+    // ============================================================
+    // Original Transform
+    // ============================================================
+
     public void SetOriginalTransformSilently(
         Vector3 pos,
         float zRot)
@@ -578,6 +587,10 @@ public class KTH_HandCard : MonoBehaviour,
         originalZRotation = zRot;
     }
 
+    // ============================================================
+    // Rearrange
+    // ============================================================
+
     public void MoveToHandPositionWithDelay(
         Vector3 targetPos,
         float targetRotZ,
@@ -586,9 +599,7 @@ public class KTH_HandCard : MonoBehaviour,
         Ease ease)
     {
         if (isSelected)
-        {
             return;
-        }
 
         transform.DOKill();
 
@@ -631,6 +642,10 @@ public class KTH_HandCard : MonoBehaviour,
                 .SetEase(ease)
         );
     }
+
+    // ============================================================
+    // Draw Animation
+    // ============================================================
 
     public void PlayDrawAnimation(
         Vector3 targetLocalPos,
@@ -712,12 +727,23 @@ public class KTH_HandCard : MonoBehaviour,
         );
     }
 
+    // ============================================================
+    // Consume / Discard
+    // ============================================================
+
     public void ConsumeAndRearrange(
-        KTH_DiscardCardUI discardPile = null)
+        KTH_DiscardCardUI discardPile = null,
+        Action onComplete = null)
     {
+        // 선택 상태 해제
         CancelSelectionState();
 
+        // 현재 카드의 기존 애니메이션 제거
         transform.DOKill(true);
+
+        // ==================================================
+        // 손패에서 제거
+        // ==================================================
 
         if (KTH_HandCardLayout.Instance != null)
         {
@@ -726,12 +752,24 @@ public class KTH_HandCard : MonoBehaviour,
             );
         }
 
+        // ==================================================
+        // 디스카드 더미가 없는 경우
+        // ==================================================
+
         if (discardPile == null ||
             discardPile.DiscardCardTransform == null)
         {
             ReleaseOrDestroy();
+
+            // 카드 사용 완료만 알림
+            onComplete?.Invoke();
+
             return;
         }
+
+        // ==================================================
+        // 디스카드 애니메이션 찾기
+        // ==================================================
 
         KTH_DiscardAnimation discardAnimation =
             discardPile.GetComponent<KTH_DiscardAnimation>();
@@ -742,6 +780,10 @@ public class KTH_HandCard : MonoBehaviour,
                 FindAnyObjectByType<KTH_DiscardAnimation>();
         }
 
+        // ==================================================
+        // 디스카드 애니메이션이 없는 경우
+        // ==================================================
+
         if (discardAnimation == null)
         {
             discardPile.AddToDiscardPile(
@@ -749,20 +791,28 @@ public class KTH_HandCard : MonoBehaviour,
             );
 
             ReleaseOrDestroy();
+
+            onComplete?.Invoke();
+
             return;
         }
+
+        // ==================================================
+        // 디스카드 애니메이션
+        // ==================================================
 
         discardAnimation.Play(
             this,
             discardPile,
-            cardData
+            cardData,
+            onComplete
         );
     }
 
-    /// <summary>
-    /// 카드를 더 이상 쓰지 않을 때 호출. 풀이 있으면 풀로 반납하고,
-    /// 없으면(풀 매니저가 씬에 없는 경우) 안전하게 파괴한다.
-    /// </summary>
+    // ============================================================
+    // Pool / Destroy
+    // ============================================================
+
     private void ReleaseOrDestroy()
     {
         if (KTH_HandCardPool.Instance != null)
@@ -792,9 +842,7 @@ public class KTH_HandCard : MonoBehaviour,
     public static void DeselectCurrent()
     {
         if (currentSelectedCard == null)
-        {
             return;
-        }
 
         KTH_HandCard card =
             currentSelectedCard;

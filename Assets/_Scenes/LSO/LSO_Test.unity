@@ -596,6 +596,10 @@ PrefabInstance:
       propertyPath: turnManager
       value: 
       objectReference: {fileID: 944642614}
+    - target: {fileID: 1111860995243465467, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: handCardLayout
+      value: 
+      objectReference: {fileID: 163273565}
     - target: {fileID: 3392198647013307230, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_Name
       value: CardDrowUI (1)
@@ -608,6 +612,26 @@ PrefabInstance:
       propertyPath: turnManager
       value: 
       objectReference: {fileID: 944642614}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: shakeAngle
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: maxRandomAngle
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: maxStackOffset
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: minRandomAngle
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6358998671116439112, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: minStackOffset
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: cardPlacer
       value: 
@@ -616,6 +640,10 @@ PrefabInstance:
       propertyPath: willPanel
       value: 
       objectReference: {fileID: 669969723}
+    - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: twoCardPlacementDistance
+      value: 200
+      objectReference: {fileID: 0}
     - target: {fileID: 8815902132619108871, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.0018042204
@@ -645,6 +673,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+--- !u!114 &163273565 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+  m_PrefabInstance: {fileID: 163273564}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 336677f6db07f6a438b73fa1b71079cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardLayout
 --- !u!1 &165363250
 GameObject:
   m_ObjectHideFlags: 0
