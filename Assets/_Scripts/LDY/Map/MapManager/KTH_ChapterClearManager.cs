@@ -1,5 +1,4 @@
 using UnityEngine;
-using _Scripts.LDY;
 
 public class KTH_ChapterClearManager : MonoBehaviour
 {

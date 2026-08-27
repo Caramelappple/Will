@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using _Scripts.LSO;
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.Reward;
 using _Scripts.LSO.Will;
 
 public class KTH_Reward : MonoBehaviour
@@ -10,13 +10,13 @@ public class KTH_Reward : MonoBehaviour
     public static KTH_Reward Instance { get; private set; }
 
     [Header("스테이지별 해금 테이블")]
-    [SerializeField] private KTH_RewardTableSO rewardTable;
+    [SerializeField] private LSO_RewardTableSO rewardTable;
 
-    public event Action<List<KTH_RewardOption>> RewardOptionsGenerated;
-    public event Action<KTH_UnlockState> Unlocked;
+    public event Action<List<LSO_RewardOption>> RewardOptionsGenerated;
+    public event Action<LSO_UnlockState> Unlocked;
 
-    private List<KTH_RewardOption> currentOptions = new();
-    private KTH_StageRewardData currentStageData;
+    private List<LSO_RewardOption> currentOptions = new();
+    private LSO_StageRewardData currentStageData;
 
     private void Awake()
     {
@@ -36,7 +36,7 @@ public class KTH_Reward : MonoBehaviour
     // =========================================================
     // 보상 후보 생성
     // =========================================================
-    public List<KTH_RewardOption> GenerateRewardOptions(int chapter, int stage)
+    public List<LSO_RewardOption> GenerateRewardOptions(int chapter, int stage)
     {
         Debug.Log($"🎁 [KTH_Reward] 보상 후보 생성: Chapter {chapter}, Stage {stage}");
 
@@ -48,7 +48,7 @@ public class KTH_Reward : MonoBehaviour
             return currentOptions;
         }
 
-        KTH_StageRewardData stageData = rewardTable.Find(chapter, stage);
+        LSO_StageRewardData stageData = rewardTable.Find(chapter, stage);
 
         if (stageData == null)
         {
@@ -58,7 +58,7 @@ public class KTH_Reward : MonoBehaviour
 
         currentStageData = stageData;
         int choiceCount = Mathf.Max(1, stageData.rewardChoiceCount);
-        List<KTH_RewardOption> available = CreateAvailableRewards(stageData);
+        List<LSO_RewardOption> available = CreateAvailableRewards(stageData);
 
         if (available.Count == 0)
         {
@@ -70,7 +70,7 @@ public class KTH_Reward : MonoBehaviour
         {
             if (available.Count == 0) break;
 
-            KTH_RewardOption selected = RollRandomReward(available);
+            LSO_RewardOption selected = RollRandomReward(available);
 
             if (selected == null) break;
 
@@ -80,7 +80,7 @@ public class KTH_Reward : MonoBehaviour
 
         Debug.Log($"🎁 [KTH_Reward] 보상 후보 {currentOptions.Count}개 생성");
 
-        foreach (KTH_RewardOption option in currentOptions)
+        foreach (LSO_RewardOption option in currentOptions)
         {
             if (option == null) continue;
             Debug.Log($"  → {option.type} : {option.GetName()}");
@@ -93,21 +93,21 @@ public class KTH_Reward : MonoBehaviour
     // =========================================================
     // 카드 + 유언 후보 생성
     // =========================================================
-    private List<KTH_RewardOption> CreateAvailableRewards(KTH_StageRewardData stageData)
+    private List<LSO_RewardOption> CreateAvailableRewards(LSO_StageRewardData stageData)
     {
-        List<KTH_RewardOption> result = new();
+        List<LSO_RewardOption> result = new();
 
         // 카드
         if (stageData.possiblePieces != null)
         {
-            foreach (KTH_RewardPoolEntry entry in stageData.possiblePieces)
+            foreach (LSO_RewardPoolEntry entry in stageData.possiblePieces)
             {
                 if (entry == null || entry.pieceSO == null || entry.weight <= 0)
                     continue;
 
-                result.Add(new KTH_RewardOption
+                result.Add(new LSO_RewardOption
                 {
-                    type = KTH_RewardType.Piece,
+                    type = LSO_RewardType.Piece,
                     piece = entry.pieceSO
                 });
 
@@ -118,14 +118,14 @@ public class KTH_Reward : MonoBehaviour
         // 유언
         if (stageData.possibleWills != null)
         {
-            foreach (KTH_WillRewardPoolEntry entry in stageData.possibleWills)
+            foreach (LSO_WillRewardPoolEntry entry in stageData.possibleWills)
             {
                 if (entry == null || entry.willSO == null || entry.weight <= 0)
                     continue;
 
-                result.Add(new KTH_RewardOption
+                result.Add(new LSO_RewardOption
                 {
-                    type = KTH_RewardType.Will,
+                    type = LSO_RewardType.Will,
                     will = entry.willSO
                 });
 
@@ -139,13 +139,13 @@ public class KTH_Reward : MonoBehaviour
     // =========================================================
     // 가중치 랜덤
     // =========================================================
-    private KTH_RewardOption RollRandomReward(List<KTH_RewardOption> available)
+    private LSO_RewardOption RollRandomReward(List<LSO_RewardOption> available)
     {
         if (available == null || available.Count == 0) return null;
 
         float totalWeight = 0f;
 
-        foreach (KTH_RewardOption option in available)
+        foreach (LSO_RewardOption option in available)
         {
             if (option == null) continue;
             totalWeight += GetRewardWeight(option);
@@ -160,7 +160,7 @@ public class KTH_Reward : MonoBehaviour
         float randomValue = UnityEngine.Random.Range(0f, totalWeight);
         float currentWeight = 0f;
 
-        foreach (KTH_RewardOption option in available)
+        foreach (LSO_RewardOption option in available)
         {
             if (option == null) continue;
 
@@ -173,25 +173,25 @@ public class KTH_Reward : MonoBehaviour
         return available[available.Count - 1];
     }
 
-    private float GetRewardWeight(KTH_RewardOption option)
+    private float GetRewardWeight(LSO_RewardOption option)
     {
         if (option == null || currentStageData == null) return 0f;
 
-        if (option.type == KTH_RewardType.Piece)
+        if (option.type == LSO_RewardType.Piece)
         {
             if (currentStageData.possiblePieces == null) return 0f;
 
-            foreach (KTH_RewardPoolEntry entry in currentStageData.possiblePieces)
+            foreach (LSO_RewardPoolEntry entry in currentStageData.possiblePieces)
             {
                 if (entry != null && entry.pieceSO == option.piece)
                     return Mathf.Max(0f, entry.weight);
             }
         }
-        else if (option.type == KTH_RewardType.Will)
+        else if (option.type == LSO_RewardType.Will)
         {
             if (currentStageData.possibleWills == null) return 0f;
 
-            foreach (KTH_WillRewardPoolEntry entry in currentStageData.possibleWills)
+            foreach (LSO_WillRewardPoolEntry entry in currentStageData.possibleWills)
             {
                 if (entry != null && entry.willSO == option.will)
                     return Mathf.Max(0f, entry.weight);
@@ -204,7 +204,7 @@ public class KTH_Reward : MonoBehaviour
     // =========================================================
     // 선택된 보상 지급
     // =========================================================
-    public KTH_UnlockState ClaimReward(KTH_RewardOption selectedOption)
+    public LSO_UnlockState ClaimReward(LSO_RewardOption selectedOption)
     {
         if (selectedOption == null)
         {
@@ -215,7 +215,7 @@ public class KTH_Reward : MonoBehaviour
         Debug.Log($"🎁 [KTH_Reward] 보상 선택: {selectedOption.type}");
 
         // 카드 보상
-        if (selectedOption.type == KTH_RewardType.Piece)
+        if (selectedOption.type == LSO_RewardType.Piece)
         {
             if (selectedOption.piece == null)
             {
@@ -226,20 +226,20 @@ public class KTH_Reward : MonoBehaviour
             LSO_CardSO card = selectedOption.piece;
             Debug.Log($"🎴 선택된 CardSO: {card.name}");
 
-            KTH_UnlockState rewardState = new KTH_UnlockState();
+            LSO_UnlockState rewardState = new LSO_UnlockState();
 
             if (card.Animal != null)
             {
                 rewardState.UnlockPiece(card.Animal);
             }
 
-            if (ItemLibraryManager.Instance == null)
+            if (LSO_ItemLibraryManager.Instance == null)
             {
-                Debug.LogError("[KTH_Reward] ItemLibraryManager.Instance가 NULL입니다!");
+                Debug.LogError("[KTH_Reward] LSO_ItemLibraryManager.Instance가 NULL입니다!");
             }
             else
             {
-                ItemLibraryManager.Instance.AddPieceToLibrary(card);
+                LSO_ItemLibraryManager.Instance.AddPieceToLibrary(card);
                 Debug.Log($"📚 [KTH_Reward] ItemLibrary에 CardSO 저장 완료: {card.name}");
             }
 
@@ -249,7 +249,7 @@ public class KTH_Reward : MonoBehaviour
         }
 
         // 유언 보상
-        if (selectedOption.type == KTH_RewardType.Will)
+        if (selectedOption.type == LSO_RewardType.Will)
         {
             if (selectedOption.will == null)
             {
@@ -260,16 +260,16 @@ public class KTH_Reward : MonoBehaviour
             DLJ_WillDataSO will = selectedOption.will;
             Debug.Log($"📜 선택된 WillSO: {will.name}");
 
-            KTH_UnlockState rewardState = new KTH_UnlockState();
+            LSO_UnlockState rewardState = new LSO_UnlockState();
             rewardState.UnlockWill(will);
 
-            if (ItemLibraryManager.Instance == null)
+            if (LSO_ItemLibraryManager.Instance == null)
             {
-                Debug.LogError("[KTH_Reward] ItemLibraryManager.Instance가 NULL입니다!");
+                Debug.LogError("[KTH_Reward] LSO_ItemLibraryManager.Instance가 NULL입니다!");
             }
             else
             {
-                ItemLibraryManager.Instance.AddWillToLibrary(will);
+                LSO_ItemLibraryManager.Instance.AddWillToLibrary(will);
                 Debug.Log($"📚 [KTH_Reward] ItemLibrary에 WillSO 저장 완료: {will.name}");
             }
 
@@ -282,7 +282,7 @@ public class KTH_Reward : MonoBehaviour
         return null;
     }
 
-    public List<KTH_RewardOption> GetCurrentOptions()
+    public List<LSO_RewardOption> GetCurrentOptions()
     {
         return currentOptions;
     }

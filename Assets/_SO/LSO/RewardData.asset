@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8712c7c745e5dd24f8b2b12642eb08ba, type: 3}
   m_Name: RewardData
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_RewardTableSO
+  m_EditorClassIdentifier: Assembly-CSharp::LSO_RewardTableSO
   stages:
   - chapter: 1
     stage: 1

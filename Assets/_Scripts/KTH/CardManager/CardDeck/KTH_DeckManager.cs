@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.Reward;
 using UnityEngine;
 
 public class KTH_DeckManager : MonoBehaviour
@@ -78,7 +79,7 @@ public class KTH_DeckManager : MonoBehaviour
     // 여기서 씬을 뒤져 찾지 않는 이유는 ItemLibraryManager가 DontDestroyOnLoad로 넘어오기 때문이다.
     private void InitDeck()
     {
-        ItemLibraryManager library = ItemLibraryManager.Instance;
+        LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
         if (library == null)
         {

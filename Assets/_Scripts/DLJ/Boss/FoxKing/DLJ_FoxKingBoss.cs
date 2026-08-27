@@ -4,6 +4,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Boss;
 using _Scripts.LSO.HealthSystem;
 using UnityEngine;
+using _Scripts.LSO.Reward;
 
 public enum DLJ_GreedEffectType
 {

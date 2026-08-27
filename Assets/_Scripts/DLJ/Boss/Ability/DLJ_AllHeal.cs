@@ -1,9 +1,9 @@
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LDY;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 /// <summary>Each attack has a 10% chance to heal every living ally by 1.</summary>
 public sealed class DLJ_AllHeal : LSO_IAbility, IOnAnimalAttack,

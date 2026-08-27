@@ -1,10 +1,10 @@
 using _Scripts.LDY;
 using _Scripts.LSO.Manager;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 /// <summary>Accumulates 1 summon cost per survived turn, up to 3, and refunds it on death.</summary>
 public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,

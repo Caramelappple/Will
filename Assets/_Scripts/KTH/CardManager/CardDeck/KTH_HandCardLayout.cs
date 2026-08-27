@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using _Scripts.LSO.Deck.Data;
-using _Scripts.LSO.UI;
 using DG.Tweening;
 using UnityEngine;
+using _Scripts.LSO.UI.Panel;
 
 public class KTH_HandCardLayout : MonoBehaviour
 {

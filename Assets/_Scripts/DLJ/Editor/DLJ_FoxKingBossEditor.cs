@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using _Scripts.LSO.Reward;
 
 [CustomEditor(typeof(DLJ_FoxKingBoss))]
 [CanEditMultipleObjects]

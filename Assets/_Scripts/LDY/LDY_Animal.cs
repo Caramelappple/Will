@@ -1,7 +1,6 @@
 
 using System;
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Deck.Data;
@@ -9,6 +8,7 @@ using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Manager;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 namespace _Scripts.LDY
 {
