@@ -13,9 +13,7 @@ GameObject:
   - component: {fileID: 8401116197490369122}
   - component: {fileID: 5175658531560620529}
   - component: {fileID: 507233932844191505}
-  - component: {fileID: 1995707403264121321}
   - component: {fileID: 8411521305535380808}
-  - component: {fileID: 2173243037541100337}
   - component: {fileID: -6317045587966483626}
   - component: {fileID: 6703160183083293411}
   - component: {fileID: -6896967360982338821}
@@ -135,21 +133,6 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 0
   <MinValue>k__BackingField: 0
   _value: 0
---- !u!114 &1995707403264121321
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4488470074872201150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b34dce7650656ef40a0f69f819620f9b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Stat.LSO_AnimalStatBinder
-  animal: {fileID: 8411521305535380808}
-  label: {fileID: 0}
-  pollInterval: 0.2
 --- !u!114 &8411521305535380808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,34 +153,6 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 6759159158562701642}
---- !u!114 &2173243037541100337
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4488470074872201150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cbddde483287467d80553b4b532abb46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.LSO_StatBillBoardSpawner
-  prefab: {fileID: 4205989368026596512, guid: 0b2c1e8dbe205894fa075c7b4c30e060, type: 3}
-  localPosition: {x: 0, y: 0.225, z: -0.4}
-  localScale: {x: 1.6, y: 1.6, z: 1.6}
---- !u!114 &-6317045587966483626
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4488470074872201150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00d249b060dc4f88b15ad7399d815951, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
-  maxStoredAbilities: 3
 --- !u!114 &6703160183083293411
 MonoBehaviour:
   m_ObjectHideFlags: 0

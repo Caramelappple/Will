@@ -1,10 +1,10 @@
 using _Scripts.LDY.Save;
-using _Scripts.LSO.UI;
 using _Scripts.LSO.UI.Transition;
 using _Scripts.LSO.Will;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using _Scripts.LSO.UI.Panel;
 
 namespace _Scripts.LDY
 {

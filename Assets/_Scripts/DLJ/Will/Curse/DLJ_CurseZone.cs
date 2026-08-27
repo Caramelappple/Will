@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
-using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 

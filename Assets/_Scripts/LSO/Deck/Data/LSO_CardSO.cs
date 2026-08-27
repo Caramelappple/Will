@@ -4,6 +4,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 namespace _Scripts.LSO.Deck.Data
 {

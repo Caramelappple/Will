@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace _Scripts.LSO.Camera
 {
@@ -32,15 +33,22 @@ namespace _Scripts.LSO.Camera
         [Tooltip("꺼진 카메라에 줄 값. 켰을 때의 값은 샷마다 따로 정한다.")]
         [SerializeField] private int idlePriority;
 
-        [Header("시작")]
-        [Tooltip("시작할 때 고를 샷의 이름. 비워두면 목록의 첫 번째.")]
+        [Header("기본 샷")]
+        [Tooltip("시작할 때 고를 샷이자, 돌아갈 곳. 비워두면 목록의 첫 번째.")]
         [SerializeField] private string startId;
+
+        [Tooltip("기본 샷으로 돌아가게 만들 조작. 비워두면 자동으로 돌아가지 않는다.\n" +
+                 "여러 개를 넣으면 그중 하나만 들어와도 돌아간다.")]
+        [SerializeField] private List<LSO_CameraReturnTrigger> returnTriggers = new List<LSO_CameraReturnTrigger>();
 
         private readonly Dictionary<string, LSO_CameraShot> _byKey = new Dictionary<string, LSO_CameraShot>();
 
         private LSO_CameraShot _current;
         private LSO_CameraShot _previous;
         private Coroutine _holdRoutine;
+
+        // 샷이 바뀐 프레임. 그 프레임의 조작은 돌아가기로 치지 않는다.
+        private int _shotFrame = -1;
 
         /// <summary>지금 보고 있는 샷의 이름. 없으면 빈 문자열.</summary>
         public string CurrentId => _current != null ? _current.Key : string.Empty;
@@ -107,6 +115,65 @@ namespace _Scripts.LSO.Camera
             Play(shot, instant: false);
         }
 
+        private void Update()
+        {
+            if (returnTriggers.Count == 0) return;
+
+            // 이미 기본 샷이면 돌아갈 곳이 없다.
+            if (_current == null || _current.Key == DefaultId) return;
+
+            // 샷을 켠 그 프레임의 조작은 무시한다.
+            // 안 그러면 "아무 데나 클릭"이 방금 연 샷을 그 자리에서 도로 닫는다.
+            if (Time.frameCount == _shotFrame) return;
+
+            if (!IsReturnPressed()) return;
+
+            ReturnToDefault();
+        }
+
+        /// <summary>
+        /// 등록된 조작 중 하나라도 이번 프레임에 들어왔는지.
+        ///
+        /// 눌린 순간(wasPressedThisFrame)을 본다. 뗀 순간을 보면 콜라이더 클릭과 겹친다 —
+        /// uGUI의 클릭은 뗄 때 발생하므로, 샷을 여는 그 클릭이 곧바로 닫기로도 읽힌다.
+        /// </summary>
+        private bool IsReturnPressed()
+        {
+            foreach (LSO_CameraReturnTrigger trigger in returnTriggers)
+            {
+                switch (trigger)
+                {
+                    case LSO_CameraReturnTrigger.LeftClickAnywhere:
+                        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                            return true;
+                        break;
+
+                    case LSO_CameraReturnTrigger.RightClickAnywhere:
+                        if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+                            return true;
+                        break;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>기본 샷으로 돌아간다. UnityEvent에 걸 수도 있다.</summary>
+        public void ReturnToDefault()
+        {
+            LSO_CameraShot shot = Find(DefaultId) ?? (shots.Count > 0 ? shots[0] : null);
+
+            if (shot == null) return;
+
+            Play(shot, instant: false);
+        }
+
+        /// <summary>기본 샷의 이름. 비워뒀으면 목록의 첫 번째.</summary>
+        private string DefaultId =>
+            !string.IsNullOrEmpty(startId) ? startId
+            : shots.Count > 0 && shots[0] != null ? shots[0].Key
+            : string.Empty;
+
         /// <summary>직전 샷으로 돌아간다.</summary>
         public void Back()
         {
@@ -131,6 +198,7 @@ namespace _Scripts.LSO.Camera
 
             _previous = _current;
             _current = shot;
+            _shotFrame = Time.frameCount;
 
             ApplyPriorities();
 

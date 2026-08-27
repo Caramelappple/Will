@@ -2343,11 +2343,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81f60949ea5837b4d96e3cdce2d8de76, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemLibraryManager
+  m_EditorClassIdentifier: Assembly-CSharp::LSO_ItemLibraryManager
   unlockedPieces:
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
+  - {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
+  - {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
   - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   unlockedWills: []

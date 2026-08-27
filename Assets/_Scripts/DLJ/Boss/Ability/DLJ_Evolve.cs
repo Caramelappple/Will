@@ -1,9 +1,9 @@
 using System.Collections;
 using _Scripts.LDY;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.HealthSystem;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
     LSO_IAbilityInitializable

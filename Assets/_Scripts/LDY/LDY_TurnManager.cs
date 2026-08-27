@@ -1,6 +1,5 @@
 using System.Collections;
 using _Scripts.LSO.Manager;
-using _Scripts.LSO;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -12,34 +11,27 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_AttackSystem attackSystem;
         [SerializeField] private LDY_ActionPointManager actionPoints;
 
+        [Header("자동 턴 종료")]
+        [Tooltip("켜면 행동력이 0이 되는 순간 턴이 저절로 넘어간다.\n" +
+                 "기본은 꺼둔다 — 기획서상 코스트를 다 써도 직접 버튼을 눌러 끝내야 한다.")]
+        [SerializeField] private bool autoEndTurn;
+
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         public event System.Action<LDY_Team> OnTurnChanged;
 
+        /// <summary>행동력이 떨어지면 저절로 턴이 넘어가는지. 튜토리얼처럼 잠깐 켜야 할 때 쓴다.</summary>
+        public bool AutoEndTurn
+        {
+            get => autoEndTurn;
+            set => autoEndTurn = value;
+        }
+
         private bool _isProcessingTurn;
-        private Coroutine _autoEndPlayerTurnRoutine;
         
         private void Awake()
         {
             GameManager.Instance.RegisterTurnManager(this);
-        }
-
-        private void OnEnable()
-        {
-            if (actionPoints != null)
-                actionPoints.OnActionPointsChanged += HandleActionPointsChanged;
-        }
-
-        private void OnDisable()
-        {
-            if (actionPoints != null)
-                actionPoints.OnActionPointsChanged -= HandleActionPointsChanged;
-
-            if (_autoEndPlayerTurnRoutine != null)
-            {
-                StopCoroutine(_autoEndPlayerTurnRoutine);
-                _autoEndPlayerTurnRoutine = null;
-            }
         }
 
         private void OnDestroy()
@@ -55,36 +47,24 @@ namespace _Scripts.LDY
         }
 
         /// <summary>
-        /// 플레이어가 마지막 행동력을 사용하면 연출 종료를 기다린 뒤 자동으로 턴을 넘긴다.
-        /// 이벤트가 발생한 순간에는 이동/공격 시스템이 아직 Busy일 수 있으므로 즉시 넘기지 않는다.
+        /// 자동 턴 종료. 꺼져 있으면 아무 일도 하지 않는다.
+        ///
+        /// 기본을 끔으로 두는 이유는 기획서 때문이다.
+        /// "코스트를 모두 사용한 경우에도 직접 버튼을 눌러 턴을 종료한다."
+        ///
+        /// 자동으로 넘기면 마지막 행동의 연출이 끝나기도 전에 화면이 적 턴으로 바뀌어
+        /// 방금 무슨 일이 일어났는지 확인할 틈이 없다. 남은 기물의 배치를 다시 보거나
+        /// 기물 정보를 열어보는 것도 못 한다.
+        ///
+        /// 켜더라도 연출이 끝날 때까지는 기다린다. CanEndPlayerTurn이 IsAnimating을 보기 때문이다.
         /// </summary>
-        private void HandleActionPointsChanged(int current, int max)
+        private void Update()
         {
-            if (current > 0) return;
-            if (CurrentTurn != LDY_Team.Player) return;
-            if (_isProcessingTurn || _autoEndPlayerTurnRoutine != null) return;
+            if (!autoEndTurn) return;
+            if (actionPoints == null || actionPoints.HasActionPoints) return;
+            if (!CanEndPlayerTurn()) return;
 
-            _autoEndPlayerTurnRoutine = StartCoroutine(AutoEndPlayerTurnRoutine());
-        }
-
-        private IEnumerator AutoEndPlayerTurnRoutine()
-        {
-            // TryConsume을 호출한 행동이 Busy 상태를 세팅할 한 프레임을 보장한다.
-            yield return null;
-
-            while (CurrentTurn == LDY_Team.Player && actionPoints != null && !actionPoints.HasActionPoints)
-            {
-                if (CanEndPlayerTurn())
-                {
-                    _autoEndPlayerTurnRoutine = null;
-                    EndPlayerTurn();
-                    yield break;
-                }
-
-                yield return null;
-            }
-
-            _autoEndPlayerTurnRoutine = null;
+            EndPlayerTurn();
         }
 
         /// <summary>

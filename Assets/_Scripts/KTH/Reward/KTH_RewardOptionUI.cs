@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 using _Scripts.LSO.Ability;
-using _Scripts.LSO.Animal.Data;
+using _Scripts.LSO.Reward;
 using _Scripts.LSO.Will;
 
 [RequireComponent(typeof(Button))]
@@ -39,7 +39,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
     [SerializeField] private float selectUpDuration = 0.12f;
     [SerializeField] private float selectDownDuration = 0.18f;
 
-    private KTH_RewardOption rewardOption;
+    private LSO_RewardOption rewardOption;
     private KTH_RewardChoiceUI owner;
 
     private Button cardButton;
@@ -48,7 +48,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
     // LayoutGroup이 결정한 원래 위치
     private Vector2 basePosition;
 
-    public KTH_RewardOption Option => rewardOption;
+    public LSO_RewardOption Option => rewardOption;
 
     private void Awake()
     {
@@ -67,7 +67,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
     }
 
     public void SetReward(
-        KTH_RewardOption option,
+        LSO_RewardOption option,
         KTH_RewardChoiceUI ownerUI)
     {
         rewardOption = option;
@@ -82,7 +82,7 @@ public class KTH_RewardOptionUI : MonoBehaviour
         // 기물
         // ==========================================
 
-        if (option.type == KTH_RewardType.Piece)
+        if (option.type == LSO_RewardType.Piece)
         {
             if (statRoot != null)
             {

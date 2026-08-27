@@ -1,7 +1,6 @@
 
 using System;
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Deck.Data;
@@ -9,6 +8,7 @@ using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Manager;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 namespace _Scripts.LDY
 {
@@ -31,7 +31,13 @@ namespace _Scripts.LDY
         [Tooltip("data(AnimalSO)가 없을 때만 쓰이는 임시 이동 칸 수. data가 있으면 data.moveRange가 항상 우선한다.")]
         [Min(1)]
         [SerializeField] private int fallbackMoveRange = 1;
-        
+
+        [Tooltip("data(AnimalSO)가 없을 때만 쓰이는 임시값. data가 있으면 data.playerHealthPoints가 항상 우선한다.\n" +
+                 "이 기물을 잃었을 때 플레이어 촛불이 깎이는 양이다. 적 기물에는 쓰이지 않는다.")]
+        [Min(0)]
+        [SerializeField] private int fallbackPlayerHealthPoints;
+
+
         [Tooltip("data의 damage로 초기화된 뒤 버프/디버프로 변할 수 있는 값.")]
         public int baseAtk;
 
@@ -81,6 +87,15 @@ namespace _Scripts.LDY
 
         /// <summary>한 번에 움직일 수 있는 칸 수. 사거리와 마찬가지로 동물 데이터가 원본이다.</summary>
         public int MoveRange => data != null ? data.MoveRange : Mathf.Max(1, fallbackMoveRange);
+
+        /// <summary>
+        /// 이 기물을 잃었을 때 플레이어 촛불이 깎이는 양. 동물 데이터가 원본이다.
+        ///
+        /// 죽는 시점에 data를 직접 읽으면 비어 있는 기물에서 그대로 터진다.
+        /// 사거리·이동력과 같은 규칙으로 맞춰 두어, 부르는 쪽이 data가 있는지 몰라도 되게 한다.
+        /// </summary>
+        public int PlayerHealthPoints =>
+            data != null ? data.playerHealthPoints : Mathf.Max(0, fallbackPlayerHealthPoints);
 
         /// <summary>
         /// 특성 종류 목록. 동물 데이터가 원본이다.

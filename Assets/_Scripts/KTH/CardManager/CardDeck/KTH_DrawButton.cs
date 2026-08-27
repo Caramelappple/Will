@@ -1,8 +1,8 @@
 using System;
 using _Scripts.LDY;
-using _Scripts.LSO.UI;
 using UnityEngine;
 using UnityEngine.UI;
+using _Scripts.LSO.UI.Panel;
 
 [RequireComponent(typeof(Button))]
 public class KTH_DrawButton : MonoBehaviour

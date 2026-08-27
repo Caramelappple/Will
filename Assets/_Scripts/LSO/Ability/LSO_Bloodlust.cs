@@ -2,6 +2,7 @@ using System;
 using _Scripts.LDY;
 using _Scripts.LSO.CoreLib;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Ability
 {

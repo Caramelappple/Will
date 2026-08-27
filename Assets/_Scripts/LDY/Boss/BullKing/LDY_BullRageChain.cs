@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
-using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
+using _Scripts.LSO.Reward;
 
 namespace _Scripts.LDY.Boss.BullKing
 {

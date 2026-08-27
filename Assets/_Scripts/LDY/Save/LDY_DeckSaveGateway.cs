@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 
 namespace _Scripts.LDY.Save

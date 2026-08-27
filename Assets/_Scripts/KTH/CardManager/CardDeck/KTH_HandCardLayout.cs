@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using _Scripts.LSO.Deck.Data;
-using _Scripts.LSO.UI;
 using DG.Tweening;
 using UnityEngine;
+using _Scripts.LSO.UI.Panel;
 
 public class KTH_HandCardLayout : MonoBehaviour
 {
@@ -39,6 +39,9 @@ public class KTH_HandCardLayout : MonoBehaviour
     [SerializeField] private float placementMoveDownDistance = 150f;
     [SerializeField] private float placementMoveDuration = 0.3f;
     [SerializeField] private float placementCenterGap = 140f;
+
+    [Header("Two Card Placement Settings")]
+    [SerializeField] private float twoCardPlacementDistance = 400f;
 
     private readonly List<KTH_HandCard> handCards =
         new List<KTH_HandCard>();
@@ -253,14 +256,14 @@ public class KTH_HandCardLayout : MonoBehaviour
         selectedCard.transform.DOKill();
         selectedCard.transform.SetAsLastSibling();
 
-        Sequence sequence =
+        Sequence moveToCenterSequence =
             DOTween.Sequence();
 
-        sequence.SetTarget(
+        moveToCenterSequence.SetTarget(
             selectedCard.transform
         );
 
-        sequence.Join(
+        moveToCenterSequence.Join(
             selectedCard.transform
                 .DOLocalMove(
                     Vector3.zero,
@@ -269,7 +272,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(Ease.OutBack)
         );
 
-        sequence.Join(
+        moveToCenterSequence.Join(
             selectedCard.transform
                 .DOLocalRotate(
                     Vector3.zero,
@@ -278,7 +281,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(Ease.OutBack)
         );
 
-        sequence.Join(
+        moveToCenterSequence.Join(
             selectedCard.transform
                 .DOScale(
                     Vector3.one *
@@ -288,7 +291,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(Ease.OutBack)
         );
 
-        sequence.OnComplete(() =>
+        moveToCenterSequence.OnComplete(() =>
         {
             if (selectedCard == null)
             {
@@ -318,12 +321,156 @@ public class KTH_HandCardLayout : MonoBehaviour
         return;
     }
 
+    // =========================================================
+    // 카드가 정확히 2장일 때
+    // 선택 카드 = 중앙
+    // 나머지 카드 = 바깥쪽으로 떨어지고 아래로 내려가며 기울어짐
+    // =========================================================
+    if (count == 2)
+    {
+        int selectedIndex =
+            handCards.IndexOf(selectedCard);
+
+        if (selectedIndex < 0)
+        {
+            return;
+        }
+
+        KTH_HandCard otherCard =
+            handCards[
+                selectedIndex == 0
+                    ? 1
+                    : 0
+            ];
+
+        if (otherCard == null)
+        {
+            return;
+        }
+
+        // 선택된 카드가 왼쪽이었다면
+        // 다른 카드는 오른쪽에 배치
+        bool otherIsRight =
+            selectedIndex == 0;
+
+        // 5장일 때 바깥쪽 카드처럼 충분히 떨어뜨림
+        float otherCardX =
+            otherIsRight
+                ? maxCardSpacing * 1.25f
+                : -maxCardSpacing * 1.25f;
+
+        // 바깥쪽 카드처럼 아래로 내림
+        float otherCardY =
+            -arcHeight;
+
+        // 부채꼴 레이아웃처럼 기울임
+        float otherCardRotation =
+            otherIsRight
+                ? -maxRotation
+                : maxRotation;
+
+        otherCard.transform.DOKill();
+
+        Sequence otherCardSequence =
+            DOTween.Sequence();
+
+        otherCardSequence.SetTarget(
+            otherCard.transform
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOLocalMove(
+                    new Vector3(
+                        otherCardX,
+                        otherCardY,
+                        0f
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        otherCardRotation
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOScale(
+                    Vector3.one,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        // =====================================================
+        // 선택된 카드는 항상 중앙
+        // =====================================================
+
+        selectedCard.transform.DOKill();
+
+        Sequence twoCardSelectedSequence =
+            DOTween.Sequence();
+
+        twoCardSelectedSequence.SetTarget(
+            selectedCard.transform
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOLocalMove(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOScale(
+                    Vector3.one *
+                    selectedCard.SelectScale,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        selectedCard.transform.SetAsLastSibling();
+
+        return;
+    }
+
+    // =========================================================
+    // 카드가 3장 이상일 때
+    // 기존 부채꼴 레이아웃
+    // =========================================================
+
     List<KTH_HandCard> otherCards =
         new List<KTH_HandCard>();
 
     for (int i = 0; i < count; i++)
     {
-        KTH_HandCard card = handCards[i];
+        KTH_HandCard card =
+            handCards[i];
 
         if (card == null ||
             card == selectedCard)
@@ -334,7 +481,8 @@ public class KTH_HandCardLayout : MonoBehaviour
         otherCards.Add(card);
     }
 
-    int otherCount = otherCards.Count;
+    int otherCount =
+        otherCards.Count;
 
     int leftCount =
         otherCount / 2;
@@ -343,7 +491,9 @@ public class KTH_HandCardLayout : MonoBehaviour
         otherCount - leftCount;
 
     float spacing =
-        CalculatePlacementSpacing(otherCount + 1);
+        CalculatePlacementSpacing(
+            otherCount + 1
+        );
 
     for (int i = 0; i < otherCount; i++)
     {
@@ -382,7 +532,10 @@ public class KTH_HandCardLayout : MonoBehaviour
             normalized =
                 Mathf.Clamp01(
                     Mathf.Abs(relativeIndex) /
-                    (float)Mathf.Max(1, leftCount)
+                    (float)Mathf.Max(
+                        1,
+                        leftCount
+                    )
                 );
         }
         else
@@ -390,7 +543,10 @@ public class KTH_HandCardLayout : MonoBehaviour
             normalized =
                 Mathf.Clamp01(
                     relativeIndex /
-                    (float)Mathf.Max(1, rightCount)
+                    (float)Mathf.Max(
+                        1,
+                        rightCount
+                    )
                 );
         }
 
@@ -423,14 +579,14 @@ public class KTH_HandCardLayout : MonoBehaviour
 
         card.transform.DOKill();
 
-        Sequence sequence =
+        Sequence cardSequence =
             DOTween.Sequence();
 
-        sequence.SetTarget(
+        cardSequence.SetTarget(
             card.transform
         );
 
-        sequence.Join(
+        cardSequence.Join(
             card.transform
                 .DOLocalMove(
                     targetPosition,
@@ -439,7 +595,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(moveEase)
         );
 
-        sequence.Join(
+        cardSequence.Join(
             card.transform
                 .DOLocalRotate(
                     new Vector3(
@@ -452,7 +608,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(moveEase)
         );
 
-        sequence.Join(
+        cardSequence.Join(
             card.transform
                 .DOScale(
                     Vector3.one,
@@ -461,6 +617,10 @@ public class KTH_HandCardLayout : MonoBehaviour
                 .SetEase(moveEase)
         );
     }
+
+    // =========================================================
+    // 3장 이상일 때 선택 카드 중앙 처리
+    // =========================================================
 
     selectedCard.transform.DOKill();
 
@@ -501,7 +661,7 @@ public class KTH_HandCardLayout : MonoBehaviour
 
     selectedCard.transform.SetAsLastSibling();
 }
-    
+
     private float CalculatePlacementSpacing(
         int count)
     {
@@ -619,6 +779,68 @@ public class KTH_HandCardLayout : MonoBehaviour
         AnimateContainerY(
             originalContainerLocalPos.y -
             placementMoveDownDistance
+        );
+    }
+
+    public void GatherCardsToCenter(
+        float duration)
+    {
+        if (handCards.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard card =
+                handCards[i];
+
+            if (card == null)
+            {
+                continue;
+            }
+
+            card.transform.DOKill();
+
+            Sequence gatherSequence =
+                DOTween.Sequence();
+
+            gatherSequence.Join(
+                card.transform
+                    .DOLocalMove(
+                        Vector3.zero,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+
+            gatherSequence.Join(
+                card.transform
+                    .DOLocalRotate(
+                        Vector3.zero,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+
+            gatherSequence.Join(
+                card.transform
+                    .DOScale(
+                        Vector3.one,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+        }
+    }
+
+    public void RestoreCardsFromCenter(
+        float duration)
+    {
+        UpdateHandLayout(
+            null,
+            duration,
+            false
         );
     }
 

@@ -1,9 +1,9 @@
 using _Scripts.LDY;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Boss;
 using _Scripts.LSO.DeathSystem;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 public interface DLJ_IWillBenefitSource
 {
