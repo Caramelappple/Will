@@ -2262,6 +2262,92 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 403239467}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &424069710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 424069713}
+  - component: {fileID: 424069712}
+  - component: {fileID: 424069711}
+  m_Layer: 0
+  m_Name: LDY_RewardAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &424069711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424069710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8179ed41a77a6e64ab3c8505d6dcd00a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Effect.LDY_BoardFlipDirector
+  board: {fileID: 944642615}
+  turnManager: {fileID: 944642614}
+  cardPlacer: {fileID: 881993166}
+  selectionController: {fileID: 944642610}
+  additionalInputBehaviours: []
+  rewardAnchor: {fileID: 424069713}
+  hideAnchorUntilFlip: 1
+  pivotHeightOffset: -0.05
+  flipAxis: {x: 1, y: 0, z: 0}
+  flipAngle: 180
+  flipDuration: 1.6
+  flipEase: 6
+  pieceHideDuration: 0.35
+  pieceHideEase: 26
+  combatWaitTimeout: 3
+  revealHold: 0.25
+  useGlobalInteractionLock: 0
+  enableDebugHotkey: 1
+  debugPlayKey: 103
+  debugResetKey: 104
+--- !u!114 &424069712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424069710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b244d4e4cc73040b165aa0d6172241, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Effect.Debugging.LDY_RewardAnchorDummy
+  count: 3
+  spacing: 1.95
+  quadSize: {x: 1.6, y: 2.3}
+  quadLocalEuler: {x: 0, y: 0, z: 0}
+  rewardLayerName: LDY_Reward
+  tints:
+  - {r: 0.85, g: 0.3, b: 0.3, a: 1}
+  - {r: 0.3, g: 0.7, b: 0.85, a: 1}
+  - {r: 0.85, g: 0.72, b: 0.3, a: 1}
+--- !u!4 &424069713
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424069710}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.46174863, y: 0, z: 0, w: 0.8870109}
+  m_LocalPosition: {x: 3.5, y: 1.3, z: 1.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 55, y: 0, z: 0}
 --- !u!1 &435555728
 GameObject:
   m_ObjectHideFlags: 0
@@ -4634,6 +4720,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &930437073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 930437074}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &930437074
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 930437073}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.46174863, y: -0, z: -0, w: 0.8870109}
+  m_LocalPosition: {x: 375.4887, y: 2917.1567, z: 19391.059}
+  m_LocalScale: {x: 1870.615, y: 1870.6146, z: 1870.6146}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1651758753}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &932104890
 GameObject:
@@ -8901,6 +9018,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1500359890}
+  - {fileID: 930437074}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -10595,3 +10713,4 @@ SceneRoots:
   - {fileID: 1887312724819673824}
   - {fileID: 163273564}
   - {fileID: 749980573}
+  - {fileID: 424069713}

@@ -26,6 +26,29 @@ namespace _Scripts.LDY
             }
         }
 
+        /// <summary>
+        /// 격자 (0,0) 칸을 가리키는 보드 루트. 타일이 전부 이 아래에 있다.
+        ///
+        /// 연출이 보드 전체를 한 덩어리로 움직일 때 쓰라고 열어둔다.
+        /// 격자 계산은 이 트랜스폼의 position만 보고 rotation은 보지 않으므로,
+        /// 여기를 돌린 상태에서는 GridToWorld/WorldToGrid를 부르지 말 것.
+        /// </summary>
+        public Transform BoardRoot => boardOrigin != null ? boardOrigin : transform;
+
+        /// <summary>
+        /// 8×8 격자의 기하학적 중심(월드). 네 귀퉁이 칸 중심의 평균이라 y는 칸 표면 높이 그대로다.
+        /// 보드를 통째로 회전시킬 때의 축이 지나갈 지점을 구하는 데 쓴다.
+        /// </summary>
+        public Vector3 BoardCenter
+        {
+            get
+            {
+                Vector3 origin = boardOrigin != null ? boardOrigin.position : Vector3.zero;
+                float half = (Size - 1) * cellSize * 0.5f;
+                return origin + new Vector3(half, 0f, half);
+            }
+        }
+
         // 격자 저장은 x/z만 사용한다. pos.y(높이)는 표시 전용이라 점유 판정에 영향을 주지 않는다.
         private readonly LDY_Animal[,] _grid = new LDY_Animal[Size, Size];
 

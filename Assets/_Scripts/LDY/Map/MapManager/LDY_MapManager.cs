@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using _Scripts.LDY.Effect;
 using _Scripts.LDY.Save;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.Reward;
@@ -49,6 +50,13 @@ public class LDY_MapManager : MonoBehaviour
 
     /// <summary>토큰이 노드 하나를 건너가는 데 걸리는 시간(초).</summary>
     private const float TokenMoveDuration = 0.6f;
+
+    /// <summary>
+    /// 승리 뒤 보드 회전 연출을 기다려주는 상한(초).
+    /// 기획 수치가 아니라 멈춤 방지선이라 인스펙터에 열지 않는다.
+    /// 연출 전체가 기물 정리 + 회전 + 뜸으로 2초 남짓이므로 정상적인 경우 이 값에 닿지 않는다.
+    /// </summary>
+    private const float BoardFlipWaitTimeout = 6f;
 
     public LDY_StageSO CurrentStageSO { get; private set; }
 
@@ -134,6 +142,9 @@ public class LDY_MapManager : MonoBehaviour
 
     /// <summary>전투 연출을 기다리며 씬 이동을 예약해둔 상태인지. 같은 이동이 두 번 걸리는 것을 막는다.</summary>
     private bool _sceneLoadPending = false;
+
+    /// <summary>보드 회전 연출이 끝나기를 기다리는 중인지. 같은 노드가 두 번 완료되는 것을 막는다.</summary>
+    private bool _boardFlipPending = false;
 
     /// <summary>
     /// 보상 대기 중일 때, 보상 UI가 끝난 뒤 어떤 씬으로 갈지 판단하기 위해
@@ -747,8 +758,83 @@ public class LDY_MapManager : MonoBehaviour
         if (activeNodeIndex >= 0) CompleteNode(activeNodeIndex);
     }
 
+    /// <summary>
+    /// 전투 승리 뒤 클리어 처리를 시작한다.
+    ///
+    /// 보드 회전 연출이 씬에 있으면 그것이 끝나기를 먼저 기다린다.
+    /// 기다리기만 할 뿐 뒤따르는 순서는 그대로다 — 노드 완료 → 보상 생성 → 보상 UI가
+    /// 예전과 같은 자리에서 같은 순서로 일어나고, 그 시작점만 연출 뒤로 밀린다.
+    /// </summary>
     public void CompleteActiveNodeAndReturnToMap()
     {
+        if (!IsValidIndex(activeNodeIndex))
+        {
+            GoToMapScene();
+            return;
+        }
+
+        // 연출을 기다리는 사이에 같은 요청이 또 들어오면 노드가 두 번 완료된다.
+        // (KTH_TestClearButton 연타 등)
+        if (_boardFlipPending)
+        {
+            Debug.LogWarning("[LDY_MapManager] 보드 회전 연출을 기다리는 중이라 중복 클리어 요청을 무시합니다.", this);
+            return;
+        }
+
+        // 전투 씬에만 있는 컴포넌트다. 맵이나 팝업 경로에서 못 찾는 것이 정상이며,
+        // 그때는 기다릴 연출이 없으므로 그대로 진행한다.
+        LDY_BoardFlipDirector flipDirector = FindFirstObjectByType<LDY_BoardFlipDirector>();
+
+        if (flipDirector == null)
+        {
+            CompleteClearedNodeAndLeave();
+            return;
+        }
+
+        _boardFlipPending = true;
+        StartCoroutine(Co_FlipBoardThenComplete(flipDirector));
+    }
+
+    /// <summary>
+    /// 보드 회전 연출이 끝나기를 기다린 뒤 클리어 처리를 이어간다.
+    ///
+    /// 연출이 끝나지 않는 상황에서 런이 영영 멈추는 쪽이 연출이 잘리는 것보다 나쁘다.
+    /// 상한을 두고, 넘겼다면 조용히 넘어가지 않고 남긴다.
+    /// </summary>
+    private IEnumerator Co_FlipBoardThenComplete(LDY_BoardFlipDirector flipDirector)
+    {
+        flipDirector.Play();
+
+        float deadline = Time.unscaledTime + BoardFlipWaitTimeout;
+
+        // 씬이 먼저 내려가 디렉터가 파괴되면 null이 되어 루프를 빠져나온다.
+        while (flipDirector != null && flipDirector.IsPlaying)
+        {
+            if (Time.unscaledTime >= deadline)
+            {
+                Debug.LogWarning(
+                    $"[LDY_MapManager] 보드 회전 연출이 {BoardFlipWaitTimeout:0.#}초 안에 끝나지 않아 " +
+                    "중단하고 클리어 처리를 이어갑니다.", this);
+
+                flipDirector.Abort();
+                break;
+            }
+
+            yield return null;
+        }
+
+        _boardFlipPending = false;
+
+        CompleteClearedNodeAndLeave();
+    }
+
+    /// <summary>
+    /// 노드를 완료 처리하고 다음 씬으로 넘어간다.
+    /// 보상이 걸린 노드면 보상 UI가 끝날 때까지 씬 전환을 미룬다.
+    /// </summary>
+    private void CompleteClearedNodeAndLeave()
+    {
+        // 연출을 기다리는 사이에 노드가 정리됐을 수 있다.
         if (!IsValidIndex(activeNodeIndex))
         {
             GoToMapScene();
@@ -800,6 +886,7 @@ public class LDY_MapManager : MonoBehaviour
         }
 
         waitingForRewardBeforeMapReturn = false;
+        _boardFlipPending = false;
         activeNodeIndex = -1;
 
         GoToDeathScene();
@@ -1175,6 +1262,7 @@ public class LDY_MapManager : MonoBehaviour
         isNodeActionInProgress = false;
         waitingForRewardBeforeMapReturn = false;
         _sceneLoadPending = false;
+        _boardFlipPending = false;
         _pendingClearedNodeIndex = -1;
 
         // 1챕터 맵 다시 불러오기
