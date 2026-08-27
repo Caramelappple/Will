@@ -17,10 +17,29 @@ namespace _Scripts.LDY
         public event System.Action<LDY_Team> OnTurnChanged;
 
         private bool _isProcessingTurn;
+        private Coroutine _autoEndPlayerTurnRoutine;
         
         private void Awake()
         {
             GameManager.Instance.RegisterTurnManager(this);
+        }
+
+        private void OnEnable()
+        {
+            if (actionPoints != null)
+                actionPoints.OnActionPointsChanged += HandleActionPointsChanged;
+        }
+
+        private void OnDisable()
+        {
+            if (actionPoints != null)
+                actionPoints.OnActionPointsChanged -= HandleActionPointsChanged;
+
+            if (_autoEndPlayerTurnRoutine != null)
+            {
+                StopCoroutine(_autoEndPlayerTurnRoutine);
+                _autoEndPlayerTurnRoutine = null;
+            }
         }
 
         private void OnDestroy()
@@ -35,17 +54,38 @@ namespace _Scripts.LDY
             OnTurnChanged?.Invoke(CurrentTurn);
         }
 
-        // 행동력이 0이 됐다고 턴을 자동으로 넘기지 않는다.
-        //
-        // 기획서: "코스트를 모두 사용한 경우에도 직접 버튼을 눌러 턴을 종료한다."
-        //
-        // 자동으로 넘기면 마지막 행동의 연출이 끝나기도 전에 화면이 적 턴으로 바뀌어
-        // 방금 무슨 일이 일어났는지 확인할 틈이 없다. 남은 기물의 배치를 다시 보거나
-        // 기물 정보를 열어보는 것도 못 한다.
-        //
-        // 그래서 턴을 넘기는 경로는 턴 종료 버튼 하나뿐이다.
-        // 예전에는 이 Update가 대신 막아주던 조건들(적 턴인지, 연출 중인지)이 있었으므로
-        // 그 검사는 EndPlayerTurn 안으로 옮겼다.
+        /// <summary>
+        /// 플레이어가 마지막 행동력을 사용하면 연출 종료를 기다린 뒤 자동으로 턴을 넘긴다.
+        /// 이벤트가 발생한 순간에는 이동/공격 시스템이 아직 Busy일 수 있으므로 즉시 넘기지 않는다.
+        /// </summary>
+        private void HandleActionPointsChanged(int current, int max)
+        {
+            if (current > 0) return;
+            if (CurrentTurn != LDY_Team.Player) return;
+            if (_isProcessingTurn || _autoEndPlayerTurnRoutine != null) return;
+
+            _autoEndPlayerTurnRoutine = StartCoroutine(AutoEndPlayerTurnRoutine());
+        }
+
+        private IEnumerator AutoEndPlayerTurnRoutine()
+        {
+            // TryConsume을 호출한 행동이 Busy 상태를 세팅할 한 프레임을 보장한다.
+            yield return null;
+
+            while (CurrentTurn == LDY_Team.Player && actionPoints != null && !actionPoints.HasActionPoints)
+            {
+                if (CanEndPlayerTurn())
+                {
+                    _autoEndPlayerTurnRoutine = null;
+                    EndPlayerTurn();
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            _autoEndPlayerTurnRoutine = null;
+        }
 
         /// <summary>
         /// 이동이나 공격 연출이 하나라도 재생 중인지.
