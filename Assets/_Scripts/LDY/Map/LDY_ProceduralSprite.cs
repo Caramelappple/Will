@@ -11,6 +11,22 @@ public static class LDY_ProceduralSprite
     private static Sprite softLineSprite;
     private static Sprite meteorTrailSprite;
 
+    /// <summary>
+    /// Reload Domain을 끈 에디터에서는 static이 플레이를 멈춰도 살아남는다.
+    /// 지난 플레이의 값이 남아 있으면 두 번째 실행부터 엉뚱하게 동작하므로,
+    /// 씬이 로드되기 전에 직접 비운다. LDY_RunSeed와 같은 이유다.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        sparkleSprite = null;
+        thinFrameSprite = null;
+        softGlowSprite = null;
+        ringSprite = null;
+        softLineSprite = null;
+        meteorTrailSprite = null;
+    }
+
     public static Sprite Sparkle => sparkleSprite != null ? sparkleSprite : (sparkleSprite = BuildSparkle());
     public static Sprite ThinFrame => thinFrameSprite != null ? thinFrameSprite : (thinFrameSprite = BuildFrame());
     public static Sprite SoftGlow => softGlowSprite != null ? softGlowSprite : (softGlowSprite = BuildSoftGlow());

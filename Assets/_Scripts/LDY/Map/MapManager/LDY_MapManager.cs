@@ -42,6 +42,17 @@ public class LDY_MapManager : MonoBehaviour
     public static LDY_MapManager Instance { get; private set; }
 
     /// <summary>
+    /// Reload Domain을 끈 에디터에서는 static이 플레이를 멈춰도 살아남는다.
+    /// 지난 플레이의 값이 남아 있으면 두 번째 실행부터 엉뚱하게 동작하므로,
+    /// 씬이 로드되기 전에 직접 비운다. LDY_RunSeed와 같은 이유다.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Instance = null;
+    }
+
+    /// <summary>
     /// 씬을 넘기기 전에 전투 연출을 기다려주는 상한(초).
     /// 기획 수치가 아니라 멈춤 방지선이라 인스펙터에 열지 않는다.
     /// 한 번의 공격 연출은 0.3초 남짓이므로 정상적인 경우 이 값에 닿지 않는다.
