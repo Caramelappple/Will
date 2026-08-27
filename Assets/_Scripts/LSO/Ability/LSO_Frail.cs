@@ -3,6 +3,7 @@ using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Ability
 {

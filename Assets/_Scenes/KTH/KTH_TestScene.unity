@@ -1335,6 +1335,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
   deck: []
+  turnManager: {fileID: 0}
+  discardPile: {fileID: 0}
+  autoReshuffleFromDiscard: 1
+  ignoreDrawLimit: 0
+  maxDrawsPerTurn: 2
 --- !u!114 &3295565405823117420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2716,9 +2721,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 336677f6db07f6a438b73fa1b71079cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardLayout
-  cardSpacing: 110
+  maxCardSpacing: 200
+  minCardSpacing: 60
+  maxHandWidth: 900
   arcHeight: 15
   maxRotation: 12
+  maxHandSize: 10
+  drawDuration: 0.4
+  enableMoveDown: 1
+  placementMoveDownDistance: 150
+  placementMoveDuration: 0.3
 --- !u!224 &6886251986441758631
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3501,6 +3513,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_InfoPanl
   infoPanl: {fileID: 4717499886967212182}
+  infoPanlRect: {fileID: 6990056817287322366}
+  cardPlacer: {fileID: 0}
+  team: 0
+  discardPile: {fileID: 0}
   icon: {fileID: 308942798612488171}
   titleText: {fileID: 8411236796106659261}
   willExplanationText: {fileID: 3497709278280729278}
@@ -3510,6 +3526,10 @@ MonoBehaviour:
   costStateText: {fileID: 4676376526957636233}
   moveStateText: {fileID: 1213536464901986804}
   attackTypeStateText: {fileID: 3422298026047340187}
+  animDuration: 0.4
+  moveUpDistance: 100
+  rotateAngle: 360
+  animEase: 27
 --- !u!224 &8730957859718391550
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3736,10 +3756,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2473326751866583242}
   m_CullTransparentMesh: 1
+--- !u!1 &176967640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 506613279}
+  - component: {fileID: 763199534}
+  m_Layer: 0
+  m_Name: DLJ_PlayerHealth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &506613279
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176967640}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &763199534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176967640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7829765a8c27e547a84fb89b94d88d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  candleHealth: 640000006400000064000000
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 506613279}
   - {fileID: 257224525}
   - {fileID: 435555730}
   - {fileID: 1726429253}

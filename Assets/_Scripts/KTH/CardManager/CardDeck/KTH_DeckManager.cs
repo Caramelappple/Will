@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
@@ -6,26 +8,32 @@ using UnityEngine;
 public class KTH_DeckManager : MonoBehaviour
 {
     [Header("Deck Data")]
-    [SerializeField] private List<LSO_CardSO> deck = new List<LSO_CardSO>();
+    [SerializeField] private List<LSO_CardSO> deck =
+        new List<LSO_CardSO>();
+
     [SerializeField] private LDY_TurnManager turnManager;
 
     [Header("Reshuffle Settings")]
     [Tooltip("덱이 비었을 때 다시 채워올 버린 카드 더미")]
     [SerializeField] private KTH_DiscardCardUI discardPile;
 
-    [Tooltip("체크하면 드로우 시도 시(덱이 비었을 때) 자동으로 버린 카드 더미를 셔플하여 덱을 채운다")]
+    [Tooltip("적 턴이 시작될 때 덱이 비어 있으면 버린 카드 더미를 덱으로 되돌립니다.")]
     [SerializeField] private bool autoReshuffleFromDiscard = true;
 
     [Header("Draw Limit Settings")]
     [Tooltip("체크하면 턴/횟수 제한 없이 언제든 드로우 가능")]
     [SerializeField] private bool ignoreDrawLimit = false;
 
-    [Tooltip("턴당 드로우 가능 횟수 (ignoreDrawLimit이 false일 때만 적용)")]
+    [Tooltip("턴당 드로우 가능 횟수")]
     [SerializeField] private int maxDrawsPerTurn = 2;
 
     private int drawsUsedThisTurn = 0;
 
+    // 적 턴 전환 처리를 예약했는지
+    private bool reshuffleCheckScheduled = false;
+
     public IReadOnlyList<LSO_CardSO> Deck => deck;
+
     public int RemainingCards => deck.Count;
 
     public bool IgnoreDrawLimit
@@ -40,57 +48,86 @@ public class KTH_DeckManager : MonoBehaviour
         set => maxDrawsPerTurn = value;
     }
 
-    public int DrawsUsedThisTurn => drawsUsedThisTurn;
-    public int DrawsRemainingThisTurn => ignoreDrawLimit
-        ? int.MaxValue
-        : Mathf.Max(0, maxDrawsPerTurn - drawsUsedThisTurn);
+    public int DrawsUsedThisTurn =>
+        drawsUsedThisTurn;
+
+    public int DrawsRemainingThisTurn =>
+        ignoreDrawLimit
+            ? int.MaxValue
+            : Mathf.Max(
+                0,
+                maxDrawsPerTurn - drawsUsedThisTurn
+            );
 
     /// <summary>
-    /// 드로우 횟수 제한이 바뀔 때(리셋 등) 외부(UI, KTH_SpawnCard 등)에 알립니다.
+    /// 드로우 횟수 제한 변경
     /// </summary>
-    public event System.Action OnDrawLimitChanged;
+    public event Action OnDrawLimitChanged;
 
     /// <summary>
-    /// 버린 카드 더미를 셔플해 덱을 리필했을 때 외부(UI 등)에 알립니다. (리필된 카드 수)
+    /// 덱이 버린 카드 더미에서 리필되었을 때
+    /// int = 리필된 카드 수
     /// </summary>
-    public event System.Action<int> OnDeckReshuffled;
+    public event Action<int> OnDeckReshuffled;
+
+    // ============================================================
+    // Unity
+    // ============================================================
 
     private void Start()
     {
         InitDeck();
 
         if (turnManager != null)
+        {
             turnManager.OnTurnChanged += HandleTurnChanged;
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[KTH_DeckManager] TurnManager가 연결되지 않았습니다.",
+                this
+            );
+        }
     }
 
     private void OnDestroy()
     {
         if (turnManager != null)
+        {
             turnManager.OnTurnChanged -= HandleTurnChanged;
+        }
     }
 
-    // 획득한 카드가 곧 덱이다. 따로 고르는 단계가 없으므로
-    // ItemLibraryManager가 들고 있는 목록을 그대로 가져온다.
-    //
-    // 목록을 복사해 담는다. 참조를 그대로 쓰면 전투 중 드로우가
-    // 보유 목록에서 카드를 지워버려 다음 판에 카드가 사라진다.
-    //
-    // 여기서 씬을 뒤져 찾지 않는 이유는 ItemLibraryManager가 DontDestroyOnLoad로 넘어오기 때문이다.
+    // ============================================================
+    // Deck 초기화
+    // ============================================================
+
     private void InitDeck()
     {
-        ItemLibraryManager library = ItemLibraryManager.Instance;
+        ItemLibraryManager library =
+            ItemLibraryManager.Instance;
 
         if (library == null)
         {
-            Debug.LogWarning("[KTH_DeckManager] ItemLibraryManager가 없어 인스펙터에 넣어둔 덱을 그대로 씁니다.");
+            Debug.LogWarning(
+                "[KTH_DeckManager] ItemLibraryManager가 없어 " +
+                "인스펙터의 덱을 그대로 사용합니다."
+            );
+
+            ShuffleList(deck);
             return;
         }
 
-        List<LSO_CardSO> owned = library.UnlockedPieces;
+        List<LSO_CardSO> owned =
+            library.UnlockedPieces;
 
         if (owned == null || owned.Count == 0)
         {
-            Debug.LogWarning("[KTH_DeckManager] 보유한 카드가 없습니다. 전투를 카드 없이 시작합니다.");
+            Debug.LogWarning(
+                "[KTH_DeckManager] 보유한 카드가 없습니다."
+            );
+
             deck.Clear();
             return;
         }
@@ -99,101 +136,343 @@ public class KTH_DeckManager : MonoBehaviour
 
         foreach (LSO_CardSO card in owned)
         {
-            if (card == null) continue;
+            if (card == null)
+            {
+                continue;
+            }
 
             deck.Add(card);
         }
 
-        Debug.Log($"[KTH_DeckManager] 보유 카드 {deck.Count}장을 덱에 로드했습니다.");
+        ShuffleList(deck);
+
+        Debug.Log(
+            $"[KTH_DeckManager] 보유 카드 {deck.Count}장을 " +
+            $"덱에 로드하고 셔플했습니다."
+        );
     }
 
-    /// <summary>
-    /// 턴이 바뀔 때마다 호출됨. 플레이어 턴이 시작되면 드로우 횟수를 리셋한다.
-    /// </summary>
+    // ============================================================
+    // Turn
+    // ============================================================
+
     private void HandleTurnChanged(LDY_Team newTurn)
     {
+        // ========================================================
+        // 플레이어 턴 시작
+        // ========================================================
+
         if (newTurn == LDY_Team.Player)
         {
             drawsUsedThisTurn = 0;
+
             OnDrawLimitChanged?.Invoke();
-            Debug.Log("[KTH_DeckManager] 플레이어 턴 시작 - 드로우 횟수 리셋");
+
+            Debug.Log(
+                "[KTH_DeckManager] 플레이어 턴 시작 - " +
+                "드로우 횟수 리셋"
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // 적 턴 시작
+        //
+        // 중요:
+        // TurnManager의 이벤트가 실제 턴 전환보다 먼저 발생할
+        // 가능성이 있으므로 즉시 리필하지 않는다.
+        //
+        // 코루틴으로 한 프레임 뒤에 처리한다.
+        // ========================================================
+
+        if (newTurn == LDY_Team.Enemy)
+        {
+            if (!autoReshuffleFromDiscard)
+            {
+                return;
+            }
+
+            ScheduleReshuffle();
         }
     }
 
-    /// <summary>
-    /// 지금 드로우가 가능한 상태인지 (덱 유무는 확인하지 않고, 순수 횟수 제한만 확인)
-    /// </summary>
+    // ============================================================
+    // 적 턴 시작 후 리필 예약
+    // ============================================================
+
+    private void ScheduleReshuffle()
+    {
+        if (reshuffleCheckScheduled)
+        {
+            return;
+        }
+
+        reshuffleCheckScheduled = true;
+
+        StartCoroutine(
+            ReshuffleAtEnemyTurnStart()
+        );
+    }
+
+    private IEnumerator ReshuffleAtEnemyTurnStart()
+    {
+        // --------------------------------------------------------
+        // TurnManager가 턴 변경을 처리한 뒤까지 기다림
+        // --------------------------------------------------------
+
+        yield return null;
+
+        // 한 프레임 더 기다림.
+        // UI / 턴 관련 스크립트가 먼저 처리될 수 있도록 함.
+        yield return null;
+
+        reshuffleCheckScheduled = false;
+
+        // --------------------------------------------------------
+        // 여기서 덱 상태 확인
+        // --------------------------------------------------------
+
+        if (deck.Count > 0)
+        {
+            Debug.Log(
+                $"[KTH_DeckManager] 적 턴 시작 - " +
+                $"덱에 {deck.Count}장이 남아 있어 리필하지 않습니다."
+            );
+
+            yield break;
+        }
+
+        // --------------------------------------------------------
+        // 디스카드가 없으면 종료
+        // --------------------------------------------------------
+
+        if (discardPile == null)
+        {
+            Debug.LogWarning(
+                "[KTH_DeckManager] 적 턴 시작 - " +
+                "DiscardPile이 연결되지 않았습니다."
+            );
+
+            yield break;
+        }
+
+        if (discardPile.Count <= 0)
+        {
+            Debug.Log(
+                "[KTH_DeckManager] 적 턴 시작 - " +
+                "덱과 버린 카드 더미가 모두 비어 있습니다."
+            );
+
+            yield break;
+        }
+
+        // --------------------------------------------------------
+        // 리필
+        // --------------------------------------------------------
+
+        bool reshuffled =
+            ReshuffleFromDiscard();
+
+        if (reshuffled)
+        {
+            Debug.Log(
+                "[KTH_DeckManager] 적 턴 시작 - " +
+                "덱이 비어 있어 버린 카드 더미를 " +
+                "셔플하여 덱으로 되돌렸습니다."
+            );
+        }
+    }
+
+    // ============================================================
+    // Draw Limit
+    // ============================================================
+
     public bool CanDraw()
     {
-        if (ignoreDrawLimit) return true;
+        if (ignoreDrawLimit)
+        {
+            return true;
+        }
+
         return drawsUsedThisTurn < maxDrawsPerTurn;
     }
 
-    /// <summary>
-    /// 덱이 비어있고 버린 카드 더미에 카드가 있으면, 그것들을 셔플해서 덱으로 되돌린다.
-    /// 외부(KTH_DiscardCardManager 등)에서 직접 호출할 수 있도록 public으로 열어둔다.
-    /// </summary>
-    /// <returns>실제로 리셔플이 일어났으면 true</returns>
-    public bool ReshuffleFromDiscard()
+    // ============================================================
+    // Draw
+    // ============================================================
+
+    public LSO_CardSO DrawCard(
+        bool bypassTurnLimit = false)
     {
-        if (deck.Count > 0) return false;
-        if (discardPile == null || discardPile.Count == 0) return false;
+        // --------------------------------------------------------
+        // 드로우 제한
+        // --------------------------------------------------------
 
-        List<LSO_CardSO> reclaimed = discardPile.ClearAndGetList();
-        if (reclaimed.Count == 0) return false;
-
-        ShuffleList(reclaimed);
-        deck.AddRange(reclaimed);
-
-        Debug.Log($"[KTH_DeckManager] 버린 카드 더미 {reclaimed.Count}장을 셔플하여 덱으로 되돌렸습니다.");
-        OnDeckReshuffled?.Invoke(reclaimed.Count);
-        return true;
-    }
-
-    /// <summary>
-    /// Fisher-Yates 셔플
-    /// </summary>
-    private static void ShuffleList(List<LSO_CardSO> list)
-    {
-        for (int i = list.Count - 1; i > 0; i--)
-        {
-            int j = Random.Range(0, i + 1);
-            (list[i], list[j]) = (list[j], list[i]);
-        }
-    }
-
-    /// <summary>
-    /// 덱 최상단 카드를 뽑아 반환합니다. 턴당 드로우 횟수 제한을 확인합니다.
-    /// 덱이 비어있으면 버린 카드 더미에서 자동으로 리필을 시도합니다.
-    /// </summary>
-    public LSO_CardSO DrawCard(bool bypassTurnLimit = false)
-    {
         if (!bypassTurnLimit && !CanDraw())
         {
-            Debug.LogWarning($"[KTH_DeckManager] 이번 턴 드로우 횟수를 모두 사용했습니다! ({drawsUsedThisTurn}/{maxDrawsPerTurn})");
+            Debug.LogWarning(
+                $"[KTH_DeckManager] 이번 턴 드로우 횟수를 " +
+                $"모두 사용했습니다! " +
+                $"({drawsUsedThisTurn}/{maxDrawsPerTurn})"
+            );
+
             return null;
         }
 
-        if (deck.Count == 0 && autoReshuffleFromDiscard)
-        {
-            ReshuffleFromDiscard();
-        }
+        // --------------------------------------------------------
+        // 덱이 비어 있음
+        //
+        // 여기서는 절대 리필하지 않는다.
+        // --------------------------------------------------------
 
         if (deck.Count == 0)
         {
-            Debug.LogWarning("[KTH_DeckManager] 덱과 버린 카드 더미 모두 비어있습니다. 더 이상 드로우할 수 없습니다.");
+            Debug.LogWarning(
+                "[KTH_DeckManager] 현재 덱이 비어 있습니다. " +
+                "리필은 적 턴 시작 시 처리됩니다."
+            );
+
             return null;
         }
 
-        LSO_CardSO drawnCard = deck[0];
+        // --------------------------------------------------------
+        // 카드 드로우
+        // --------------------------------------------------------
+
+        LSO_CardSO drawnCard =
+            deck[0];
+
         deck.RemoveAt(0);
 
-        if (!bypassTurnLimit && !ignoreDrawLimit)
+        // --------------------------------------------------------
+        // 드로우 횟수 증가
+        // --------------------------------------------------------
+
+        if (!bypassTurnLimit &&
+            !ignoreDrawLimit)
         {
             drawsUsedThisTurn++;
+
             OnDrawLimitChanged?.Invoke();
         }
 
+        Debug.Log(
+            $"[KTH_DeckManager] 카드 드로우: " +
+            $"{drawnCard.name} / " +
+            $"남은 덱: {deck.Count}"
+        );
+
         return drawnCard;
+    }
+
+    // ============================================================
+    // Reshuffle
+    // ============================================================
+
+    public bool ReshuffleFromDiscard()
+    {
+        // --------------------------------------------------------
+        // 덱에 카드가 남아 있으면 리필하지 않음
+        // --------------------------------------------------------
+
+        if (deck.Count > 0)
+        {
+            return false;
+        }
+
+        // --------------------------------------------------------
+        // Discard 확인
+        // --------------------------------------------------------
+
+        if (discardPile == null)
+        {
+            Debug.LogWarning(
+                "[KTH_DeckManager] DiscardPile이 연결되지 않았습니다."
+            );
+
+            return false;
+        }
+
+        if (discardPile.Count <= 0)
+        {
+            return false;
+        }
+
+        // --------------------------------------------------------
+        // 버린 카드 가져오기
+        // --------------------------------------------------------
+
+        List<LSO_CardSO> reclaimed =
+            discardPile.ClearAndGetList();
+
+        if (reclaimed == null ||
+            reclaimed.Count == 0)
+        {
+            return false;
+        }
+
+        // --------------------------------------------------------
+        // 셔플
+        // --------------------------------------------------------
+
+        ShuffleList(reclaimed);
+
+        // --------------------------------------------------------
+        // 덱으로 이동
+        // --------------------------------------------------------
+
+        deck.AddRange(reclaimed);
+
+        Debug.Log(
+            $"[KTH_DeckManager] 버린 카드 더미 " +
+            $"{reclaimed.Count}장을 셔플하여 " +
+            $"덱으로 되돌렸습니다."
+        );
+
+        // --------------------------------------------------------
+        // 외부 알림
+        // --------------------------------------------------------
+
+        OnDeckReshuffled?.Invoke(
+            reclaimed.Count
+        );
+
+        return true;
+    }
+
+    // ============================================================
+    // Shuffle
+    // ============================================================
+
+    private static void ShuffleList(
+        List<LSO_CardSO> list)
+    {
+        if (list == null ||
+            list.Count <= 1)
+        {
+            return;
+        }
+
+        for (int i = list.Count - 1;
+             i > 0;
+             i--)
+        {
+            // System.Random과 충돌 방지
+            int j =
+                UnityEngine.Random.Range(
+                    0,
+                    i + 1
+                );
+
+            LSO_CardSO temp =
+                list[i];
+
+            list[i] =
+                list[j];
+
+            list[j] =
+                temp;
+        }
     }
 }

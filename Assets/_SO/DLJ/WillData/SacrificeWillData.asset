@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4135971ac49e0bac2ed349a5ab717, type: 3}
   m_Name: SacrificeWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SacrificeWillDataSO
-  description:
+  description: 
   icon: {fileID: 0}
-  effectPrefab: {fileID: 0}
+  effectPrefab: {fileID: 7835960598496793092, guid: aca1d66fdf3303943bcd4e86a0198ff8, type: 3}
+  cameraHoldDuration: 1.8
   holdTime: 0.3

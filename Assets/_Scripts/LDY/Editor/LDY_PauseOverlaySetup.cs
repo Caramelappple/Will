@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Text;
-using _Scripts.LSO.UI;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using _Scripts.LSO.UI.Panel;
 
 namespace _Scripts.LDY.Editor
 {

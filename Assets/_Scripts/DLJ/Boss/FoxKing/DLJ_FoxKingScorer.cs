@@ -1,8 +1,8 @@
 using System;
 using _Scripts.LDY;
 using _Scripts.LDY.AI;
-using _Scripts.LSO;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 /// <summary>
 /// 여우왕이 계약·희생 유언을 가진 기물을 사냥하도록 공격과 이동 후보를 평가한다.

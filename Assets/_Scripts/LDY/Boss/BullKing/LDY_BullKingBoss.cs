@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO.Boss;
 using UnityEngine;
+using _Scripts.LSO.Reward;
 
 namespace _Scripts.LDY.Boss.BullKing
 {

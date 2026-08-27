@@ -17,7 +17,7 @@ namespace _Scripts.LSO.Effect
     /// 실제 촛불은 다음 밝기와 도달 시간이 매번 다르므로, 한 구간이 끝날 때마다
     /// 목표와 시간을 새로 뽑아 이어붙인다.
     ///
-    /// 색은 LSO_TurnCandle이 맡는다. 여기서는 색을 건드리지 않는다.
+    /// 색은 건드리지 않는다. 라이트의 색은 인스펙터에서 맞춰둔 값을 그대로 쓴다.
     /// </summary>
     [RequireComponent(typeof(Light))]
     public class LSO_CandleFlicker : MonoBehaviour

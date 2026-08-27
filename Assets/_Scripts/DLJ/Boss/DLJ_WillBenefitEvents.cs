@@ -1,7 +1,7 @@
 using System;
 using _Scripts.LDY;
-using _Scripts.LSO;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 /// <summary>DLJ 유언이 만든 실질적인 이득을 보스 기믹에 전달하는 전투 이벤트.</summary>
 public static class DLJ_WillBenefitEvents

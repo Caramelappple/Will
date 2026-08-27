@@ -7,6 +7,9 @@ namespace _Scripts.LSO.Will
     public class DLJ_WillDatabaseSO : ScriptableObject
     {
         [SerializeField] private List<DLJ_WillDataSO> wills = new();
+        [SerializeField] private DLJ_StatIncreaseEffectSO statIncreaseEffect;
+
+        public DLJ_StatIncreaseEffectSO StatIncreaseEffect => statIncreaseEffect;
 
         public DLJ_WillDataSO Get(LSO_WillType willType)
         {

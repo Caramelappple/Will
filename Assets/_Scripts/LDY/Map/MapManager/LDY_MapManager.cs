@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 using _Scripts.LDY.Effect;
 using _Scripts.LDY.Save;
 using _Scripts.LDY.Stage;
+using _Scripts.LSO.Reward;
+using _Scripts.LDY;
 
 [System.Serializable]
 public class LDY_MapNodeUnityEvent : UnityEvent<LDY_MapNode> { }
@@ -124,8 +126,8 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private int currentChapter = 1;
     [SerializeField] private int currentStage = 1;
 
-    [Header("보상 지급 연동용")]
-    [SerializeField] private KTH_GiveReward giveReward;
+    // 보상 상자는 전투 씬에 있고 이 매니저는 씬을 넘어다닌다.
+    // 인스펙터 참조로 두면 씬을 넘기는 순간 끊기므로 LSO_RewardBox.Instance로 찾는다.
 
     public int CurrentChapter => currentChapter;
     public int CurrentStage => currentStage;
@@ -840,7 +842,7 @@ public class LDY_MapManager : MonoBehaviour
         }
 
         LDY_NodeType type = Nodes[activeNodeIndex].type;
-        bool willGiveReward = (type == LDY_NodeType.Battle || type == LDY_NodeType.Boss) && giveReward != null;
+        bool willGiveReward = type == LDY_NodeType.Battle || type == LDY_NodeType.Boss;
 
         _pendingClearedNodeType = type;
 
@@ -848,15 +850,15 @@ public class LDY_MapManager : MonoBehaviour
         {
             waitingForRewardBeforeMapReturn = true;
 
-            KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-            if (rewardUI != null)
+            LSO_RewardBox box = LSO_RewardBox.Instance;
+            if (box != null)
             {
-                rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
-                rewardUI.OnRewardResolved += HandleRewardResolvedThenReturnToMap;
+                box.OnFinished -= HandleRewardResolvedThenReturnToMap;
+                box.OnFinished += HandleRewardResolvedThenReturnToMap;
             }
             else
             {
-                Debug.LogWarning("[LDY_MapManager] KTH_RewardChoiceUI 인스턴스를 찾을 수 없어 즉시 씬을 전환합니다.");
+                Debug.LogWarning("[LDY_MapManager] 씬에 LSO_RewardBox가 없어 즉시 씬을 전환합니다.");
                 waitingForRewardBeforeMapReturn = false;
             }
         }
@@ -877,10 +879,10 @@ public class LDY_MapManager : MonoBehaviour
     {
         Debug.Log($"[LDY_MapManager] 스테이지 패배 처리 (activeNodeIndex: {activeNodeIndex})");
 
-        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-        if (rewardUI != null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+        if (box != null)
         {
-            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+            box.OnFinished -= HandleRewardResolvedThenReturnToMap;
         }
 
         waitingForRewardBeforeMapReturn = false;
@@ -890,12 +892,12 @@ public class LDY_MapManager : MonoBehaviour
         GoToDeathScene();
     }
 
-    private void HandleRewardResolvedThenReturnToMap()
+    private void HandleRewardResolvedThenReturnToMap(LSO_RewardOption option)
     {
-        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-        if (rewardUI != null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+        if (box != null)
         {
-            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+            box.OnFinished -= HandleRewardResolvedThenReturnToMap;
         }
 
         waitingForRewardBeforeMapReturn = false;
@@ -1100,10 +1102,12 @@ public class LDY_MapManager : MonoBehaviour
 
     private void TriggerStageReward(int chapter, int stage)
     {
-        if (giveReward == null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+
+        if (box == null)
         {
             Debug.LogError(
-                "[LDY_MapManager] KTH_GiveReward가 Inspector에 연결되지 않았습니다."
+                "[LDY_MapManager] 씬에 LSO_RewardBox가 없어 보상을 시작하지 못했습니다."
             );
 
             return;
@@ -1114,7 +1118,9 @@ public class LDY_MapManager : MonoBehaviour
             $"(Chapter: {chapter}, Stage: {stage})"
         );
 
-        giveReward.GiveStageReward(chapter, stage);
+        // 상자를 열어주지는 않는다. 누를 준비만 시킨다.
+        // 뚜껑을 여는 것은 플레이어의 첫 클릭이다.
+        box.Begin(chapter, stage);
     }
 
     private void SetTokenPositionToNode(int nodeIndex)

@@ -1,9 +1,9 @@
 using System.Text;
 using _Scripts.LDY;
-using _Scripts.LSO.Ability;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using _Scripts.LSO.Reward;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {
