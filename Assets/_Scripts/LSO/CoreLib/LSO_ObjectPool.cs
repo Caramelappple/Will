@@ -14,11 +14,11 @@ namespace _Scripts.LSO.CoreLib
     ///
     /// 쓰는 법:
     /// <code>
-    /// private LSO_ObjectPool&lt;LSO_StatBillboard&gt; _pool;
+    /// private LSO_ObjectPool&lt;LSO_DamagePopup&gt; _pool;
     ///
     /// private void Awake()
     /// {
-    ///     _pool = new LSO_ObjectPool&lt;LSO_StatBillboard&gt;(prefab, transform, prewarm: 8);
+    ///     _pool = new LSO_ObjectPool&lt;LSO_DamagePopup&gt;(prefab, transform, prewarm: 8);
     /// }
     ///
     /// var item = _pool.Get();

@@ -12,9 +12,21 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_AttackSystem attackSystem;
         [SerializeField] private LDY_ActionPointManager actionPoints;
 
+        [Header("자동 턴 종료")]
+        [Tooltip("켜면 행동력이 0이 되는 순간 턴이 저절로 넘어간다.\n" +
+                 "기본은 꺼둔다 — 기획서상 코스트를 다 써도 직접 버튼을 눌러 끝내야 한다.")]
+        [SerializeField] private bool autoEndTurn;
+
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         public event System.Action<LDY_Team> OnTurnChanged;
+
+        /// <summary>행동력이 떨어지면 저절로 턴이 넘어가는지. 튜토리얼처럼 잠깐 켜야 할 때 쓴다.</summary>
+        public bool AutoEndTurn
+        {
+            get => autoEndTurn;
+            set => autoEndTurn = value;
+        }
 
         private bool _isProcessingTurn;
         
@@ -35,17 +47,26 @@ namespace _Scripts.LDY
             OnTurnChanged?.Invoke(CurrentTurn);
         }
 
-        // 행동력이 0이 됐다고 턴을 자동으로 넘기지 않는다.
-        //
-        // 기획서: "코스트를 모두 사용한 경우에도 직접 버튼을 눌러 턴을 종료한다."
-        //
-        // 자동으로 넘기면 마지막 행동의 연출이 끝나기도 전에 화면이 적 턴으로 바뀌어
-        // 방금 무슨 일이 일어났는지 확인할 틈이 없다. 남은 기물의 배치를 다시 보거나
-        // 기물 정보를 열어보는 것도 못 한다.
-        //
-        // 그래서 턴을 넘기는 경로는 턴 종료 버튼 하나뿐이다.
-        // 예전에는 이 Update가 대신 막아주던 조건들(적 턴인지, 연출 중인지)이 있었으므로
-        // 그 검사는 EndPlayerTurn 안으로 옮겼다.
+        /// <summary>
+        /// 자동 턴 종료. 꺼져 있으면 아무 일도 하지 않는다.
+        ///
+        /// 기본을 끔으로 두는 이유는 기획서 때문이다.
+        /// "코스트를 모두 사용한 경우에도 직접 버튼을 눌러 턴을 종료한다."
+        ///
+        /// 자동으로 넘기면 마지막 행동의 연출이 끝나기도 전에 화면이 적 턴으로 바뀌어
+        /// 방금 무슨 일이 일어났는지 확인할 틈이 없다. 남은 기물의 배치를 다시 보거나
+        /// 기물 정보를 열어보는 것도 못 한다.
+        ///
+        /// 켜더라도 연출이 끝날 때까지는 기다린다. CanEndPlayerTurn이 IsAnimating을 보기 때문이다.
+        /// </summary>
+        private void Update()
+        {
+            if (!autoEndTurn) return;
+            if (actionPoints == null || actionPoints.HasActionPoints) return;
+            if (!CanEndPlayerTurn()) return;
+
+            EndPlayerTurn();
+        }
 
         /// <summary>
         /// 이동이나 공격 연출이 하나라도 재생 중인지.

@@ -50,8 +50,8 @@ namespace _Scripts.LDY
             RaiseAnimalDead(victim);
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
-            
-            DLJ_PlayerHealth.Instance.TakeDamage(victim.data.playerHealthPoints);
+
+            DamagePlayerFor(victim);
 
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
@@ -65,6 +65,33 @@ namespace _Scripts.LDY
             LDY_DeferredDeaths.Record(victim);
         }
         
+        /// <summary>
+        /// 내 기물을 잃은 대가로 촛불을 깎는다.
+        ///
+        /// 적이 죽었을 때는 깎지 않는다. 팀을 보지 않으면 적을 잡을수록 내가 죽는다.
+        ///
+        /// 깎을 양은 victim.PlayerHealthPoints에게 묻는다.
+        /// data가 있는지 없는지는 기물이 알아서 판단하므로 여기서는 신경 쓰지 않는다.
+        /// </summary>
+        private static void DamagePlayerFor(LDY_Animal victim)
+        {
+            if (victim.team != LDY_Team.Player) return;
+
+            int damage = victim.PlayerHealthPoints;
+            if (damage <= 0) return;
+
+            DLJ_PlayerHealth health = DLJ_PlayerHealth.Instance;
+
+            if (health == null)
+            {
+                Debug.LogWarning(
+                    $"{victim.name}: 씬에 DLJ_PlayerHealth가 없어 촛불을 깎지 못했습니다.", victim);
+                return;
+            }
+
+            health.TakeDamage(damage);
+        }
+
         /// <summary>죽는 본인의 특성에게 먼저 알린다. 파괴 전이라 아직 self를 쓸 수 있다.</summary>
         private static void NotifyOwnDeathAbilities(LDY_Animal victim, LDY_Animal killer)
         {

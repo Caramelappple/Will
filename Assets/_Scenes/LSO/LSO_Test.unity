@@ -1351,6 +1351,36 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 259788717}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &290948182
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 623206959}
+  - component: {fileID: 307282529}
+  m_Layer: 0
+  m_Name: DLJ_PlayerHealth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &307282529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 290948182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7829765a8c27e547a84fb89b94d88d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  candleHealth: 640000006400000064000000
 --- !u!1001 &310793795
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3265,6 +3295,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 600555553}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &623206959
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 290948182}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &627405055
 GameObject:
   m_ObjectHideFlags: 0
@@ -4838,6 +4883,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_ActionPointManager
   maxActionPoints: 5
+  addMaxActionPoints: 10
 --- !u!114 &944642609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4945,6 +4991,7 @@ MonoBehaviour:
   moveSystem: {fileID: 944642612}
   attackSystem: {fileID: 944642611}
   actionPoints: {fileID: 944642608}
+  autoEndTurn: 1
 --- !u!114 &944642615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10616,6 +10663,7 @@ MonoBehaviour:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 623206959}
   - {fileID: 257224525}
   - {fileID: 435555730}
   - {fileID: 1242579791}

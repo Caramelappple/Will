@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 3319165843695797872}
   - component: {fileID: 1073832606138654211}
   - component: {fileID: 2573001424600928243}
-  - component: {fileID: -307583094214780730}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -150,16 +149,3 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 3842136083555137402}
---- !u!114 &-307583094214780730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4337957452496197285}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cbddde483287467d80553b4b532abb46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.StatBillBoardSpawner
-  prefab: {fileID: 4205989368026596512, guid: 0b2c1e8dbe205894fa075c7b4c30e060, type: 3}
