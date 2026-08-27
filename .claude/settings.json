@@ -23,7 +23,10 @@
       "Bash(python hier.py \"c:/Dev/Will/Assets/_Scenes/KTH/KTH_StageScene.unity\")",
       "Bash(python hier.py \"c:/Dev/Will/Assets/_Scenes/LSO/DLJ/DLJ_StageScene.unity\")",
       "Bash(python probe_obj.py \"c:/Dev/Will/Assets/_Scenes/LDY/LDY_TestScene.unity\" 441501791)",
-      "Bash(iconv -f cp949 -t utf-8)"
+      "Bash(iconv -f cp949 -t utf-8)",
+      "Bash(git show *)",
+      "Bash(chmod +x setup-git.sh)",
+      "Bash(./setup-git.sh)"
     ],
     "additionalDirectories": [
       "c:\\Users\\이도윤\\.claude\\projects\\c--Dev-Will\\memory"

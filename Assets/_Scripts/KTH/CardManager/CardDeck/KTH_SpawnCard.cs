@@ -1,4 +1,3 @@
-using _Scripts.KTH.CardManager.CardDeck;
 using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 

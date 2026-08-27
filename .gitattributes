@@ -1,0 +1,72 @@
+# =============================================================
+# Unity YAML 파일 - UnityYAMLMerge(SmartMerge)로 머지
+# =============================================================
+# 씬/프리팹은 라인 단위로 머지하면 거의 반드시 깨진다.
+# UnityYAMLMerge는 YAML 구조(오브젝트/컴포넌트 단위)로 머지한다.
+#
+# 각자 아래를 "한 번" 실행해야 이 설정이 실제로 동작한다:
+#
+#   git config merge.unityyamlmerge.name "Unity SmartMerge"
+#   git config merge.unityyamlmerge.driver \
+#     '"C:/Program Files/Unity/Hub/Editor/6000.3.6f1/Editor/Data/Tools/UnityYAMLMerge.exe" merge -p %O %A %B %A'
+#   git config merge.unityyamlmerge.recursive binary
+#
+# (유니티 버전이 다르면 경로의 6000.3.6f1을 자기 버전으로 바꿀 것)
+# 설정하지 않으면 기존과 동일하게 동작하므로 깨지지는 않는다.
+
+*.unity              merge=unityyamlmerge
+*.prefab             merge=unityyamlmerge
+*.asset              merge=unityyamlmerge
+*.mat                merge=unityyamlmerge
+*.anim               merge=unityyamlmerge
+*.controller         merge=unityyamlmerge
+*.overrideController merge=unityyamlmerge
+*.physicMaterial     merge=unityyamlmerge
+*.physicsMaterial2D  merge=unityyamlmerge
+*.playable           merge=unityyamlmerge
+*.mask               merge=unityyamlmerge
+*.flare              merge=unityyamlmerge
+*.fontsettings       merge=unityyamlmerge
+*.guiskin            merge=unityyamlmerge
+*.mixer              merge=unityyamlmerge
+*.preset             merge=unityyamlmerge
+*.spriteatlas        merge=unityyamlmerge
+*.spriteatlasv2      merge=unityyamlmerge
+*.terrainlayer       merge=unityyamlmerge
+*.lighting           merge=unityyamlmerge
+*.signal             merge=unityyamlmerge
+*.shadervariants     merge=unityyamlmerge
+*.asmdef             merge=unityyamlmerge
+*.meta               merge=unityyamlmerge
+
+# =============================================================
+# 바이너리 - diff/머지 시도 자체를 막는다
+# =============================================================
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.psd   binary
+*.tga   binary
+*.tif   binary
+*.bmp   binary
+*.ico   binary
+*.ttf   binary
+*.otf   binary
+*.fbx   binary
+*.blend binary
+*.obj   binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.aif   binary
+*.mp4   binary
+*.mov   binary
+*.dll   binary
+*.pdf   binary
+*.unitypackage binary
+
+# =============================================================
+# C# - 함수 단위 diff 헤더
+# =============================================================
+*.cs text diff=csharp
