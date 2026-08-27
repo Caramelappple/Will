@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 using Random = UnityEngine.Random;
 
@@ -12,29 +11,48 @@ public class KTH_DiscardCardUI : MonoBehaviour
 {
     [Header("UI 연결")]
     [SerializeField] private RectTransform discardCardTransform;
+    [SerializeField] private TMP_Text discardCountText;
 
     [Header("버림 카드 표시")]
     [SerializeField] private KTH_HandCard discardCardPrefab;
 
     [Header("더미 설정")]
-    [SerializeField] private float minStackOffset = 3f;
+    [Tooltip("카드가 쌓일 때 좌우로 퍼지는 최대 범위")]
     [SerializeField] private float maxStackOffset = 5f;
 
-    [Header("착지 흔들림 (기획서: 착지 시 맨 위 카드 몇 장이 짧게 흔들린 뒤 멈춘다)")]
-    [Tooltip("새로 얹힌 카드 아래로 몇 장까지 흔들릴지")]
-    [SerializeField] private int shakeCardCount = 2;
-    [SerializeField] private float shakeAngle = 4f;
-    [SerializeField] private float shakeDuration = 0.15f;
-    [SerializeField] private int shakeVibrato = 8;
-    [SerializeField] private float shakeElasticity = 0.4f;
+    [Tooltip("카드가 쌓일 때 위아래로 랜덤하게 움직이는 범위")]
+    [SerializeField] private float verticalStackOffset = 3f;
+
+    [Tooltip("카드 한 장이 추가될 때마다 위로 올라가는 높이")]
+    [SerializeField] private float stackHeight = 2.5f;
+
+    [Header("카드 랜덤 기울기")]
+    [Tooltip("카드가 쌓일 때 랜덤으로 기울어지는 최대 각도")]
+    [SerializeField] private float maxRandomAngle = 15f;
+
+    [Tooltip("이 각도보다 작으면 최소 기울기를 적용")]
+    [SerializeField] private float minRandomAngle = 5f;
+
+    [Header("버림 이동 연출")]
+    [SerializeField] private float discardMoveDuration = 0.3f;
+
+    [SerializeField] private Ease discardMoveEase = Ease.OutQuad;
+
+    [SerializeField] private Ease discardRotateEase = Ease.OutQuad;
 
     [Header("리셔플 연출")]
-    [Tooltip("카드를 뽑았던 위치(덱 파일 UI). 리셔플 시 버린 카드 더미의 카드들이 이 위치로 날아간 뒤 사라진다.")]
+    [Tooltip("카드를 뽑았던 위치(덱 UI)")]
     [SerializeField] private RectTransform drawPileTransform;
+
     [SerializeField] private float reshuffleFlyDuration = 0.35f;
-    [Tooltip("카드마다 날아가기 시작하는 시간차 (뭉치가 순차적으로 빨려들어가는 느낌)")]
+
+    [Tooltip("카드마다 날아가기 시작하는 시간차")]
     [SerializeField] private float reshuffleStaggerDelay = 0.03f;
-    [SerializeField] private Ease reshuffleEase = Ease.InQuad;
+
+    [SerializeField] private Ease reshuffleEase = Ease.InOutQuad;
+
+    [Tooltip("덱으로 돌아갈 때 살짝 떠올랐다가 내려오는 정점 높이")]
+    [SerializeField] private float reshuffleArcHeight = 40f;
 
     private readonly List<LSO_CardSO> _discardCardList =
         new List<LSO_CardSO>();
@@ -48,9 +66,20 @@ public class KTH_DiscardCardUI : MonoBehaviour
         _discardCardList.Count;
 
     public event Action<int> OnCardAdded;
-    
+
+
     // =========================================================
-    // 카드 추가 (프리팹으로 새로 생성 - 애니메이션 없이 즉시 추가할 때 사용)
+    // Unity
+    // =========================================================
+
+    private void Awake()
+    {
+        UpdateUI();
+    }
+
+
+    // =========================================================
+    // 카드 추가
     // =========================================================
 
     public void AddToDiscardPile(LSO_CardSO cardData)
@@ -66,13 +95,10 @@ public class KTH_DiscardCardUI : MonoBehaviour
         }
 
         _discardCardList.Add(cardData);
-        
 
-        // 버림 더미에 카드 추가
+        UpdateUI();
+
         CreateDiscardCard(cardData);
-
-        // 착지 순간 아래에 깔린 카드 몇 장이 짧게 흔들리는 연출
-        ShakeTopCards();
 
         Debug.Log(
             $"[KTH_DiscardCardUI:{GetInstanceID()}] " +
@@ -85,11 +111,9 @@ public class KTH_DiscardCardUI : MonoBehaviour
         );
     }
 
+
     // =========================================================
-    // 카드 추가 (기존 손패 카드 오브젝트를 그대로 재사용)
-    // 디스카드 애니메이션 종료 후 호출됨.
-    // 카드를 Destroy하지 않고 더미의 자식으로 편입시킨 뒤
-    // 인터랙션 관련 스크립트/설정만 비활성화한다.
+    // 기존 손패 카드 추가
     // =========================================================
 
     public void AddExistingCardToDiscardPile(
@@ -117,11 +141,10 @@ public class KTH_DiscardCardUI : MonoBehaviour
         }
 
         _discardCardList.Add(cardData);
-        
-        PlaceExistingCardInPile(card);
 
-        // 착지 순간 아래에 깔린 카드 몇 장이 짧게 흔들리는 연출
-        ShakeTopCards();
+        UpdateUI();
+
+        PlaceExistingCardInPile(card);
 
         Debug.Log(
             $"[KTH_DiscardCardUI:{GetInstanceID()}] " +
@@ -134,34 +157,174 @@ public class KTH_DiscardCardUI : MonoBehaviour
         );
     }
 
-    private void PlaceExistingCardInPile(KTH_HandCard card)
-    {
-        if (discardCardTransform == null)
-        {
-            Debug.LogWarning(
-                "[KTH_DiscardCardUI] " +
-                "Discard Card Transform이 연결되지 않았습니다.",
-                this
-            );
 
+    // =========================================================
+    // 기존 카드 더미 편입
+    // =========================================================
+
+    private void PlaceExistingCardInPile(
+    KTH_HandCard card)
+{
+    if (card == null)
+    {
+        return;
+    }
+
+    if (discardCardTransform == null)
+    {
+        Debug.LogWarning(
+            "[KTH_DiscardCardUI] " +
+            "Discard Card Transform이 연결되지 않았습니다.",
+            this
+        );
+
+        return;
+    }
+
+    Transform cardTransform =
+        card.transform;
+
+    // ==================================================
+    // 현재 월드 위치 / 회전 저장
+    //
+    // 중요:
+    // KTH_DiscardAnimation에서 이미
+    // Y = 180도 회전이 끝난 상태다.
+    //
+    // 따라서 여기서는 현재 회전을 그대로 유지한다.
+    // ==================================================
+
+    Quaternion currentWorldRotation =
+        cardTransform.rotation;
+
+    // ==================================================
+    // 더미의 자식으로 변경
+    //
+    // 현재 월드 위치/회전 유지
+    // ==================================================
+
+    cardTransform.SetParent(
+        discardCardTransform,
+        true
+    );
+
+    RectTransform cardRect =
+        cardTransform.GetComponent<RectTransform>();
+
+    if (cardRect == null)
+    {
+        return;
+    }
+
+    // ==================================================
+    // 카드가 쌓일 위치 계산
+    // ==================================================
+
+    int stackIndex =
+        Mathf.Max(
+            0,
+            _discardCardList.Count - 1
+        );
+
+    float offsetX =
+        Random.Range(
+            -maxStackOffset,
+            maxStackOffset
+        );
+
+    float randomY =
+        Random.Range(
+            -verticalStackOffset,
+            verticalStackOffset
+        );
+
+    float offsetY =
+        (stackIndex * stackHeight) +
+        randomY;
+
+    Vector3 targetPosition =
+        discardCardTransform.TransformPoint(
+            new Vector3(
+                offsetX,
+                offsetY,
+                0f
+            )
+        );
+
+    // ==================================================
+    // 기존 Tween 제거
+    // ==================================================
+
+    cardTransform.DOKill();
+
+    // ==================================================
+    // 중요
+    //
+    // 회전 애니메이션을 하지 않는다.
+    //
+    // KTH_DiscardAnimation에서 이미 회전이 끝났기
+    // 때문에 여기서 다시 회전시키면 두 번 회전한다.
+    // ==================================================
+
+    Sequence sequence =
+        DOTween.Sequence();
+
+    sequence.SetTarget(
+        cardTransform
+    );
+
+    // ==================================================
+    // 위치만 이동
+    // ==================================================
+
+    sequence.Append(
+        cardTransform
+            .DOMove(
+                targetPosition,
+                discardMoveDuration
+            )
+            .SetEase(
+                discardMoveEase
+            )
+    );
+
+    // ==================================================
+    // 완료
+    // ==================================================
+
+    sequence.OnComplete(() =>
+    {
+        if (cardTransform == null)
+        {
             return;
         }
 
-        Transform cardTransform = card.transform;
+        // ==================================================
+        // 최종 위치만 확정
+        // ==================================================
 
-        // 더미 자식으로 편입 (현재 화면상 위치/회전/스케일 유지)
-        cardTransform.SetParent(
-            discardCardTransform,
-            true
-        );
+        cardTransform.position =
+            targetPosition;
 
-        // 새로 편입된 카드가 항상 가장 위에 보이도록
+        // ==================================================
+        // 회전은 절대 다시 설정하지 않는다.
+        //
+        // KTH_DiscardAnimation에서 만들어진
+        // 현재 회전 상태를 그대로 유지한다.
+        // ==================================================
+
+        cardTransform.rotation =
+            currentWorldRotation;
+
+        // ==================================================
+        // 가장 위로
+        // ==================================================
+
         cardTransform.SetAsLastSibling();
 
-        // --------------------------------------------------
-        // 인터랙션 관련 스크립트/컴포넌트 비활성화
-        // (더 이상 손패 카드로서 클릭/호버 동작을 하지 않도록)
-        // --------------------------------------------------
+        // ==================================================
+        // 손패 인터랙션 비활성화
+        // ==================================================
 
         card.enabled = false;
 
@@ -185,14 +348,60 @@ public class KTH_DiscardCardUI : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
         canvasGroup.interactable = false;
 
+        // ==================================================
+        // 현재 최상단 카드 저장
+        // ==================================================
+
         _topDiscardCard = card;
+    });
+}
+
+
+    // =========================================================
+    // 랜덤 각도
+    // =========================================================
+
+    private float GetRandomAngle()
+    {
+        if (maxRandomAngle <= 0f)
+        {
+            return 0f;
+        }
+
+        float clampedMinAngle =
+            Mathf.Clamp(
+                minRandomAngle,
+                0f,
+                maxRandomAngle
+            );
+
+        float randomAngle =
+            Random.Range(
+                -maxRandomAngle,
+                maxRandomAngle
+            );
+
+        if (
+            clampedMinAngle > 0f &&
+            Mathf.Abs(randomAngle) < clampedMinAngle
+        )
+        {
+            randomAngle =
+                Random.value < 0.5f
+                    ? -clampedMinAngle
+                    : clampedMinAngle;
+        }
+
+        return randomAngle;
     }
 
+
     // =========================================================
-    // 버림 카드 표시 (새 프리팹 생성)
+    // 새 카드 생성
     // =========================================================
 
-    private void CreateDiscardCard(LSO_CardSO cardData)
+    private void CreateDiscardCard(
+        LSO_CardSO cardData)
     {
         if (discardCardPrefab == null)
         {
@@ -216,75 +425,26 @@ public class KTH_DiscardCardUI : MonoBehaviour
             return;
         }
 
-        // 새 카드 생성
         KTH_HandCard newCard =
-            Instantiate(
-                discardCardPrefab,
-                discardCardTransform
-            );
+            KTH_HandCardPool.Instance != null
+                ? KTH_HandCardPool.Instance.Get(
+                    discardCardTransform
+                )
+                : Instantiate(
+                    discardCardPrefab,
+                    discardCardTransform
+                );
 
         RectTransform cardRect =
             newCard.GetComponent<RectTransform>();
 
         if (cardRect != null)
         {
-            // 기본 위치
-            cardRect.anchoredPosition =
-                Vector2.zero;
-
-            // 카드마다 조금씩 다른 위치
-            float offsetX =
-                Random.Range(
-                    minStackOffset,
-                    maxStackOffset
-                );
-
-            float offsetY =
-                Random.Range(
-                    minStackOffset,
-                    maxStackOffset
-                );
-
-            if (Random.value < 0.5f)
-                offsetX *= -1f;
-
-            if (Random.value < 0.5f)
-                offsetY *= -1f;
-
-            cardRect.anchoredPosition =
-                new Vector2(
-                    offsetX,
-                    offsetY
-                );
-
-            // 카드마다 랜덤 각도
-            float randomAngle =
-                Random.Range(
-                    -15f,
-                    15f
-                );
-
-            // 너무 작은 각도 방지
-            if (Mathf.Abs(randomAngle) < 5f)
-            {
-                randomAngle =
-                    randomAngle < 0f
-                        ? -5f
-                        : 5f;
-            }
-
-            cardRect.localRotation =
-                Quaternion.Euler(
-                    0f,
-                    0f,
-                    randomAngle
-                );
+            ApplyStackPosition(cardRect);
         }
 
-        // 새 카드가 항상 가장 위
         newCard.transform.SetAsLastSibling();
 
-        // 버림 더미에서는 클릭 불가능
         newCard.enabled = false;
 
         CanvasGroup canvasGroup =
@@ -299,76 +459,113 @@ public class KTH_DiscardCardUI : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
         canvasGroup.interactable = false;
 
-        // 마지막 카드 기억
         _topDiscardCard = newCard;
     }
 
+
     // =========================================================
-    // 착지 흔들림
-    // (기획서: "착지 순간 맨 위의 카드 몇 장이 짧게 흔들린 뒤 멈춘다")
+    // 카드 쌓임 위치
     // =========================================================
 
-    private void ShakeTopCards()
+    private void ApplyStackPosition(
+        RectTransform cardRect)
     {
-        if (discardCardTransform == null)
+        if (cardRect == null)
         {
             return;
         }
 
-        int childCount =
-            discardCardTransform.childCount;
-
-        // 마지막 자식(childCount - 1)은 방금 새로 얹힌 카드이므로 제외.
-        // 그 아래 shakeCardCount장만 흔든다.
-        int fromIndex =
+        int stackIndex =
             Mathf.Max(
                 0,
-                childCount - 1 - shakeCardCount
+                _discardCardList.Count - 1
             );
 
-        int toIndex =
-            childCount - 2; // 새 카드 바로 아래 카드까지
+        float offsetX =
+            Random.Range(
+                -maxStackOffset,
+                maxStackOffset
+            );
 
-        for (int i = fromIndex; i <= toIndex; i++)
+        float randomY =
+            Random.Range(
+                -verticalStackOffset,
+                verticalStackOffset
+            );
+
+        float offsetY =
+            (stackIndex * stackHeight) +
+            randomY;
+
+        cardRect.anchoredPosition =
+            new Vector2(
+                offsetX,
+                offsetY
+            );
+
+        float randomAngle =
+            GetRandomAngle();
+
+        cardRect.localRotation =
+            Quaternion.Euler(
+                0f,
+                180f,
+                randomAngle
+            );
+    }
+
+
+    // =========================================================
+    // 풀 반납 / 삭제
+    // =========================================================
+
+    private void ReleaseOrDestroyCard(
+        Transform cardTransform)
+    {
+        if (cardTransform == null)
         {
-            if (i < 0 || i >= discardCardTransform.childCount)
-            {
-                continue;
-            }
+            return;
+        }
 
-            Transform child =
-                discardCardTransform.GetChild(i);
+        KTH_HandCard card =
+            cardTransform.GetComponent<KTH_HandCard>();
 
-            child.DOKill();
-
-            float punchAngle =
-                shakeAngle *
-                (Random.value < 0.5f ? -1f : 1f);
-
-            // DOPunchRotation은 흔들린 뒤 원래 회전값으로 자동 복귀한다.
-            child
-                .DOPunchRotation(
-                    new Vector3(0f, 0f, punchAngle),
-                    shakeDuration,
-                    shakeVibrato,
-                    shakeElasticity
-                );
+        if (
+            card != null &&
+            KTH_HandCardPool.Instance != null
+        )
+        {
+            KTH_HandCardPool.Instance.Release(
+                card
+            );
+        }
+        else
+        {
+            Destroy(
+                cardTransform.gameObject
+            );
         }
     }
+
 
     // =========================================================
     // UI
     // =========================================================
-    
+
+    public void UpdateUI()
+    {
+        if (discardCountText != null)
+        {
+            discardCountText.text =
+                _discardCardList.Count.ToString();
+        }
+    }
+
+
     // =========================================================
     // 리셔플
     // =========================================================
 
-    /// <summary>
-    /// 데이터(카드 목록)는 즉시 비워서 반환하되,
-    /// 시각적으로 쌓여있던 카드들은 즉시 사라지지 않고
-    /// "드로우했던 위치(drawPileTransform)"로 날아간 뒤 사라진다.
-    /// </summary>
     public List<LSO_CardSO> ClearAndGetList()
     {
         List<LSO_CardSO> currentPile =
@@ -379,17 +576,19 @@ public class KTH_DiscardCardUI : MonoBehaviour
         _discardCardList.Clear();
 
         _topDiscardCard = null;
-        
+
+        UpdateUI();
+
         PlayReshuffleFlyAwayAnimation();
 
         return currentPile;
     }
 
-    /// <summary>
-    /// 버림 더미에 쌓여있던 카드 오브젝트들을 drawPileTransform 위치로
-    /// 순차적으로(약간의 시간차를 두고) 날려보낸 뒤 각각 파괴한다.
-    /// drawPileTransform이 연결되어 있지 않으면 기존처럼 즉시 파괴한다.
-    /// </summary>
+
+    // =========================================================
+    // 리셔플 카드 날아가기
+    // =========================================================
+
     private void PlayReshuffleFlyAwayAnimation()
     {
         if (discardCardTransform == null)
@@ -405,7 +604,6 @@ public class KTH_DiscardCardUI : MonoBehaviour
             return;
         }
 
-        // 목표 위치가 연결되어 있지 않으면 즉시 파괴 (기존 동작 유지)
         if (drawPileTransform == null)
         {
             for (
@@ -414,8 +612,8 @@ public class KTH_DiscardCardUI : MonoBehaviour
                 i--
             )
             {
-                Destroy(
-                    discardCardTransform.GetChild(i).gameObject
+                ReleaseOrDestroyCard(
+                    discardCardTransform.GetChild(i)
                 );
             }
 
@@ -425,20 +623,34 @@ public class KTH_DiscardCardUI : MonoBehaviour
         Vector3 targetWorldPos =
             drawPileTransform.position;
 
-        // 파괴/애니메이션 도중 자식 목록이 바뀌므로 미리 배열로 복사
         List<Transform> cards =
-            new List<Transform>(childCount);
-
-        for (int i = 0; i < childCount; i++)
-        {
-            cards.Add(
-                discardCardTransform.GetChild(i)
+            new List<Transform>(
+                childCount
             );
+
+        for (
+            int i = 0;
+            i < childCount;
+            i++
+        )
+        {
+            Transform child =
+                discardCardTransform.GetChild(i);
+
+            if (child != null)
+            {
+                cards.Add(child);
+            }
         }
 
-        for (int i = 0; i < cards.Count; i++)
+        for (
+            int i = 0;
+            i < cards.Count;
+            i++
+        )
         {
-            Transform cardTransform = cards[i];
+            Transform cardTransform =
+                cards[i];
 
             if (cardTransform == null)
             {
@@ -450,39 +662,76 @@ public class KTH_DiscardCardUI : MonoBehaviour
             float startDelay =
                 i * reshuffleStaggerDelay;
 
+            Transform capturedTransform =
+                cardTransform;
+
             Sequence sequence =
                 DOTween.Sequence();
 
-            sequence.AppendInterval(startDelay);
-
-            // 드로우 위치로 날아가면서 점점 작아짐
-            // (드로우 시 작은 스케일에서 커지는 연출의 역순 느낌)
-            sequence.Append(
-                cardTransform
-                    .DOMove(
-                        targetWorldPos,
-                        reshuffleFlyDuration
-                    )
-                    .SetEase(reshuffleEase)
+            sequence.AppendInterval(
+                startDelay
             );
 
-            sequence.Join(
-                cardTransform
-                    .DOLocalRotate(
+            sequence.AppendCallback(() =>
+            {
+                if (capturedTransform == null)
+                {
+                    return;
+                }
+
+                Vector3 startWorldPos =
+                    capturedTransform.position;
+
+                Vector3 midWorldPos =
+                    Vector3.Lerp(
+                        startWorldPos,
+                        targetWorldPos,
+                        0.5f
+                    );
+
+                midWorldPos +=
+                    discardCardTransform.TransformVector(
+                        new Vector3(
+                            0f,
+                            reshuffleArcHeight,
+                            0f
+                        )
+                    );
+
+                Sequence flightSequence =
+                    DOTween.Sequence();
+
+                flightSequence.Append(
+                    capturedTransform.DOPath(
+                        new[]
+                        {
+                            startWorldPos,
+                            midWorldPos,
+                            targetWorldPos
+                        },
+                        reshuffleFlyDuration,
+                        PathType.CatmullRom
+                    )
+                    .SetEase(reshuffleEase)
+                );
+
+                flightSequence.Join(
+                    capturedTransform.DOLocalRotate(
                         Vector3.zero,
                         reshuffleFlyDuration
                     )
                     .SetEase(Ease.OutQuad)
-            );
+                );
 
-            sequence.OnComplete(() =>
-            {
-                if (cardTransform != null)
+                flightSequence.OnComplete(() =>
                 {
-                    Destroy(
-                        cardTransform.gameObject
-                    );
-                }
+                    if (capturedTransform != null)
+                    {
+                        ReleaseOrDestroyCard(
+                            capturedTransform
+                        );
+                    }
+                });
             });
         }
     }
