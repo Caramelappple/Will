@@ -1,10 +1,10 @@
 using System;
-using _Scripts.LSO.UI;
 using _Scripts.LSO.Will;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using _Scripts.LSO.UI.Panel;
 
 namespace _Scripts.LDY
 {

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Scripts.LSO.Reward;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -105,7 +106,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void ShowRewards(List<KTH_RewardOption> options)
+    public void ShowRewards(List<LSO_RewardOption> options)
     {
         if (!gameObject.activeSelf)
         {
@@ -161,7 +162,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
     }
 
     private IEnumerator Co_ShowSequence(
-        List<KTH_RewardOption> options)
+        List<LSO_RewardOption> options)
     {
         Transform bgTarget =
             backgroundVisual != null
@@ -186,7 +187,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
         // 2. 카드 프리팹을 조금씩 간격을 두고 생성
         // ==========================================
 
-        foreach (KTH_RewardOption option in options)
+        foreach (LSO_RewardOption option in options)
         {
             if (option == null)
                 continue;
@@ -294,7 +295,7 @@ public class KTH_RewardChoiceUI : MonoBehaviour
             claimButton.interactable = false;
         }
 
-        KTH_RewardOption selectedOption =
+        LSO_RewardOption selectedOption =
             currentlySelectedUI.Option;
 
         Debug.Log(

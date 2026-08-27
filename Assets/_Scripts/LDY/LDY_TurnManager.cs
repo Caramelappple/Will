@@ -1,6 +1,5 @@
 using System.Collections;
 using _Scripts.LSO.Manager;
-using _Scripts.LSO;
 using UnityEngine;
 
 namespace _Scripts.LDY

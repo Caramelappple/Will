@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Manager;

@@ -127,10 +127,14 @@ namespace _Scripts.LDY.Save
             // 매번 같은 보스가 나온다.
             LDY_RunSeed.Clear();
 
-            // 임시 조치다. 런이 끝날 때 해금을 비우는 곳이 지금은 여기뿐이라 여기서 부른다.
-            // 팀이 "런 시작" 흐름을 만들면 그쪽으로 옮길 것.
-            //if (KTH_Reward.Instance != null)
-                //KTH_Reward.Instance.ResetUnlocks();
+            // 런이 끝날 때 해금을 비우는 자리다. 해금 목록을 누가 들고 있을지가
+            // 아직 합의되지 않아 보류한다. 정해지면 아래 주석을 풀 것.
+            /*
+            LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
+
+            if (library != null && library.Claim != null)
+                library.Claim.Unlocks.Clear();
+            */
 
             EnsureMetaLoaded();
             Meta.totalRuns++;

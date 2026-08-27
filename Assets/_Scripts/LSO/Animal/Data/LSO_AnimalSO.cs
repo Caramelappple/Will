@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using UnityEngine;
+using _Scripts.LSO.Will;
 
 namespace _Scripts.LSO.Animal.Data
 {

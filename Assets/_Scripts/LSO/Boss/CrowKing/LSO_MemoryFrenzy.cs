@@ -2,6 +2,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {

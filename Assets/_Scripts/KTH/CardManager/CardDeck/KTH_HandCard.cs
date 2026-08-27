@@ -1,11 +1,11 @@
 using System;
 using _Scripts.LSO.Deck.Data;
-using _Scripts.LSO.UI;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using _Scripts.LSO.UI.Panel;
 
 public class KTH_HandCard : MonoBehaviour,
     IPointerClickHandler,
