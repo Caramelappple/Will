@@ -1,0 +1,51 @@
+# =============================================================
+# 팀 공통 포맷 규칙
+# =============================================================
+# 목적: "누가 저장만 눌러도 파일 전체가 재포맷되는" 일을 막는다.
+# Rider / Visual Studio / VS Code 모두 이 파일을 읽는다.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+# Unity가 직접 쓰는 파일은 건드리지 않는다
+[*.{unity,prefab,asset,mat,anim,controller,meta}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.cs]
+indent_size = 4
+
+# ---- 중괄호: Allman (기존 코드 스타일) ----
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# ---- using 정렬 ----
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# ---- 네임스페이스 ----
+# 블록형으로 고정. 파일 범위(file-scoped) 네임스페이스로 자동 변환되면
+# 파일 전체가 재들여쓰기되어 머지가 통째로 깨진다.
+csharp_style_namespace_declarations = block_scoped:silent
+
+# 폴더 구조에 맞춰 네임스페이스를 자동 제안하는 기능을 끈다.
+# 이 제안을 무심코 수락해서 KTH_DeckManager.cs가 통째로 감싸졌고,
+# 그 결과 머지에서 파일이 두 버전으로 섞여 깨졌다.
+dotnet_style_namespace_match_folder = false:none
+
+# ---- var 사용 등은 강제하지 않는다 (기존 코드가 섞여 있음) ----
+csharp_style_var_for_built_in_types = false:none
+csharp_style_var_when_type_is_apparent = false:none
+csharp_style_var_elsewhere = false:none
