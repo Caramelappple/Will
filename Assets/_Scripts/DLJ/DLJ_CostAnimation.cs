@@ -10,7 +10,7 @@ using UnityEngine;
 public class DLJ_CostAnimation : MonoBehaviour
 {
     [Header("Entrance")]
-    [Tooltip("도착점 기준 시작 위치의 로컬 오프셋. 왼쪽에서 들어오게 하려면 X를 음수로 둔다.")]
+    [Tooltip("도착점 기준 시작 위치의 로컬 오프셋. 화면에서 보이는 방향은 카메라와 부모 Transform의 축 방향에 따라 달라진다.")]
     [SerializeField] private Vector3 entranceOffset = new Vector3(6f, 0f, 0f);
 
     [Tooltip("도착까지 걸리는 시간(초).")]

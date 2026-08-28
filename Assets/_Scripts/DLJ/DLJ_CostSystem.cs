@@ -12,6 +12,9 @@ public class DLJ_CostSystem : MonoBehaviour
     [Tooltip("행동력 관리자. 비워두면 LDY_ActionPointManager.instance를 찾는다.")]
     [SerializeField] private LDY_ActionPointManager actionPoints;
 
+    [Tooltip("현재 턴을 확인할 턴 관리자. 비워두면 씬에서 자동으로 찾는다.")]
+    [SerializeField] private LDY_TurnManager turnManager;
+
     [Tooltip("씬에 처음부터 놓여 있는 첫 번째 코스트 케이스 루트.")]
     [SerializeField] private GameObject firstCase;
 
@@ -33,6 +36,7 @@ public class DLJ_CostSystem : MonoBehaviour
 
     private readonly List<CaseInstance> _cases = new List<CaseInstance>();
     private LDY_ActionPointManager _subscribedActionPoints;
+    private LDY_TurnManager _subscribedTurnManager;
     private Vector3 _firstCaseLocalPosition;
     private bool _initialized;
 
@@ -56,20 +60,23 @@ public class DLJ_CostSystem : MonoBehaviour
     private void OnEnable()
     {
         TryBindActionPoints();
+        TryBindTurnManager();
     }
 
     private void Start()
     {
         // ActionPointManager가 자신의 Awake에서 instance를 등록하므로 한 번 더 시도한다.
         TryBindActionPoints();
+        TryBindTurnManager();
 
         if (_subscribedActionPoints != null)
-            Refresh(_subscribedActionPoints.Current);
+            Refresh(IsPlayerTurn ? _subscribedActionPoints.Current : 0);
     }
 
     private void OnDisable()
     {
         UnbindActionPoints();
+        UnbindTurnManager();
     }
 
     private void OnDestroy()
@@ -135,8 +142,43 @@ public class DLJ_CostSystem : MonoBehaviour
 
     private void HandleActionPointsChanged(int current, int max)
     {
-        Refresh(current);
+        // 적 턴용 행동력도 같은 풀을 사용하지만, 플레이어 코스트 UI에는 보여주지 않는다.
+        Refresh(IsPlayerTurn ? current : 0);
     }
+
+    private void TryBindTurnManager()
+    {
+        if (_subscribedTurnManager != null) return;
+
+        if (turnManager == null)
+            turnManager = FindFirstObjectByType<LDY_TurnManager>();
+
+        if (turnManager == null) return;
+
+        _subscribedTurnManager = turnManager;
+        _subscribedTurnManager.OnTurnChanged += HandleTurnChanged;
+    }
+
+    private void UnbindTurnManager()
+    {
+        if (_subscribedTurnManager == null) return;
+
+        _subscribedTurnManager.OnTurnChanged -= HandleTurnChanged;
+        _subscribedTurnManager = null;
+    }
+
+    private void HandleTurnChanged(LDY_Team team)
+    {
+        int visibleCost = team == LDY_Team.Player && _subscribedActionPoints != null
+            ? _subscribedActionPoints.Current
+            : 0;
+
+        Refresh(visibleCost);
+    }
+
+    private bool IsPlayerTurn =>
+        _subscribedTurnManager == null ||
+        _subscribedTurnManager.CurrentTurn == LDY_Team.Player;
 
     /// <summary>현재 행동력에 맞춰 케이스 수와 코인 표시를 갱신한다.</summary>
     public void Refresh(int current)

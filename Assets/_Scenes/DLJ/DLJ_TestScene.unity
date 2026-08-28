@@ -7536,6 +7536,7 @@ MonoBehaviour:
   moveSystem: {fileID: 579526129}
   attackSystem: {fileID: 579526128}
   actionPoints: {fileID: 579526123}
+  autoEndTurn: 0
 --- !u!114 &579526125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7693,6 +7694,61 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_DeathHandler
   board: {fileID: 579526130}
+--- !u!1 &598217199
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 598217201}
+  - component: {fileID: 598217200}
+  m_Layer: 0
+  m_Name: EnemyAI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &598217200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598217199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35422a366f9681344a901160429786fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_EnemyAI
+  board: {fileID: 579526130}
+  moveSystem: {fileID: 579526129}
+  attackSystem: {fileID: 579526128}
+  actionPoints: {fileID: 579526123}
+  actionDelay: 0.5
+  scorers: []
+  scorerRegistry: {fileID: 11400000, guid: da64d110778c92845b6b2188eb977d86, type: 2}
+  enableDecisionLog: 0
+  references:
+    version: 2
+    RefIds: []
+--- !u!4 &598217201
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 598217199}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.95232, y: -6.95567, z: -32.42949}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &616824273
 GameObject:
   m_ObjectHideFlags: 0
@@ -14287,7 +14343,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!65 &898224045
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14399,6 +14455,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 1
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 898224048}
@@ -14463,6 +14520,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: -1
   modelTransform: {fileID: 978615065}
@@ -14544,6 +14602,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1033300774}
@@ -15492,6 +15551,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 1165718498}
@@ -15756,6 +15816,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1196145414}
@@ -22914,6 +22975,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 1637888694}
@@ -23590,6 +23652,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 1749388460}
@@ -24585,6 +24648,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 1982195021}
@@ -24940,6 +25004,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 1996722154}
@@ -25359,6 +25424,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 3
   modelTransform: {fileID: 2086254340}
@@ -25697,10 +25763,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cost
       objectReference: {fileID: 0}
-    - target: {fileID: 6042851435561842107, guid: c81a8606ea0a43f4b97783cb8370249c, type: 3}
-      propertyPath: coinRoot
-      value: 
-      objectReference: {fileID: 1081112811}
     - target: {fileID: 6684042944518599974, guid: c81a8606ea0a43f4b97783cb8370249c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.95232
@@ -25827,3 +25889,4 @@ SceneRoots:
   - {fileID: 1958084415}
   - {fileID: 2016209578}
   - {fileID: 1081112811}
+  - {fileID: 598217201}

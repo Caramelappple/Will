@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 코스트 코인 5개를 관리하는 DLJ 전용 케이스.
@@ -51,11 +52,18 @@ public class DLJ_CostCase : MonoBehaviour
     [Tooltip("케이스 진입 연출이 끝난 다음 코인을 넣는다.")]
     [SerializeField] private bool waitForCaseEntrance = true;
 
+    [Tooltip("케이스 진입 연출이 끝난 뒤 첫 코인이 출발하기 전까지 추가로 기다릴 시간.")]
+    [SerializeField, Min(0f)] private float afterCaseEntranceDelay;
+
     [SerializeField] private bool ignoreTimeScale;
 
     private readonly List<Transform> _found = new List<Transform>();
+    private readonly List<Transform> _coinHomeParents = new List<Transform>();
     private readonly List<Vector3> _restLocalPositions = new List<Vector3>();
+    private readonly List<Quaternion> _restLocalRotations = new List<Quaternion>();
+    private readonly List<Vector3> _restLocalScales = new List<Vector3>();
     private readonly Dictionary<Transform, Sequence> _coinSequences = new Dictionary<Transform, Sequence>();
+    private Transform _coinAnimationRoot;
     private bool _initialized;
     private bool _started;
 
@@ -69,6 +77,11 @@ public class DLJ_CostCase : MonoBehaviour
     private void Awake()
     {
         Initialize();
+
+        // 첫 화면이 그려지기 전부터 숨긴다.
+        // Start에서 숨기면 케이스와 함께 한 프레임 보일 수 있다.
+        if (playOnStart)
+            HideAllCoinsForEntrance();
     }
 
     private void Start()
@@ -88,9 +101,17 @@ public class DLJ_CostCase : MonoBehaviour
         if (coins.Count == 0)
             CollectCoins();
 
+        _coinHomeParents.Clear();
         _restLocalPositions.Clear();
+        _restLocalRotations.Clear();
+        _restLocalScales.Clear();
         foreach (Transform coin in coins)
+        {
+            _coinHomeParents.Add(coin != null ? coin.parent : null);
             _restLocalPositions.Add(coin != null ? coin.localPosition : Vector3.zero);
+            _restLocalRotations.Add(coin != null ? coin.localRotation : Quaternion.identity);
+            _restLocalScales.Add(coin != null ? coin.localScale : Vector3.one);
+        }
 
         FilledCount = coins.Count;
         _initialized = true;
@@ -134,13 +155,19 @@ public class DLJ_CostCase : MonoBehaviour
             if (!filled)
             {
                 KillCoinSequence(coin);
-                coin.localPosition = _restLocalPositions[i];
+                RestoreCoinToSlot(i, false);
+            }
+            else if (!_started && playOnStart)
+            {
+                // 케이스 진입 전에 부모를 분리해야 비활성 코인도 케이스 이동을 따라가지 않는다.
+                DetachCoinForEntrance(i);
                 coin.gameObject.SetActive(false);
             }
             else if (i < previousCount || !_started)
             {
-                coin.localPosition = _restLocalPositions[i];
-                coin.gameObject.SetActive(true);
+                // 이미 등장 중인 코인은 같은 값이 다시 들어와도 슬롯으로 순간 이동시키지 않는다.
+                if (!_coinSequences.ContainsKey(coin))
+                    RestoreCoinToSlot(i, true);
             }
         }
 
@@ -151,17 +178,29 @@ public class DLJ_CostCase : MonoBehaviour
             PlayCoinRange(previousCount, count, 0f);
     }
 
+    private void HideAllCoinsForEntrance()
+    {
+        for (int i = 0; i < coins.Count; i++)
+        {
+            Transform coin = coins[i];
+            if (coin == null) continue;
+
+            DetachCoinForEntrance(i);
+            coin.gameObject.SetActive(false);
+        }
+    }
+
     [ContextMenu("Play Filled Coin Entrance")]
     public void PlayFilledCoinsEntrance()
     {
         Initialize();
 
-        float delay = 0f;
+        float delay = afterCaseEntranceDelay;
         if (waitForCaseEntrance)
         {
             DLJ_CostAnimation caseAnimation = GetComponentInParent<DLJ_CostAnimation>();
             if (caseAnimation != null)
-                delay = caseAnimation.TotalDuration;
+                delay += caseAnimation.TotalDuration;
         }
 
         PlayCoinRange(0, FilledCount, delay);
@@ -191,7 +230,7 @@ public class DLJ_CostCase : MonoBehaviour
             int order = i - startIndex;
 
             KillCoinSequence(coin);
-            coin.localPosition = _restLocalPositions[i];
+            DetachCoinForEntrance(i);
             coin.gameObject.SetActive(false);
 
             int coinIndex = i;
@@ -227,8 +266,9 @@ public class DLJ_CostCase : MonoBehaviour
         if (coin == null || coinIndex < 0 || coinIndex >= _restLocalPositions.Count) return;
 
         Vector3 restLocalPosition = _restLocalPositions[coinIndex];
-        Vector3 restWorldPosition = coin.parent != null
-            ? coin.parent.TransformPoint(restLocalPosition)
+        Transform homeParent = _coinHomeParents[coinIndex];
+        Vector3 restWorldPosition = homeParent != null
+            ? homeParent.TransformPoint(restLocalPosition)
             : restLocalPosition;
 
         Camera cameraForEntrance = EntranceCamera;
@@ -260,7 +300,8 @@ public class DLJ_CostCase : MonoBehaviour
             .Append(coin.DOMove(aboveWorldPosition, actualHorizontalDuration).SetEase(horizontalEase))
             .Append(coin.DOMove(restWorldPosition, actualDropDuration).SetEase(dropEase))
             .SetUpdate(ignoreTimeScale)
-            .SetLink(gameObject);
+            .SetLink(gameObject)
+            .OnComplete(() => RestoreCoinToSlot(coinIndex, true));
 
         _coinSequences[coin] = movement;
         movement.OnKill(() =>
@@ -277,6 +318,55 @@ public class DLJ_CostCase : MonoBehaviour
             if (coins[i] == null)
                 coins.RemoveAt(i);
         }
+    }
+
+    /// <summary>
+    /// 코인을 케이스 계층 밖으로 옮긴다.
+    /// 케이스가 움직여도 코인의 월드 위치가 따라가지 않게 만드는 핵심 단계다.
+    /// </summary>
+    private void DetachCoinForEntrance(int coinIndex)
+    {
+        if (coinIndex < 0 || coinIndex >= coins.Count) return;
+
+        Transform coin = coins[coinIndex];
+        if (coin == null) return;
+
+        EnsureCoinAnimationRoot();
+        if (_coinAnimationRoot != null && coin.parent != _coinAnimationRoot)
+            coin.SetParent(_coinAnimationRoot, true);
+    }
+
+    /// <summary>코인을 원래 케이스 슬롯의 부모와 로컬 Transform으로 되돌린다.</summary>
+    private void RestoreCoinToSlot(int coinIndex, bool active)
+    {
+        if (coinIndex < 0 || coinIndex >= coins.Count) return;
+        if (coinIndex >= _coinHomeParents.Count ||
+            coinIndex >= _restLocalPositions.Count ||
+            coinIndex >= _restLocalRotations.Count ||
+            coinIndex >= _restLocalScales.Count)
+            return;
+
+        Transform coin = coins[coinIndex];
+        if (coin == null) return;
+
+        Transform homeParent = _coinHomeParents[coinIndex];
+        coin.SetParent(homeParent, false);
+        coin.localPosition = _restLocalPositions[coinIndex];
+        coin.localRotation = _restLocalRotations[coinIndex];
+        coin.localScale = _restLocalScales[coinIndex];
+        coin.gameObject.SetActive(active);
+    }
+
+    private void EnsureCoinAnimationRoot()
+    {
+        if (_coinAnimationRoot != null) return;
+
+        GameObject rootObject = new GameObject($"{name}_CoinAnimationRoot");
+        _coinAnimationRoot = rootObject.transform;
+
+        // 런타임 생성된 추가 케이스도 자신이 속한 씬 안에서 정리되게 한다.
+        if (gameObject.scene.IsValid() && rootObject.scene != gameObject.scene)
+            SceneManager.MoveGameObjectToScene(rootObject, gameObject.scene);
     }
 
     private void KillCoinSequence(Transform coin)
@@ -298,9 +388,17 @@ public class DLJ_CostCase : MonoBehaviour
 
         for (int i = 0; i < coins.Count && i < _restLocalPositions.Count; i++)
         {
-            if (coins[i] != null)
-                coins[i].localPosition = _restLocalPositions[i];
+            if (coins[i] == null) continue;
+
+            bool wasActive = coins[i].gameObject.activeSelf;
+            RestoreCoinToSlot(i, wasActive);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (_coinAnimationRoot != null)
+            Destroy(_coinAnimationRoot.gameObject);
     }
 
 #if UNITY_EDITOR
@@ -311,6 +409,7 @@ public class DLJ_CostCase : MonoBehaviour
         coinInterval = Mathf.Max(0f, coinInterval);
         maxEntranceDuration = Mathf.Max(0.01f, maxEntranceDuration);
         aboveViewportOffset = Mathf.Max(0f, aboveViewportOffset);
+        afterCaseEntranceDelay = Mathf.Max(0f, afterCaseEntranceDelay);
 
         if (horizontalEase == null || horizontalEase.length == 0)
             horizontalEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
