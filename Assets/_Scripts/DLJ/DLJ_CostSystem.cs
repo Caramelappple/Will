@@ -6,6 +6,7 @@ using UnityEngine;
 /// 행동력 값과 코스트 케이스 표시를 연결한다.
 /// 케이스 하나는 기본 5코스트를 맡고, 6부터 다음 케이스를 생성한다.
 /// </summary>
+[DefaultExecutionOrder(-1000)]
 public class DLJ_CostSystem : MonoBehaviour
 {
     [Header("References")]
@@ -17,9 +18,6 @@ public class DLJ_CostSystem : MonoBehaviour
 
     [Tooltip("씬에 처음부터 놓여 있는 첫 번째 코스트 케이스 루트.")]
     [SerializeField] private GameObject firstCase;
-
-    [Tooltip("6코스트부터 추가 생성할 케이스 프리팹. DLJ_CostCase가 없으면 런타임에 자동으로 붙인다.")]
-    [SerializeField] private GameObject additionalCasePrefab;
 
     [Tooltip("추가 케이스의 부모. 비워두면 첫 케이스의 부모를 쓴다.")]
     [SerializeField] private Transform caseRoot;
@@ -37,6 +35,8 @@ public class DLJ_CostSystem : MonoBehaviour
     private readonly List<CaseInstance> _cases = new List<CaseInstance>();
     private LDY_ActionPointManager _subscribedActionPoints;
     private LDY_TurnManager _subscribedTurnManager;
+    private GameObject _caseTemplateContainer;
+    private GameObject _caseTemplate;
     private Vector3 _firstCaseLocalPosition;
     private bool _initialized;
 
@@ -54,6 +54,7 @@ public class DLJ_CostSystem : MonoBehaviour
 
     private void Awake()
     {
+        CreateRuntimeCaseTemplate();
         InitializeCases();
     }
 
@@ -70,7 +71,12 @@ public class DLJ_CostSystem : MonoBehaviour
         TryBindTurnManager();
 
         if (_subscribedActionPoints != null)
-            Refresh(IsPlayerTurn ? _subscribedActionPoints.Current : 0);
+        {
+            DLJ_CostVisualTransition transition = IsPlayerTurn
+                ? DLJ_CostVisualTransition.Refill
+                : DLJ_CostVisualTransition.Immediate;
+            Refresh(IsPlayerTurn ? _subscribedActionPoints.Current : 0, transition);
+        }
     }
 
     private void OnDisable()
@@ -89,6 +95,29 @@ public class DLJ_CostSystem : MonoBehaviour
         }
 
         _cases.Clear();
+
+        if (_caseTemplateContainer != null)
+            Destroy(_caseTemplateContainer);
+    }
+
+    /// <summary>
+    /// 별도 Cost 프리팹 없이 추가 케이스를 만들기 위한 비활성 원본을 준비한다.
+    /// 비활성 컨테이너 아래에서 복제해 첫 케이스의 생명주기를 건드리지 않고 온전한 계층을 보관한다.
+    /// </summary>
+    private void CreateRuntimeCaseTemplate()
+    {
+        if (firstCase == null || _caseTemplate != null) return;
+
+        Transform templateParent = caseRoot != null ? caseRoot : firstCase.transform.parent;
+
+        _caseTemplateContainer = new GameObject($"{name}_CaseTemplateContainer");
+        _caseTemplateContainer.hideFlags = HideFlags.HideInHierarchy;
+        _caseTemplateContainer.transform.SetParent(templateParent, false);
+        _caseTemplateContainer.SetActive(false);
+
+        _caseTemplate = Instantiate(firstCase, _caseTemplateContainer.transform, false);
+        _caseTemplate.name = $"{firstCase.name}_RuntimeTemplate";
+        _caseTemplate.hideFlags = HideFlags.HideInHierarchy;
     }
 
     private void InitializeCases()
@@ -143,7 +172,9 @@ public class DLJ_CostSystem : MonoBehaviour
     private void HandleActionPointsChanged(int current, int max)
     {
         // 적 턴용 행동력도 같은 풀을 사용하지만, 플레이어 코스트 UI에는 보여주지 않는다.
-        Refresh(IsPlayerTurn ? current : 0);
+        Refresh(
+            IsPlayerTurn ? current : 0,
+            IsPlayerTurn ? DLJ_CostVisualTransition.Spend : DLJ_CostVisualTransition.Immediate);
     }
 
     private void TryBindTurnManager()
@@ -173,7 +204,10 @@ public class DLJ_CostSystem : MonoBehaviour
             ? _subscribedActionPoints.Current
             : 0;
 
-        Refresh(visibleCost);
+        DLJ_CostVisualTransition transition = team == LDY_Team.Player
+            ? DLJ_CostVisualTransition.Refill
+            : DLJ_CostVisualTransition.Immediate;
+        Refresh(visibleCost, transition);
     }
 
     private bool IsPlayerTurn =>
@@ -182,6 +216,11 @@ public class DLJ_CostSystem : MonoBehaviour
 
     /// <summary>현재 행동력에 맞춰 케이스 수와 코인 표시를 갱신한다.</summary>
     public void Refresh(int current)
+    {
+        Refresh(current, DLJ_CostVisualTransition.Spend);
+    }
+
+    private void Refresh(int current, DLJ_CostVisualTransition transition)
     {
         InitializeCases();
         if (!_initialized) return;
@@ -196,7 +235,7 @@ public class DLJ_CostSystem : MonoBehaviour
             if (_cases[i]?.View == null) continue;
 
             int filledCoins = Mathf.Clamp(current - i * coinsPerCase, 0, coinsPerCase);
-            _cases[i].View.SetFilled(filledCoins);
+            _cases[i].View.SetFilled(filledCoins, transition);
         }
     }
 
@@ -204,18 +243,20 @@ public class DLJ_CostSystem : MonoBehaviour
     {
         while (_cases.Count < requiredCaseCount)
         {
-            if (additionalCasePrefab == null)
+            if (_caseTemplate == null)
             {
                 Debug.LogError(
-                    $"{name}: {requiredCaseCount}개의 케이스가 필요하지만 Additional Case Prefab이 비어 있습니다.",
+                    $"{name}: {requiredCaseCount}개의 케이스가 필요하지만 런타임 케이스 원본을 만들지 못했습니다.",
                     this);
                 return;
             }
 
             int index = _cases.Count;
-            GameObject newCaseRoot = Instantiate(additionalCasePrefab, caseRoot, false);
-            newCaseRoot.name = $"{additionalCasePrefab.name}_{index + 1}";
+            GameObject newCaseRoot = Instantiate(_caseTemplate, caseRoot, false);
+            newCaseRoot.hideFlags = HideFlags.None;
+            newCaseRoot.name = $"{firstCase.name}_{index + 1}";
             newCaseRoot.transform.localPosition = _firstCaseLocalPosition + caseStep * index;
+            newCaseRoot.SetActive(true);
 
             DLJ_CostCase newCaseView = ResolveCaseView(newCaseRoot);
             if (newCaseView == null)

@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
@@ -7,7 +8,8 @@ using UnityEngine;
 /// 이 컴포넌트가 붙은 오브젝트의 로컬 위치를 도착점으로 사용한다.
 /// Entrance Offset과 Ease Curve는 인스펙터에서 직접 조절할 수 있다.
 /// </summary>
-public class DLJ_CostAnimation : MonoBehaviour
+[DefaultExecutionOrder(-100)]
+public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
 {
     [Header("Entrance")]
     [Tooltip("도착점 기준 시작 위치의 로컬 오프셋. 화면에서 보이는 방향은 카메라와 부모 Transform의 축 방향에 따라 달라진다.")]
@@ -37,6 +39,8 @@ public class DLJ_CostAnimation : MonoBehaviour
 
     /// <summary>등장 대기부터 도착까지 걸리는 전체 시간.</summary>
     public float TotalDuration => entranceDelay + entranceDuration;
+    public bool IsPlaying => _entranceTween != null && _entranceTween.IsActive();
+    public event Action Completed;
 
     private void Awake()
     {
@@ -83,16 +87,21 @@ public class DLJ_CostAnimation : MonoBehaviour
             .SetEase(entranceEase)
             .SetUpdate(ignoreTimeScale)
             .SetLink(gameObject)
+            .OnComplete(() => Completed?.Invoke())
             .OnKill(() => _entranceTween = null);
     }
 
     /// <summary>진행 중인 연출을 멈추고 즉시 도착점에 놓는다.</summary>
     public void CompleteEntrance()
     {
+        bool wasPlaying = IsPlaying;
         KillEntranceTween();
 
         if (_hasRestPosition)
             transform.localPosition = _restLocalPosition;
+
+        if (wasPlaying)
+            Completed?.Invoke();
     }
 
     private void OnDisable()
