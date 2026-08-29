@@ -1,5 +1,4 @@
 using _Scripts.LDY;
-using _Scripts.LSO;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -15,7 +14,7 @@ public sealed class DLJ_SacrificeSystem : MonoBehaviour
             return null;
         }
 
-        return new DLJ_SacrificeWill(context.animal, context.board, sacrificeData);
+        return new DLJ_SacrificeWill(context, sacrificeData);
     }
 }
 
@@ -38,17 +37,18 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
     private readonly LDY_BoardManager board;
     private readonly int healthBonus;
     private readonly DLJ_SacrificeWillDataSO data;
+    private readonly DLJ_StatIncreaseEffectSO statIncreaseEffect;
     private readonly DLJ_IWillEffect effect = new DLJ_SacrificeEffect();
 
     internal DLJ_SacrificeWill(
-        LDY_Animal sourceOwner,
-        LDY_BoardManager sourceBoard,
+        DLJ_WillContext context,
         DLJ_SacrificeWillDataSO sourceData)
     {
-        owner = sourceOwner;
-        board = sourceBoard;
+        owner = context.animal;
+        board = context.board;
         healthBonus = DLJ_WillEnhancement.IsActive(owner) ? 2 : StatBonus;
         data = sourceData;
+        statIncreaseEffect = context.statIncreaseEffect;
     }
 
     public void InvokeWill()
@@ -80,6 +80,9 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
             ally.health.Init(ally.health.MaxValue + healthBonus, false);
             ally.health.Value = increasedHealth;
             ally.baseAtk += StatBonus;
+            DLJ_StatIncreaseEffectPlayer.Play(
+                ally.gameObject,
+                statIncreaseEffect);
             buffedCount++;
         }
 
@@ -88,11 +91,21 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
         if (buffedCount > 0)
             DLJ_WillBenefitEvents.Raise(owner, LSO_WillType.Sacrifice);
 
+        Vector3 centerWorld = board.GridToWorld(owner.pos);
+        Vector3 verticalWorld =
+            board.GridToWorld(owner.pos + new Vector3Int(0, 0, 1));
+        Vector3 horizontalWorld =
+            board.GridToWorld(owner.pos + new Vector3Int(1, 0, 0));
+        Vector3 areaSize = new Vector3(
+            Vector3.Distance(centerWorld, verticalWorld) * 3f,
+            1f,
+            Vector3.Distance(centerWorld, horizontalWorld) * 3f);
+
         GameObject effectObject = data.effectPrefab != null
             ? Object.Instantiate(
                 data.effectPrefab,
-                owner.transform.position,
-                Quaternion.identity)
+                centerWorld,
+                data.effectPrefab.transform.rotation)
             : null;
         effect.Play(
             effectObject,
@@ -100,7 +113,8 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
             {
                 data = data,
                 owner = owner.gameObject,
-                origin = owner.transform.position
+                origin = centerWorld,
+                areaSize = areaSize
             });
     }
 }

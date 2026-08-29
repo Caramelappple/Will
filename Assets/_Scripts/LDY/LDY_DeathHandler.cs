@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Manager;
@@ -51,15 +50,45 @@ namespace _Scripts.LDY
 
             LSO_IWill will = DLJ_WillRuntime.Invoke(victim, targetBoard);
 
+            DamagePlayerFor(victim);
+
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(victim.gameObject);
+                // 즉시 파괴 대신 디졸브를 재생한다. 파괴는 destroyOnComplete가 연출 뒤에 한다.
+                LDY_DissolveEffect.PlayOn(victim.gameObject);
+                return;
+            }
+            
+            // 파괴가 미뤄졌다. 계승처럼 뒤늦게 발동하는 유언은 주체를 알려주지 않으므로 여기서 적어둔다.
+            LDY_DeferredDeaths.Record(victim);
+        }
+        
+        /// <summary>
+        /// 내 기물을 잃은 대가로 촛불을 깎는다.
+        ///
+        /// 적이 죽었을 때는 깎지 않는다. 팀을 보지 않으면 적을 잡을수록 내가 죽는다.
+        ///
+        /// 깎을 양은 victim.PlayerHealthPoints에게 묻는다.
+        /// data가 있는지 없는지는 기물이 알아서 판단하므로 여기서는 신경 쓰지 않는다.
+        /// </summary>
+        private static void DamagePlayerFor(LDY_Animal victim)
+        {
+            if (victim.team != LDY_Team.Player) return;
+
+            int damage = victim.PlayerHealthPoints;
+            if (damage <= 0) return;
+
+            DLJ_PlayerHealth health = DLJ_PlayerHealth.Instance;
+
+            if (health == null)
+            {
+                Debug.LogWarning(
+                    $"{victim.name}: 씬에 DLJ_PlayerHealth가 없어 촛불을 깎지 못했습니다.", victim);
                 return;
             }
 
-            // 파괴가 미뤄졌다. 계승처럼 뒤늦게 발동하는 유언은 주체를 알려주지 않으므로 여기서 적어둔다.
-            LDY_DeferredDeaths.Record(victim);
+            health.TakeDamage(damage);
         }
 
         /// <summary>죽는 본인의 특성에게 먼저 알린다. 파괴 전이라 아직 self를 쓸 수 있다.</summary>

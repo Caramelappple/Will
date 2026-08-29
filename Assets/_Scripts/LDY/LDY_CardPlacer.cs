@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Animal;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI.Feedback;

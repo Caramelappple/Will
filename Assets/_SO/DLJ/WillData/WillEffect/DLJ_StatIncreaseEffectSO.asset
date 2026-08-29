@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 559a187319234cbd9f5f845108a91c99, type: 3}
+  m_Name: DLJ_StatIncreaseEffectSO
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_StatIncreaseEffectSO
+  effectPrefab: {fileID: 7866763857824816344, guid: 4ca9dda23c74c1e4db79d06a2bf52f67, type: 3}

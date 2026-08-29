@@ -104,3 +104,18 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# =============================================================
+# 팀 추가분 - IDE / 툴 자동 생성 파일
+# =============================================================
+# 이 파일들은 사람이 아니라 IDE가 고쳐 쓴다.
+# 추적하면 커밋마다 바뀌면서 머지 충돌만 만든다.
+
+# JetBrains Rider
+/.idea/
+
+# Visual Studio Code
+/.vscode/
+
+# Claude Code 개인 설정
+/.claude/settings.local.json

@@ -81,7 +81,6 @@ public class KTH_InfoPanel : MonoBehaviour
 
     // =========================================================
     // 일반 인포 패널 열기
-    // 클릭 선택 등에서 사용
     // =========================================================
 
     public void StartInfoPanl(
@@ -108,10 +107,12 @@ public class KTH_InfoPanel : MonoBehaviour
 
     // =========================================================
     // 호버 시작
-    // 인포 패널 표시 + 즉시 배치 시작
+    //
+    // 인포 패널만 표시한다.
+    // 기물 배치는 시작하지 않는다.
     // =========================================================
 
-    public void StartHoverPlacement(
+    public void StartHoverInfo(
         LSO_CardSO data,
         KTH_HandCard card)
     {
@@ -125,20 +126,6 @@ public class KTH_InfoPanel : MonoBehaviour
             return;
         }
 
-        if (cardPlacer == null)
-        {
-            Debug.LogWarning(
-                "[KTH_InfoPanel] cardPlacer가 연결되어 있지 않습니다."
-            );
-            return;
-        }
-
-        // 다른 카드 배치가 남아 있다면 먼저 취소
-        if (cardPlacer.IsPlacing)
-        {
-            cardPlacer.CancelPlacement();
-        }
-
         if (isClosing)
         {
             currentSequence?.Kill();
@@ -150,20 +137,13 @@ public class KTH_InfoPanel : MonoBehaviour
 
         SetPanl(data);
         PlayOpenAnimation();
-
-        BeginCurrentCardPlacement();
     }
 
     // =========================================================
-    // 배치 시작
+    // 클릭 후 실제 배치 시작
     // =========================================================
 
     public void SelectInfoPanl()
-    {
-        BeginCurrentCardPlacement();
-    }
-
-    public void StartPlacementFromHover()
     {
         BeginCurrentCardPlacement();
     }
@@ -185,6 +165,7 @@ public class KTH_InfoPanel : MonoBehaviour
             Debug.LogWarning(
                 "[KTH_InfoPanel] cardPlacer가 연결되어 있지 않습니다."
             );
+
             return;
         }
 
@@ -214,13 +195,12 @@ public class KTH_InfoPanel : MonoBehaviour
                     return;
                 }
 
-                // 다른 상태로 넘어간 경우 잘못된 카드 제거 방지
                 if (cardToRemove == null)
                 {
                     return;
                 }
 
-                // 현재 패널이 이 카드를 보고 있는 경우에만 초기화
+                // 현재 패널이 이 카드를 보고 있을 때만 초기화
                 if (currentCard == cardToRemove)
                 {
                     currentCard = null;
@@ -244,8 +224,8 @@ public class KTH_InfoPanel : MonoBehaviour
                     KTH_HandCardLayout.Instance.MoveUpFromPlacement();
                 }
 
-                // 우클릭은 배치만 취소
-                // 카드 호버 상태는 유지한다.
+                // 우클릭 시 배치만 취소
+                // 카드 선택과 인포 패널은 그대로 유지
             }
         );
 
@@ -265,7 +245,7 @@ public class KTH_InfoPanel : MonoBehaviour
     }
 
     // =========================================================
-    // 호버 이탈 취소
+    // 호버 이탈
     // =========================================================
 
     public void CancelHoverSelection(KTH_HandCard card)
@@ -275,23 +255,22 @@ public class KTH_InfoPanel : MonoBehaviour
             return;
         }
 
-        // 현재 이 카드가 아니면 건드리지 않음
+        // 현재 패널이 이 카드가 아니면 무시
         if (currentCard != card)
         {
             return;
         }
 
-        if (cardPlacer != null && cardPlacer.IsPlacing)
+        // 클릭 확정 상태면 호버 이탈로 취소하지 않음
+        if (card.IsConfirmed)
         {
-            cardPlacer.CancelPlacement();
+            return;
         }
 
         if (KTH_HandCardLayout.Instance != null)
         {
             KTH_HandCardLayout.Instance.MoveUpFromPlacement();
         }
-
-        card.CancelSelectionState();
 
         currentCard = null;
         cardData = null;
@@ -335,7 +314,7 @@ public class KTH_InfoPanel : MonoBehaviour
     }
 
     // =========================================================
-    // Animation
+    // Open Animation
     // =========================================================
 
     private void PlayOpenAnimation()
@@ -388,6 +367,10 @@ public class KTH_InfoPanel : MonoBehaviour
                 .DOFade(1f, animDuration * 0.7f)
         );
     }
+
+    // =========================================================
+    // Close Animation
+    // =========================================================
 
     private void PlayCloseAnimation()
     {

@@ -87,12 +87,19 @@ public class KTH_SpawnCard : MonoBehaviour
             return false;
         }
 
-        // 1. Instantiation 및 초기 회전/스케일 설정
-        KTH_HandCard newCard = Instantiate(cardPrefab, handLayout.transform);
+        // 1. 오브젝트 풀에서 카드 대여 (풀 매니저가 없으면 안전하게 Instantiate로 대체)
+        KTH_HandCard newCard =
+            KTH_HandCardPool.Instance != null
+                ? KTH_HandCardPool.Instance.Get(handLayout.transform)
+                : Instantiate(cardPrefab, handLayout.transform);
+
         newCard.transform.localRotation = Quaternion.identity;
         newCard.transform.localScale = Vector3.one;
 
-        newCard.Setup(cardData);
+        handLayout.SetupCard(
+            newCard,
+            cardData
+        );
 
         // 2. 드로우 버튼 위치 설정 (시작 위치 저장)
         if (drawButton != null)

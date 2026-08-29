@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using _Scripts.LDY.Effect;
 using _Scripts.LDY.Save;
 using _Scripts.LDY.Stage;
+using _Scripts.LSO.Reward;
+using _Scripts.LDY;
 
 [System.Serializable]
 public class LDY_MapNodeUnityEvent : UnityEvent<LDY_MapNode> { }
@@ -39,11 +42,32 @@ public class LDY_MapManager : MonoBehaviour
     public static LDY_MapManager Instance { get; private set; }
 
     /// <summary>
+    /// Reload Domain을 끈 에디터에서는 static이 플레이를 멈춰도 살아남는다.
+    /// 지난 플레이의 값이 남아 있으면 두 번째 실행부터 엉뚱하게 동작하므로,
+    /// 씬이 로드되기 전에 직접 비운다. LDY_RunSeed와 같은 이유다.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        Instance = null;
+    }
+
+    /// <summary>
     /// 씬을 넘기기 전에 전투 연출을 기다려주는 상한(초).
     /// 기획 수치가 아니라 멈춤 방지선이라 인스펙터에 열지 않는다.
     /// 한 번의 공격 연출은 0.3초 남짓이므로 정상적인 경우 이 값에 닿지 않는다.
     /// </summary>
     private const float SceneLoadAnimationWaitTimeout = 3f;
+
+    /// <summary>토큰이 노드 하나를 건너가는 데 걸리는 시간(초).</summary>
+    private const float TokenMoveDuration = 0.6f;
+
+    /// <summary>
+    /// 승리 뒤 보드 회전 연출을 기다려주는 상한(초).
+    /// 기획 수치가 아니라 멈춤 방지선이라 인스펙터에 열지 않는다.
+    /// 연출 전체가 기물 정리 + 회전 + 뜸으로 2초 남짓이므로 정상적인 경우 이 값에 닿지 않는다.
+    /// </summary>
+    private const float BoardFlipWaitTimeout = 6f;
 
     public LDY_StageSO CurrentStageSO { get; private set; }
 
@@ -86,6 +110,16 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private MonoBehaviour stageRouterSource;
     private LDY_IStageRouter _stageRouter;
 
+    [Header("노드 선택 연출 (링)")]
+    [Tooltip("켜면 토큰이 도착한 뒤에 링을 그린다 (이동 → 원 → 진입).\n" +
+             "끄면 이동과 동시에 그린다 (클릭한 순간 바로 반응이 보인다).")]
+    [SerializeField] private bool playSelectRingAfterMove = false;
+
+    [Tooltip("링 연출에 보장해줄 시간(초). 이 시간이 지나야 씬으로 넘어간다.\n" +
+             "이동과 동시에 그리는 모드에서는 이동에 쓴 시간을 여기서 뺀다 (헛기다리지 않는다).\n" +
+             "링이 다 그려지는 데는 drawDuration + holdDuration 만큼 걸린다. 기본값 기준 약 0.55초.")]
+    [SerializeField, Min(0f)] private float selectRingHoldDuration = 0.6f;
+
     [Header("플레이어 토큰")]
     [SerializeField] private LDY_MapPlayerToken playerTokenPrefab;
     [SerializeField] private LDY_MapPlayerToken ldy_play;
@@ -103,8 +137,8 @@ public class LDY_MapManager : MonoBehaviour
     [SerializeField] private int currentChapter = 1;
     [SerializeField] private int currentStage = 1;
 
-    [Header("보상 지급 연동용")]
-    [SerializeField] private KTH_GiveReward giveReward;
+    // 보상 상자는 전투 씬에 있고 이 매니저는 씬을 넘어다닌다.
+    // 인스펙터 참조로 두면 씬을 넘기는 순간 끊기므로 LSO_RewardBox.Instance로 찾는다.
 
     public int CurrentChapter => currentChapter;
     public int CurrentStage => currentStage;
@@ -119,6 +153,9 @@ public class LDY_MapManager : MonoBehaviour
 
     /// <summary>전투 연출을 기다리며 씬 이동을 예약해둔 상태인지. 같은 이동이 두 번 걸리는 것을 막는다.</summary>
     private bool _sceneLoadPending = false;
+
+    /// <summary>보드 회전 연출이 끝나기를 기다리는 중인지. 같은 노드가 두 번 완료되는 것을 막는다.</summary>
+    private bool _boardFlipPending = false;
 
     /// <summary>
     /// 보상 대기 중일 때, 보상 UI가 끝난 뒤 어떤 씬으로 갈지 판단하기 위해
@@ -161,6 +198,13 @@ public class LDY_MapManager : MonoBehaviour
     /// 예전에 클리어해둔 노드는 여기에 실리지 않으므로 맵에 다시 들어와도 연출 없이 그대로 보인다.
     /// </summary>
     public event Action<int> OnNodeJustCleared;
+
+    /// <summary>
+    /// 클릭이 받아들여진 노드를 알린다. 연출(링)과 "현재 위치" 표시를 옮기는 신호다.
+    /// 한 번의 클릭에 반드시 한 번만 불린다. 부르는 시점은 playSelectRingAfterMove가 정한다.
+    /// 거절된 클릭에는 불리지 않는다.
+    /// </summary>
+    public event Action<int> OnNodeSelected;
 
     private void Awake()
     {
@@ -557,29 +601,45 @@ public class LDY_MapManager : MonoBehaviour
         OnNodeClicked(index, GetNodeScreenUV(index));
     }
 
-    public void OnNodeClicked(int index, Vector2 screenUV)
+    /// <summary>
+    /// 지금 이 노드에 들어갈 수 있는지. OnNodeClicked이 실제로 통과시키는 조건과 같은 판단이다.
+    /// 클릭 연출처럼 "이 클릭이 먹히는가"만 알고 싶은 쪽에서 미리 물어볼 수 있게 열어둔다.
+    /// 상태를 바꾸지 않으므로 몇 번을 불러도 안전하다.
+    /// </summary>
+    public bool CanEnterNode(int index) => CanEnterNode(index, logReason: false);
+
+    private bool CanEnterNode(int index, bool logReason)
     {
-        if (!IsValidIndex(index)) return;
+        if (!IsValidIndex(index)) return false;
 
         if (isNodeActionInProgress)
         {
-            Debug.LogWarning("[LDY_MapManager] 이전 노드 처리가 끝나지 않아 클릭을 무시합니다.");
-            return;
+            if (logReason) Debug.LogWarning("[LDY_MapManager] 이전 노드 처리가 끝나지 않아 클릭을 무시합니다.");
+            return false;
         }
 
         LDY_MapNode node = Nodes[index];
 
         if (!node.isUnlocked)
         {
-            Debug.LogWarning($"[LDY_MapManager] {index}번 노드는 아직 해금되지 않았습니다.");
-            return;
+            if (logReason) Debug.LogWarning($"[LDY_MapManager] {index}번 노드는 아직 해금되지 않았습니다.");
+            return false;
         }
 
         if (!isTest && node.isCleared)
         {
-            Debug.LogWarning($"[LDY_MapManager] {index}번 노드는 이미 클리어한 스테이지입니다.");
-            return;
+            if (logReason) Debug.LogWarning($"[LDY_MapManager] {index}번 노드는 이미 클리어한 스테이지입니다.");
+            return false;
         }
+
+        return true;
+    }
+
+    public void OnNodeClicked(int index, Vector2 screenUV)
+    {
+        if (!CanEnterNode(index, logReason: true)) return;
+
+        LDY_MapNode node = Nodes[index];
 
         isNodeActionInProgress = true;
 
@@ -592,7 +652,15 @@ public class LDY_MapManager : MonoBehaviour
         if (IsValidIndex(prevIndex))
             EnsureScenePlayerToken(prevIndex);
 
-        if (ldy_play != null && IsValidIndex(prevIndex))
+        // 이동과 동시에 연출을 시작하는 모드. 클릭한 순간 반응이 보인다.
+        if (!playSelectRingAfterMove)
+            OnNodeSelected?.Invoke(index);
+
+        // prevIndex == index면 이미 그 노드에 서 있다는 뜻이라 이동할 거리가 없다.
+        // 같은 점 두 개짜리 경로를 넘기면 0.6초 동안 제자리에 멈춰 있다가 진행돼 답답하다.
+        bool needsMove = ldy_play != null && IsValidIndex(prevIndex) && prevIndex != index;
+
+        if (needsMove)
         {
             List<Vector2> path = new List<Vector2>
             {
@@ -600,17 +668,43 @@ public class LDY_MapManager : MonoBehaviour
                 Nodes[index].position
             };
 
-            ldy_play.MoveAlongPath(path, () =>
-            {
-                ExecuteNodeAction(index, node, screenUV);
-                isNodeActionInProgress = false;
-            }, 0.6f);
+            ldy_play.MoveAlongPath(
+                path,
+                () => StartCoroutine(Co_FinishNodeEntry(index, node, screenUV, TokenMoveDuration)),
+                TokenMoveDuration);
         }
         else
         {
-            ExecuteNodeAction(index, node, screenUV);
-            isNodeActionInProgress = false;
+            StartCoroutine(Co_FinishNodeEntry(index, node, screenUV, 0f));
         }
+    }
+
+    /// <summary>
+    /// 토큰이 노드에 도착한 뒤 실제 진입까지를 맡는다.
+    ///
+    /// 연출이 끝나기 전에 씬을 넘겨버리면 링이 그려지다 말고 잘린다. 그래서 여기서 한 박자 쉰다.
+    /// timeScale이 0이어도 흘러가도록 Realtime으로 기다린다. 링 트윈도 SetUpdate(true)라 기준이 같다.
+    /// (유언/계승 시스템이 timeScale을 쥐고 있으므로 이쪽에서 timeScale을 건드리지 않는다.)
+    /// </summary>
+    /// <param name="alreadyElapsed">
+    /// 링 연출이 이미 재생되고 있던 시간. 이동과 동시에 그리는 모드에서 토큰이 움직인 시간이다.
+    /// 이만큼은 이미 기다린 셈이라 빼준다. 안 빼면 링이 진작 끝났는데도 멍하니 더 기다린다.
+    /// </param>
+    private IEnumerator Co_FinishNodeEntry(int index, LDY_MapNode node, Vector2 screenUV, float alreadyElapsed)
+    {
+        // 이동과 동시에 쏘는 모드에서는 클릭 시점에 이미 알렸다. 여기서 또 부르면 링이 두 번 그려진다.
+        if (playSelectRingAfterMove)
+            OnNodeSelected?.Invoke(index);
+
+        // 순차 모드는 지금 막 링을 시작했으니 처음부터 다 기다려야 한다.
+        float consumed = playSelectRingAfterMove ? 0f : alreadyElapsed;
+        float remain   = selectRingHoldDuration - consumed;
+
+        if (remain > 0f)
+            yield return new WaitForSecondsRealtime(remain);
+
+        ExecuteNodeAction(index, node, screenUV);
+        isNodeActionInProgress = false;
     }
 
     private void ExecuteNodeAction(int index, LDY_MapNode node, Vector2 screenUV)
@@ -675,6 +769,13 @@ public class LDY_MapManager : MonoBehaviour
         if (activeNodeIndex >= 0) CompleteNode(activeNodeIndex);
     }
 
+    /// <summary>
+    /// 전투 승리 뒤 클리어 처리를 시작한다.
+    ///
+    /// 보드 회전 연출이 씬에 있으면 그것이 끝나기를 먼저 기다린다.
+    /// 기다리기만 할 뿐 뒤따르는 순서는 그대로다 — 노드 완료 → 보상 생성 → 보상 UI가
+    /// 예전과 같은 자리에서 같은 순서로 일어나고, 그 시작점만 연출 뒤로 밀린다.
+    /// </summary>
     public void CompleteActiveNodeAndReturnToMap()
     {
         if (!IsValidIndex(activeNodeIndex))
@@ -683,8 +784,76 @@ public class LDY_MapManager : MonoBehaviour
             return;
         }
 
+        // 연출을 기다리는 사이에 같은 요청이 또 들어오면 노드가 두 번 완료된다.
+        // (KTH_TestClearButton 연타 등)
+        if (_boardFlipPending)
+        {
+            Debug.LogWarning("[LDY_MapManager] 보드 회전 연출을 기다리는 중이라 중복 클리어 요청을 무시합니다.", this);
+            return;
+        }
+
+        // 전투 씬에만 있는 컴포넌트다. 맵이나 팝업 경로에서 못 찾는 것이 정상이며,
+        // 그때는 기다릴 연출이 없으므로 그대로 진행한다.
+        LDY_BoardFlipDirector flipDirector = FindFirstObjectByType<LDY_BoardFlipDirector>();
+
+        if (flipDirector == null)
+        {
+            CompleteClearedNodeAndLeave();
+            return;
+        }
+
+        _boardFlipPending = true;
+        StartCoroutine(Co_FlipBoardThenComplete(flipDirector));
+    }
+
+    /// <summary>
+    /// 보드 회전 연출이 끝나기를 기다린 뒤 클리어 처리를 이어간다.
+    ///
+    /// 연출이 끝나지 않는 상황에서 런이 영영 멈추는 쪽이 연출이 잘리는 것보다 나쁘다.
+    /// 상한을 두고, 넘겼다면 조용히 넘어가지 않고 남긴다.
+    /// </summary>
+    private IEnumerator Co_FlipBoardThenComplete(LDY_BoardFlipDirector flipDirector)
+    {
+        flipDirector.Play();
+
+        float deadline = Time.unscaledTime + BoardFlipWaitTimeout;
+
+        // 씬이 먼저 내려가 디렉터가 파괴되면 null이 되어 루프를 빠져나온다.
+        while (flipDirector != null && flipDirector.IsPlaying)
+        {
+            if (Time.unscaledTime >= deadline)
+            {
+                Debug.LogWarning(
+                    $"[LDY_MapManager] 보드 회전 연출이 {BoardFlipWaitTimeout:0.#}초 안에 끝나지 않아 " +
+                    "중단하고 클리어 처리를 이어갑니다.", this);
+
+                flipDirector.Abort();
+                break;
+            }
+
+            yield return null;
+        }
+
+        _boardFlipPending = false;
+
+        CompleteClearedNodeAndLeave();
+    }
+
+    /// <summary>
+    /// 노드를 완료 처리하고 다음 씬으로 넘어간다.
+    /// 보상이 걸린 노드면 보상 UI가 끝날 때까지 씬 전환을 미룬다.
+    /// </summary>
+    private void CompleteClearedNodeAndLeave()
+    {
+        // 연출을 기다리는 사이에 노드가 정리됐을 수 있다.
+        if (!IsValidIndex(activeNodeIndex))
+        {
+            GoToMapScene();
+            return;
+        }
+
         LDY_NodeType type = Nodes[activeNodeIndex].type;
-        bool willGiveReward = (type == LDY_NodeType.Battle || type == LDY_NodeType.Boss) && giveReward != null;
+        bool willGiveReward = type == LDY_NodeType.Battle || type == LDY_NodeType.Boss;
 
         _pendingClearedNodeType = type;
 
@@ -692,15 +861,15 @@ public class LDY_MapManager : MonoBehaviour
         {
             waitingForRewardBeforeMapReturn = true;
 
-            KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-            if (rewardUI != null)
+            LSO_RewardBox box = LSO_RewardBox.Instance;
+            if (box != null)
             {
-                rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
-                rewardUI.OnRewardResolved += HandleRewardResolvedThenReturnToMap;
+                box.OnFinished -= HandleRewardResolvedThenReturnToMap;
+                box.OnFinished += HandleRewardResolvedThenReturnToMap;
             }
             else
             {
-                Debug.LogWarning("[LDY_MapManager] KTH_RewardChoiceUI 인스턴스를 찾을 수 없어 즉시 씬을 전환합니다.");
+                Debug.LogWarning("[LDY_MapManager] 씬에 LSO_RewardBox가 없어 즉시 씬을 전환합니다.");
                 waitingForRewardBeforeMapReturn = false;
             }
         }
@@ -721,24 +890,25 @@ public class LDY_MapManager : MonoBehaviour
     {
         Debug.Log($"[LDY_MapManager] 스테이지 패배 처리 (activeNodeIndex: {activeNodeIndex})");
 
-        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-        if (rewardUI != null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+        if (box != null)
         {
-            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+            box.OnFinished -= HandleRewardResolvedThenReturnToMap;
         }
 
         waitingForRewardBeforeMapReturn = false;
+        _boardFlipPending = false;
         activeNodeIndex = -1;
 
         GoToDeathScene();
     }
 
-    private void HandleRewardResolvedThenReturnToMap()
+    private void HandleRewardResolvedThenReturnToMap(LSO_RewardOption option)
     {
-        KTH_RewardChoiceUI rewardUI = KTH_RewardChoiceUI.Instance;
-        if (rewardUI != null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+        if (box != null)
         {
-            rewardUI.OnRewardResolved -= HandleRewardResolvedThenReturnToMap;
+            box.OnFinished -= HandleRewardResolvedThenReturnToMap;
         }
 
         waitingForRewardBeforeMapReturn = false;
@@ -931,21 +1101,24 @@ public class LDY_MapManager : MonoBehaviour
 
         activeNodeIndex = -1;
 
+        // 여기서 CurrentNodeIndex를 다음 노드로 밀지 않는다.
+        // 밀어버리면 클리어하고 맵에 돌아온 순간 토큰이 이미 다음 노드에 서 있게 되고,
+        // 그 노드를 눌러도 출발지와 목적지가 같아 이동 연출이 아예 재생되지 않는다.
+        // 토큰은 방금 클리어한 노드에 남아 있다가, 플레이어가 다음 노드를 누를 때 그리로 이동한다.
         if (firstNextIndex >= 0)
-        {
             previousNodeIndex = index;
-            CurrentNodeIndex = firstNextIndex;
-        }
 
         onMapChanged?.Invoke();
     }
 
     private void TriggerStageReward(int chapter, int stage)
     {
-        if (giveReward == null)
+        LSO_RewardBox box = LSO_RewardBox.Instance;
+
+        if (box == null)
         {
             Debug.LogError(
-                "[LDY_MapManager] KTH_GiveReward가 Inspector에 연결되지 않았습니다."
+                "[LDY_MapManager] 씬에 LSO_RewardBox가 없어 보상을 시작하지 못했습니다."
             );
 
             return;
@@ -956,7 +1129,9 @@ public class LDY_MapManager : MonoBehaviour
             $"(Chapter: {chapter}, Stage: {stage})"
         );
 
-        giveReward.GiveStageReward(chapter, stage);
+        // 상자를 열어주지는 않는다. 누를 준비만 시킨다.
+        // 뚜껑을 여는 것은 플레이어의 첫 클릭이다.
+        box.Begin(chapter, stage);
     }
 
     private void SetTokenPositionToNode(int nodeIndex)
@@ -1098,6 +1273,7 @@ public class LDY_MapManager : MonoBehaviour
         isNodeActionInProgress = false;
         waitingForRewardBeforeMapReturn = false;
         _sceneLoadPending = false;
+        _boardFlipPending = false;
         _pendingClearedNodeIndex = -1;
 
         // 1챕터 맵 다시 불러오기

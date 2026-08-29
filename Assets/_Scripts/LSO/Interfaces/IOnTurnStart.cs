@@ -1,6 +1,6 @@
 using _Scripts.LDY;
 
-namespace _Scripts.LSO
+namespace _Scripts.LSO.Interfaces
 {
     public interface IOnTurnStart
     {

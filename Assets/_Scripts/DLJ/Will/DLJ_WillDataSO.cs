@@ -17,6 +17,9 @@ namespace _Scripts.LSO.Will
         [Header("Effect")]
         public GameObject effectPrefab;
 
+        [Header("Camera")]
+        [Min(0f)] public float cameraHoldDuration = 1.8f;
+
         public virtual int DisplayDamage => 0;
         public virtual int DisplayRange => 0;
         public virtual int DisplayDuration => 0;

@@ -1912,7 +1912,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81f60949ea5837b4d96e3cdce2d8de76, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemLibraryManager
+  m_EditorClassIdentifier: Assembly-CSharp::LSO_ItemLibraryManager
   unlockedPieces: []
   unlockedWills: []
 --- !u!1 &1569990472

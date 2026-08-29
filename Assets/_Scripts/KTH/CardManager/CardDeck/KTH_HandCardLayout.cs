@@ -1,50 +1,53 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using UnityEngine;
+using _Scripts.LSO.UI.Panel;
 
 public class KTH_HandCardLayout : MonoBehaviour
 {
     public static KTH_HandCardLayout Instance { get; private set; }
 
+    [Header("References")]
+    [SerializeField] private LSO_WillPanel willPanel;
+
     [Header("Arc Layout Settings")]
-    [SerializeField] private float maxCardSpacing = 180f;
-    [SerializeField] private float minCardSpacing = 55f;
-    [SerializeField] private float maxHandWidth = 850f;
-    [SerializeField] private float arcHeight = 35f;
-    [SerializeField] private float maxRotation = 14f;
+    [SerializeField] private float maxCardSpacing = 200f;
+    [SerializeField] private float minCardSpacing = 60f;
+    [SerializeField] private float maxHandWidth = 800f;
+    [SerializeField] private float arcHeight = 40f;
+    [SerializeField] private float maxRotation = 15f;
 
     [Header("Organic Motion Settings")]
     [SerializeField] private float staggerDelay = 0.025f;
     [SerializeField] private Ease moveEase = Ease.OutCubic;
 
     [Header("Hand Settings")]
-    [SerializeField] private int maxHandSize = 10;
+    [SerializeField] private int maxHandSize = 8;
 
     [Header("Draw Animation Settings")]
-    [SerializeField] private float drawDuration = 0.45f;
+    [SerializeField] private float drawDuration = 0.4f;
 
     [Header("Selection Push Settings")]
-    [Tooltip("선택된 카드 바로 옆 카드가 밀리는 거리")]
     [SerializeField] private float pushAmount = 60f;
-
-    [Tooltip("밀림/복귀 애니메이션 시간")]
     [SerializeField] private float pushDuration = 0.28f;
-
-    [Tooltip("선택 카드에서 멀어질수록 적용되는 밀림 비율")]
     [SerializeField] private float farCardPushMultiplier = 0.5f;
 
     [Header("Placement Mode Settings")]
-    [SerializeField] private bool enableMoveDown = true;
+    [SerializeField] private bool enableMoveDown;
     [SerializeField] private float placementMoveDownDistance = 150f;
     [SerializeField] private float placementMoveDuration = 0.3f;
+    [SerializeField] private float placementCenterGap = 140f;
+
+    [Header("Two Card Placement Settings")]
+    [SerializeField] private float twoCardPlacementDistance = 400f;
 
     private readonly List<KTH_HandCard> handCards =
         new List<KTH_HandCard>();
 
     private Vector3 originalContainerLocalPos;
     private bool isCurrentlyDown;
-
     private KTH_HandCard selectedCard;
 
     public int HandCount => handCards.Count;
@@ -61,59 +64,66 @@ public class KTH_HandCardLayout : MonoBehaviour
 
     public event Action<int, int> OnHandCountChanged;
 
-    // =========================================================
-    // Awake
-    // =========================================================
-
     private void Awake()
     {
         Instance = this;
 
         originalContainerLocalPos =
             transform.localPosition;
-
-        isCurrentlyDown = false;
     }
 
-    // =========================================================
-    // Hand Check
-    // =========================================================
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
+    public void SetupCard(
+        KTH_HandCard card,
+        LSO_CardSO cardData)
+    {
+        if (card == null)
+        {
+            return;
+        }
+
+        card.Setup(
+            cardData,
+            willPanel
+        );
+    }
 
     public bool CanAddCard()
     {
         return !IsFull;
     }
 
-    // =========================================================
-    // Add Card
-    // =========================================================
-
     public bool AddCard(KTH_HandCard card)
     {
-        return AddCard(card, insertAtFront: false);
+        return AddCard(
+            card,
+            false
+        );
     }
 
-    /// <summary>
-    /// 스포너의 월드 X좌표 "부호"를 기준으로 카드를 삽입할 방향을 자동으로 결정한다.
-    /// X가 음수(-)이면 왼쪽부터, 양수(+)이면 오른쪽부터 채워진다.
-    /// (CardLayoutCalculator는 reversedIndex를 쓰므로 리스트 앞쪽=화면 오른쪽,
-    ///  리스트 뒤쪽=화면 왼쪽에 대응한다)
-    /// </summary>
-    public bool AddCard(KTH_HandCard card, Vector3 spawnerWorldPos)
+    public bool AddCard(
+        KTH_HandCard card,
+        Vector3 spawnerWorldPos)
     {
-        bool spawnerIsOnLeft =
-            spawnerWorldPos.x < 0f;
+        bool insertAtFront =
+            spawnerWorldPos.x >= 0f;
 
-        // 왼쪽부터 채우려면 새 카드가 화면 왼쪽(=리스트 뒤쪽)에 와야 하므로
-        // insertAtFront = false (뒤에 추가).
-        // 오른쪽부터 채우려면 새 카드가 화면 오른쪽(=리스트 앞쪽)에 와야 하므로
-        // insertAtFront = true (앞에 추가).
-        bool insertAtFront = !spawnerIsOnLeft;
-
-        return AddCard(card, insertAtFront);
+        return AddCard(
+            card,
+            insertAtFront
+        );
     }
 
-    public bool AddCard(KTH_HandCard card, bool insertAtFront)
+    public bool AddCard(
+        KTH_HandCard card,
+        bool insertAtFront)
     {
         if (card == null)
         {
@@ -127,11 +137,6 @@ public class KTH_HandCardLayout : MonoBehaviour
 
         if (IsFull)
         {
-            Debug.LogWarning(
-                $"[KTH_HandCardLayout] 손패가 가득 찼습니다! " +
-                $"({handCards.Count}/{maxHandSize})"
-            );
-
             return false;
         }
 
@@ -139,7 +144,10 @@ public class KTH_HandCardLayout : MonoBehaviour
 
         if (insertAtFront)
         {
-            handCards.Insert(0, card);
+            handCards.Insert(
+                0,
+                card
+            );
         }
         else
         {
@@ -156,11 +164,8 @@ public class KTH_HandCardLayout : MonoBehaviour
         return true;
     }
 
-    // =========================================================
-    // Remove Card
-    // =========================================================
-
-    public void RemoveCard(KTH_HandCard card)
+    public void RemoveCard(
+        KTH_HandCard card)
     {
         if (selectedCard == card)
         {
@@ -184,182 +189,553 @@ public class KTH_HandCardLayout : MonoBehaviour
         );
     }
 
-    // =========================================================
-    // Selection Changed
-    // =========================================================
-
     public void OnCardSelectionChanged(
         KTH_HandCard card,
         bool selected)
     {
         if (selected)
         {
-            // 동시에 하나만 선택되도록 보장한다.
-            // 이전에 선택돼 있던 다른 카드가 있다면 강제로 해제시킨다.
-            // (이 시점에서 selectedCard가 null이 아니고 card와 다르면
-            //  아직 SetSelected(false)가 전파되지 않은 상태이므로 여기서 정리한다)
-            if (selectedCard != null && selectedCard != card)
+            if (selectedCard != null &&
+                selectedCard != card)
             {
-                KTH_HandCard previous = selectedCard;
-
-                // 재귀적으로 다시 OnCardSelectionChanged가 불려도
-                // 아래에서 selectedCard를 곧바로 덮어쓸 것이므로 안전하다.
-                previous.SetSelected(false);
+                selectedCard.SetSelected(false);
             }
 
             selectedCard = card;
+            return;
         }
-        else if (selectedCard == card)
+
+        if (selectedCard == card)
         {
             selectedCard = null;
+
+            UpdateHandLayout(
+                null,
+                pushDuration,
+                false
+            );
         }
+    }
+
+    public void EnterPlacementMode(
+        KTH_HandCard card)
+    {
+        if (card == null)
+        {
+            return;
+        }
+
+        if (!handCards.Contains(card))
+        {
+            return;
+        }
+
+        selectedCard = card;
+
+        MoveSelectedCardToCenter();
+    }
+
+    public void ExitPlacementMode()
+    {
+        selectedCard = null;
 
         UpdateHandLayout(
             null,
-            pushDuration,
+            placementMoveDuration,
             false
         );
     }
 
-    // =========================================================
-    // Calculate Push
-    // =========================================================
-
-    private float CalculatePushAmount(
-        int cardIndex,
-        int selectedIndex)
+    private void MoveSelectedCardToCenter()
     {
-        if (selectedIndex < 0)
+        if (selectedCard == null)
         {
-            return 0f;
+            return;
         }
 
-        if (cardIndex == selectedIndex)
+        selectedCard.transform.DOKill();
+        selectedCard.transform.SetAsLastSibling();
+
+        Sequence moveToCenterSequence =
+            DOTween.Sequence();
+
+        moveToCenterSequence.SetTarget(
+            selectedCard.transform
+        );
+
+        moveToCenterSequence.Join(
+            selectedCard.transform
+                .DOLocalMove(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        moveToCenterSequence.Join(
+            selectedCard.transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        moveToCenterSequence.Join(
+            selectedCard.transform
+                .DOScale(
+                    Vector3.one *
+                    selectedCard.SelectScale,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        moveToCenterSequence.OnComplete(() =>
         {
-            return 0f;
-        }
+            if (selectedCard == null)
+            {
+                return;
+            }
 
-        int distance =
-            Mathf.Abs(
-                cardIndex - selectedIndex
-            );
+            if (!selectedCard.IsPlacementMode)
+            {
+                return;
+            }
 
-        // 선택 카드 바로 옆
-        if (distance == 1)
-        {
-            return pushAmount;
-        }
+            SpreadCardsAroundCenter();
+        });
+    }
 
-        // 멀어질수록 점점 적게 밀림
-        float multiplier =
-            Mathf.Pow(
-                farCardPushMultiplier,
-                distance - 1
-            );
+    private void SpreadCardsAroundCenter()
+{
+    if (selectedCard == null)
+    {
+        return;
+    }
 
-        return pushAmount * multiplier;
+    int count = handCards.Count;
+
+    if (count <= 1)
+    {
+        return;
     }
 
     // =========================================================
-    // Update Layout
+    // 카드가 정확히 2장일 때
+    // 선택 카드 = 중앙
+    // 나머지 카드 = 바깥쪽으로 떨어지고 아래로 내려가며 기울어짐
     // =========================================================
+    if (count == 2)
+    {
+        int selectedIndex =
+            handCards.IndexOf(selectedCard);
+
+        if (selectedIndex < 0)
+        {
+            return;
+        }
+
+        KTH_HandCard otherCard =
+            handCards[
+                selectedIndex == 0
+                    ? 1
+                    : 0
+            ];
+
+        if (otherCard == null)
+        {
+            return;
+        }
+
+        // 선택된 카드가 왼쪽이었다면
+        // 다른 카드는 오른쪽에 배치
+        bool otherIsRight =
+            selectedIndex == 0;
+
+        // 5장일 때 바깥쪽 카드처럼 충분히 떨어뜨림
+        float otherCardX =
+            otherIsRight
+                ? maxCardSpacing * 1.25f
+                : -maxCardSpacing * 1.25f;
+
+        // 바깥쪽 카드처럼 아래로 내림
+        float otherCardY =
+            -arcHeight;
+
+        // 부채꼴 레이아웃처럼 기울임
+        float otherCardRotation =
+            otherIsRight
+                ? -maxRotation
+                : maxRotation;
+
+        otherCard.transform.DOKill();
+
+        Sequence otherCardSequence =
+            DOTween.Sequence();
+
+        otherCardSequence.SetTarget(
+            otherCard.transform
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOLocalMove(
+                    new Vector3(
+                        otherCardX,
+                        otherCardY,
+                        0f
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        otherCardRotation
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        otherCardSequence.Join(
+            otherCard.transform
+                .DOScale(
+                    Vector3.one,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        // =====================================================
+        // 선택된 카드는 항상 중앙
+        // =====================================================
+
+        selectedCard.transform.DOKill();
+
+        Sequence twoCardSelectedSequence =
+            DOTween.Sequence();
+
+        twoCardSelectedSequence.SetTarget(
+            selectedCard.transform
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOLocalMove(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOLocalRotate(
+                    Vector3.zero,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        twoCardSelectedSequence.Join(
+            selectedCard.transform
+                .DOScale(
+                    Vector3.one *
+                    selectedCard.SelectScale,
+                    placementMoveDuration
+                )
+                .SetEase(Ease.OutBack)
+        );
+
+        selectedCard.transform.SetAsLastSibling();
+
+        return;
+    }
+
+    // =========================================================
+    // 카드가 3장 이상일 때
+    // 기존 부채꼴 레이아웃
+    // =========================================================
+
+    List<KTH_HandCard> otherCards =
+        new List<KTH_HandCard>();
+
+    for (int i = 0; i < count; i++)
+    {
+        KTH_HandCard card =
+            handCards[i];
+
+        if (card == null ||
+            card == selectedCard)
+        {
+            continue;
+        }
+
+        otherCards.Add(card);
+    }
+
+    int otherCount =
+        otherCards.Count;
+
+    int leftCount =
+        otherCount / 2;
+
+    int rightCount =
+        otherCount - leftCount;
+
+    float spacing =
+        CalculatePlacementSpacing(
+            otherCount + 1
+        );
+
+    for (int i = 0; i < otherCount; i++)
+    {
+        KTH_HandCard card =
+            otherCards[i];
+
+        int relativeIndex;
+
+        if (i < leftCount)
+        {
+            relativeIndex =
+                i - leftCount;
+        }
+        else
+        {
+            relativeIndex =
+                i - leftCount + 1;
+        }
+
+        float targetX =
+            relativeIndex * spacing;
+
+        if (relativeIndex < 0)
+        {
+            targetX -= placementCenterGap;
+        }
+        else
+        {
+            targetX += placementCenterGap;
+        }
+
+        float normalized;
+
+        if (relativeIndex < 0)
+        {
+            normalized =
+                Mathf.Clamp01(
+                    Mathf.Abs(relativeIndex) /
+                    (float)Mathf.Max(
+                        1,
+                        leftCount
+                    )
+                );
+        }
+        else
+        {
+            normalized =
+                Mathf.Clamp01(
+                    relativeIndex /
+                    (float)Mathf.Max(
+                        1,
+                        rightCount
+                    )
+                );
+        }
+
+        float targetY =
+            -normalized *
+            normalized *
+            arcHeight;
+
+        float targetRotation;
+
+        if (relativeIndex < 0)
+        {
+            targetRotation =
+                normalized *
+                maxRotation;
+        }
+        else
+        {
+            targetRotation =
+                -normalized *
+                maxRotation;
+        }
+
+        Vector3 targetPosition =
+            new Vector3(
+                targetX,
+                targetY,
+                0f
+            );
+
+        card.transform.DOKill();
+
+        Sequence cardSequence =
+            DOTween.Sequence();
+
+        cardSequence.SetTarget(
+            card.transform
+        );
+
+        cardSequence.Join(
+            card.transform
+                .DOLocalMove(
+                    targetPosition,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        cardSequence.Join(
+            card.transform
+                .DOLocalRotate(
+                    new Vector3(
+                        0f,
+                        0f,
+                        targetRotation
+                    ),
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+
+        cardSequence.Join(
+            card.transform
+                .DOScale(
+                    Vector3.one,
+                    placementMoveDuration
+                )
+                .SetEase(moveEase)
+        );
+    }
+
+    // =========================================================
+    // 3장 이상일 때 선택 카드 중앙 처리
+    // =========================================================
+
+    selectedCard.transform.DOKill();
+
+    Sequence selectedSequence =
+        DOTween.Sequence();
+
+    selectedSequence.SetTarget(
+        selectedCard.transform
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOLocalMove(
+                Vector3.zero,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOLocalRotate(
+                Vector3.zero,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedSequence.Join(
+        selectedCard.transform
+            .DOScale(
+                Vector3.one *
+                selectedCard.SelectScale,
+                placementMoveDuration
+            )
+            .SetEase(Ease.OutBack)
+    );
+
+    selectedCard.transform.SetAsLastSibling();
+}
+
+    private float CalculatePlacementSpacing(
+        int count)
+    {
+        if (count <= 1)
+        {
+            return maxCardSpacing;
+        }
+
+        float spacing =
+            Mathf.Min(
+                maxCardSpacing,
+                maxHandWidth /
+                (count - 1)
+            );
+
+        return Mathf.Max(
+            minCardSpacing,
+            spacing
+        );
+    }
 
     public void UpdateHandLayout(
         KTH_HandCard newlyDrawnCard = null,
         float duration = 0.35f,
         bool useStagger = true)
     {
-        int count = handCards.Count;
+        int count =
+            handCards.Count;
 
         if (count == 0)
         {
             return;
         }
 
-        int selectedIndex =
-            selectedCard != null
-                ? handCards.IndexOf(selectedCard)
-                : -1;
-
         for (int i = 0; i < count; i++)
         {
-            var transformData =
-                CardLayoutCalculator.CalculateCardTransform(
-                    i,
-                    count,
-                    maxCardSpacing,
-                    minCardSpacing,
-                    maxHandWidth,
-                    arcHeight,
-                    maxRotation
-                );
-
             KTH_HandCard card =
                 handCards[i];
 
-            // 카드 순서는 Layout에서만 관리
-            card.transform.SetSiblingIndex(i);
-
-            // 밀기 적용 "전"의 순수 부채꼴 기준 위치.
-            // 이 값을 카드의 originalLocalPos로 저장해야
-            // 선택 해제 시 정확한 자리로 복귀하고, 다음 레이아웃 갱신 때도
-            // 흔들림 없이 같은 기준으로 재계산된다.
-            Vector3 basePos = transformData.LocalPosition;
-
-            // 실제로 이동할 위치 (밀기 적용 후)
-            Vector3 targetPos = basePos;
-
-            // =================================================
-            // 선택 카드 주변 밀기
-            // =================================================
-
-            if (selectedIndex >= 0 &&
-                i != selectedIndex)
+            if (card == null)
             {
-                float push =
-                    CalculatePushAmount(
-                        i,
-                        selectedIndex
-                    );
-
-                // 주의: CardLayoutCalculator는 reversedIndex를 사용하므로
-                // 리스트 인덱스가 작을수록 화면상으로는 "오른쪽"에 위치한다.
-                // 따라서 인덱스 대소 비교와 화면 좌우 이동 방향이 반대가 되어야
-                // 선택 카드 주변이 선택 카드로부터 "멀어지는" 방향으로 밀린다.
-                if (i < selectedIndex)
-                {
-                    targetPos.x += push;
-                }
-                else
-                {
-                    targetPos.x -= push;
-                }
+                continue;
             }
 
-            // =================================================
-            // 새 카드
-            // =================================================
+            var transformData =
+                CardLayoutCalculator
+                    .CalculateCardTransform(
+                        i,
+                        count,
+                        maxCardSpacing,
+                        minCardSpacing,
+                        maxHandWidth,
+                        arcHeight,
+                        maxRotation
+                    );
+
+            Vector3 targetPosition =
+                transformData.LocalPosition;
 
             if (card == newlyDrawnCard)
             {
                 card.PlayDrawAnimation(
-                    targetPos,
+                    targetPosition,
                     transformData.ZRotation,
                     drawDuration
                 );
 
-                // 기준 위치는 밀기 적용 전 값(basePos)으로 저장
                 card.UpdateOriginalTransform(
-                    basePos,
+                    targetPosition,
                     transformData.ZRotation
                 );
 
                 continue;
             }
-
-            // =================================================
-            // 일반 카드 이동
-            // =================================================
 
             if (!card.IsSelected)
             {
@@ -369,7 +745,7 @@ public class KTH_HandCardLayout : MonoBehaviour
                         : 0f;
 
                 card.MoveToHandPositionWithDelay(
-                    targetPos,
+                    targetPosition,
                     transformData.ZRotation,
                     duration,
                     delay,
@@ -377,20 +753,18 @@ public class KTH_HandCardLayout : MonoBehaviour
                 );
             }
 
-            // =================================================
-            // 기준 위치 저장 (밀기 적용 전 값)
-            // =================================================
-
             card.UpdateOriginalTransform(
-                basePos,
+                targetPosition,
                 transformData.ZRotation
             );
         }
-    }
 
-    // =========================================================
-    // Placement
-    // =========================================================
+        if (selectedCard != null &&
+            selectedCard.IsSelected)
+        {
+            selectedCard.transform.SetAsLastSibling();
+        }
+    }
 
     public void MoveDownForPlacement()
     {
@@ -408,6 +782,68 @@ public class KTH_HandCardLayout : MonoBehaviour
         );
     }
 
+    public void GatherCardsToCenter(
+        float duration)
+    {
+        if (handCards.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard card =
+                handCards[i];
+
+            if (card == null)
+            {
+                continue;
+            }
+
+            card.transform.DOKill();
+
+            Sequence gatherSequence =
+                DOTween.Sequence();
+
+            gatherSequence.Join(
+                card.transform
+                    .DOLocalMove(
+                        Vector3.zero,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+
+            gatherSequence.Join(
+                card.transform
+                    .DOLocalRotate(
+                        Vector3.zero,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+
+            gatherSequence.Join(
+                card.transform
+                    .DOScale(
+                        Vector3.one,
+                        duration
+                    )
+                    .SetEase(Ease.InBack)
+            );
+        }
+    }
+
+    public void RestoreCardsFromCenter(
+        float duration)
+    {
+        UpdateHandLayout(
+            null,
+            duration,
+            false
+        );
+    }
+
     public void MoveUpFromPlacement()
     {
         if (!isCurrentlyDown)
@@ -422,11 +858,8 @@ public class KTH_HandCardLayout : MonoBehaviour
         );
     }
 
-    // =========================================================
-    // Container Animation
-    // =========================================================
-
-    private void AnimateContainerY(float targetY)
+    private void AnimateContainerY(
+        float targetY)
     {
         transform.DOKill();
 

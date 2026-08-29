@@ -205,13 +205,15 @@ namespace _Scripts.LDY.Save.Debugging
             {
                 text.Append(" / 맵 (매니저 없음)");
             }
+            // 해금 목록을 누가 들고 있을지가 합의되기 전까지 보류.
             /*
+            LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
-            KTH_Reward reward = KTH_Reward.Instance;
-            text.Append(reward != null
-                ? $" / 해금 기물 {reward.Unlocks.Pieces.Count}·유언 {reward.Unlocks.Wills.Count}"
+            text.Append(library != null && library.Claim != null
+                ? $" / 해금 기물 {library.Claim.Unlocks.Pieces.Count}·유언 {library.Claim.Unlocks.Wills.Count}"
                 : " / 해금 (매니저 없음)");
             */
+
             return text.ToString();
         }
 

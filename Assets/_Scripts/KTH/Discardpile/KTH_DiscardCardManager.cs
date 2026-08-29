@@ -1,9 +1,20 @@
 using UnityEngine;
 
 /// <summary>
-/// 버린 카드 더미(KTH_DiscardCardUI)에 카드가 추가될 때마다
-/// 덱과 손패가 모두 비었는지 확인하고, 둘 다 비었으면
-/// 버린 카드 더미를 셔플해서 덱으로 되돌린다.
+/// 버린 카드 더미의 상태를 관리합니다.
+///
+/// 중요:
+/// 이 클래스에서는 덱을 다시 채우지 않습니다.
+///
+/// 덱 리필 타이밍은 KTH_DeckManager가 담당합니다.
+///
+/// 플레이어 턴 종료
+///     ↓
+/// 적 턴 시작
+///     ↓
+/// KTH_DeckManager.HandleTurnChanged()
+///     ↓
+/// 덱이 비어 있으면 버린 카드 더미를 덱으로 복귀
 /// </summary>
 public class KTH_DiscardCardManager : MonoBehaviour
 {
@@ -14,52 +25,115 @@ public class KTH_DiscardCardManager : MonoBehaviour
 
     private void Awake()
     {
-        if (deckManager == null) deckManager = FindAnyObjectByType<KTH_DeckManager>();
-        if (handLayout == null) handLayout = FindAnyObjectByType<KTH_HandCardLayout>();
-        if (discardPile == null) discardPile = FindAnyObjectByType<KTH_DiscardCardUI>();
+        if (deckManager == null)
+        {
+            deckManager =
+                FindAnyObjectByType<KTH_DeckManager>();
+        }
+
+        if (handLayout == null)
+        {
+            handLayout =
+                FindAnyObjectByType<KTH_HandCardLayout>();
+        }
+
+        if (discardPile == null)
+        {
+            discardPile =
+                FindAnyObjectByType<KTH_DiscardCardUI>();
+        }
     }
 
     private void OnEnable()
     {
         if (discardPile != null)
+        {
             discardPile.OnCardAdded += HandleCardAdded;
+        }
     }
 
     private void OnDisable()
     {
         if (discardPile != null)
+        {
             discardPile.OnCardAdded -= HandleCardAdded;
-    }
-
-    private void HandleCardAdded(int currentDiscardCount)
-    {
-        CheckAndReshuffleIfNeeded();
+        }
     }
 
     /// <summary>
-    /// 덱과 손패가 모두 비어있는지 확인하고, 비어있다면 버린 카드 더미를 셔플해서 덱으로 되돌린다.
-    /// 외부에서도 필요 시 직접 호출할 수 있도록 public으로 열어둔다.
+    /// 카드가 버린 카드 더미에 추가되었을 때 호출됩니다.
+    ///
+    /// 여기서는 절대로 덱을 리필하지 않습니다.
+    ///
+    /// 마지막 카드를 버렸더라도
+    /// 플레이어 턴이 끝날 때까지 덱은 0장인 상태로 유지됩니다.
+    /// </summary>
+    private void HandleCardAdded(int currentDiscardCount)
+    {
+        Debug.Log(
+            $"[KTH_DiscardCardManager] 카드 추가됨 - " +
+            $"버린 카드: {currentDiscardCount}장"
+        );
+
+        // 중요:
+        // 여기서 ReshuffleFromDiscard()를 호출하지 않는다.
+        //
+        // 덱 리필은 KTH_DeckManager가
+        // 적 턴 시작 시 처리한다.
+    }
+
+    /// <summary>
+    /// 현재 덱 / 손패 / 버린 카드 상태를 확인합니다.
+    ///
+    /// 주의:
+    /// 이 메서드는 상태 확인만 합니다.
+    /// 덱을 리필하지 않습니다.
+    ///
+    /// 기존 코드와의 호환을 위해 public으로 유지합니다.
     /// </summary>
     public void CheckAndReshuffleIfNeeded()
     {
-        if (deckManager == null || handLayout == null || discardPile == null)
+        if (deckManager == null ||
+            handLayout == null ||
+            discardPile == null)
         {
-            Debug.LogWarning($"[KTH_DiscardCardManager] 참조 누락! deckManager:{deckManager != null}, handLayout:{handLayout != null}, discardPile:{discardPile != null}");
+            Debug.LogWarning(
+                $"[KTH_DiscardCardManager] 참조 누락! " +
+                $"deckManager:{deckManager != null}, " +
+                $"handLayout:{handLayout != null}, " +
+                $"discardPile:{discardPile != null}"
+            );
+
             return;
         }
 
-        int deckCount = deckManager.RemainingCards;
-        int handCount = handLayout.HandCount;
+        int deckCount =
+            deckManager.RemainingCards;
 
-        Debug.Log($"[KTH_DiscardCardManager] 상태 확인 - 덱: {deckCount} | 손패: {handCount} | 버린 카드: {discardPile.Count}");
+        int handCount =
+            handLayout.HandCount;
 
-        if (deckCount == 0 && handCount == 0)
-        {
-            bool reshuffled = deckManager.ReshuffleFromDiscard();
-            if (reshuffled)
-            {
-                Debug.Log("[KTH_DiscardCardManager] 덱과 손패가 모두 비어 버린 카드 더미를 셔플하여 덱을 채웠습니다. 다시 드로우할 수 있습니다.");
-            }
-        }
+        int discardCount =
+            discardPile.Count;
+
+        Debug.Log(
+            $"[KTH_DiscardCardManager] 상태 확인 - " +
+            $"덱: {deckCount} | " +
+            $"손패: {handCount} | " +
+            $"버린 카드: {discardCount}"
+        );
+
+        // ==================================================
+        // 여기서 리필하지 않는다.
+        // ==================================================
+        //
+        // 덱 0
+        // 손패 0
+        //
+        // 이 상태가 되어도 플레이어 턴이 끝날 때까지
+        // 그대로 유지한다.
+        //
+        // 실제 리필은 KTH_DeckManager가
+        // Enemy 턴 시작 시 처리한다.
     }
 }

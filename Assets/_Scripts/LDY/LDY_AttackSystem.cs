@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using _Scripts.LSO;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
-using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Manager;
 using _Scripts.LSO.Will;
 using UnityEngine;
+using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LDY
 {
@@ -224,7 +223,8 @@ namespace _Scripts.LDY
             if (!(will is DLJ_IDeferredDestruction deferred) ||
                 !deferred.ShouldDeferDestruction)
             {
-                Destroy(target.gameObject);
+                // LDY_DeathHandler와 같게 유지할 것. 파괴는 디졸브가 끝난 뒤에 일어난다.
+                LDY_DissolveEffect.PlayOn(target.gameObject);
                 return;
             }
 

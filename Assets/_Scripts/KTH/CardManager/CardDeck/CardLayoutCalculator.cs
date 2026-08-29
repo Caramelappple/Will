@@ -18,17 +18,12 @@ public static class CardLayoutCalculator
         float maxRotation,
         int selectedIndex = -1,
         float pushAmount = 0f,
-        float farCardPushMultiplier = 0.5f
-    )
+        float farCardPushMultiplier = 0.5f)
     {
         if (totalCount <= 0)
         {
             return default;
         }
-
-        // =====================================================
-        // 카드 간격
-        // =====================================================
 
         float cardSpacing = maxSpacing;
 
@@ -45,41 +40,23 @@ public static class CardLayoutCalculator
             );
         }
 
-        // =====================================================
-        // 중앙 기준 위치
-        // =====================================================
-
         float centerIndex =
             (totalCount - 1) * 0.5f;
 
-        // 기존 카드 방향 유지
-        int reversedIndex =
-            totalCount - 1 - index;
-
         float offset =
-            reversedIndex - centerIndex;
+            index - centerIndex;
 
         float posX =
             offset * cardSpacing;
 
-        // =====================================================
-        // 카드 수에 따른 곡률
-        // =====================================================
-
         float cardAmountRatio =
-            Mathf.Clamp01(
-                totalCount / 10f
-            );
+            Mathf.Clamp01(totalCount / 10f);
 
         float dynamicArcHeight =
             arcHeight * cardAmountRatio;
 
         float dynamicMaxRotation =
             maxRotation * cardAmountRatio;
-
-        // =====================================================
-        // Y 곡선
-        // =====================================================
 
         float normalizedPos = 0f;
 
@@ -92,31 +69,21 @@ public static class CardLayoutCalculator
 
         float posY =
             (1f -
-             normalizedPos * normalizedPos)
-            * dynamicArcHeight
-            - dynamicArcHeight;
-
-        // =====================================================
-        // 회전
-        // =====================================================
+             normalizedPos *
+             normalizedPos) *
+            dynamicArcHeight -
+            dynamicArcHeight;
 
         float zRotation =
             -normalizedPos *
             dynamicMaxRotation;
-
-        // =====================================================
-        // 선택 카드 주변 밀기
-        // =====================================================
 
         if (selectedIndex >= 0 &&
             selectedIndex < totalCount &&
             index != selectedIndex)
         {
             int distance =
-                Mathf.Abs(
-                    index -
-                    selectedIndex
-                );
+                Mathf.Abs(index - selectedIndex);
 
             float push =
                 CalculatePush(
@@ -125,7 +92,6 @@ public static class CardLayoutCalculator
                     farCardPushMultiplier
                 );
 
-            // index 기준이 아니라 실제 화면 방향 기준으로 밀기
             if (index < selectedIndex)
             {
                 posX -= push;
@@ -150,15 +116,10 @@ public static class CardLayoutCalculator
         };
     }
 
-    // =========================================================
-    // Push
-    // =========================================================
-
     private static float CalculatePush(
         int distance,
         float pushAmount,
-        float farCardPushMultiplier
-    )
+        float farCardPushMultiplier)
     {
         if (distance <= 0)
         {

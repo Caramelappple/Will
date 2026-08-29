@@ -1,4 +1,4 @@
-namespace _Scripts.LSO
+namespace _Scripts.LSO.Will
 {
     public enum LSO_WillType
     {
