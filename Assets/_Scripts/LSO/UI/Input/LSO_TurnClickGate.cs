@@ -52,6 +52,32 @@ namespace _Scripts.LSO.UI.Input
         private Collider[] _colliders;
         private LDY_TurnManager _turnManager;
 
+        /// <summary>
+        /// All이 훑어야 할 조건들. All 자신은 빠져 있다.
+        ///
+        /// Enum.GetValues는 배열을 매번 새로 만들므로 한 번만 만들어 재사용한다.
+        /// 목록을 손으로 적지 않는 이유는, 새 조건이 늘었을 때 여기를 고치는 것을 잊으면
+        /// All이 조용히 그 조건을 빠뜨리기 때문이다.
+        /// </summary>
+        private static readonly LSO_ClickBlockCondition[] EveryCondition = BuildEveryCondition();
+
+        private static LSO_ClickBlockCondition[] BuildEveryCondition()
+        {
+            var all = (LSO_ClickBlockCondition[])
+                System.Enum.GetValues(typeof(LSO_ClickBlockCondition));
+
+            var list = new List<LSO_ClickBlockCondition>(all.Length);
+
+            foreach (LSO_ClickBlockCondition condition in all)
+            {
+                if (condition == LSO_ClickBlockCondition.All) continue;
+
+                list.Add(condition);
+            }
+
+            return list.ToArray();
+        }
+
         private void Awake()
         {
             _handler = GetComponent<LSO_ButtonClickHandler>();
@@ -65,13 +91,25 @@ namespace _Scripts.LSO.UI.Input
         {
             // Awake가 아니라 Start다. 찾을 대상들이 자기 Awake를 마친 뒤여야 한다.
             // 쓰지 않는 조건까지 씬을 뒤지지는 않는다.
-            if (selection == null && blockWhen.Contains(LSO_ClickBlockCondition.PieceSelected))
+            if (selection == null && Uses(LSO_ClickBlockCondition.PieceSelected))
                 selection = FindAnyObjectByType<LDY_SelectionController>();
 
-            if (cardPlacer == null && blockWhen.Contains(LSO_ClickBlockCondition.CardPlacing))
+            if (cardPlacer == null && Uses(LSO_ClickBlockCondition.CardPlacing))
                 cardPlacer = FindAnyObjectByType<LDY_CardPlacer>();
 
             Refresh();
+        }
+
+        /// <summary>
+        /// 이 조건을 실제로 보게 되는지. All이 들어 있으면 전부 보게 된다.
+        ///
+        /// 배선을 찾을지 정할 때 쓴다. All만 넣어두고 Selection을 비워두면
+        /// 기물 선택 검사가 조용히 빠져버리므로 여기서 같이 챙긴다.
+        /// </summary>
+        private bool Uses(LSO_ClickBlockCondition condition)
+        {
+            return blockWhen.Contains(condition)
+                   || blockWhen.Contains(LSO_ClickBlockCondition.All);
         }
 
         private void OnEnable()
@@ -143,6 +181,16 @@ namespace _Scripts.LSO.UI.Input
         {
             switch (condition)
             {
+                // 나머지를 전부 훑어 하나라도 걸리면 막는다.
+                // 여기서 다시 Matches를 부르지만 All은 목록에서 빠져 있어 되돌아오지 않는다.
+                case LSO_ClickBlockCondition.All:
+                    foreach (LSO_ClickBlockCondition each in EveryCondition)
+                    {
+                        if (Matches(each)) return true;
+                    }
+
+                    return false;
+
                 case LSO_ClickBlockCondition.NotMyTurn:
                     return _turnManager != null && _turnManager.CurrentTurn != allowedTurn;
 

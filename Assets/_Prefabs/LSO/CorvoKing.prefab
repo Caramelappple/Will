@@ -14,10 +14,10 @@ GameObject:
   - component: {fileID: 5175658531560620529}
   - component: {fileID: 507233932844191505}
   - component: {fileID: 8411521305535380808}
-  - component: {fileID: -6317045587966483626}
   - component: {fileID: 6703160183083293411}
   - component: {fileID: -6896967360982338821}
   - component: {fileID: -7636761853291911157}
+  - component: {fileID: -8885750701138979324}
   m_Layer: 0
   m_Name: CorvoKing
   m_TagString: Untagged
@@ -133,6 +133,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 0
   <MinValue>k__BackingField: 0
   _value: 0
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &8411521305535380808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,8 +152,10 @@ MonoBehaviour:
   pos: {x: 0, y: 0, z: 0}
   team: 0
   fallbackRangeType: 0
+  fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 6759159158562701642}
 --- !u!114 &6703160183083293411
 MonoBehaviour:
@@ -193,3 +197,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
   healthThreshold: 15
+--- !u!114 &-8885750701138979324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4488470074872201150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00d249b060dc4f88b15ad7399d815951, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
+  maxStoredAbilities: 3

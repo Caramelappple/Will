@@ -3983,7 +3983,7 @@ MonoBehaviour:
   team: 1
   baseAtk: 1
   fallbackRangeType: 0
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 898224048}
 --- !u!114 &898224051
 MonoBehaviour:
@@ -7402,7 +7402,7 @@ MonoBehaviour:
   team: 0
   baseAtk: 1
   fallbackRangeType: 0
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 1749388460}
 --- !u!114 &1749388463
 MonoBehaviour:
@@ -8526,7 +8526,7 @@ MonoBehaviour:
   team: 0
   baseAtk: 1
   fallbackRangeType: 0
-  <WillType>k__BackingField: 2
+  <WillType>k__BackingField: 3
   modelTransform: {fileID: 1996722154}
 --- !u!114 &1996722157
 MonoBehaviour:

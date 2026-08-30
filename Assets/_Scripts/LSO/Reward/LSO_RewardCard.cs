@@ -1,47 +1,30 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using _Scripts.LSO.Ability;
-using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.CoreLib;
-using _Scripts.LSO.Deck.Data;
-using _Scripts.LSO.Will;
+using _Scripts.LSO.UI.Input;
 using TMPro;
 using UnityEngine;
-using _Scripts.LSO.UI.Input;
 
 namespace _Scripts.LSO.Reward
 {
     /// <summary>
-    /// 보상 카드 한 장. 받은 내용을 그리고, 눌리면 알려준다.
+    /// 보상 카드 한 장의 공통 부분. 눌리면 알려주고, 아이콘·이름·설명을 그린다.
+    ///
+    /// 무엇을 어떻게 그릴지는 하위 클래스가 정한다.
+    /// 기물과 유언은 보여줄 수치가 서로 달라서, 한 클래스가 둘 다 맡으면
+    /// 인스펙터에 "Stat Texts [2]" 같은 이름만 남아 어느 칸이 무엇인지 알 수 없다.
     ///
     /// 자기 자리를 정하지 않는다. 어디에 놓일지는 LSO_RewardBox만 안다.
-    /// 어느 카드가 골라졌는지도 기억하지 않는다. 그건 상자의 몫이다.
-    ///
-    /// 카드가 스스로 상태를 갖기 시작하면 상자가 아는 것과 어긋난다.
-    /// 턴 레버에서 같은 실수를 한 적이 있다 — 자리를 정하는 주체가 셋이었다.
-    ///
-    /// 텍스트 슬롯은 전부 선택 사항이다. 비워두면 그 칸만 건너뛴다.
-    /// 기물과 유언이 같은 다섯 칸을 나눠 쓴다.
-    ///   기물  ATK / HP / 이동 / 사거리 / 특성
-    ///   유언  피해량 / 범위 / 지속시간 / 버프 / 디버프
+    /// 어느 카드가 골라졌는지도 기억하지 않는다. 그것도 상자의 몫이다.
     ///
     /// 씬 배선: Collider + LSO_ButtonClickHandler 와 함께 붙일 것.
-    /// 호버 반응이 필요하면 LSO_HoverMoveEffect 등을 따로 얹으면 된다.
     /// </summary>
     [RequireComponent(typeof(LSO_ButtonClickHandler))]
-    public class LSO_RewardCard : MonoBehaviour, LSO_IClickEffect, LSO_IPoolable
+    public abstract class LSO_RewardCard : MonoBehaviour, LSO_IClickEffect, LSO_IPoolable
     {
         [Header("공통")]
         [SerializeField] private SpriteRenderer iconImage;
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text descriptionText;
-
-        [Header("스탯 (기물·유언 공용)")]
-        [Tooltip("둘 다 항목이 다섯 개라 같은 칸을 나눠 쓴다.\n" +
-                 "기물: ATK / HP / 이동 / 사거리 / 특성\n" +
-                 "유언: 피해량 / 범위 / 지속시간 / 버프 / 디버프")]
-        [SerializeField] private TMP_Text[] statTexts = new TMP_Text[5];
 
         private LSO_RewardOption _option;
         private Action<LSO_RewardCard> _onClick;
@@ -67,11 +50,14 @@ namespace _Scripts.LSO.Reward
                 return;
             }
 
-            if (option.type == LSO_RewardType.Piece)
-                DrawPiece(option.piece);
-            else
-                DrawWill(option.will);
+            Draw(option);
         }
+
+        /// <summary>받은 보상을 화면에 옮긴다. 하위 클래스가 자기 수치를 채운다.</summary>
+        protected abstract void Draw(LSO_RewardOption option);
+
+        /// <summary>지난번 내용을 지운다. 풀에서 되살아날 때와 빈 보상이 왔을 때 불린다.</summary>
+        protected abstract void Clear();
 
         public void OnClick()
         {
@@ -85,76 +71,16 @@ namespace _Scripts.LSO.Reward
             callback(this);
         }
 
-        private void DrawPiece(LSO_CardSO card)
-        {
-            LSO_AnimalSO animal = card != null ? card.Animal : null;
+        protected void SetName(string value) => SetText(nameText, value);
 
-            if (animal == null)
-            {
-                SetText(nameText, "알 수 없는 기물");
-                SetText(descriptionText, string.Empty);
-                SetIcon(null);
-                SetStats("ATK -", "HP -", "이동 -", "사거리 -", "특성 -");
-                return;
-            }
+        protected void SetDescription(string value) => SetText(descriptionText, value);
 
-            SetText(nameText, animal.animalName);
-            SetText(descriptionText, animal.description);
-            SetIcon(card.Image);
-
-            SetStats(
-                $"ATK {animal.damage}",
-                $"HP {animal.maxHealth}",
-                $"이동 {animal.MoveRange}",
-                $"사거리 {animal.range}",
-                BuildTraitText(animal.AbilityTypes));
-        }
-
-        private void DrawWill(DLJ_WillDataSO will)
-        {
-            if (will == null)
-            {
-                SetText(nameText, "알 수 없는 유언");
-                SetText(descriptionText, string.Empty);
-                SetIcon(null);
-                SetStats("피해량 -", "범위 -", "지속시간 -", string.Empty, string.Empty);
-                return;
-            }
-
-            SetText(nameText, will.WillType.ToString());
-            SetText(descriptionText, will.description);
-            SetIcon(will.icon);
-
-            // 버프·디버프는 0이면 칸을 비운다. "버프 : 0"은 효과가 있는 것처럼 읽힌다.
-            SetStats(
-                $"피해량 {will.DisplayDamage}",
-                $"범위 {will.DisplayRange}",
-                $"지속시간 {will.DisplayDuration}",
-                will.DisplayBuffAmount != 0 ? $"버프 {will.DisplayBuffAmount}" : string.Empty,
-                will.DisplayDebuffAmount != 0 ? $"디버프 {will.DisplayDebuffAmount}" : string.Empty);
-        }
-
-        private static string BuildTraitText(IReadOnlyList<LSO_AbilityType> abilities)
-        {
-            if (abilities == null || abilities.Count == 0) return "특성 없음";
-
-            return "특성 " + string.Join(", ", abilities.Select(a => a.ToString()));
-        }
-
-        private void SetStats(params string[] values)
-        {
-            if (statTexts == null) return;
-
-            for (int i = 0; i < statTexts.Length; i++)
-                SetText(statTexts[i], i < values.Length ? values[i] : string.Empty);
-        }
-
-        private static void SetText(TMP_Text label, string value)
+        protected static void SetText(TMP_Text label, string value)
         {
             if (label != null) label.text = value;
         }
 
-        private void SetIcon(Sprite sprite)
+        protected void SetIcon(Sprite sprite)
         {
             if (iconImage == null) return;
 
@@ -164,12 +90,12 @@ namespace _Scripts.LSO.Reward
             iconImage.enabled = sprite != null;
         }
 
-        private void Clear()
+        /// <summary>공통 칸을 비운다. 하위 클래스의 Clear가 먼저 불러 쓰면 된다.</summary>
+        protected void ClearCommon()
         {
-            SetText(nameText, string.Empty);
-            SetText(descriptionText, string.Empty);
+            SetName(string.Empty);
+            SetDescription(string.Empty);
             SetIcon(null);
-            SetStats(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
         }
 
         // 풀에서 되살아난 카드다. 지난번 보상이 남아 있으면 엉뚱한 것이 지급된다.

@@ -331,7 +331,7 @@ MonoBehaviour:
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 2
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 70646586}
 --- !u!114 &70646588
 MonoBehaviour:
@@ -2978,7 +2978,7 @@ MonoBehaviour:
   fallbackRangeType: 1
   fallbackMoveRange: 1
   baseAtk: 3
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 571457307}
 --- !u!114 &571457309
 MonoBehaviour:
@@ -6552,7 +6552,7 @@ MonoBehaviour:
   fallbackRangeType: 1
   fallbackMoveRange: 1
   baseAtk: 2
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 1219364772}
 --- !u!114 &1219364774
 MonoBehaviour:
@@ -6886,7 +6886,7 @@ MonoBehaviour:
   fallbackRangeType: 2
   fallbackMoveRange: 1
   baseAtk: 2
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1273964880}
 --- !u!114 &1273964882
 MonoBehaviour:
@@ -8826,7 +8826,7 @@ MonoBehaviour:
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 2
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 2
   modelTransform: {fileID: 1621688121}
 --- !u!114 &1621688123
 MonoBehaviour:
@@ -10323,7 +10323,7 @@ MonoBehaviour:
   fallbackRangeType: 2
   fallbackMoveRange: 1
   baseAtk: 3
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 2073800958}
 --- !u!114 &2073800960
 MonoBehaviour:

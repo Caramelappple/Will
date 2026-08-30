@@ -110,5 +110,78 @@ namespace _Scripts.LSO.Reward
                      x.stage == stage
             );
         }
+
+#if UNITY_EDITOR
+
+        #region 테스트용
+
+        [Header("테스트용")]
+        [Tooltip("컨텍스트 메뉴로 뽑아볼 챕터·스테이지. 빌드에는 들어가지 않는다.")]
+        [SerializeField] private int testChapter = 1;
+
+        [SerializeField] private int testStage = 1;
+
+        [Tooltip("몇 번 뽑아 볼지. 많을수록 실제 확률에 가까워진다.")]
+        [SerializeField, Min(1)] private int testRolls = 1000;
+
+        /// <summary>
+        /// 실제로 여러 번 뽑아 분포를 콘솔에 찍는다. 에셋 우클릭에서 부른다.
+        ///
+        /// 플레이 모드에 들어가지 않아도 된다. LSO_RewardDraft가 MonoBehaviour가 아니라
+        /// 씬 없이도 돌기 때문이다. 가중치를 고칠 때마다 바로 확인할 수 있다.
+        ///
+        /// 나오는 값은 "한 번 뽑을 때 이 보상이 후보에 낄 확률"이다.
+        /// 한 번에 rewardChoiceCount개를 뽑으므로 전부 더하면 100%를 넘는다.
+        /// </summary>
+        [ContextMenu("테스트: 확률 뽑아보기")]
+        private void TestRoll()
+        {
+            LSO_StageRewardData data = Find(testChapter, testStage);
+
+            if (data == null)
+            {
+                Debug.LogWarning($"{name}: 챕터 {testChapter} 스테이지 {testStage} 항목이 없습니다.", this);
+                return;
+            }
+
+            var draft = new LSO_RewardDraft();
+            var counts = new Dictionary<string, int>();
+
+            for (int i = 0; i < testRolls; i++)
+            {
+                foreach (LSO_RewardOption option in draft.Draw(this, testChapter, testStage))
+                {
+                    string key = option.GetName();
+
+                    counts.TryGetValue(key, out int n);
+                    counts[key] = n + 1;
+                }
+            }
+
+            var lines = new List<KeyValuePair<string, int>>(counts);
+            lines.Sort((a, b) => b.Value.CompareTo(a.Value));
+
+            var text = new System.Text.StringBuilder();
+
+            text.AppendLine($"{name} — 챕터 {testChapter} 스테이지 {testStage}");
+            text.AppendLine($"{testRolls}번 뽑음 / 한 번에 {Mathf.Max(1, data.rewardChoiceCount)}개");
+            text.AppendLine();
+
+            foreach (KeyValuePair<string, int> line in lines)
+            {
+                float percent = line.Value * 100f / testRolls;
+
+                text.AppendLine($"  {line.Key,-24} {line.Value,6}회  {percent,6:F1}%");
+            }
+
+            if (lines.Count == 0)
+                text.AppendLine("  (뽑힌 것이 없습니다. 후보나 가중치를 확인하세요.)");
+
+            Debug.Log(text.ToString(), this);
+        }
+
+        #endregion
+
+#endif
     }
 }
