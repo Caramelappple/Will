@@ -302,7 +302,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CostCoinEntranceAnimator
   screenCamera: {fileID: 0}
   offscreenViewportX: -0.1
-  aboveViewportOffset: 0.08
+  aboveViewportOffset: 0
   horizontalDuration: 0.3
   dropDuration: 0.18
   coinInterval: 0.1
@@ -369,7 +369,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4f3b2c1d5e6478890abcdef12345678, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CostCoinShaderEffect
 --- !u!1 &6183690527513747325
 GameObject:
