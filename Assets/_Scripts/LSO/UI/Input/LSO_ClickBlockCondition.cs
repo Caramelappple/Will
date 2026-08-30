@@ -23,6 +23,15 @@ namespace _Scripts.LSO.UI.Input
         WillSelecting,
 
         /// <summary>계승 대상을 지정하는 중.</summary>
-        SuccessionWaiting
+        SuccessionWaiting,
+
+        /// <summary>
+        /// 위의 조건을 전부 합친 것. 하나라도 해당하면 막는다.
+        ///
+        /// 여섯 개를 일일이 넣는 대신 쓴다. 나중에 조건이 늘어나도 저절로 따라간다.
+        /// 반대로, 새 조건이 생기면 이걸 쓰는 곳이 모르는 사이에 더 자주 막히게 된다.
+        /// 몇 개만 골라 막고 싶으면 이것 대신 그 조건들을 직접 넣을 것.
+        /// </summary>
+        All
     }
 }

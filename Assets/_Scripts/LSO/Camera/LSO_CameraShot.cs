@@ -55,6 +55,16 @@ namespace _Scripts.LSO.Camera
         [Tooltip("머무는 시간이 끝나면 돌아갈 곳. 비워두면 직전 샷으로 돌아간다.")]
         public string nextId;
 
+        [Header("돌아가기")]
+        [Tooltip("클릭 같은 조작으로 이 샷에서 빠져나올 수 있는지.\n" +
+                 "\n" +
+                 "끄면 Hold Time이 끝나거나 다른 곳에서 Play를 부를 때만 벗어난다.\n" +
+                 "보스 등장 컷신처럼 끝까지 보여줘야 하는 샷에 끈다.\n" +
+                 "\n" +
+                 "이걸 끄고 Hold Time도 0으로 두면 어떤 조작으로도 못 빠져나온다.\n" +
+                 "그때는 Next Id를 채우거나 코드에서 Play를 불러줄 것.")]
+        public bool canReturn = true;
+
         /// <summary>부를 때 쓰는 이름. id를 비워두면 카메라 오브젝트 이름이 된다.</summary>
         public string Key =>
             !string.IsNullOrEmpty(id) ? id
