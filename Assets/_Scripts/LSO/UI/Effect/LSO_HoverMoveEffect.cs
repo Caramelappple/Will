@@ -51,6 +51,36 @@ namespace _Scripts.LSO.UI.Effect
             _originalPosition = _target.localPosition;
         }
 
+        /// <summary>
+        /// 옮길 대상과 연출 값을 코드로 정한다. 런타임에 붙일 때 쓴다.
+        ///
+        /// AddComponent는 그 자리에서 Awake를 돌리므로, 이 컴포넌트는 이미
+        /// 자기 자신의 자리를 기준으로 잡아둔 상태다. 대상을 바꾸면 기준도 다시 잡아야 한다.
+        /// 그래서 여기서 _originalPosition을 새로 읽는다.
+        ///
+        /// 인스펙터로 이미 맞춰둔 것을 덮어쓰게 되므로, 부르는 쪽이
+        /// "아직 안 붙어 있을 때만" 부르는 것을 전제로 한다.
+        /// </summary>
+        public void Configure(Transform newTarget, LSO_HoverMoveTuning tuning)
+        {
+            KillTween();
+
+            // 이미 옮겨둔 상태에서 대상이 바뀌면 지난 대상이 들린 채로 남는다.
+            if (_target != null) _target.localPosition = _originalPosition;
+
+            target = newTarget;
+
+            _target = newTarget != null ? newTarget : transform;
+            _originalPosition = _target.localPosition;
+
+            offset = tuning.offset;
+            enterDuration = tuning.enterDuration;
+            exitDuration = tuning.exitDuration;
+            easeEnter = tuning.easeEnter;
+            easeExit = tuning.easeExit;
+            ignoreTimeScale = tuning.ignoreTimeScale;
+        }
+
         public void OnHoverEnter()
         {
             MoveTo(_originalPosition + offset, enterDuration, easeEnter);
@@ -66,7 +96,11 @@ namespace _Scripts.LSO.UI.Effect
             // 커서를 빠르게 들락거려도 트윈이 쌓이지 않게 이전 것을 먼저 끊는다.
             KillTween();
 
-            if (duration <= 0f)
+            // 꺼지는 중이면 트윈을 걸지 않는다.
+            //
+            // 기물이 SetActive(false)로 사라질 때 호버 핸들러가 이탈을 보내는데,
+            // 그 트윈은 돌지 못한 채 남았다가 다시 켤 때 옮겨진 자리부터 시작한다.
+            if (!isActiveAndEnabled || duration <= 0f)
             {
                 _target.localPosition = position;
                 return;

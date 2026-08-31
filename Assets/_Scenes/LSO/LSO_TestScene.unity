@@ -2240,6 +2240,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -797830611085227457, guid: e5da080025778d747a5f565c722aeec8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 345767240}
+    - targetCorrespondingSourceObject: {fileID: -797830611085227457, guid: e5da080025778d747a5f565c722aeec8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 345767244}
+    - targetCorrespondingSourceObject: {fileID: -797830611085227457, guid: e5da080025778d747a5f565c722aeec8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 345767243}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: e5da080025778d747a5f565c722aeec8, type: 3}
 --- !u!4 &345767229 stripped
 Transform:
@@ -2270,8 +2276,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.14, y: 0.85, z: 1.16}
-  m_Center: {x: -0.09, y: 1.28, z: 0}
+  m_Size: {x: 1.02, y: 0.85, z: 1.03}
+  m_Center: {x: -0.8, y: 1.28, z: 0}
 --- !u!114 &345767234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2316,6 +2322,35 @@ MonoBehaviour:
   selection: {fileID: 1007328534}
   cardPlacer: {fileID: 2015590848}
   alsoDisableCollider: 0
+--- !u!114 &345767243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345767230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf3514004b4d5543b0ba6c1f4afe46c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverCursorEffect
+  interactableState: 2
+  blockedState: 1
+  followClickGate: 1
+  clickHandler: {fileID: 0}
+--- !u!114 &345767244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345767230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
 --- !u!1 &362569461
 GameObject:
   m_ObjectHideFlags: 0
@@ -5651,6 +5686,64 @@ Transform:
   - {fileID: 209631741}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1065112798
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1065112800}
+  - component: {fileID: 1065112799}
+  m_Layer: 0
+  m_Name: CursorManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1065112799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065112798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 687c0bca509c7344a8b82ed7a36cf6a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  shapes:
+  - state: 0
+    texture: {fileID: 2800000, guid: ff0e1bc5da068f34a84229a405f37717, type: 3}
+    hotspot: {x: 0, y: 0}
+    centerHotspot: 0
+  - state: 1
+    texture: {fileID: 2800000, guid: dc23c58036d799842beecb5b56678052, type: 3}
+    hotspot: {x: 0, y: 0}
+    centerHotspot: 1
+  - state: 2
+    texture: {fileID: 2800000, guid: b45b422ca94316a4b84fbc2218462d60, type: 3}
+    hotspot: {x: 0, y: 0}
+    centerHotspot: 1
+  mode: 0
+--- !u!4 &1065112800
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065112798}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 5.75862, y: 1.73892, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1085002864
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6976,6 +7069,7 @@ GameObject:
   - component: {fileID: 1339222911}
   - component: {fileID: 1339222910}
   - component: {fileID: 1339222909}
+  - component: {fileID: 1339222913}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -7036,6 +7130,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1339222913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339222908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f60949ea5837b4d96e3cdce2d8de76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_ItemLibraryManager
+  unlockedPieces:
+  - {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
+  unlockedWills:
+  - {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+  - {fileID: 0}
 --- !u!4 &1366522000 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5213915199161565039, guid: 551fe2da3cc77ad47b49a540dcc20087, type: 3}
@@ -12120,3 +12233,4 @@ SceneRoots:
   - {fileID: 787356182}
   - {fileID: 1682783560}
   - {fileID: 1001457317}
+  - {fileID: 1065112800}
