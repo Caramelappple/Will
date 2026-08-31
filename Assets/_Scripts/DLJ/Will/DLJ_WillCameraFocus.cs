@@ -1,6 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
-
+/*
 /// <summary>모든 유언 발동 위치를 짧게 강조하는 공통 카메라 연출.</summary>
 internal static class DLJ_WillCameraFocus
 {
@@ -140,3 +140,4 @@ internal static class DLJ_WillCameraFocus
         Finish();
     }
 }
+*/

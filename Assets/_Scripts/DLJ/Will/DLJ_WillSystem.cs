@@ -71,12 +71,12 @@ public static class DLJ_WillRuntime
         };
 
         LSO_IWill will = LSO_WillFactory.Create(animal.WillType, context, data);
-        if (will != null && animal.WillType != LSO_WillType.Succession)
+        /*if (will != null && animal.WillType != LSO_WillType.Succession)
         {
             DLJ_WillCameraFocus.Play(
                 animal.transform.position,
                 data.cameraHoldDuration);
-        }
+        }*/
 
         will?.InvokeWill();
         return will;

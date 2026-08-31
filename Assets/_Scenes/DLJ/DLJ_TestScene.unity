@@ -14333,7 +14333,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &898224045
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15019,7 +15019,7 @@ MonoBehaviour:
   firstCase: {fileID: 9179611715812540169}
   caseRoot: {fileID: 1081112811}
   coinsPerCase: 5
-  caseStep: {x: 6, y: 0, z: 0}
+  caseStep: {x: 0, y: 0, z: -1}
   removeUnusedCases: 1
 --- !u!4 &1081112811
 Transform:
