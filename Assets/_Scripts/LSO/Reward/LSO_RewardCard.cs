@@ -6,18 +6,6 @@ using UnityEngine;
 
 namespace _Scripts.LSO.Reward
 {
-    /// <summary>
-    /// 보상 카드 한 장의 공통 부분. 눌리면 알려주고, 아이콘·이름·설명을 그린다.
-    ///
-    /// 무엇을 어떻게 그릴지는 하위 클래스가 정한다.
-    /// 기물과 유언은 보여줄 수치가 서로 달라서, 한 클래스가 둘 다 맡으면
-    /// 인스펙터에 "Stat Texts [2]" 같은 이름만 남아 어느 칸이 무엇인지 알 수 없다.
-    ///
-    /// 자기 자리를 정하지 않는다. 어디에 놓일지는 LSO_RewardBox만 안다.
-    /// 어느 카드가 골라졌는지도 기억하지 않는다. 그것도 상자의 몫이다.
-    ///
-    /// 씬 배선: Collider + LSO_ButtonClickHandler 와 함께 붙일 것.
-    /// </summary>
     [RequireComponent(typeof(LSO_ButtonClickHandler))]
     public abstract class LSO_RewardCard : MonoBehaviour, LSO_IClickEffect, LSO_IPoolable
     {

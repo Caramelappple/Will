@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using _Scripts.LSO.Ability;
 using _Scripts.LSO.Deck.Data;
 using TMPro;
 using UnityEngine;
@@ -8,25 +5,22 @@ using UnityEngine;
 namespace _Scripts.LSO.Reward
 {
     /// <summary>
-    /// 기물 보상 카드. 동물의 스탯을 그린다.
+    /// 기물 보상 카드. 이름·설명·공격력·체력·코스트를 그린다.
+    ///
+    /// 사거리와 특성은 카드에 넣지 않는다. 고를 때 필요한 것만 남긴 것이고,
+    /// 자세한 것은 획득 뒤 인포 창에서 본다.
     ///
     /// 유언 보상이 들어오면 빈 카드로 둔다. 상자가 타입을 보고 프리팹을 고르므로
     /// 정상적인 흐름에서는 그럴 일이 없지만, 조용히 엉뚱한 것을 그리는 것보다는 낫다.
     /// </summary>
     public class LSO_RewardPieceCard : LSO_RewardCard
-    {
+    {   
         [Header("기물 수치")]
         [Tooltip("비워두면 그 칸은 건너뛴다.")]
         [SerializeField] private TMP_Text attackText;
 
         [SerializeField] private TMP_Text healthText;
-
-        // 카드에는 이동 칸 수를 표시하지 않기로 했다.
-        // 되살릴 때는 LSO_CardSO.MoveRange 도 같이 풀 것.
-        //[SerializeField] private TMP_Text moveRangeText;
-
-        [SerializeField] private TMP_Text attackRangeText;
-        [SerializeField] private TMP_Text traitText;
+        [SerializeField] private TMP_Text costText;
 
         protected override void Draw(LSO_RewardOption option)
         {
@@ -47,9 +41,7 @@ namespace _Scripts.LSO.Reward
 
                 SetText(attackText, "ATK -");
                 SetText(healthText, "HP -");
-                //SetText(moveRangeText, "이동 -");
-                SetText(attackRangeText, "사거리 -");
-                SetText(traitText, "특성 -");
+                SetText(costText, "코스트 -");
                 return;
             }
 
@@ -62,9 +54,7 @@ namespace _Scripts.LSO.Reward
 
             SetText(attackText, $"ATK {card.Damage}");
             SetText(healthText, $"HP {card.MaxHealth}");
-            //SetText(moveRangeText, $"이동 {card.MoveRange}");
-            SetText(attackRangeText, $"사거리 {card.Range}");
-            SetText(traitText, BuildTraitText(card.AbilityTypes));
+            SetText(costText, $"코스트 {card.Cost}");
         }
 
         protected override void Clear()
@@ -73,16 +63,7 @@ namespace _Scripts.LSO.Reward
 
             SetText(attackText, string.Empty);
             SetText(healthText, string.Empty);
-            //SetText(moveRangeText, string.Empty);
-            SetText(attackRangeText, string.Empty);
-            SetText(traitText, string.Empty);
-        }
-
-        private static string BuildTraitText(IReadOnlyList<LSO_AbilityType> abilities)
-        {
-            if (abilities == null || abilities.Count == 0) return "특성 없음";
-
-            return "특성 " + string.Join(", ", abilities.Select(a => a.ToString()));
+            SetText(costText, string.Empty);
         }
     }
 }

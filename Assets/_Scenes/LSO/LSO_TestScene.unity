@@ -11620,10 +11620,10 @@ PrefabInstance:
       addedObject: {fileID: 2138475118}
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: 863aa35178a6cb540b3ce6536bb8b650, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2138475116}
+      addedObject: {fileID: 2138475115}
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: 863aa35178a6cb540b3ce6536bb8b650, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2138475115}
+      addedObject: {fileID: 2138475116}
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: 863aa35178a6cb540b3ce6536bb8b650, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2138475120}
@@ -11713,15 +11713,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_RewardBox
   lid: {fileID: 2138475116}
   table: {fileID: 11400000, guid: 01cccf976f6677d4184defa875f2e234, type: 2}
-  cardPrefab: {fileID: 2104213536150427697, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  pieceCardPrefab: {fileID: 4650799037711057792, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  willStampPrefab: {fileID: 0}
   cardAnchor: {fileID: 1197421284}
-  cardSpacing: 0.6
+  cardSpacing: {x: 0.6, y: 0, z: 0}
   riseHeight: 0.8
+  cardTilt: {x: 0, y: 0, z: 0}
+  openOnBegin: 1
   dealOnOpen: 1
   riseDuration: 0.35
   dealInterval: 0.12
   riseEase: 27
   claimHold: 0.6
+  stampOnlyWhenNew: 1
+  stampPosition: {x: 0, y: 0.9, z: -0.3}
+  stampRiseDuration: 0.4
+  stampRiseEase: 27
   onReady:
     m_PersistentCalls:
       m_Calls: []
@@ -11735,6 +11742,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   onClaimed:
+    m_PersistentCalls:
+      m_Calls: []
+  onStampReady:
+    m_PersistentCalls:
+      m_Calls: []
+  onStampShown:
     m_PersistentCalls:
       m_Calls: []
   onFinished:
