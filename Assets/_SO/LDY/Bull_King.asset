@@ -20,5 +20,5 @@ MonoBehaviour:
   moveRange: 6
   range: 4
   abilities: 1c0000001d000000
-  defaultWill: -1
+  defaultWill: 0
   unitPrefab: {fileID: 4209428674623069864, guid: 6a1eb50b876bb9747bf4ae16d8d7dcde, type: 3}

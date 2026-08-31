@@ -44,6 +44,11 @@ namespace _Scripts.LSO.Deck.Data
         public int Cost => IsValid ? animal.cost : 0;
         public int Damage => IsValid ? animal.damage : 0;
         public int MaxHealth => IsValid ? animal.maxHealth : 0;
+
+        // 카드에는 이동 칸 수를 표시하지 않기로 했다.
+        // 필요해지면 이 줄만 되살리면 된다. animal 쪽 값은 그대로 있다.
+        //public int MoveRange => IsValid ? animal.MoveRange : 1;
+
         public IReadOnlyList<LSO_AbilityType> AbilityTypes =>
             IsValid ? animal.AbilityTypes : Array.Empty<LSO_AbilityType>();
         public LDY_RangeType Range => IsValid ? animal.range : LDY_RangeType.Melee;
@@ -52,7 +57,7 @@ namespace _Scripts.LSO.Deck.Data
         /// 플레이어가 고르지 않고 소환될 때 쓸 유언. 적 기물과 스테이지 초기 배치가 이 값으로 세워진다.
         /// 플레이어가 직접 소환하면 선택 UI 결과가 이 값을 덮어쓴다.
         /// </summary>
-        public LSO_WillType DefaultWill => IsValid ? animal.defaultWill : default;
+        public LSO_WillType DefaultWill => IsValid ? animal.defaultWill : LSO_WillType.None;
 
         /// <summary>보드에 소환될 기물 프리팹. 동물 데이터가 원본이다.</summary>
         [Header("기물의 모델, 모델안에는 빈 LDY_Animal 넣기, Health는 자동으로 들어가게 됨")]

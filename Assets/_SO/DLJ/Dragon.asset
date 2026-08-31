@@ -19,5 +19,5 @@ MonoBehaviour:
   cost: 3
   range: 1
   ability: 12
-  defaultWill: 3
+  defaultWill: 4
   unitPrefab: {fileID: 6254566640545840920, guid: 11a6601824fb2e842a1bbd7d1d7af703, type: 3}

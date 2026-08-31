@@ -122,6 +122,10 @@ namespace _Scripts.LSO.Camera
             // 이미 기본 샷이면 돌아갈 곳이 없다.
             if (_current == null || _current.Key == DefaultId) return;
 
+            // 이 샷이 조작으로 빠져나오는 것을 허락하지 않는다.
+            // 컷신처럼 끝까지 보여줘야 하는 샷은 Hold Time이나 Play로만 벗어난다.
+            if (!_current.canReturn) return;
+
             // 샷을 켠 그 프레임의 조작은 무시한다.
             // 안 그러면 "아무 데나 클릭"이 방금 연 샷을 그 자리에서 도로 닫는다.
             if (Time.frameCount == _shotFrame) return;
@@ -132,10 +136,13 @@ namespace _Scripts.LSO.Camera
         }
 
         /// <summary>
-        /// 등록된 조작 중 하나라도 이번 프레임에 들어왔는지.
+        /// 등록된 조작 중 하나라도 이번 프레임에 완성됐는지.
         ///
-        /// 눌린 순간(wasPressedThisFrame)을 본다. 뗀 순간을 보면 콜라이더 클릭과 겹친다 —
-        /// uGUI의 클릭은 뗄 때 발생하므로, 샷을 여는 그 클릭이 곧바로 닫기로도 읽힌다.
+        /// 뗀 순간(wasReleasedThisFrame)을 본다. 누른 순간을 보면 버튼을 누르고 있는 동안
+        /// 곧바로 돌아가버려서, 클릭 한 번이 아니라 "누르자마자"로 느껴진다.
+        ///
+        /// 뗄 때를 봐도 샷을 연 그 클릭에 걸리지는 않는다.
+        /// uGUI 클릭도 뗄 때 발생하므로 Play와 같은 프레임이 되고, 그 프레임은 위에서 걸러진다.
         /// </summary>
         private bool IsReturnPressed()
         {
@@ -144,12 +151,12 @@ namespace _Scripts.LSO.Camera
                 switch (trigger)
                 {
                     case LSO_CameraReturnTrigger.LeftClickAnywhere:
-                        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                        if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame)
                             return true;
                         break;
 
                     case LSO_CameraReturnTrigger.RightClickAnywhere:
-                        if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+                        if (Mouse.current != null && Mouse.current.rightButton.wasReleasedThisFrame)
                             return true;
                         break;
                 }

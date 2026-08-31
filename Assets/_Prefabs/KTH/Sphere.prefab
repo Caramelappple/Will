@@ -147,5 +147,5 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   baseAtk: 0
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 3842136083555137402}

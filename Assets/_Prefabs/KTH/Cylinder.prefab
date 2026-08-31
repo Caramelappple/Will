@@ -152,7 +152,7 @@ MonoBehaviour:
   fallbackRangeType: 0
   fallbackMoveRange: 1
   baseAtk: 2
-  <WillType>k__BackingField: 0
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 5281586973659791504}
 --- !u!114 &-4379339614478175788
 MonoBehaviour:
