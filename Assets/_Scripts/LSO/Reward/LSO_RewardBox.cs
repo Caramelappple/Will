@@ -57,14 +57,14 @@ namespace _Scripts.LSO.Reward
             /// <summary>고른 뒤 나머지 카드가 내려가는 중. 클릭을 버린다.</summary>
             Lowering,
 
-            /// <summary>처음 보는 유언이라 종이가 준비됐다. 상자를 누르면 나온다.</summary>
-            NoteWaiting,
+            /// <summary>처음 보는 유언이라 도장이 준비됐다. 상자를 누르면 나온다.</summary>
+            StampWaiting,
 
-            /// <summary>종이가 올라오는 중. 클릭을 버린다.</summary>
-            NoteRising,
+            /// <summary>도장이 올라오는 중. 클릭을 버린다.</summary>
+            StampRising,
 
-            /// <summary>종이를 다 읽기를 기다린다. 상자를 누르면 정리한다.</summary>
-            NoteShown,
+            /// <summary>도장을 다 보기를 기다린다. 상자를 누르면 정리한다.</summary>
+            StampShown,
 
             /// <summary>정리하는 중. 클릭을 버린다.</summary>
             Closing
@@ -80,15 +80,13 @@ namespace _Scripts.LSO.Reward
         [Tooltip("기물 보상에 쓸 카드 원본.")]
         [SerializeField] private LSO_RewardPieceCard pieceCardPrefab;
 
-        [Tooltip("유언 보상에 쓸 카드 원본. 비워두면 유언 후보가 나와도 카드를 만들지 못한다.")]
-        [SerializeField] private LSO_RewardWillCard willCardPrefab;
+        [Tooltip("유언에 쓸 도장 원본. 고르는 것과 보여주는 것이 같아서 하나만 꽂는다.\n" +
+                 "비워두면 유언 후보가 나와도 만들지 못한다.")]
+        [SerializeField] private LSO_WillStamp willStampPrefab;
 
         [Tooltip("카드가 늘어설 기준 자리. 비워두면 상자 자신을 쓴다.")]
         [SerializeField] private Transform cardAnchor;
 
-        [Tooltip("유언 설명 종이. 비워두면 유언을 받아도 종이가 나오지 않고 그대로 닫힌다.\n" +
-                 "씬에 두고 꺼둔 채로 시작할 것. 상자가 필요할 때 켠다.")]
-        [SerializeField] private LSO_WillNote willNote;
 
         [Header("배치")]
         [Tooltip("카드 한 칸의 간격과 방향. 기준 자리(Card Anchor)의 로컬 축이다.\n" +
@@ -127,20 +125,20 @@ namespace _Scripts.LSO.Reward
         [Tooltip("고른 뒤 정리를 시작하기까지 두는 시간. 무엇을 얻었는지 볼 틈을 준다.")]
         [SerializeField, Min(0f)] private float claimHold = 0.6f;
 
-        [Header("유언 종이")]
-        [Tooltip("켜면 처음 보는 유언일 때만 종이가 나온다. 두 번째부터는 그냥 닫힌다.\n" +
+        [Header("유언 도장")]
+        [Tooltip("켜면 처음 보는 유언일 때만 도장이 나온다. 두 번째부터는 그냥 닫힌다.\n" +
                  "\n" +
                  "끄면 받을 때마다 나온다. 같은 유언을 여러 번 받는 것이 흔하다면 이쪽이 낫다 —\n" +
                  "재고에는 쌓이는데 화면에는 아무 반응이 없으면 받은 줄 모른다.")]
-        [SerializeField] private bool noteOnlyWhenNew = true;
+        [SerializeField] private bool stampOnlyWhenNew = true;
 
-        [Tooltip("종이가 올라와 멈출 자리. 기준 자리(Card Anchor)의 로컬 좌표다.")]
-        [SerializeField] private Vector3 notePosition = new Vector3(0f, 0.9f, -0.3f);
+        [Tooltip("도장이 올라와 멈출 자리. 기준 자리(Card Anchor)의 로컬 좌표다.")]
+        [SerializeField] private Vector3 stampPosition = new Vector3(0f, 0.9f, -0.3f);
 
-        [Tooltip("종이가 올라오는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float noteRiseDuration = 0.4f;
+        [Tooltip("도장이 올라오는 데 걸리는 시간.")]
+        [SerializeField, Min(0f)] private float stampRiseDuration = 0.4f;
 
-        [SerializeField] private Ease noteRiseEase = Ease.OutBack;
+        [SerializeField] private Ease stampRiseEase = Ease.OutBack;
 
         [Header("반응")]
         [Tooltip("보상이 시작돼 상자를 누를 수 있게 됐을 때. 커서 모양 바꾸기 등을 건다.")]
@@ -159,12 +157,12 @@ namespace _Scripts.LSO.Reward
         [Tooltip("보상이 지급됐을 때. 인자는 고른 보상이다.")]
         [SerializeField] private LSO_RewardEvent onClaimed;
 
-        [Tooltip("처음 보는 유언이라 종이가 준비됐을 때. 커서를 바꾸는 자리다.\n" +
-                 "이때 상자를 누르면 종이가 나온다.")]
-        [SerializeField] private LSO_RewardEvent onNoteReady;
+        [Tooltip("처음 보는 유언이라 도장이 준비됐을 때. 커서를 바꾸는 자리다.\n" +
+                 "이때 상자를 누르면 도장이 나온다.")]
+        [SerializeField] private LSO_RewardEvent onStampReady;
 
-        [Tooltip("종이가 다 올라왔을 때.")]
-        [SerializeField] private LSO_RewardEvent onNoteShown;
+        [Tooltip("도장이 다 올라왔을 때.")]
+        [SerializeField] private LSO_RewardEvent onStampShown;
 
         [Tooltip("정리까지 끝났을 때. 다음 연출(체스판 뒤집기 등)을 여기 건다.")]
         [SerializeField] private LSO_RewardEvent onFinished;
@@ -175,13 +173,16 @@ namespace _Scripts.LSO.Reward
         // 종류마다 풀을 따로 둔다. 하나로 묶으면 꺼낼 때마다 기물인지 유언인지 확인해야 하고,
         // 잘못 꺼낸 카드가 조용히 빈 채로 나온다.
         private LSO_ObjectPool<LSO_RewardPieceCard> _piecePool;
-        private LSO_ObjectPool<LSO_RewardWillCard> _willPool;
+        private LSO_ObjectPool<LSO_WillStamp> _willPool;
+
+        // 고른 뒤 무엇을 얻었는지 보여주려고 올려둔 도장. 고르는 것과 같은 풀에서 나온다.
+        private LSO_WillStamp _stamp;
 
         private Phase _phase = Phase.Idle;
         private int _chapter;
         private int _stage;
 
-        // 유언 종이를 거치는 동안 들고 있어야 하는 것들.
+        // 유언 도장을 거치는 동안 들고 있어야 하는 것들.
         // 클릭 두 번에 걸쳐 진행되므로 코루틴 지역 변수로는 이어지지 않는다.
         private LSO_RewardOption _chosenOption;
         private DLJ_WillDataSO _pendingWill;
@@ -210,7 +211,7 @@ namespace _Scripts.LSO.Reward
             _phase == Phase.Opening
             || _phase == Phase.Dealing
             || _phase == Phase.Lowering
-            || _phase == Phase.NoteRising
+            || _phase == Phase.StampRising
             || _phase == Phase.Closing;
 
         private void Awake()
@@ -227,7 +228,7 @@ namespace _Scripts.LSO.Reward
 
             if (cardAnchor == null) cardAnchor = transform;
 
-            if (pieceCardPrefab == null && willCardPrefab == null)
+            if (pieceCardPrefab == null && willStampPrefab == null)
             {
                 Debug.LogError($"{name}: 카드 원본이 하나도 없어 카드를 만들 수 없습니다.", this);
                 return;
@@ -238,8 +239,9 @@ namespace _Scripts.LSO.Reward
             if (pieceCardPrefab != null)
                 _piecePool = new LSO_ObjectPool<LSO_RewardPieceCard>(pieceCardPrefab, cardAnchor, prewarm: 3);
 
-            if (willCardPrefab != null)
-                _willPool = new LSO_ObjectPool<LSO_RewardWillCard>(willCardPrefab, cardAnchor, prewarm: 3);
+            // 세 개가 전부 유언일 수도 있고, 그 위에 보여줄 도장이 하나 더 필요하다.
+            if (willStampPrefab != null)
+                _willPool = new LSO_ObjectPool<LSO_WillStamp>(willStampPrefab, cardAnchor, prewarm: 4);
         }
 
         private void OnEnable()
@@ -302,13 +304,13 @@ namespace _Scripts.LSO.Reward
                     StartCoroutine(DealRoutine());
                     break;
 
-                // 처음 보는 유언을 받았다. 설명 종이를 꺼낸다.
-                case Phase.NoteWaiting:
-                    StartCoroutine(ShowNoteRoutine());
+                // 처음 보는 유언을 받았다. 도장을 꺼낸다.
+                case Phase.StampWaiting:
+                    StartCoroutine(ShowStampRoutine());
                     break;
 
-                // 다 읽었다는 뜻으로 친다.
-                case Phase.NoteShown:
+                // 다 봤다는 뜻으로 친다.
+                case Phase.StampShown:
                     StartCoroutine(CloseRoutine());
                     break;
 
@@ -417,7 +419,7 @@ namespace _Scripts.LSO.Reward
             {
                 if (_willPool != null) return _willPool.Get();
 
-                Debug.LogError($"{name}: Will Card Prefab이 없어 유언 카드를 만들지 못했습니다.", this);
+                Debug.LogError($"{name}: Will Stamp Prefab이 없어 유언 도장을 만들지 못했습니다.", this);
                 return null;
             }
 
@@ -438,8 +440,8 @@ namespace _Scripts.LSO.Reward
         {
             switch (card)
             {
-                case LSO_RewardWillCard will when _willPool != null:
-                    _willPool.Release(will);
+                case LSO_WillStamp stamp when _willPool != null:
+                    _willPool.Release(stamp);
                     break;
 
                 case LSO_RewardPieceCard piece when _piecePool != null:
@@ -522,7 +524,7 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 고른 것을 지급하고 나머지 카드를 내린다.
         ///
-        /// 처음 보는 유언이었으면 여기서 멈추고 종이를 꺼낼 클릭을 기다린다.
+        /// 처음 보는 유언이었으면 여기서 멈추고 도장을 꺼낼 클릭을 기다린다.
         /// 아니면 그대로 정리한다.
         /// </summary>
         private IEnumerator ClaimRoutine(LSO_RewardCard chosen)
@@ -531,7 +533,7 @@ namespace _Scripts.LSO.Reward
 
             // 지급 전에 확인한다. 지급하고 나면 해금 목록에 들어가
             // "처음 보는 유언"인지 알 수 없게 된다.
-            _pendingWill = FindNoteWill(_chosenOption);
+            _pendingWill = FindStampWill(_chosenOption);
 
             Claim(_chosenOption);
 
@@ -540,11 +542,11 @@ namespace _Scripts.LSO.Reward
             if (claimHold > 0f)
                 yield return new WaitForSeconds(claimHold);
 
-            if (_pendingWill != null && willNote != null)
+            if (_pendingWill != null && _willPool != null)
             {
-                _phase = Phase.NoteWaiting;
+                _phase = Phase.StampWaiting;
 
-                onNoteReady?.Invoke(_chosenOption);
+                onStampReady?.Invoke(_chosenOption);
                 yield break;
             }
 
@@ -552,25 +554,25 @@ namespace _Scripts.LSO.Reward
         }
 
         /// <summary>
-        /// 종이로 보여줄 유언. 없으면 null.
+        /// 도장으로 보여줄 유언. 없으면 null.
         ///
         /// 기물 카드는 여기서 걸러진다. 카드가 들고 있는 것은 LSO_WillType 이라
-        /// 설명과 아이콘을 꺼낼 데이터 에셋이 없다. 유언 보상만 종이를 낸다.
+        /// 도장을 고를 데이터 에셋이 없다. 유언 보상만 도장을 낸다.
         ///
         /// 반드시 지급 전에 부를 것. 지급하고 나면 해금 목록에 들어가
         /// 처음 보는 것인지 알 수 없게 된다.
         /// </summary>
-        private DLJ_WillDataSO FindNoteWill(LSO_RewardOption option)
+        private DLJ_WillDataSO FindStampWill(LSO_RewardOption option)
         {
             if (option == null || option.type != LSO_RewardType.Will) return null;
             if (option.will == null) return null;
 
-            if (!noteOnlyWhenNew) return option.will;
+            if (!stampOnlyWhenNew) return option.will;
 
             LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
             // 해금 목록을 못 보면 처음인지 알 수 없다. 그럴 때는 보여준다 —
-            // 설명을 한 번 더 보는 것이 못 보고 넘어가는 것보다 낫다.
+            // 한 번 더 보는 것이 못 보고 넘어가는 것보다 낫다.
             if (library == null || library.Claim == null) return option.will;
 
             return library.Claim.Unlocks.IsWillUnlocked(option.will) ? null : option.will;
@@ -627,38 +629,45 @@ namespace _Scripts.LSO.Reward
             }
         }
 
-        /// <summary>종이를 상자에서 꺼내 올린다.</summary>
-        private IEnumerator ShowNoteRoutine()
+        /// <summary>
+        /// 도장을 상자에서 꺼내 올린다.
+        ///
+        /// 고르는 것과 같은 풀에서 꺼낸다. 둘이 같은 물건이라 원본도 하나뿐이다.
+        /// 클릭 콜백은 붙이지 않는다 — 이미 고른 뒤라 다시 고를 것이 없다.
+        /// </summary>
+        private IEnumerator ShowStampRoutine()
         {
-            _phase = Phase.NoteRising;
+            _phase = Phase.StampRising;
 
-            willNote.gameObject.SetActive(true);
-            willNote.transform.SetParent(cardAnchor, false);
-            willNote.transform.localPosition = Vector3.zero;
-            willNote.transform.localRotation = Quaternion.identity;
+            _stamp = _willPool.Get();
 
-            willNote.Bind(_pendingWill);
+            _stamp.transform.SetParent(cardAnchor, false);
+            _stamp.transform.localPosition = Vector3.zero;
+            _stamp.transform.localRotation = Quaternion.identity;
 
-            Tween rise = willNote.transform
-                .DOLocalMove(notePosition, noteRiseDuration)
-                .SetEase(noteRiseEase)
-                .SetLink(willNote.gameObject);
+            _stamp.Bind(_pendingWill);
+
+            Tween rise = _stamp.transform
+                .DOLocalMove(stampPosition, stampRiseDuration)
+                .SetEase(stampRiseEase)
+                .SetLink(_stamp.gameObject);
 
             yield return rise.WaitForCompletion();
 
-            _phase = Phase.NoteShown;
+            _phase = Phase.StampShown;
 
-            onNoteShown?.Invoke(_chosenOption);
+            onStampShown?.Invoke(_chosenOption);
         }
 
         private IEnumerator CloseRoutine()
         {
             _phase = Phase.Closing;
 
-            if (willNote != null && willNote.gameObject.activeSelf)
+            if (_stamp != null)
             {
-                willNote.transform.DOKill();
-                willNote.gameObject.SetActive(false);
+                _stamp.transform.DOKill();
+                _willPool.Release(_stamp);
+                _stamp = null;
             }
 
             ReleaseAll();

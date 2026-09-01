@@ -40,8 +40,7 @@ namespace _Scripts.LDY.Effect
         [Tooltip("비워두면 씬에서 찾는다.")]
         [SerializeField] private LDY_CardPlacer cardPlacer;
 
-        [Tooltip("회전이 도는 동안 꺼둘 선택 컨트롤러. 비워두면 씬에서 찾는다.\n" +
-                 "같은 오브젝트에 붙어 있는 DLJ_ObjectHovering도 자동으로 함께 꺼진다.")]
+        [Tooltip("회전이 도는 동안 꺼둘 선택 컨트롤러. 비워두면 씬에서 찾는다.")]
         [SerializeField] private LDY_SelectionController selectionController;
 
         [Tooltip("위 둘 말고 더 꺼둘 것이 있으면 여기에. 보통은 비워둔다.\n" +
@@ -170,15 +169,11 @@ namespace _Scripts.LDY.Effect
         {
             var gated = new List<Behaviour>();
 
+            // 호버 연출은 여기서 끄지 않는다. 예전에는 이 오브젝트에 함께 붙어 있었지만
+            // 지금은 기물마다 따로 들고 있어서 여기서 모을 수가 없다.
+            // 대신 LDY_BoardPieceHider가 기물을 끄고, 그때 각자의 OnDisable이 원위치로 돌려놓는다.
             if (selectionController != null)
-            {
                 gated.Add(selectionController);
-
-                // 선택된 기물을 띄워두는 연출. 끄면 OnDisable이 원위치까지 돌려놓는다.
-                // LDY_SelectionController.Awake가 반드시 붙여주므로 여기 있다고 봐도 된다.
-                if (selectionController.TryGetComponent(out DLJ_ObjectHovering hovering))
-                    gated.Add(hovering);
-            }
 
             if (cardPlacer != null)
                 gated.Add(cardPlacer);
