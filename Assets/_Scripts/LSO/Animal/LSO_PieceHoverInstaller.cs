@@ -149,14 +149,14 @@ namespace _Scripts.LSO.Animal
                 return;
             }
 
-            if (Camera.main != null &&
-                Camera.main.GetComponent<UnityEngine.EventSystems.PhysicsRaycaster>() == null)
+            if (UnityEngine.Camera.main != null &&
+                UnityEngine.Camera.main.GetComponent<UnityEngine.EventSystems.PhysicsRaycaster>() == null)
             {
                 _warnedAboutEventSystem = true;
 
                 Debug.LogWarning(
                     "[LSO_PieceHoverInstaller] 메인 카메라에 Physics Raycaster가 없어 " +
-                    "3D 콜라이더로 호버가 오지 않습니다.", Camera.main);
+                    "3D 콜라이더로 호버가 오지 않습니다.", UnityEngine.Camera.main);
             }
         }
     }
