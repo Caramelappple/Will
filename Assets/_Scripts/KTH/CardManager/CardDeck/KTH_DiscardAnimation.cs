@@ -1,8 +1,12 @@
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 
+// 3D 전환 메모:
+// - CanvasGroup(blocksRaycasts/interactable)은 3D에 없는 개념이라 Collider.enabled로 대체.
+// - UnityEngine.UI.Shadow는 UI 전용 이펙트라 3D에는 존재하지 않는다.
+//   대신 카드 밑에 별도로 둔 그림자용 SpriteRenderer(선택)를 찾아서 알파를 밀었다가 복구하는 방식으로 바꿨다.
+//   그림자 오브젝트가 따로 없다면 shadowRenderer를 비워두면 이 부분은 그냥 건너뛴다.
 public class KTH_DiscardAnimation : MonoBehaviour
 {
     [Header("Discard Animation")]
@@ -28,7 +32,9 @@ public class KTH_DiscardAnimation : MonoBehaviour
     [SerializeField] private float landingDuration = 0.08f;
     [SerializeField] private float landingScale = 0.96f;
 
-    [Header("Shadow")]
+    [Header("Shadow (선택)")]
+    [Tooltip("카드 밑에 그림자용 SpriteRenderer가 따로 있다면 여기에 연결 (프리팹마다 다르면 카드 쪽에서 GetComponentInChildren로 찾아도 됨). 없으면 비워둬도 된다.")]
+    [SerializeField] private string shadowChildName = "Shadow";
     [SerializeField] private float shadowBoost = 1.8f;
     [SerializeField] private float shadowDuration = 0.12f;
 
@@ -65,20 +71,16 @@ public class KTH_DiscardAnimation : MonoBehaviour
         Transform cardTransform = card.transform;
 
         // ==================================================
-        // CanvasGroup
+        // Collider (구 CanvasGroup.blocksRaycasts / interactable 대체)
         // ==================================================
 
-        CanvasGroup canvasGroup =
-            card.GetComponent<CanvasGroup>();
+        Collider cardCollider =
+            card.GetComponent<Collider>();
 
-        if (canvasGroup == null)
+        if (cardCollider != null)
         {
-            canvasGroup =
-                card.gameObject.AddComponent<CanvasGroup>();
+            cardCollider.enabled = false;
         }
-
-        canvasGroup.blocksRaycasts = false;
-        canvasGroup.interactable = false;
 
         // ==================================================
         // 부모 변경
@@ -179,17 +181,19 @@ public class KTH_DiscardAnimation : MonoBehaviour
             cardTransform.localScale;
 
         // ==================================================
-        // Shadow
+        // Shadow (선택 - 카드 자식 중 "Shadow"라는 이름의 SpriteRenderer)
         // ==================================================
 
-        Shadow shadow =
-            card.GetComponentInChildren<Shadow>();
+        Transform shadowTransform =
+            card.transform.Find(shadowChildName);
+
+        SpriteRenderer shadow =
+            shadowTransform != null
+                ? shadowTransform.GetComponent<SpriteRenderer>()
+                : null;
 
         Color originalShadowColor =
             Color.clear;
-
-        Vector2 originalShadowDistance =
-            Vector2.zero;
 
         bool hasShadow =
             shadow != null;
@@ -197,10 +201,7 @@ public class KTH_DiscardAnimation : MonoBehaviour
         if (hasShadow)
         {
             originalShadowColor =
-                shadow.effectColor;
-
-            originalShadowDistance =
-                shadow.effectDistance;
+                shadow.color;
         }
 
         // ==================================================
@@ -271,7 +272,7 @@ public class KTH_DiscardAnimation : MonoBehaviour
                         shadowBoost
                     );
 
-                shadow.effectColor =
+                shadow.color =
                     boostedColor;
             });
         }
@@ -306,37 +307,21 @@ public class KTH_DiscardAnimation : MonoBehaviour
         {
             sequence.Append(
                 DOTween.To(
-                    () => shadow.effectColor.a,
+                    () => shadow.color.a,
                     alpha =>
                     {
                         if (shadow == null)
                             return;
 
                         Color color =
-                            shadow.effectColor;
+                            shadow.color;
 
                         color.a = alpha;
 
-                        shadow.effectColor =
+                        shadow.color =
                             color;
                     },
                     originalShadowColor.a,
-                    shadowDuration
-                )
-            );
-
-            sequence.Join(
-                DOTween.To(
-                    () => shadow.effectDistance,
-                    value =>
-                    {
-                        if (shadow == null)
-                            return;
-
-                        shadow.effectDistance =
-                            value;
-                    },
-                    originalShadowDistance,
                     shadowDuration
                 )
             );

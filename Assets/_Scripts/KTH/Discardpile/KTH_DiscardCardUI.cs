@@ -7,23 +7,29 @@ using UnityEngine;
 
 using Random = UnityEngine.Random;
 
+// 3D 전환 메모:
+// - RectTransform -> Transform, TMP_Text(UGUI) -> TextMeshPro(3D)로 교체.
+// - anchoredPosition -> localPosition. (Transform.DOMove / childCount / GetChild는
+//   원래도 RectTransform 전용이 아니라 Transform 공통 API라 손 안 댔음)
+// - CanvasGroup(blocksRaycasts/interactable) -> Collider.enabled.
+// - transform.SetAsLastSibling() -> KTH_CardSorting.BringToFront() (sortingOrder).
 public class KTH_DiscardCardUI : MonoBehaviour
 {
-    [Header("UI 연결")]
-    [SerializeField] private RectTransform discardCardTransform;
-    [SerializeField] private TMP_Text discardCountText;
+    [Header("연결")]
+    [SerializeField] private Transform discardCardTransform;
+    [SerializeField] private TextMeshPro discardCountText;
 
     [Header("버림 카드 표시")]
     [SerializeField] private KTH_HandCard discardCardPrefab;
 
     [Header("더미 설정")]
-    [Tooltip("카드가 쌓일 때 좌우로 퍼지는 최대 범위")]
+    [Tooltip("카드가 쌓일 때 좌우로 퍼지는 최대 범위 (월드 스페이스 유닛)")]
     [SerializeField] private float maxStackOffset = 5f;
 
-    [Tooltip("카드가 쌓일 때 위아래로 랜덤하게 움직이는 범위")]
+    [Tooltip("카드가 쌓일 때 위아래로 랜덤하게 움직이는 범위 (월드 스페이스 유닛)")]
     [SerializeField] private float verticalStackOffset = 3f;
 
-    [Tooltip("카드 한 장이 추가될 때마다 위로 올라가는 높이")]
+    [Tooltip("카드 한 장이 추가될 때마다 위로 올라가는 높이 (월드 스페이스 유닛)")]
     [SerializeField] private float stackHeight = 2.5f;
 
     [Header("카드 랜덤 기울기")]
@@ -41,8 +47,8 @@ public class KTH_DiscardCardUI : MonoBehaviour
     [SerializeField] private Ease discardRotateEase = Ease.OutQuad;
 
     [Header("리셔플 연출")]
-    [Tooltip("카드를 뽑았던 위치(덱 UI)")]
-    [SerializeField] private RectTransform drawPileTransform;
+    [Tooltip("카드를 뽑았던 위치(덱 오브젝트)")]
+    [SerializeField] private Transform drawPileTransform;
 
     [SerializeField] private float reshuffleFlyDuration = 0.35f;
 
@@ -59,7 +65,7 @@ public class KTH_DiscardCardUI : MonoBehaviour
 
     private KTH_HandCard _topDiscardCard;
 
-    public RectTransform DiscardCardTransform =>
+    public Transform DiscardCardTransform =>
         discardCardTransform;
 
     public int Count =>
@@ -163,198 +169,183 @@ public class KTH_DiscardCardUI : MonoBehaviour
     // =========================================================
 
     private void PlaceExistingCardInPile(
-    KTH_HandCard card)
-{
-    if (card == null)
+        KTH_HandCard card)
     {
-        return;
-    }
-
-    if (discardCardTransform == null)
-    {
-        Debug.LogWarning(
-            "[KTH_DiscardCardUI] " +
-            "Discard Card Transform이 연결되지 않았습니다.",
-            this
-        );
-
-        return;
-    }
-
-    Transform cardTransform =
-        card.transform;
-
-    // ==================================================
-    // 현재 월드 위치 / 회전 저장
-    //
-    // 중요:
-    // KTH_DiscardAnimation에서 이미
-    // Y = 180도 회전이 끝난 상태다.
-    //
-    // 따라서 여기서는 현재 회전을 그대로 유지한다.
-    // ==================================================
-
-    Quaternion currentWorldRotation =
-        cardTransform.rotation;
-
-    // ==================================================
-    // 더미의 자식으로 변경
-    //
-    // 현재 월드 위치/회전 유지
-    // ==================================================
-
-    cardTransform.SetParent(
-        discardCardTransform,
-        true
-    );
-
-    RectTransform cardRect =
-        cardTransform.GetComponent<RectTransform>();
-
-    if (cardRect == null)
-    {
-        return;
-    }
-
-    // ==================================================
-    // 카드가 쌓일 위치 계산
-    // ==================================================
-
-    int stackIndex =
-        Mathf.Max(
-            0,
-            _discardCardList.Count - 1
-        );
-
-    float offsetX =
-        Random.Range(
-            -maxStackOffset,
-            maxStackOffset
-        );
-
-    float randomY =
-        Random.Range(
-            -verticalStackOffset,
-            verticalStackOffset
-        );
-
-    float offsetY =
-        (stackIndex * stackHeight) +
-        randomY;
-
-    Vector3 targetPosition =
-        discardCardTransform.TransformPoint(
-            new Vector3(
-                offsetX,
-                offsetY,
-                0f
-            )
-        );
-
-    // ==================================================
-    // 기존 Tween 제거
-    // ==================================================
-
-    cardTransform.DOKill();
-
-    // ==================================================
-    // 중요
-    //
-    // 회전 애니메이션을 하지 않는다.
-    //
-    // KTH_DiscardAnimation에서 이미 회전이 끝났기
-    // 때문에 여기서 다시 회전시키면 두 번 회전한다.
-    // ==================================================
-
-    Sequence sequence =
-        DOTween.Sequence();
-
-    sequence.SetTarget(
-        cardTransform
-    );
-
-    // ==================================================
-    // 위치만 이동
-    // ==================================================
-
-    sequence.Append(
-        cardTransform
-            .DOMove(
-                targetPosition,
-                discardMoveDuration
-            )
-            .SetEase(
-                discardMoveEase
-            )
-    );
-
-    // ==================================================
-    // 완료
-    // ==================================================
-
-    sequence.OnComplete(() =>
-    {
-        if (cardTransform == null)
+        if (card == null)
         {
             return;
         }
 
-        // ==================================================
-        // 최종 위치만 확정
-        // ==================================================
+        if (discardCardTransform == null)
+        {
+            Debug.LogWarning(
+                "[KTH_DiscardCardUI] " +
+                "Discard Card Transform이 연결되지 않았습니다.",
+                this
+            );
 
-        cardTransform.position =
-            targetPosition;
+            return;
+        }
+
+        Transform cardTransform =
+            card.transform;
 
         // ==================================================
-        // 회전은 절대 다시 설정하지 않는다.
+        // 현재 월드 위치 / 회전 저장
         //
-        // KTH_DiscardAnimation에서 만들어진
-        // 현재 회전 상태를 그대로 유지한다.
+        // 중요:
+        // KTH_DiscardAnimation에서 이미
+        // Y = 180도 회전이 끝난 상태다.
+        //
+        // 따라서 여기서는 현재 회전을 그대로 유지한다.
         // ==================================================
 
-        cardTransform.rotation =
-            currentWorldRotation;
+        Quaternion currentWorldRotation =
+            cardTransform.rotation;
 
         // ==================================================
-        // 가장 위로
+        // 더미의 자식으로 변경
+        //
+        // 현재 월드 위치/회전 유지
         // ==================================================
 
-        cardTransform.SetAsLastSibling();
+        cardTransform.SetParent(
+            discardCardTransform,
+            true
+        );
 
         // ==================================================
-        // 손패 인터랙션 비활성화
+        // 카드가 쌓일 위치 계산
         // ==================================================
 
-        card.enabled = false;
+        int stackIndex =
+            Mathf.Max(
+                0,
+                _discardCardList.Count - 1
+            );
 
-        KTH_CardSorting cardSorting =
-            card.GetComponent<KTH_CardSorting>();
+        float offsetX =
+            Random.Range(
+                -maxStackOffset,
+                maxStackOffset
+            );
 
-        if (cardSorting != null)
+        float randomY =
+            Random.Range(
+                -verticalStackOffset,
+                verticalStackOffset
+            );
+
+        float offsetY =
+            (stackIndex * stackHeight) +
+            randomY;
+
+        Vector3 targetPosition =
+            discardCardTransform.TransformPoint(
+                new Vector3(
+                    offsetX,
+                    offsetY,
+                    0f
+                )
+            );
+
+        // ==================================================
+        // 기존 Tween 제거
+        // ==================================================
+
+        cardTransform.DOKill();
+
+        // ==================================================
+        // 중요
+        //
+        // 회전 애니메이션을 하지 않는다.
+        //
+        // KTH_DiscardAnimation에서 이미 회전이 끝났기
+        // 때문에 여기서 다시 회전시키면 두 번 회전한다.
+        // ==================================================
+
+        Sequence sequence =
+            DOTween.Sequence();
+
+        sequence.SetTarget(
+            cardTransform
+        );
+
+        // ==================================================
+        // 위치만 이동
+        // ==================================================
+
+        sequence.Append(
+            cardTransform
+                .DOMove(
+                    targetPosition,
+                    discardMoveDuration
+                )
+                .SetEase(
+                    discardMoveEase
+                )
+        );
+
+        // ==================================================
+        // 완료
+        // ==================================================
+
+        sequence.OnComplete(() =>
         {
-            cardSorting.enabled = false;
-        }
+            if (cardTransform == null)
+            {
+                return;
+            }
 
-        CanvasGroup canvasGroup =
-            card.GetComponent<CanvasGroup>();
+            // ==================================================
+            // 최종 위치만 확정
+            // ==================================================
 
-        if (canvasGroup == null)
-        {
-            canvasGroup =
-                card.gameObject.AddComponent<CanvasGroup>();
-        }
+            cardTransform.position =
+                targetPosition;
 
-        canvasGroup.blocksRaycasts = false;
-        canvasGroup.interactable = false;
+            // ==================================================
+            // 회전은 절대 다시 설정하지 않는다.
+            //
+            // KTH_DiscardAnimation에서 만들어진
+            // 현재 회전 상태를 그대로 유지한다.
+            // ==================================================
 
-        // ==================================================
-        // 현재 최상단 카드 저장
-        // ==================================================
+            cardTransform.rotation =
+                currentWorldRotation;
 
-        _topDiscardCard = card;
-    });
-}
+            // ==================================================
+            // 손패 인터랙션 비활성화
+            // ==================================================
+
+            card.enabled = false;
+
+            KTH_CardSorting cardSorting =
+                card.GetComponent<KTH_CardSorting>();
+
+            if (cardSorting != null)
+            {
+                // 가장 위로 (구 SetAsLastSibling 대체)
+                cardSorting.BringToFront();
+
+                cardSorting.enabled = false;
+            }
+
+            Collider cardCollider =
+                card.GetComponent<Collider>();
+
+            if (cardCollider != null)
+            {
+                cardCollider.enabled = false;
+            }
+
+            // ==================================================
+            // 현재 최상단 카드 저장
+            // ==================================================
+
+            _topDiscardCard = card;
+        });
+    }
 
 
     // =========================================================
@@ -435,29 +426,26 @@ public class KTH_DiscardCardUI : MonoBehaviour
                     discardCardTransform
                 );
 
-        RectTransform cardRect =
-            newCard.GetComponent<RectTransform>();
-
-        if (cardRect != null)
-        {
-            ApplyStackPosition(cardRect);
-        }
-
-        newCard.transform.SetAsLastSibling();
+        ApplyStackPosition(newCard.transform);
 
         newCard.enabled = false;
 
-        CanvasGroup canvasGroup =
-            newCard.GetComponent<CanvasGroup>();
+        KTH_CardSorting cardSorting =
+            newCard.GetComponent<KTH_CardSorting>();
 
-        if (canvasGroup == null)
+        if (cardSorting != null)
         {
-            canvasGroup =
-                newCard.gameObject.AddComponent<CanvasGroup>();
+            // 가장 위로 (구 SetAsLastSibling 대체)
+            cardSorting.BringToFront();
         }
 
-        canvasGroup.blocksRaycasts = false;
-        canvasGroup.interactable = false;
+        Collider cardCollider =
+            newCard.GetComponent<Collider>();
+
+        if (cardCollider != null)
+        {
+            cardCollider.enabled = false;
+        }
 
         _topDiscardCard = newCard;
     }
@@ -468,9 +456,9 @@ public class KTH_DiscardCardUI : MonoBehaviour
     // =========================================================
 
     private void ApplyStackPosition(
-        RectTransform cardRect)
+        Transform cardTransform)
     {
-        if (cardRect == null)
+        if (cardTransform == null)
         {
             return;
         }
@@ -497,16 +485,17 @@ public class KTH_DiscardCardUI : MonoBehaviour
             (stackIndex * stackHeight) +
             randomY;
 
-        cardRect.anchoredPosition =
-            new Vector2(
+        cardTransform.localPosition =
+            new Vector3(
                 offsetX,
-                offsetY
+                offsetY,
+                0f
             );
 
         float randomAngle =
             GetRandomAngle();
 
-        cardRect.localRotation =
+        cardTransform.localRotation =
             Quaternion.Euler(
                 0f,
                 180f,
