@@ -63,6 +63,11 @@ namespace _Scripts.LSO.Reward
 
             EditorGUI.BeginChangeCheck();
 
+            // 카드 장수는 테이블 전체가 하나를 쓴다. 스테이지 줄이 아니라 맨 위에 둔다.
+            DrawTableSettings();
+
+            EditorGUILayout.Space(6);
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Label($"스테이지 총 {_target.Stages.Count}개", EditorStyles.boldLabel);
@@ -72,8 +77,7 @@ namespace _Scripts.LSO.Reward
                     _target.Stages.Add(new LSO_StageRewardData
                     {
                         chapter = 1,
-                        stage = 1,
-                        rewardChoiceCount = 3
+                        stage = 1
                     });
                 }
             }
@@ -97,6 +101,39 @@ namespace _Scripts.LSO.Reward
                 EditorUtility.SetDirty(_target);
                 AssetDatabase.SaveAssetIfDirty(_target);
             }
+        }
+
+        /// <summary>
+        /// 테이블 전체에 걸리는 값.
+        ///
+        /// private [SerializeField]라 SerializedObject로 만진다.
+        /// 필드 이름이 바뀌면 조용히 아무 일도 안 하는 대신 이름을 짚어준다.
+        /// </summary>
+        private void DrawTableSettings()
+        {
+            var so = new SerializedObject(_target);
+            SerializedProperty count = so.FindProperty("cardCount");
+
+            if (count == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "LSO_RewardTableSO에 'cardCount' 필드가 없습니다 — 이 창을 고쳐야 합니다.",
+                    MessageType.Error);
+                return;
+            }
+
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                EditorGUILayout.LabelField("상자에서 나올 카드 장수", GUILayout.Width(150));
+
+                count.intValue = Mathf.Max(1, EditorGUILayout.IntField(count.intValue, GUILayout.Width(40)));
+
+                EditorGUILayout.LabelField(
+                    "모든 스테이지가 같은 값을 쓴다. 그중 하나를 고른다.",
+                    EditorStyles.miniLabel);
+            }
+
+            so.ApplyModifiedProperties();
         }
 
         private void InitStyles()
@@ -136,22 +173,6 @@ namespace _Scripts.LSO.Reward
                     GUILayout.Width(50)
                 );
 
-                GUILayout.Space(10);
-
-                // ⭐ 보상 후보 개수
-                EditorGUILayout.LabelField(
-                    "보상 선택 수",
-                    GUILayout.Width(75)
-                );
-
-                stage.rewardChoiceCount = Mathf.Max(
-                    1,
-                    EditorGUILayout.IntField(
-                        stage.rewardChoiceCount,
-                        GUILayout.Width(40)
-                    )
-                );
-
                 GUILayout.FlexibleSpace();
 
                 if (GUILayout.Button(
@@ -164,20 +185,26 @@ namespace _Scripts.LSO.Reward
 
             EditorGUILayout.Space(2);
 
+            // 스테이지가 주는 유언은 하나뿐이라 풀 위에 한 줄로 둔다.
+            // 카드 풀 옆에 두면 "카드마다 하나씩"으로 읽힌다.
             using (new EditorGUILayout.HorizontalScope())
             {
-                DrawPool(
-                    "카드 풀 (CardSO)",
-                    stage.possiblePieces
-                );
+                EditorGUILayout.LabelField(
+                    "이 스테이지가 주는 유언", EditorStyles.boldLabel, GUILayout.Width(150));
 
-                GUILayout.Space(8);
+                stage.stageWill = (DLJ_WillDataSO)EditorGUILayout.ObjectField(
+                    stage.stageWill, typeof(DLJ_WillDataSO), false, GUILayout.Width(220));
 
-                DrawWillPool(
-                    "유언 풀 (WillDataSO)",
-                    stage.possibleWills
-                );
+                EditorGUILayout.LabelField(
+                    stage.stageWill != null
+                        ? "어느 카드를 골라도 이것 하나가 풀린다"
+                        : "비어 있음 — 이 스테이지는 유언을 주지 않는다",
+                    EditorStyles.miniLabel);
             }
+
+            EditorGUILayout.Space(2);
+
+            DrawPool("카드 풀 (CardSO)", stage.possiblePieces);
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(4);
@@ -185,9 +212,8 @@ namespace _Scripts.LSO.Reward
 
         private void DrawPool(string poolTitle, List<LSO_RewardPoolEntry> pool)
         {
-            float colWidth = (position.width - 60) / 2f;
-
-            using (new EditorGUILayout.VerticalScope(GUILayout.Width(colWidth)))
+            // 유언 풀이 없어져 옆에 나란히 놓을 것이 사라졌다. 창 폭을 그대로 쓴다.
+            using (new EditorGUILayout.VerticalScope())
             {
                 EditorGUILayout.LabelField(poolTitle, EditorStyles.boldLabel);
 
@@ -216,38 +242,6 @@ namespace _Scripts.LSO.Reward
             }
         }
 
-        private void DrawWillPool(string poolTitle, List<LSO_WillRewardPoolEntry> pool)
-        {
-            float colWidth = (position.width - 60) / 2f;
-
-            using (new EditorGUILayout.VerticalScope(GUILayout.Width(colWidth)))
-            {
-                EditorGUILayout.LabelField(poolTitle, EditorStyles.boldLabel);
-
-                for (int i = 0; i < pool.Count; i++)
-                {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        // DLJ_WillDataSO 타입 필터링
-                        pool[i].willSO = (DLJ_WillDataSO)EditorGUILayout.ObjectField(
-                            pool[i].willSO, typeof(DLJ_WillDataSO), false);
-
-                        pool[i].weight = EditorGUILayout.FloatField(pool[i].weight, GUILayout.Width(60));
-
-                        if (GUILayout.Button("-", GUILayout.Width(24)))
-                        {
-                            pool.RemoveAt(i);
-                            break;
-                        }
-                    }
-                }
-
-                if (GUILayout.Button("+ 유언 추가"))
-                {
-                    pool.Add(new LSO_WillRewardPoolEntry());
-                }
-            }
-        }
     }
 }
 #endif

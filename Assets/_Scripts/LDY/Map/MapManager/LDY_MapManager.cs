@@ -1129,8 +1129,8 @@ public class LDY_MapManager : MonoBehaviour
             $"(Chapter: {chapter}, Stage: {stage})"
         );
 
-        // 상자를 열어주지는 않는다. 누를 준비만 시킨다.
-        // 뚜껑을 여는 것은 플레이어의 첫 클릭이다.
+        // 여기서 끝이다. 상자가 스스로 열고 카드까지 꺼낸다.
+        // 플레이어가 할 일은 카드를 고르는 것부터다.
         box.Begin(chapter, stage);
     }
 

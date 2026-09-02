@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8712c7c745e5dd24f8b2b12642eb08ba, type: 3}
   m_Name: RewardData
   m_EditorClassIdentifier: Assembly-CSharp::LSO_RewardTableSO
+  cardCount: 3
   stages:
   - chapter: 1
     stage: 1
-    rewardChoiceCount: 3
     possiblePieces:
     - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
       weight: 1
-    possibleWills:
-    - willSO: {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
       weight: 1
-    - willSO: {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
+    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
       weight: 1
+    stageWill: {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+  testChapter: 1
+  testStage: 1
+  testRolls: 1000
