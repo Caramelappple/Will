@@ -23,14 +23,21 @@ public class KTH_DiscardCardUI : MonoBehaviour
     [SerializeField] private KTH_HandCard discardCardPrefab;
 
     [Header("더미 설정")]
-    [Tooltip("카드가 쌓일 때 좌우로 퍼지는 최대 범위 (월드 스페이스 유닛)")]
-    [SerializeField] private float maxStackOffset = 5f;
+    [Tooltip("카드가 눕혀져 쌓일 때 테이블 면 위에서 좌우로 퍼지는 최대 범위 (월드 스페이스 유닛)")]
+    [SerializeField] private float maxStackOffset = 0.05f;
 
-    [Tooltip("카드가 쌓일 때 위아래로 랜덤하게 움직이는 범위 (월드 스페이스 유닛)")]
-    [SerializeField] private float verticalStackOffset = 3f;
+    [Tooltip("카드가 눕혀져 쌓일 때 테이블 면 위에서 앞뒤(깊이)로 퍼지는 범위 (월드 스페이스 유닛). " +
+             "높이(Stack Height)와는 다른 축이라 쌓인 순서에는 영향 없음.")]
+    [SerializeField] private float depthStackOffset = 0.03f;
 
-    [Tooltip("카드 한 장이 추가될 때마다 위로 올라가는 높이 (월드 스페이스 유닛)")]
-    [SerializeField] private float stackHeight = 2.5f;
+    [Tooltip("카드 한 장이 추가될 때마다 더미가 두꺼워지는 높이 (월드 스페이스 유닛, 카드 두께 느낌). " +
+             "쌓인 순서를 결정하는 값이라 랜덤을 섞지 않는다.")]
+    [SerializeField] private float stackHeight = 0.015f;
+
+    [Header("카드 눕히기 / 뒤집기")]
+    [Tooltip("더미에서 카드가 테이블에 눕는 각도(X축). 이 값 하나로 눕는 것과 어느 면이 보이는지(뒤집기)가 " +
+             "동시에 결정된다. 90과 -90이 서로 반대 면이 보이는 상태이니, 둘 중 원하는 면이 보이는 쪽으로 조정.")]
+    [SerializeField] private float lieFlatXAngle = -90f;
 
     [Header("카드 랜덤 기울기")]
     [Tooltip("카드가 쌓일 때 랜덤으로 기울어지는 최대 각도")]
@@ -38,13 +45,6 @@ public class KTH_DiscardCardUI : MonoBehaviour
 
     [Tooltip("이 각도보다 작으면 최소 기울기를 적용")]
     [SerializeField] private float minRandomAngle = 5f;
-
-    [Header("버림 이동 연출")]
-    [SerializeField] private float discardMoveDuration = 0.3f;
-
-    [SerializeField] private Ease discardMoveEase = Ease.OutQuad;
-
-    [SerializeField] private Ease discardRotateEase = Ease.OutQuad;
 
     [Header("리셔플 연출")]
     [Tooltip("카드를 뽑았던 위치(덱 오브젝트)")]
@@ -58,7 +58,7 @@ public class KTH_DiscardCardUI : MonoBehaviour
     [SerializeField] private Ease reshuffleEase = Ease.InOutQuad;
 
     [Tooltip("덱으로 돌아갈 때 살짝 떠올랐다가 내려오는 정점 높이")]
-    [SerializeField] private float reshuffleArcHeight = 40f;
+    [SerializeField] private float reshuffleArcHeight = 0.4f;
 
     private readonly List<LSO_CardSO> _discardCardList =
         new List<LSO_CardSO>();
@@ -164,6 +164,62 @@ public class KTH_DiscardCardUI : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 다음 카드가 더미에 들어갈 때 도착해야 할 최종 월드 위치/회전을 미리 계산해서 알려준다.
+    ///
+    /// KTH_DiscardAnimation이 던지는 애니메이션을 시작하기 전에 이걸 불러서,
+    /// 처음부터 "진짜 쌓임 위치(더미 높이 반영)"로 날아가게 한다.
+    /// 예전엔 대충 아무 데나 던진 다음 도착 후에 다시 진짜 위치로 옮겼는데,
+    /// 그러면 착지하자마자 한 번 더 미끄러지듯 보정되는 게 보여서 이 방식으로 통일했다.
+    ///
+    /// 중요: 이 카드가 실제로 리스트에 추가되기 전(AddToDiscardPile /
+    /// AddExistingCardToDiscardPile 호출 전)에 불러야 스택 높이 계산이 맞는다.
+    /// </summary>
+    public void GetNextStackTarget(
+        out Vector3 worldPosition,
+        out Quaternion rotation)
+    {
+        int stackIndex =
+            _discardCardList.Count;
+
+        float offsetX =
+            Random.Range(
+                -maxStackOffset,
+                maxStackOffset
+            );
+
+        // 높이(Y)는 쌓인 순서를 결정하는 값이라 랜덤을 섞지 않는다.
+        // 지저분해 보이는 효과는 테이블 면 위의 앞뒤(Z)로 대신 준다.
+        float offsetY =
+            stackIndex * stackHeight;
+
+        float offsetZ =
+            Random.Range(
+                -depthStackOffset,
+                depthStackOffset
+            );
+
+        worldPosition =
+            discardCardTransform.position +
+            discardCardTransform.rotation *
+            new Vector3(
+                offsetX,
+                offsetY,
+                offsetZ
+            );
+
+        float randomAngle =
+            GetRandomAngle();
+
+        rotation =
+            Quaternion.Euler(
+                lieFlatXAngle,
+                0f,
+                randomAngle
+            );
+    }
+
+
     // =========================================================
     // 기존 카드 더미 편입
     // =========================================================
@@ -190,24 +246,9 @@ public class KTH_DiscardCardUI : MonoBehaviour
         Transform cardTransform =
             card.transform;
 
-        // ==================================================
-        // 현재 월드 위치 / 회전 저장
-        //
-        // 중요:
-        // KTH_DiscardAnimation에서 이미
-        // Y = 180도 회전이 끝난 상태다.
-        //
-        // 따라서 여기서는 현재 회전을 그대로 유지한다.
-        // ==================================================
-
-        Quaternion currentWorldRotation =
-            cardTransform.rotation;
-
-        // ==================================================
-        // 더미의 자식으로 변경
-        //
-        // 현재 월드 위치/회전 유지
-        // ==================================================
+        // KTH_DiscardAnimation이 GetNextStackTarget()으로 미리 받은
+        // 최종 위치/회전까지 이미 다 던져놓은 상태다. 여기서는 그 상태를
+        // 유지한 채 부모만 갈아끼운다 (SetParent(worldPositionStays: true)).
 
         cardTransform.SetParent(
             discardCardTransform,
@@ -215,136 +256,34 @@ public class KTH_DiscardCardUI : MonoBehaviour
         );
 
         // ==================================================
-        // 카드가 쌓일 위치 계산
+        // 손패 인터랙션 비활성화
         // ==================================================
 
-        int stackIndex =
-            Mathf.Max(
-                0,
-                _discardCardList.Count - 1
-            );
+        card.enabled = false;
 
-        float offsetX =
-            Random.Range(
-                -maxStackOffset,
-                maxStackOffset
-            );
+        KTH_CardSorting cardSorting =
+            card.GetComponent<KTH_CardSorting>();
 
-        float randomY =
-            Random.Range(
-                -verticalStackOffset,
-                verticalStackOffset
-            );
-
-        float offsetY =
-            (stackIndex * stackHeight) +
-            randomY;
-
-        Vector3 targetPosition =
-            discardCardTransform.TransformPoint(
-                new Vector3(
-                    offsetX,
-                    offsetY,
-                    0f
-                )
-            );
-
-        // ==================================================
-        // 기존 Tween 제거
-        // ==================================================
-
-        cardTransform.DOKill();
-
-        // ==================================================
-        // 중요
-        //
-        // 회전 애니메이션을 하지 않는다.
-        //
-        // KTH_DiscardAnimation에서 이미 회전이 끝났기
-        // 때문에 여기서 다시 회전시키면 두 번 회전한다.
-        // ==================================================
-
-        Sequence sequence =
-            DOTween.Sequence();
-
-        sequence.SetTarget(
-            cardTransform
-        );
-
-        // ==================================================
-        // 위치만 이동
-        // ==================================================
-
-        sequence.Append(
-            cardTransform
-                .DOMove(
-                    targetPosition,
-                    discardMoveDuration
-                )
-                .SetEase(
-                    discardMoveEase
-                )
-        );
-
-        // ==================================================
-        // 완료
-        // ==================================================
-
-        sequence.OnComplete(() =>
+        if (cardSorting != null)
         {
-            if (cardTransform == null)
-            {
-                return;
-            }
+            cardSorting.BringToFront();
 
-            // ==================================================
-            // 최종 위치만 확정
-            // ==================================================
+            cardSorting.enabled = false;
+        }
 
-            cardTransform.position =
-                targetPosition;
+        Collider cardCollider =
+            card.GetComponent<Collider>();
 
-            // ==================================================
-            // 회전은 절대 다시 설정하지 않는다.
-            //
-            // KTH_DiscardAnimation에서 만들어진
-            // 현재 회전 상태를 그대로 유지한다.
-            // ==================================================
+        if (cardCollider != null)
+        {
+            cardCollider.enabled = false;
+        }
 
-            cardTransform.rotation =
-                currentWorldRotation;
+        // ==================================================
+        // 현재 최상단 카드 저장
+        // ==================================================
 
-            // ==================================================
-            // 손패 인터랙션 비활성화
-            // ==================================================
-
-            card.enabled = false;
-
-            KTH_CardSorting cardSorting =
-                card.GetComponent<KTH_CardSorting>();
-
-            if (cardSorting != null)
-            {
-                // 가장 위로 (구 SetAsLastSibling 대체)
-                cardSorting.BringToFront();
-
-                cardSorting.enabled = false;
-            }
-
-            Collider cardCollider =
-                card.GetComponent<Collider>();
-
-            if (cardCollider != null)
-            {
-                cardCollider.enabled = false;
-            }
-
-            // ==================================================
-            // 현재 최상단 카드 저장
-            // ==================================================
-
-            _topDiscardCard = card;
-        });
+        _topDiscardCard = card;
     }
 
 
@@ -475,21 +414,27 @@ public class KTH_DiscardCardUI : MonoBehaviour
                 maxStackOffset
             );
 
-        float randomY =
+        // 높이(Y)는 쌓인 순서를 결정하는 값이라 랜덤을 섞지 않는다.
+        // 지저분해 보이는 효과는 테이블 면 위의 앞뒤(Z)로 대신 준다.
+        float offsetY =
+            stackIndex * stackHeight;
+
+        float offsetZ =
             Random.Range(
-                -verticalStackOffset,
-                verticalStackOffset
+                -depthStackOffset,
+                depthStackOffset
             );
 
-        float offsetY =
-            (stackIndex * stackHeight) +
-            randomY;
-
-        cardTransform.localPosition =
+        // localPosition을 직접 쓰면 부모(discardCardTransform)의 작은 Scale이
+        // 그대로 곱해져서 간격이 거의 사라진다. 월드 포지션으로 직접 지정해서
+        // 부모 스케일과 무관하게 의도한 간격이 나오게 한다.
+        cardTransform.position =
+            discardCardTransform.position +
+            discardCardTransform.rotation *
             new Vector3(
                 offsetX,
                 offsetY,
-                0f
+                offsetZ
             );
 
         float randomAngle =
@@ -497,8 +442,8 @@ public class KTH_DiscardCardUI : MonoBehaviour
 
         cardTransform.localRotation =
             Quaternion.Euler(
+                lieFlatXAngle,
                 0f,
-                180f,
                 randomAngle
             );
     }
@@ -679,12 +624,11 @@ public class KTH_DiscardCardUI : MonoBehaviour
                     );
 
                 midWorldPos +=
-                    discardCardTransform.TransformVector(
-                        new Vector3(
-                            0f,
-                            reshuffleArcHeight,
-                            0f
-                        )
+                    discardCardTransform.rotation *
+                    new Vector3(
+                        0f,
+                        reshuffleArcHeight,
+                        0f
                     );
 
                 Sequence flightSequence =

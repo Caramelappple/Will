@@ -4,13 +4,19 @@ using _Scripts.LSO.UI.Input;
 using _Scripts.LSO.UI.Panel;
 using UnityEngine;
 
-// 스크린샷 구조 그대로: Collider + LSO_ButtonClickHandler + (이 스크립트).
-// LSO_ButtonClickHandler가 콜라이더 클릭을 감지해서
-// 같은 오브젝트에 붙은 LSO_IClickEffect 전부(이 스크립트 포함)에게 OnClick()을 전달한다.
-// 씬에 EventSystem + 카메라에 Physics Raycaster가 있어야 3D 클릭이 감지된다.
+// LSO_ClickRelay를 인스펙터에서 직접 배선해서 쓰는 걸 전제로 한다.
+// (LSO_ButtonClickHandler -> LSO_ClickRelay.OnClick() -> 인스펙터의 On Click() -> 이 스크립트의 OnClick())
+//
+// 이 스크립트가 LSO_IClickEffect를 직접 구현하면 안 된다.
+// 구현하면 LSO_ButtonClickHandler가 이 스크립트도 자기가 찾은 LSO_IClickEffect 목록에 넣어서
+// "자동으로 한 번" 호출하고, 그와 별개로 LSO_ClickRelay의 On Click() 배선을 통해서도
+// "또 한 번" 호출되어 클릭 한 번에 OnClick()이 두 번 실행된다(카드 2장 드로우 버그의 원인이었음).
+//
+// 씬 배선: Collider + LSO_ButtonClickHandler + LSO_ClickRelay + (이 스크립트),
+// LSO_ClickRelay의 On Click()에 KTH_DrawButton.OnClick을 연결해서 쓴다.
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(LSO_ButtonClickHandler))]
-public class KTH_DrawButton : MonoBehaviour, LSO_IClickEffect
+public class KTH_DrawButton : MonoBehaviour
 {
     [SerializeField] private LSO_WillPanel willPanel;
     [SerializeField] private LDY_TurnManager turnManager;

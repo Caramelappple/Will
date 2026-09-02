@@ -13,7 +13,7 @@ public class KTH_DeckUi : MonoBehaviour
 
     [Header("Move Settings")]
     [Tooltip("적 턴일 때 내려가는 로컬 Y 거리")]
-    [SerializeField] private float hideOffsetY = 3f;
+    [SerializeField] private float hideOffsetY = 1.5f;
 
     [Tooltip("내려가고 올라오는 애니메이션 지속 시간")]
     [SerializeField] private float moveDuration = 0.35f;

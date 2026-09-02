@@ -2670,20 +2670,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardCardUI
   discardCardTransform: {fileID: 439603176}
   discardCountText: {fileID: 0}
-  discardCardPrefab: {fileID: 0}
-  maxStackOffset: 5
-  verticalStackOffset: 3
-  stackHeight: 2.5
+  discardCardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  maxStackOffset: 0.05
+  depthStackOffset: 0.03
+  stackHeight: 0.015
+  lieFlatXAngle: -90
   maxRandomAngle: 15
   minRandomAngle: 5
-  discardMoveDuration: 0.3
-  discardMoveEase: 6
-  discardRotateEase: 6
   drawPileTransform: {fileID: 1029269879}
   reshuffleFlyDuration: 0.35
   reshuffleStaggerDelay: 0.03
   reshuffleEase: 7
-  reshuffleArcHeight: 40
+  reshuffleArcHeight: 0.4
 --- !u!114 &439603181
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11145,7 +11143,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardLayout
   willPanel: {fileID: 669969723}
   cardPlacer: {fileID: 881993166}
-  discardPile: {fileID: 0}
+  discardPile: {fileID: 439603180}
   maxCardSpacing: 1
   minCardSpacing: 0.5
   maxHandWidth: 6
@@ -11157,7 +11155,6 @@ MonoBehaviour:
   maxHandSize: 8
   drawDuration: 0.4
   pushDuration: 0.28
-  hoverSpreadGap: 0.4
   enableMoveDown: 0
   placementMoveDownDistance: 0.8
   placementMoveDuration: 0.3

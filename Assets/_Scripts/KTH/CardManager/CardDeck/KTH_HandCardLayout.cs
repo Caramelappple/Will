@@ -258,6 +258,19 @@ public class KTH_HandCardLayout : MonoBehaviour
             return;
         }
 
+        // KTH_HandCard.OnPointerClick은 같은 확정 클릭에서
+        // KTH_InfoPanel.SelectInfoPanl() -> KTH_CardPlacementController.TryBeginPlacement()도
+        // 먼저 호출한다. 그쪽이 이미 cardPlacer.BeginPlacement로 배치를 시작해놓은 상태에서
+        // 여기서 또 BeginPlacement를 부르면, LDY_CardPlacer가 "이미 배치 중이면 취소하고
+        // 새로 시작"하는 구조라 방금 시작된 세션이 조용히 취소되고 콜백이 이 경로 것으로
+        // 바뀌어버린다. 배치 세션을 시작하는 주체가 매 클릭마다 둘로 갈리면서 카드가 보드에
+        // 놓이는 흐름/위치가 꼬이는 원인이 되므로, 이미 배치가 시작돼 있으면 여기서는
+        // 손대지 않는다.
+        if (cardPlacer.IsPlacing)
+        {
+            return;
+        }
+
         LSO_CardSO cardData =
             card.CardData;
 

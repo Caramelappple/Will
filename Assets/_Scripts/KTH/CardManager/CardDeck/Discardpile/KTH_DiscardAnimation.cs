@@ -7,6 +7,12 @@ using UnityEngine;
 // - UnityEngine.UI.Shadow는 UI 전용 이펙트라 3D에는 존재하지 않는다.
 //   대신 카드 밑에 별도로 둔 그림자용 SpriteRenderer(선택)를 찾아서 알파를 밀었다가 복구하는 방식으로 바꿨다.
 //   그림자 오브젝트가 따로 없다면 shadowRenderer를 비워두면 이 부분은 그냥 건너뛴다.
+//
+// 목표 위치/회전을 여기서 따로 계산하지 않는다:
+// 예전엔 여기서 랜덤 목표 위치를 정해서 던진 다음, 도착 후 KTH_DiscardCardUI가
+// "진짜 쌓임 위치(더미 높이 반영)"로 또 한 번 옮겨서 착지하자마자 다시 미끄러지는
+// 이중 이동이 있었다. 그래서 KTH_DiscardCardUI.GetNextStackTarget()으로 최종
+// 목표 위치/회전을 미리 받아서, 처음부터 그 자리로 던진다.
 public class KTH_DiscardAnimation : MonoBehaviour
 {
     [Header("Discard Animation")]
@@ -14,19 +20,7 @@ public class KTH_DiscardAnimation : MonoBehaviour
 
     [Header("Arc (포물선)")]
     [Tooltip("이동 중 카드가 그리는 포물선의 높이")]
-    [SerializeField] private float arcHeight = 60f;
-
-    [Header("Random Rotation")]
-    [SerializeField] private float minRandomTilt = 5f;
-    [SerializeField] private float maxRandomTilt = 15f;
-
-    [Header("Flip")]
-    [Tooltip("버린 카드로 이동할 때 Y축으로 뒤집히는 각도")]
-    [SerializeField] private float flipAngle = 180f;
-
-    [Header("Random Stack Offset")]
-    [SerializeField] private float minStackOffset = 3f;
-    [SerializeField] private float maxStackOffset = 5f;
+    [SerializeField] private float arcHeight = 0.5f;
 
     [Header("Landing")]
     [SerializeField] private float landingDuration = 0.08f;
@@ -97,43 +91,14 @@ public class KTH_DiscardAnimation : MonoBehaviour
         );
 
         // ==================================================
-        // 목표 위치 랜덤 오프셋
+        // 최종 목표 위치/회전을 KTH_DiscardCardUI에서 미리 받아온다.
+        // (더미 높이까지 반영된 "진짜" 도착 지점 - 도착 후 다시 옮기지 않는다)
         // ==================================================
 
-        float offsetX =
-            Random.Range(
-                minStackOffset,
-                maxStackOffset
-            );
-
-        float offsetY =
-            Random.Range(
-                minStackOffset,
-                maxStackOffset
-            );
-
-        offsetX *=
-            Random.value < 0.5f
-                ? -1f
-                : 1f;
-
-        offsetY *=
-            Random.value < 0.5f
-                ? -1f
-                : 1f;
-
-        Vector3 localOffset =
-            new Vector3(
-                offsetX,
-                offsetY,
-                0f
-            );
-
-        Vector3 targetWorldPos =
-            discardPile.DiscardCardTransform.position +
-            discardParent.TransformVector(
-                localOffset
-            );
+        discardPile.GetNextStackTarget(
+            out Vector3 targetWorldPos,
+            out Quaternion finalRotation
+        );
 
         // ==================================================
         // 포물선
@@ -142,13 +107,15 @@ public class KTH_DiscardAnimation : MonoBehaviour
         Vector3 startWorldPos =
             cardTransform.position;
 
+        // TransformVector를 쓰면 부모의 Scale까지 곱해져서, 부모 스케일이
+        // 작을 때(예: 0.2) 오프셋이 사실상 사라져버린다.
+        // 회전만 적용해서 부모 스케일과 무관하게 계산한다.
         Vector3 arcOffsetWorld =
-            discardParent.TransformVector(
-                new Vector3(
-                    0f,
-                    arcHeight,
-                    0f
-                )
+            discardParent.rotation *
+            new Vector3(
+                0f,
+                arcHeight,
+                0f
             );
 
         Vector3 midWorldPos =
@@ -157,21 +124,6 @@ public class KTH_DiscardAnimation : MonoBehaviour
                 targetWorldPos,
                 0.5f
             ) + arcOffsetWorld;
-
-        // ==================================================
-        // 랜덤 Z 회전
-        // ==================================================
-
-        float randomTilt =
-            Random.Range(
-                minRandomTilt,
-                maxRandomTilt
-            );
-
-        if (Random.value < 0.5f)
-        {
-            randomTilt *= -1f;
-        }
 
         // ==================================================
         // 기존 Scale 저장
@@ -241,11 +193,7 @@ public class KTH_DiscardAnimation : MonoBehaviour
         sequence.Join(
             cardTransform
                 .DOLocalRotate(
-                    new Vector3(
-                        0f,
-                        flipAngle,
-                        randomTilt
-                    ),
+                    finalRotation.eulerAngles,
                     discardDuration,
                     RotateMode.FastBeyond360
                 )
@@ -341,7 +289,8 @@ public class KTH_DiscardAnimation : MonoBehaviour
                 return;
             }
 
-            // Y = 180 상태 그대로 유지
+            // 이미 최종 위치/회전으로 도착한 상태 - AddExistingCardToDiscardPile은
+            // 부모만 갈아끼우고 상태를 유지한다.
             discardPile.AddExistingCardToDiscardPile(
                 card,
                 cardData
