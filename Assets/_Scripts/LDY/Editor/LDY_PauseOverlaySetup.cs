@@ -5,36 +5,57 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using _Scripts.LSO.UI.Panel;
+using _Scripts.LSO.UI.Text;
 
 namespace _Scripts.LDY.Editor
 {
     /// <summary>
-    /// 사용법: 전투·맵 씬을 열고 상단 메뉴 "LDY > 일시정지 오버레이 만들기" 클릭.
+    /// 사용법: 전투·맵 씬을 열고 상단 메뉴 "LDY > ESC 안내 문구 만들기" 클릭.
     ///
-    /// 열려 있는 모든 씬에 LDY_GameplayEscapeHandler와 최소 오버레이를 놓고 배선까지 채운다.
-    /// 여러 번 눌러도 같은 결과가 나오므로 씬을 고친 뒤 다시 눌러도 된다.
+    /// 열려 있는 모든 씬에 LDY_GameplayEscapeHandler와 안내 문구를 놓고 배선까지 채운다.
     ///
-    /// ── 그림 에셋을 쓰지 않는 이유 ──────────────────────────────
-    /// 일시정지 화면에 쓸 이미지가 아직 없다. 이미지를 기다리는 동안 기능이 멈추지 않도록
-    /// 반투명 검정 + 텍스트 + 내장 Knob 스프라이트만으로 만든다.
-    /// 나중에 그림이 나오면 여기서 만든 오브젝트의 Image/Text만 갈아끼우면 된다.
+    /// ── 일시정지 오버레이는 없어졌다 ────────────────────────────
+    /// 예전에는 화면을 덮는 반투명 정지 화면과 원형 게이지를 만들었다.
+    /// 지금은 벅샷 룰렛처럼 글자 한 줄로만 알린다.
+    ///
+    /// 씬에 옛 LDY_PauseCanvas가 남아 있으면 지워야 한다. 이 도구가 찾아서 짚어준다.
+    /// ─────────────────────────────────────────────────────────
+    ///
+    /// ── 이미 있는 오브젝트는 건드리지 않는다 ─────────────────────
+    /// 없을 때만 만든다. 이미 있으면 배선만 다시 채운다.
+    /// 누를 때마다 색·문구·크기를 다시 써넣으면, 씬에서 고쳐둔 것이 통째로 되돌아간다.
+    ///
+    /// 기본 모양으로 되돌리고 싶으면 씬에서 캔버스를 지우고 다시 누를 것.
+    /// ─────────────────────────────────────────────────────────
+    ///
+    /// ── 프리팹이 있으면 그것을 쓴다 ─────────────────────────────
+    /// PrefabPath에 프리팹이 있으면 그것을 놓는다. 씬마다 모양이 갈라지지 않고,
+    /// 프리팹 하나를 고치면 놓아둔 모든 씬이 함께 바뀐다.
+    ///
+    /// 만드는 법: 씬에서 만들어진 캔버스를 PrefabPath 위치로 끌어다 놓는다.
+    /// 안쪽 이름(LDY_EscapePrompt)은 그대로 둘 것 — 배선할 때 이름으로 찾는다.
     /// ─────────────────────────────────────────────────────────
     /// </summary>
     public static class LDY_PauseOverlaySetup
     {
-        private const string CanvasName = "LDY_PauseCanvas";
-        private const string OverlayName = "LDY_PauseOverlay";
-        private const string DimName = "Dim";
-        private const string LabelName = "Label";
-        private const string GaugeName = "LDY_HoldGauge";
+        /// <summary>있으면 이것을 놓는다. 없으면 코드로 만든다.</summary>
+        private const string PrefabPath = "Assets/_Prefabs/LDY/LDY_EscapeCanvas.prefab";
+
+        private const string CanvasName = "LDY_EscapeCanvas";
+        private const string PromptName = "LDY_EscapePrompt";
+        private const string BaseLabelName = "Base";
+        private const string FillLabelName = "Fill";
         private const string HandlerObjectName = "LDY_GameplayEscapeHandler";
+
+        /// <summary>지워야 할 옛 오브젝트. 남아 있으면 화면을 덮는다.</summary>
+        private const string LegacyCanvasName = "LDY_PauseCanvas";
 
         /// <summary>맵의 아이리스 연출 캔버스(1000)보다는 아래, 보통 UI보다는 위.</summary>
         private const int CanvasSortingOrder = 900;
 
-        [MenuItem("LDY/일시정지 오버레이 만들기")]
+        private const string DefaultMessage = "ESC를 누르고 있으면 나갑니다";
+
+        [MenuItem("LDY/ESC 안내 문구 만들기")]
         public static void Build()
         {
             var report = new StringBuilder();
@@ -51,11 +72,11 @@ namespace _Scripts.LDY.Editor
 
             if (builtScenes == 0)
             {
-                Debug.LogWarning("[일시정지] 열려 있는 씬이 없습니다.");
+                Debug.LogWarning("[ESC 안내] 열려 있는 씬이 없습니다.");
                 return;
             }
 
-            Debug.Log($"[일시정지] 씬 {builtScenes}개 완료.\n{report}");
+            Debug.Log($"[ESC 안내] 씬 {builtScenes}개 완료.\n{report}");
         }
 
         private static void BuildScene(Scene scene, StringBuilder report)
@@ -63,18 +84,19 @@ namespace _Scripts.LDY.Editor
             GameObject[] roots = scene.GetRootGameObjects();
             var lines = new List<string>();
 
+            WarnAboutLegacy(roots, lines);
+
             LDY_CardPlacer cardPlacer = FindInScene<LDY_CardPlacer>(roots);
             LDY_MoveSystem moveSystem = FindInScene<LDY_MoveSystem>(roots);
             LDY_AttackSystem attackSystem = FindInScene<LDY_AttackSystem>(roots);
 
             Transform canvas = EnsureCanvas(scene, roots, lines);
-            GameObject overlay = EnsureOverlay(canvas, lines);
-            Image gauge = EnsureGauge(canvas, lines);
+            LSO_HoldTextPrompt prompt = EnsurePrompt(canvas, lines);
 
             LDY_GameplayEscapeHandler handler = GetOrCreateHandler(scene, roots, cardPlacer, lines);
 
-            Undo.RecordObject(handler, "일시정지 오버레이 배선");
-            handler.EditorApplyWiring(cardPlacer, moveSystem, attackSystem, overlay, gauge);
+            Undo.RecordObject(handler, "ESC 안내 문구 배선");
+            handler.EditorApplyWiring(cardPlacer, moveSystem, attackSystem, prompt);
             EditorUtility.SetDirty(handler);
             EditorSceneManager.MarkSceneDirty(scene);
 
@@ -88,30 +110,50 @@ namespace _Scripts.LDY.Editor
                 report.AppendLine($"    {line}");
         }
 
+        /// <summary>
+        /// 옛 정지 오버레이가 남아 있는지 본다.
+        ///
+        /// 자동으로 지우지 않는 이유: 그 아래에 다른 사람이 뭔가를 붙여뒀을 수 있다.
+        /// 지우는 것은 사람이 보고 정할 일이다.
+        /// </summary>
+        private static void WarnAboutLegacy(GameObject[] roots, List<string> lines)
+        {
+            GameObject legacy = FindRootByName(roots, LegacyCanvasName);
+            if (legacy == null) return;
+
+            lines.Add($"⚠ 옛 '{LegacyCanvasName}' 가 남아 있습니다 — 지우세요(화면을 덮습니다)");
+
+            Debug.LogWarning(
+                $"[ESC 안내] '{LegacyCanvasName}' 는 이제 쓰지 않습니다. 씬에서 지우세요.",
+                legacy);
+        }
+
         // ── 만들기 ──────────────────────────────────────────
 
         /// <summary>
         /// 전용 캔버스를 따로 만든다. 기존 캔버스에 얹으면 그 캔버스의 정렬 순서에 끌려다녀
-        /// 다른 UI 밑에 깔리는 일이 생긴다. 정지 화면은 언제나 맨 위여야 한다.
+        /// 다른 UI 밑에 깔리는 일이 생긴다. 안내 문구는 언제나 맨 위여야 한다.
         /// </summary>
         private static Transform EnsureCanvas(Scene scene, GameObject[] roots, List<string> lines)
         {
             GameObject existing = FindRootByName(roots, CanvasName);
             if (existing != null)
             {
-                lines.Add($"캔버스: 기존 '{CanvasName}' 사용");
+                lines.Add($"캔버스: 기존 '{CanvasName}' 사용 (모양은 건드리지 않음)");
                 return existing.transform;
             }
+
+            Transform fromPrefab = TryPlacePrefab(scene, lines);
+            if (fromPrefab != null) return fromPrefab;
 
             var canvasGO = new GameObject(
                 CanvasName,
                 typeof(RectTransform),
                 typeof(Canvas),
-                typeof(CanvasScaler),
-                typeof(GraphicRaycaster));
+                typeof(CanvasScaler));
 
             SceneManager.MoveGameObjectToScene(canvasGO, scene);
-            Undo.RegisterCreatedObjectUndo(canvasGO, "일시정지 오버레이 배선");
+            Undo.RegisterCreatedObjectUndo(canvasGO, "ESC 안내 문구 배선");
 
             Canvas canvas = canvasGO.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -122,159 +164,150 @@ namespace _Scripts.LDY.Editor
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
+            // GraphicRaycaster를 붙이지 않는다. 글자만 띄우는 캔버스라 받을 입력이 없고,
+            // 붙여두면 뒤쪽 보드 클릭을 가로챌 여지만 생긴다.
             lines.Add($"캔버스: '{CanvasName}' 새로 만듦 (sortingOrder {CanvasSortingOrder})");
 
             return canvasGO.transform;
         }
 
-        private static GameObject EnsureOverlay(Transform canvas, List<string> lines)
+        /// <summary>
+        /// 프리팹을 씬에 놓는다. 없으면 null을 돌려주고 부르는 쪽이 코드로 만든다.
+        ///
+        /// 연결을 끊지 않고 프리팹 인스턴스로 놓는다. 그래야 프리팹을 고쳤을 때
+        /// 놓아둔 씬들이 함께 따라온다.
+        /// </summary>
+        private static Transform TryPlacePrefab(Scene scene, List<string> lines)
         {
-            GameObject overlay = FindChildByName(canvas, OverlayName);
-            bool created = overlay == null;
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
 
-            if (created)
+            if (asset == null)
             {
-                overlay = new GameObject(OverlayName, typeof(RectTransform));
-                overlay.transform.SetParent(canvas, false);
-                Undo.RegisterCreatedObjectUndo(overlay, "일시정지 오버레이 배선");
+                lines.Add($"캔버스: 프리팹이 없어 코드로 만듦 ({PrefabPath} 에 두면 그것을 쓴다)");
+                return null;
             }
 
-            Stretch((RectTransform)overlay.transform);
-            BuildDim(overlay.transform);
-            BuildLabel(overlay.transform);
-            ApplyFadePanel(overlay);
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(asset, scene);
 
-            // LSO_FadePanel은 비활성 오브젝트에서 Awake가 돌지 않으므로 켜둔 채로 저장한다.
-            // 대신 편집 중에 게임 뷰를 가리지 않도록 알파를 0으로 눕혀둔다.
-            // 플레이를 누르면 Awake의 ApplyInstant(false)가 알아서 꺼준다.
-            overlay.SetActive(true);
-
-            CanvasGroup group = overlay.GetComponent<CanvasGroup>();
-            group.alpha = 0f;
-            group.interactable = false;
-            group.blocksRaycasts = false;
-
-            lines.Add($"오버레이: '{OverlayName}' {(created ? "새로 만듦" : "기존 것 갱신")} (LSO_FadePanel, ignoreTimeScale)");
-
-            return overlay;
-        }
-
-        private static void BuildDim(Transform overlay)
-        {
-            GameObject dim = FindChildByName(overlay, DimName);
-            if (dim == null)
+            if (instance == null)
             {
-                dim = new GameObject(DimName, typeof(RectTransform), typeof(Image));
-                dim.transform.SetParent(overlay, false);
-                Undo.RegisterCreatedObjectUndo(dim, "일시정지 오버레이 배선");
+                Debug.LogWarning($"[ESC 안내] '{PrefabPath}' 를 놓지 못했습니다. 코드로 만듭니다.");
+                return null;
             }
 
-            Stretch((RectTransform)dim.transform);
+            // 이름이 어긋나면 다음번에 이 캔버스를 못 찾아 하나 더 만들게 된다.
+            instance.name = CanvasName;
 
-            Image image = dim.GetComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.6f);
-            image.raycastTarget = true; // 정지 중에 뒤쪽 보드가 눌리면 안 된다
+            Undo.RegisterCreatedObjectUndo(instance, "ESC 안내 문구 배선");
+
+            lines.Add($"캔버스: 프리팹 '{PrefabPath}' 를 놓음");
+
+            return instance.transform;
         }
 
-        private static void BuildLabel(Transform overlay)
+        /// <summary>
+        /// 안내 문구를 찾는다. 없을 때만 만든다.
+        ///
+        /// 이미 있으면 문구도 색도 손대지 않는다. 씬이나 프리팹에서 고쳐둔 것을
+        /// 이 도구가 되돌려버리면 고칠 방법이 없어진다.
+        /// </summary>
+        private static LSO_HoldTextPrompt EnsurePrompt(Transform canvas, List<string> lines)
         {
-            GameObject label = FindChildByName(overlay, LabelName);
-            if (label == null)
+            GameObject found = FindChildByName(canvas, PromptName);
+
+            if (found != null)
             {
-                label = new GameObject(LabelName, typeof(RectTransform));
-                label.transform.SetParent(overlay, false);
-                Undo.RegisterCreatedObjectUndo(label, "일시정지 오버레이 배선");
+                var existing = found.GetComponent<LSO_HoldTextPrompt>();
+
+                if (existing == null)
+                {
+                    Debug.LogWarning(
+                        $"[ESC 안내] '{PromptName}' 에 LSO_HoldTextPrompt가 없습니다. " +
+                        "안내 문구가 뜨지 않습니다.", found);
+                }
+
+                lines.Add($"문구: 기존 '{PromptName}' 사용 (모양은 건드리지 않음)");
+
+                return existing;
             }
 
-            var rect = (RectTransform)label.transform;
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(900f, 240f);
+            var promptGO = new GameObject(PromptName, typeof(RectTransform), typeof(CanvasGroup));
+            promptGO.transform.SetParent(canvas, false);
+            Undo.RegisterCreatedObjectUndo(promptGO, "ESC 안내 문구 배선");
 
-            TextMeshProUGUI text = label.GetComponent<TextMeshProUGUI>();
-            if (text == null)
-                text = label.AddComponent<TextMeshProUGUI>();
+            var rect = (RectTransform)promptGO.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 120f); // 손패 위. 옮겨도 배선은 그대로다
+            rect.sizeDelta = new Vector2(900f, 80f);
 
-            text.text = "일시정지";
-            text.fontSize = 96f;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = Color.white;
-            text.fontStyle = FontStyles.Bold;
-            text.raycastTarget = false;
-        }
+            // 흐린 바탕이 먼저, 선명한 글자가 그 위에. 순서가 뒤집히면 바탕이 앞을 덮는다.
+            TMP_Text baseLabel = BuildLabel(promptGO.transform, BaseLabelName, new Color(1f, 1f, 1f, 0.25f));
+            TMP_Text fillLabel = BuildLabel(promptGO.transform, FillLabelName, Color.white);
 
-        private static void ApplyFadePanel(GameObject overlay)
-        {
-            LSO_FadePanel panel = overlay.GetComponent<LSO_FadePanel>();
-            if (panel == null)
-                panel = Undo.AddComponent<LSO_FadePanel>(overlay); // CanvasGroup은 RequireComponent로 따라온다
+            LSO_HoldTextPrompt prompt = Undo.AddComponent<LSO_HoldTextPrompt>(promptGO);
 
-            var so = new SerializedObject(panel);
-            SetBool(so, "ignoreTimeScale", true); // 정지 중이라 scaled time으로는 페이드가 안 돈다
-            SetBool(so, "applyOnAwake", true);
-            SetBool(so, "openOnStart", false);
+            var so = new SerializedObject(prompt);
+            SetObject(so, "baseLabel", baseLabel);
+            SetObject(so, "fillLabel", fillLabel);
+            SetString(so, "message", DefaultMessage);
             so.ApplyModifiedProperties();
+
+            lines.Add($"문구: '{PromptName}' 새로 만듦 (\"{DefaultMessage}\")");
+
+            return prompt;
+        }
+
+        /// <summary>라벨 한 장. 두 장이 같은 자리에 겹쳐야 글자가 차오르는 것처럼 보인다.</summary>
+        private static TMP_Text BuildLabel(Transform parent, string name, Color color)
+        {
+            var labelGO = new GameObject(name, typeof(RectTransform));
+            labelGO.transform.SetParent(parent, false);
+            Undo.RegisterCreatedObjectUndo(labelGO, "ESC 안내 문구 배선");
+
+            Stretch((RectTransform)labelGO.transform);
+
+            var text = labelGO.AddComponent<TextMeshProUGUI>();
+            text.text = DefaultMessage;
+            text.fontSize = 32f;
+            text.alignment = TextAlignmentOptions.Center;
+            text.color = color;
+            text.raycastTarget = false;
+
+            return text;
         }
 
         /// <summary>
         /// 남의 컴포넌트가 private [SerializeField]로 들고 있는 값을 세운다.
-        /// 필드 이름이 바뀌면 조용히 null이 되어 NullReference로 죽는 대신 이름을 짚어준다.
+        /// 필드 이름이 바뀌면 조용히 null이 되는 대신 이름을 짚어준다.
         /// </summary>
-        private static void SetBool(SerializedObject so, string fieldName, bool value)
+        private static void SetObject(SerializedObject so, string fieldName, UnityEngine.Object value)
+        {
+            SerializedProperty property = Find(so, fieldName);
+            if (property == null) return;
+
+            property.objectReferenceValue = value;
+        }
+
+        private static void SetString(SerializedObject so, string fieldName, string value)
+        {
+            SerializedProperty property = Find(so, fieldName);
+            if (property == null) return;
+
+            property.stringValue = value;
+        }
+
+        private static SerializedProperty Find(SerializedObject so, string fieldName)
         {
             SerializedProperty property = so.FindProperty(fieldName);
+
             if (property == null)
             {
                 Debug.LogWarning(
-                    $"[일시정지] LSO_FadePanel에 '{fieldName}' 필드가 없습니다 — 이 도구를 고쳐야 합니다.");
-                return;
+                    $"[ESC 안내] LSO_HoldTextPrompt에 '{fieldName}' 필드가 없습니다 — 이 도구를 고쳐야 합니다.");
             }
 
-            property.boolValue = value;
-        }
-
-        /// <summary>
-        /// 롱프레스 진행률. 오버레이 안이 아니라 캔버스 바로 아래에 둔다 —
-        /// 정지돼 있지 않을 때도 차오르는 게 보여야 한다.
-        /// </summary>
-        private static Image EnsureGauge(Transform canvas, List<string> lines)
-        {
-            GameObject gaugeGO = FindChildByName(canvas, GaugeName);
-            bool created = gaugeGO == null;
-
-            if (created)
-            {
-                gaugeGO = new GameObject(GaugeName, typeof(RectTransform), typeof(Image));
-                gaugeGO.transform.SetParent(canvas, false);
-                Undo.RegisterCreatedObjectUndo(gaugeGO, "일시정지 오버레이 배선");
-            }
-
-            var rect = (RectTransform)gaugeGO.transform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, 220f); // 손패 위. 자리가 마음에 안 들면 옮겨도 배선은 그대로다
-            rect.sizeDelta = new Vector2(120f, 120f);
-
-            Image gauge = gaugeGO.GetComponent<Image>();
-            if (gauge == null)
-                gauge = gaugeGO.AddComponent<Image>();
-
-            // 내장 원형 스프라이트. 없으면 흰 사각형으로 그려지는데 그래도 진행률은 보인다.
-            gauge.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-            gauge.color = new Color(1f, 1f, 1f, 0.85f);
-            gauge.type = Image.Type.Filled;
-            gauge.fillMethod = Image.FillMethod.Radial360;
-            gauge.fillOrigin = (int)Image.Origin360.Top;
-            gauge.fillClockwise = true;
-            gauge.fillAmount = 0f; // 0이면 아무것도 안 그려진다. 별도로 켜고 끌 필요가 없다
-            gauge.raycastTarget = false;
-
-            // 오버레이가 뜬 뒤에도 게이지가 보여야 한다(정지 중에 길게 눌러 나가는 흐름).
-            gaugeGO.transform.SetAsLastSibling();
-
-            lines.Add($"게이지: '{GaugeName}' {(created ? "새로 만듦" : "기존 것 갱신")} (Filled/Radial360)");
-
-            return gauge;
+            return property;
         }
 
         private static LDY_GameplayEscapeHandler GetOrCreateHandler(
@@ -304,7 +337,7 @@ namespace _Scripts.LDY.Editor
             {
                 host = new GameObject(HandlerObjectName);
                 SceneManager.MoveGameObjectToScene(host, scene);
-                Undo.RegisterCreatedObjectUndo(host, "일시정지 오버레이 배선");
+                Undo.RegisterCreatedObjectUndo(host, "ESC 안내 문구 배선");
             }
 
             lines.Add($"핸들러: '{host.name}'에 새로 붙임");
