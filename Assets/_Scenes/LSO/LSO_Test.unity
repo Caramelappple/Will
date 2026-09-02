@@ -2717,7 +2717,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardCardUI
   discardCardTransform: {fileID: 439603176}
   discardCountText: {fileID: 0}
-  discardCardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  discardCardPrefab: {fileID: 4939024106996827645, guid: 67075a1012c34b247877776b9e9839e6, type: 3}
   maxStackOffset: 0.05
   depthStackOffset: 0.03
   stackHeight: 0.015
@@ -5967,7 +5967,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_SpawnCard
   deckManager: {fileID: 1031362563}
   drawButton: {fileID: 1243056019}
-  cardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  cardPrefab: {fileID: 4939024106996827645, guid: 67075a1012c34b247877776b9e9839e6, type: 3}
   handLayout: {fileID: 2111996866}
 --- !u!1 &1056996184
 GameObject:
@@ -7386,7 +7386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dc2e9c4d0704a43806c8d8225700281, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardPool
-  cardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  cardPrefab: {fileID: 4939024106996827645, guid: 67075a1012c34b247877776b9e9839e6, type: 3}
   prewarmCount: 10
   poolParent: {fileID: 1243056013}
 --- !u!114 &1243056019
