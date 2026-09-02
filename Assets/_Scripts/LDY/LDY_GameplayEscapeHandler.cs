@@ -1,25 +1,33 @@
 using _Scripts.LDY.Save;
+using _Scripts.LSO.UI.Text;
 using _Scripts.LSO.UI.Transition;
 using _Scripts.LSO.Will;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using _Scripts.LSO.UI.Panel;
 
 namespace _Scripts.LDY
 {
     /// <summary>
     /// 전투·맵 씬에서 ESC를 전담한다. 벅샷 룰렛과 같은 규칙이다.
-    ///   짧게 누름 → 일시정지 토글 (배치 중이면 배치 취소가 먼저다)
-    ///   길게 누름 → 저장하고 메인 메뉴로
+    ///   배치 중이면 → 배치를 취소한다
+    ///   그 외에는  → 누르고 있는 동안 안내 문구가 차오르고, 다 차면 저장하고 메인 메뉴로
     ///
-    /// ── 프로젝트에서 ESC를 보는 곳은 여기뿐이다 ──────────────────
-    /// 한때 창을 한 단계씩 닫는 LDY_EscapeKeyHandler가 따로 있었지만,
-    /// 한 번의 ESC를 두 컴포넌트가 각자 처리해서 지웠다.
-    /// ESC 동작을 늘릴 일이 생기면 새 컴포넌트를 만들지 말고 여기에 더할 것.
+    /// ── 일시정지가 없다 ────────────────────────────────────────
+    /// 한때 짧게 누르면 화면을 덮는 정지 오버레이가 떴다. 지금은 없앴다.
+    /// 정지 화면이 보드를 가리는 것에 비해 얻는 것이 없었고, timeScale을 건드리는
+    /// 코드가 하나 줄어드는 편이 낫다 — DLJ_WillSystem과 DLJ_SuccessionSystem이
+    /// 각자 연출 직전의 timeScale을 저장했다 되돌리기 때문에, 여기서 0으로 만들면
+    /// 그 "원래 값"이 0으로 저장돼 연출이 끝난 뒤에도 게임이 멈춘 채로 남는다.
+    ///
+    /// 그래서 이 컴포넌트는 시간을 아예 손대지 않는다. LDY_GameplayPause를 쓰지 않는다.
     /// ─────────────────────────────────────────────────────────
     ///
-    /// timeScale을 어떻게 다루는지는 LDY_GameplayPause를 볼 것.
+    /// ── 프로젝트에서 ESC를 보는 곳 ──────────────────────────────
+    /// 전투·맵은 여기, 메뉴 씬은 LDY_EscapeKeyHandler다.
+    /// 한 씬에 둘 다 두면 한 번의 ESC를 두 곳이 처리한다. 씬마다 하나만 둘 것.
+    /// ─────────────────────────────────────────────────────────
+    ///
+    /// 씬 배선: 상단 메뉴 "LDY > ESC 안내 문구 만들기"가 채워준다.
     /// </summary>
     [DisallowMultipleComponent]
     public class LDY_GameplayEscapeHandler : MonoBehaviour
@@ -28,10 +36,10 @@ namespace _Scripts.LDY
         [Tooltip("배치 중 ESC로 배치를 취소한다. 우클릭 취소와 같은 동작이다.")]
         [SerializeField] private LDY_CardPlacer cardPlacer;
 
-        [Tooltip("이동 연출 중에는 정지 토글을 무시한다.")]
+        [Tooltip("이동 연출 중에는 나가기를 받지 않는다.")]
         [SerializeField] private LDY_MoveSystem moveSystem;
 
-        [Tooltip("공격 연출 중에는 정지 토글을 무시한다.")]
+        [Tooltip("공격 연출 중에는 나가기를 받지 않는다.")]
         [SerializeField] private LDY_AttackSystem attackSystem;
 
         [Header("메인 메뉴로 나가기")]
@@ -41,30 +49,24 @@ namespace _Scripts.LDY
         [Tooltip("ESC를 이만큼 누르고 있으면 저장 후 메인 메뉴로 나간다.")]
         [SerializeField, Min(0.1f)] private float longPressSeconds = 1.5f;
 
-        [Header("화면 표시 (비워두면 그 표시만 생략된다)")]
-        [Tooltip("정지 중에 띄울 오버레이. LSO_FadePanel이 붙어 있으면 그 연출을 탄다.\n" +
-                 "메뉴 상단 'LDY/일시정지 오버레이 만들기'로 만들 수 있다.")]
-        [SerializeField] private GameObject pauseOverlay;
+        [Header("화면 표시")]
+        [Tooltip("누르고 있는 동안 뜨는 안내 문구. 진행률만큼 글자가 차오른다.\n" +
+                 "비워두면 표시만 생략되고 나가기는 그대로 동작한다.")]
+        [SerializeField] private LSO_HoldTextPrompt prompt;
 
-        [Tooltip("롱프레스 진행률을 보여줄 Image. Image Type이 Filled여야 fillAmount가 먹는다.")]
-        [SerializeField] private Image holdGauge;
-
-        private readonly LDY_GameplayPause _pause = new();
         private readonly LDY_EscapeHoldTimer _hold = new();
 
         /// <summary>
         /// 이번 누름을 배치 취소로 이미 써버렸는지.
         ///
         /// 이게 없으면 배치를 취소한 뒤에도 손을 떼지 않는 한 누적이 계속 쌓여
-        /// "취소하려다 메인 메뉴로 튕겨나가고", 손을 떼는 순간 정지까지 걸린다.
-        /// 한 번 누르면 한 가지만 한다.
+        /// "취소하려다 메인 메뉴로 튕겨나간다". 한 번 누르면 한 가지만 한다.
         /// </summary>
         private bool _pressConsumed;
 
 #if UNITY_EDITOR
         /// <summary>
-        /// "LDY/일시정지 오버레이 만들기" 도구가 배선을 채워 넣는 자리. 런타임 코드는 부르지 않는다.
-        /// 씬마다 손으로 끌어다 놓는 것보다 도구가 채우는 편이 빠뜨릴 여지가 없다.
+        /// "LDY/ESC 안내 문구 만들기" 도구가 배선을 채워 넣는 자리. 런타임 코드는 부르지 않는다.
         ///
         /// titleSceneName과 longPressSeconds는 일부러 받지 않는다.
         /// 인스펙터에서 조절하는 값이라 도구가 덮어쓰면 튜닝이 매번 날아간다.
@@ -73,14 +75,12 @@ namespace _Scripts.LDY
             LDY_CardPlacer placer,
             LDY_MoveSystem move,
             LDY_AttackSystem attack,
-            GameObject overlay,
-            Image gauge)
+            LSO_HoldTextPrompt holdPrompt)
         {
             cardPlacer = placer;
             moveSystem = move;
             attackSystem = attack;
-            pauseOverlay = overlay;
-            holdGauge = gauge;
+            prompt = holdPrompt;
         }
 #endif
 
@@ -107,7 +107,7 @@ namespace _Scripts.LDY
             }
 
             if (keyboard.escapeKey.wasReleasedThisFrame)
-                HandleReleased();
+                ResetHold();
         }
 
         /// <summary>누르고 있는 동안. 다 차면 그 자리에서 메인 메뉴로 나간다.</summary>
@@ -115,29 +115,25 @@ namespace _Scripts.LDY
         {
             if (_pressConsumed) return;
 
-            // 정지 중에도 게이지가 차야 하므로 unscaled. Time.deltaTime이면 여기서 얼어붙는다.
+            // 연출이나 플레이어의 답을 기다리는 중이면 문구도 띄우지 않는다.
+            // 띄워놓고 안 나가면 "눌렀는데 왜 안 되지"가 된다.
+            if (IsBlocked())
+            {
+                HidePrompt();
+                return;
+            }
+
+            ShowPrompt();
+
+            // 정지가 없어졌어도 unscaled를 그대로 쓴다. 유언·계승 연출이 timeScale을
+            // 0으로 눕히는 구간이 있어서, scaled로 재면 그 동안 진행이 멈춘다.
             if (_hold.Advance(Time.unscaledDeltaTime))
             {
                 GoToTitle();
                 return;
             }
 
-            SetGauge(_hold.Progress);
-        }
-
-        /// <summary>
-        /// 손을 뗐을 때. 임계값을 못 넘겼으면 짧게 누른 것으로 친다.
-        /// 정지 토글을 누를 때가 아니라 뗄 때 하는 이유는, 누를 때 판정하면
-        /// 롱프레스를 시작하는 모든 누름이 일단 정지부터 걸어버리기 때문이다.
-        /// </summary>
-        private void HandleReleased()
-        {
-            bool wasShortPress = !_pressConsumed && !_hold.IsComplete;
-
-            ResetHold();
-
-            if (wasShortPress)
-                TogglePause();
+            SetProgress(_hold.Progress);
         }
 
         private bool TryCancelPlacement()
@@ -148,27 +144,9 @@ namespace _Scripts.LDY
             return true;
         }
 
-        private void TogglePause()
-        {
-            if (IsBlocked()) return;
-
-            if (_pause.IsPaused)
-            {
-                _pause.Resume();
-                SetOverlayVisible(false);
-                return;
-            }
-
-            // 남이 시간을 쓰는 중이면(연출 등) 조용히 넘어간다. 뺏어오지 않는다.
-            if (!_pause.TryPause()) return;
-
-            SetOverlayVisible(true);
-        }
-
         /// <summary>
-        /// 플레이어의 답이나 연출을 기다리는 중인지. 하나라도 걸리면 정지 토글은 아무 일도 하지 않는다.
+        /// 플레이어의 답이나 연출을 기다리는 중인지. 하나라도 걸리면 나가기를 받지 않는다.
         /// timeScale이 0인 대기 중에도 Keyboard.current는 unscaled 입력이라 이 프레임이 그대로 돌아온다.
-        /// 가드가 없으면 대기 중에 오버레이가 떠버린다.
         /// </summary>
         private bool IsBlocked()
         {
@@ -185,10 +163,6 @@ namespace _Scripts.LDY
         private void GoToTitle()
         {
             ResetHold();
-            SetOverlayVisible(false);
-
-            // 씬을 넘어가도 timeScale은 유지된다. 나가기 전에 반드시 되돌린다.
-            _pause.ReleaseForSceneChange();
 
             LDY_SaveService.Instance.SaveRun();
 
@@ -205,49 +179,32 @@ namespace _Scripts.LDY
         {
             _hold.Reset();
             _pressConsumed = false;
-            SetGauge(0f);
+
+            HidePrompt();
         }
 
-        private void SetGauge(float progress)
+        private void ShowPrompt()
         {
-            if (holdGauge == null) return;
-
-            holdGauge.fillAmount = progress;
+            if (prompt != null) prompt.Show();
         }
 
-        private void SetOverlayVisible(bool visible)
+        private void HidePrompt()
         {
-            // LSO_IPanel이 붙어 있으면 그쪽 연출을 타고, 없으면 SetActive로 처리된다.
-            LSO_PanelOps.SetOpen(pauseOverlay, visible);
+            if (prompt != null) prompt.Hide();
+        }
+
+        private void SetProgress(float progress)
+        {
+            if (prompt != null) prompt.SetProgress(progress);
         }
 
         /// <summary>
-        /// 이 컴포넌트가 꺼지거나 사라질 때 정지를 들고 가지 않는다.
-        /// 우리가 건 정지는 우리만 풀 수 있으므로, 여기서 안 풀면 아무도 못 푼다.
+        /// 꺼질 때 문구를 들고 가지 않는다. 씬을 넘길 때 뜬 채로 남으면
+        /// 다음 씬에서 왜 떠 있는지 알 수 없다.
         /// </summary>
         private void OnDisable()
         {
             ResetHold();
-
-            if (_pause.Resume())
-                SetOverlayVisible(false);
         }
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// Image Type이 Filled가 아니면 fillAmount는 조용히 무시된다.
-        /// 에러도 경고도 없이 게이지만 안 차오르는 상태라 눈으로 알아채기 어려워서 여기서 짚어준다.
-        /// </summary>
-        private void OnValidate()
-        {
-            if (holdGauge == null) return;
-            if (holdGauge.type == Image.Type.Filled) return;
-
-            Debug.LogWarning(
-                $"{name}: '{holdGauge.name}'의 Image Type이 Filled가 아닙니다. " +
-                "롱프레스 게이지가 차오르지 않습니다. Type을 Filled(Radial 360)로 바꾸세요.",
-                this);
-        }
-#endif
     }
 }

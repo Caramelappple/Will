@@ -332,6 +332,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 70646586}
@@ -802,6 +803,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 165363250}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &169700753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 480977269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7829765a8c27e547a84fb89b94d88d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  candleHealth: 640000006400000064000000
 --- !u!1 &170778335
 GameObject:
   m_ObjectHideFlags: 0
@@ -3225,8 +3239,8 @@ MonoBehaviour:
   board: {fileID: 944642615}
   turnManager: {fileID: 944642614}
   cardPlacer: {fileID: 881993166}
-  boardInputBehaviours:
-  - {fileID: 944642615}
+  selectionController: {fileID: 0}
+  additionalInputBehaviours: []
   rewardAnchor: {fileID: 441501791}
   hideAnchorUntilFlip: 1
   pivotHeightOffset: -0.05
@@ -3411,6 +3425,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8bfb72d7e167984f976251b9cd42f84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_InfoPanelController
+--- !u!1 &480977269
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 978116471}
+  - component: {fileID: 169700753}
+  m_Layer: 0
+  m_Name: DLJ_PlayerHealth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &484272660
 GameObject:
   m_ObjectHideFlags: 0
@@ -3913,6 +3944,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 1
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 3
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 571457307}
@@ -4750,8 +4782,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8\uD14C\uC2A4\uD2B8"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8ed404875bb29f84f8833978d04f2963, type: 2}
-  m_sharedMaterial: {fileID: -2325127329715485132, guid: 8ed404875bb29f84f8833978d04f2963, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
+  m_sharedMaterial: {fileID: 811175103884616449, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -6382,6 +6414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_ActionPointManager
   maxActionPoints: 5
+  addMaxActionPoints: 10
 --- !u!114 &944642609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6489,6 +6522,7 @@ MonoBehaviour:
   moveSystem: {fileID: 944642612}
   attackSystem: {fileID: 944642611}
   actionPoints: {fileID: 944642608}
+  autoEndTurn: 0
 --- !u!114 &944642615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6615,6 +6649,21 @@ Transform:
   - {fileID: 2083494684}
   - {fileID: 1766721361}
   m_Father: {fileID: 1242579791}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &978116471
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 480977269}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &983421385
 GameObject:
@@ -8033,6 +8082,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 1
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1219364772}
@@ -8332,6 +8382,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 2
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1273964880}
@@ -10612,6 +10663,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1621688121}
@@ -10889,7 +10941,6 @@ MonoBehaviour:
       m_Calls: []
   currentChapter: 1
   currentStage: 1
-  giveReward: {fileID: 0}
   activeNodeIndex: -1
 --- !u!114 &1663589428
 MonoBehaviour:
@@ -13067,6 +13118,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 2
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2073800958}
@@ -13521,51 +13573,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &480977269
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 978116471}
-  - component: {fileID: 169700753}
-  m_Layer: 0
-  m_Name: DLJ_PlayerHealth
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &978116471
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 480977269}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &169700753
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 480977269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7829765a8c27e547a84fb89b94d88d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  candleHealth: 640000006400000064000000
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

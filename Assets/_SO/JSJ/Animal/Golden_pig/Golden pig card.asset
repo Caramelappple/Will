@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5895b4ef1a4686aa2e57804e18f12b, type: 3}
+  m_Name: Golden pig card
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
+  animal: {fileID: 11400000, guid: daa3542119103d94c9e733646b3dd855, type: 2}
+  willType: 0
+  image: {fileID: 21300000, guid: 8398287685a45e54d9783954a3c71871, type: 3}
