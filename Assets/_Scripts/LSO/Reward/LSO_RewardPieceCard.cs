@@ -14,7 +14,7 @@ namespace _Scripts.LSO.Reward
     /// 정상적인 흐름에서는 그럴 일이 없지만, 조용히 엉뚱한 것을 그리는 것보다는 낫다.
     /// </summary>
     public class LSO_RewardPieceCard : LSO_RewardCard
-    {   
+    {
         [Header("기물 수치")]
         [Tooltip("비워두면 그 칸은 건너뛴다.")]
         [SerializeField] private TMP_Text attackText;

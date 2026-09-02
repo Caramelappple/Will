@@ -44,9 +44,8 @@ namespace _Scripts.LDY
             if (targetCamera == null)
                 targetCamera = Camera.main;
 
-            // 선택 연출은 모든 전투 씬에서 동일하게 동작해야 하므로 별도 씬 배선 없이 보장한다.
-            if (!TryGetComponent<DLJ_ObjectHovering>(out _))
-                gameObject.AddComponent<DLJ_ObjectHovering>();
+            // 호버 연출은 여기서 붙이지 않는다.
+            // 기물 프리팹의 LSO_ButtonHoverHandler + LSO_HoverMoveEffect가 맡는다.
         }
 
         private void OnEnable()
