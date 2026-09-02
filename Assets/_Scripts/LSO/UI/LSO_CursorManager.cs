@@ -36,7 +36,8 @@ namespace _Scripts.LSO.UI
         }
 
         [Header("모양")]
-        [Tooltip("상태마다 하나씩. 목록에 없는 상태는 OS 기본 커서가 된다.")]
+        [Tooltip("상태마다 하나씩. 목록에 없는 상태는 OS 기본 커서가 된다.\n" +
+                 "Hidden은 그림이 필요 없다 — 넣어도 무시된다.")]
         [SerializeField] private CursorShape[] shapes =
         {
             new CursorShape { state = LSO_CursorState.Default },
@@ -56,7 +57,11 @@ namespace _Scripts.LSO.UI
         public LSO_CursorState Current { get; private set; } = LSO_CursorState.Default;
 
         // 상태마다 몇 개가 요청 중인지. 겹친 물건 위에서 순서가 꼬이지 않게 세어둔다.
-        private readonly int[] _requests = new int[3];
+        //
+        // 길이를 손으로 적지 않는다. 숫자를 적어두면 상태가 늘었을 때 Add가
+        // 새 값을 범위 밖으로 보고 조용히 버린다 — 요청해도 아무 일이 없다.
+        private readonly int[] _requests =
+            new int[Enum.GetValues(typeof(LSO_CursorState)).Length];
 
         private void Awake()
         {
@@ -77,6 +82,9 @@ namespace _Scripts.LSO.UI
         {
             // 꺼질 때 OS 기본으로 돌려둔다. 남겨두면 씬을 나가도 게임 커서가 남는다.
             Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+
+            // 감춘 채로 꺼지면 아무도 되돌려주지 않는다. 커서 없는 게임이 된다.
+            Cursor.visible = true;
         }
 
         private void OnDestroy()
@@ -167,6 +175,11 @@ namespace _Scripts.LSO.UI
         private void Apply(LSO_CursorState state)
         {
             Current = state;
+
+            // 감추기는 그림 문제가 아니라 보이냐 마느냐다. 목록을 볼 것도 없다.
+            Cursor.visible = state != LSO_CursorState.Hidden;
+
+            if (state == LSO_CursorState.Hidden) return;
 
             foreach (CursorShape shape in shapes)
             {

@@ -13,11 +13,8 @@ namespace _Scripts.LSO.Camera
         /// <summary>화면 아무 데나 우클릭.</summary>
         RightClickAnywhere
 
-        // ESC는 넣지 않는다. LDY_EscapeKeyHandler가 이미 ESC로
-        // 배치 취소 · 창 닫기 · 설정 열기를 순서대로 처리하고 있어서,
-        // 여기서도 받으면 카메라가 돌아가면서 설정 창이 함께 열린다.
-        //
-        // ESC로도 돌아가게 하려면 그 핸들러의 우선순위 목록에
-        // ReturnToDefault를 넣는 편이 낫다.
+        // ESC는 아직 넣지 않았다. 프로젝트에 ESC를 보는 곳이 하나도 없어서
+        // 지금 넣으면 여기가 유일한 주인이 된다. 나중에 ESC 처리가 다시 생기면
+        // 두 곳이 같은 키를 나눠 갖게 되므로, 그때 어디서 받을지 먼저 정할 것.
     }
 }

@@ -5398,6 +5398,7 @@ Transform:
   m_Children:
   - {fileID: 2138475119}
   - {fileID: 1197421284}
+  - {fileID: 1255022739}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1007328531
@@ -5718,7 +5719,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   shapes:
   - state: 0
-    texture: {fileID: 2800000, guid: ff0e1bc5da068f34a84229a405f37717, type: 3}
+    texture: {fileID: 2800000, guid: 8e0a8c3c98167274dbdb2f2f093a8c6a, type: 3}
     hotspot: {x: 0, y: 0}
     centerHotspot: 0
   - state: 1
@@ -5726,7 +5727,11 @@ MonoBehaviour:
     hotspot: {x: 0, y: 0}
     centerHotspot: 1
   - state: 2
-    texture: {fileID: 2800000, guid: b45b422ca94316a4b84fbc2218462d60, type: 3}
+    texture: {fileID: 2800000, guid: c87f4a4f7b8e87e45a1bb7dd602ac575, type: 3}
+    hotspot: {x: 0, y: 0}
+    centerHotspot: 1
+  - state: 3
+    texture: {fileID: 0}
     hotspot: {x: 0, y: 0}
     centerHotspot: 1
   mode: 0
@@ -6855,6 +6860,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1242617596}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1255022738
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1255022739}
+  m_Layer: 0
+  m_Name: DeckAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 2488908585195742037, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1255022739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255022738}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.47482634, y: -0, z: -0, w: 0.88007945}
+  m_LocalPosition: {x: -4.24, y: 1.627, z: -16.58}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001457317}
+  m_LocalEulerAnglesHint: {x: -56.696, y: 0, z: 0}
 --- !u!1 &1319539621
 GameObject:
   m_ObjectHideFlags: 0
@@ -11997,8 +12033,9 @@ MonoBehaviour:
   riseDuration: 0.35
   dealInterval: 0.12
   riseEase: 27
+  pickHold: 0.5
   claimHold: 0.6
-  deckAnchor: {fileID: 0}
+  deckAnchor: {fileID: 1255022739}
   toDeckDuration: 0.5
   toDeckScale: 0.5
   toDeckEase: 8
@@ -12006,6 +12043,7 @@ MonoBehaviour:
   notePosition: {x: 0, y: 0.9, z: -0.3}
   noteRiseDuration: 0.4
   noteRiseEase: 27
+  noteHold: 10
   onReady:
     m_PersistentCalls:
       m_Calls: []
@@ -12033,6 +12071,7 @@ MonoBehaviour:
   onFinished:
     m_PersistentCalls:
       m_Calls: []
+  logPhases: 0
   testChapter: 1
   testStage: 1
   testAutoBegin: 0

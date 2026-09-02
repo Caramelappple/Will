@@ -63,7 +63,10 @@ namespace _Scripts.LSO.Reward
             /// <summary>메모장이 올라오는 중. 클릭을 버린다.</summary>
             NoteRising,
 
-            /// <summary>메모장을 다 보기를 기다린다. 상자를 누르면 도로 집어넣는다.</summary>
+            /// <summary>
+            /// 메모장이 떠 있다. Note Hold가 지날 때까지 그대로 둔다.
+            /// 클릭을 받지 않는다 — 무심코 누르면 못 읽고 넘어가버린다.
+            /// </summary>
             NoteShown,
 
             /// <summary>메모장이 상자로 돌아가는 중. 다 들어가면 유언이 풀린다.</summary>
@@ -121,7 +124,13 @@ namespace _Scripts.LSO.Reward
 
         [SerializeField] private Ease riseEase = Ease.OutBack;
 
-        [Tooltip("고른 뒤 정리를 시작하기까지 두는 시간. 무엇을 얻었는지 볼 틈을 준다.")]
+        [Tooltip("카드를 고른 순간 그 자리에 머무는 시간.\n" +
+                 "\n" +
+                 "누르자마자 카드가 흩어지면 무엇을 골랐는지 확인할 틈이 없다.\n" +
+                 "이 시간이 지나면 나머지는 상자로, 고른 것은 덱으로 움직인다.")]
+        [SerializeField, Min(0f)] private float pickHold = 0.5f;
+
+        [Tooltip("카드가 다 정리된 뒤 다음 단계로 넘어가기까지 두는 시간.")]
         [SerializeField, Min(0f)] private float claimHold = 0.6f;
 
         [Header("덱으로 보내기")]
@@ -154,6 +163,12 @@ namespace _Scripts.LSO.Reward
 
         [SerializeField] private Ease noteRiseEase = Ease.OutBack;
 
+        [Tooltip("메모장이 다 올라온 뒤 그대로 떠 있는 시간. 읽을 틈을 준다.\n" +
+                 "\n" +
+                 "이 시간이 지나면 스스로 상자로 들어가고 뚜껑이 닫힌다.\n" +
+                 "기다리는 동안 상자를 누르면 그 자리에서 넘어간다.")]
+        [SerializeField, Min(0f)] private float noteHold = 1.5f;
+
         [Header("반응")]
         [Tooltip("보상이 시작돼 상자를 누를 수 있게 됐을 때. 커서 모양 바꾸기 등을 건다.")]
         [SerializeField] private LSO_RewardEvent onReady;
@@ -184,6 +199,11 @@ namespace _Scripts.LSO.Reward
         [Tooltip("정리까지 끝났을 때. 다음 연출(체스판 뒤집기 등)을 여기 건다.")]
         [SerializeField] private LSO_RewardEvent onFinished;
 
+        [Header("진단")]
+        [Tooltip("켜면 단계가 바뀔 때마다 콘솔에 찍는다.\n" +
+                 "연출이 예상과 다르게 흐를 때 어디서 건너뛰었는지 보인다.")]
+        [SerializeField] private bool logPhases;
+
         private readonly LSO_RewardDraft _draft = new();
         private readonly List<LSO_RewardCard> _cards = new();
 
@@ -196,6 +216,22 @@ namespace _Scripts.LSO.Reward
         private LSO_WillNote _note;
 
         private Phase _phase = Phase.Idle;
+
+        /// <summary>
+        /// 단계를 바꾸는 유일한 통로.
+        ///
+        /// 대입을 여기로 모아두면 "언제 어디서 바뀌었나"를 한 곳에서 볼 수 있다.
+        /// 연출이 예상과 다르게 흐를 때, 어느 줄이 단계를 옮겼는지가 제일 먼저 알고 싶은 것이다.
+        /// </summary>
+        private void SetPhase(Phase next)
+        {
+            if (_phase == next) return;
+
+            if (logPhases)
+                Debug.Log($"[{name}] 단계 {_phase} → {next}", this);
+
+            _phase = next;
+        }
         private int _chapter;
         private int _stage;
 
@@ -235,10 +271,10 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 지금 상자를 눌러서 뭔가가 일어나는지.
         ///
-        /// 여는 것도 카드를 꺼내는 것도 자동이라, 상자가 답하는 자리는 메모장 앞뒤 둘뿐이다.
+        /// 여는 것도 카드를 꺼내는 것도 닫는 것도 자동이라,
+        /// 상자가 답하는 자리는 메모장을 꺼낼 때 하나뿐이다.
         /// </summary>
-        private bool BoxAcceptsClick =>
-            _phase == Phase.NoteWaiting || _phase == Phase.NoteShown;
+        private bool BoxAcceptsClick => _phase == Phase.NoteWaiting;
 
         /// <summary>지금 카드를 눌러서 고를 수 있는지.</summary>
         private bool CardsAcceptClick => _phase == Phase.Selecting;
@@ -318,7 +354,7 @@ namespace _Scripts.LSO.Reward
 
             ReleaseAll();
 
-            _phase = Phase.Closed;
+            SetPhase(Phase.Closed);
 
             onReady?.Invoke(null);
 
@@ -378,11 +414,6 @@ namespace _Scripts.LSO.Reward
                     StartCoroutine(ShowNoteRoutine());
                     break;
 
-                // 다 봤다는 뜻으로 친다. 메모장이 상자로 돌아가고 유언이 풀린다.
-                case Phase.NoteShown:
-                    StartCoroutine(HideNoteRoutine());
-                    break;
-
                 // 나머지는 클릭을 버린다. 큐에 쌓지 않는다 —
                 // 쌓아두면 손을 뗀 뒤에도 상자가 혼자 진행한다.
                 default:
@@ -394,7 +425,7 @@ namespace _Scripts.LSO.Reward
         {
             if (lid == null) return;
 
-            _phase = Phase.Opening;
+            SetPhase(Phase.Opening);
 
             lid.Open();
 
@@ -411,7 +442,7 @@ namespace _Scripts.LSO.Reward
         {
             if (_phase != Phase.Opening) return;
 
-            _phase = Phase.Opened;
+            SetPhase(Phase.Opened);
 
             onOpened?.Invoke(null);
 
@@ -422,7 +453,7 @@ namespace _Scripts.LSO.Reward
 
         private IEnumerator DealRoutine()
         {
-            _phase = Phase.Dealing;
+            SetPhase(Phase.Dealing);
 
             List<LSO_RewardOption> options = _draft.Draw(table, _chapter, _stage);
 
@@ -442,7 +473,7 @@ namespace _Scripts.LSO.Reward
                     yield return new WaitForSeconds(dealInterval);
             }
 
-            _phase = Phase.Selecting;
+            SetPhase(Phase.Selecting);
 
             onDealt?.Invoke(null);
         }
@@ -622,7 +653,7 @@ namespace _Scripts.LSO.Reward
             if (_phase != Phase.Selecting) return;
             if (card == null || card.Option == null) return;
 
-            _phase = Phase.Lowering;
+            SetPhase(Phase.Lowering);
 
             StartCoroutine(ClaimRoutine(card));
         }
@@ -646,6 +677,11 @@ namespace _Scripts.LSO.Reward
             // 이미 가진 유언은 종이가 안 나오므로 지금 함께 푼다.
             Claim(_chosenOption, includeAttachedWill: _pendingWill == null);
 
+            // 고른 자리에서 한 박자 머문다. 누르자마자 흩어지면
+            // 무엇을 골랐는지 눈으로 확인할 틈이 없다.
+            if (pickHold > 0f)
+                yield return new WaitForSeconds(pickHold);
+
             // 나머지가 상자로 돌아가는 것과 고른 카드가 덱으로 가는 것을 함께 돌린다.
             // 순서대로 하면 "치우고 나서야 받는" 것처럼 보여 한 박자 늘어진다.
             Coroutine toDeck = StartCoroutine(SendToDeckRoutine(chosen));
@@ -658,7 +694,7 @@ namespace _Scripts.LSO.Reward
 
             if (_pendingWill != null && _willPool != null)
             {
-                _phase = Phase.NoteWaiting;
+                SetPhase(Phase.NoteWaiting);
 
                 onNoteReady?.Invoke(_chosenOption);
                 yield break;
@@ -815,7 +851,7 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         private IEnumerator ShowNoteRoutine()
         {
-            _phase = Phase.NoteRising;
+            SetPhase(Phase.NoteRising);
 
             _note = _willPool.Get();
 
@@ -832,9 +868,15 @@ namespace _Scripts.LSO.Reward
 
             yield return rise.WaitForCompletion();
 
-            _phase = Phase.NoteShown;
+            SetPhase(Phase.NoteShown);
 
             onNoteShown?.Invoke(_chosenOption);
+
+            // 떠 있는 동안 읽을 틈을 준다. 이 사이에는 클릭을 받지 않는다.
+            if (noteHold > 0f)
+                yield return new WaitForSeconds(noteHold);
+
+            yield return StartCoroutine(HideNoteRoutine());
         }
 
         /// <summary>
@@ -845,7 +887,7 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         private IEnumerator HideNoteRoutine()
         {
-            _phase = Phase.NoteLowering;
+            SetPhase(Phase.NoteLowering);
 
             if (_note != null)
             {
@@ -865,7 +907,7 @@ namespace _Scripts.LSO.Reward
 
         private IEnumerator CloseRoutine()
         {
-            _phase = Phase.Closing;
+            SetPhase(Phase.Closing);
 
             // 연출이 중간에 끊겨 여기로 바로 왔을 수도 있다. 유언은 반드시 풀어준다.
             ClaimPendingWill();
@@ -885,7 +927,7 @@ namespace _Scripts.LSO.Reward
 
             _chosenOption = null;
             _pendingWill = null;
-            _phase = Phase.Idle;
+            SetPhase(Phase.Idle);
 
             onFinished?.Invoke(option);
             OnFinished?.Invoke(option);
@@ -969,7 +1011,8 @@ namespace _Scripts.LSO.Reward
                 $"  카드    : {_cards.Count}장\n" +
                 $"  기물 풀 : {(_piecePool == null ? "없음" : $"대기 {_piecePool.IdleCount} / 만든 것 {_piecePool.CreatedCount}")}\n" +
                 $"  유언 풀 : {(_willPool == null ? "없음" : $"대기 {_willPool.IdleCount} / 만든 것 {_willPool.CreatedCount}")}\n" +
-                $"  뚜껑    : {(lid == null ? "없음" : lid.IsOpened ? "열림" : "닫힘")}",
+                $"  뚜껑    : {(lid == null ? "없음" : lid.IsOpened ? "열림" : "닫힘")}\n" +
+                $"  뜸      : Pick {pickHold}s / Claim {claimHold}s / Note {noteHold}s",
                 this);
         }
 

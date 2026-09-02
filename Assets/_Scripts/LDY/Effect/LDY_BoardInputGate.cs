@@ -85,7 +85,7 @@ namespace _Scripts.LDY.Effect
         /// 보드 입력은 씬이 끝날 때까지 닫아두는 편이 맞다.
         ///
         /// 전역 잠금은 반대로 반드시 푼다. static이라 씬을 넘어가도 남아서,
-        /// 그대로 두면 다음 전투 씬이 잠긴 채로 시작하고 ESC(LDY_EscapeKeyHandler)까지 막힌다.
+        /// 그대로 두면 다음 전투 씬이 잠긴 채로 시작한다.
         /// </summary>
         public void Seal()
         {
@@ -118,8 +118,8 @@ namespace _Scripts.LDY.Effect
         /// <summary>
         /// 전역(static) 잠금을 푼다. 두 번 풀지 않는다.
         ///
-        /// 이 잠금은 static이라 씬을 넘어가도 남는다. 그대로 두면 다음 전투 씬이 잠긴 채로 시작하고
-        /// ESC(LDY_EscapeKeyHandler.cs:116)까지 막힌다.
+        /// 이 잠금은 static이라 씬을 넘어가도 남는다.
+        /// 그대로 두면 다음 전투 씬이 잠긴 채로 시작한다.
         /// </summary>
         private void ReleaseGlobalLock()
         {
