@@ -28,6 +28,11 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
     [Header("기물 사진")]
     [SerializeField] private SpriteRenderer portraitRenderer;
+    [SerializeField] private SpriteRenderer attackPortraitRenderer;
+    [SerializeField] private SpriteRenderer healthPortraitRenderer;
+    [SerializeField] private SpriteRenderer aRPortraitRenderer;
+    [SerializeField] private SpriteRenderer mRPortraitRenderer;
+    [SerializeField] private SpriteRenderer willPortraitRenderer;
 
     [Header("텍스트")]
     [SerializeField] private TMP_Text pieceName;
