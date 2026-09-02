@@ -6,6 +6,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using _Scripts.LSO.UI.Text;
+using UnityEngine.UI;
 
 namespace _Scripts.LDY.Editor
 {
