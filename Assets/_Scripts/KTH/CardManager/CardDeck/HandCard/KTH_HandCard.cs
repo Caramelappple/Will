@@ -1,27 +1,11 @@
 using System;
+using System.Collections.Generic;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using _Scripts.LSO.UI.Panel;
-
-// 3D 전환 메모:
-// - Image -> SpriteRenderer, TextMeshProUGUI -> TextMeshPro(3D)로 교체.
-// - IPointerClickHandler / EnterHandler / ExitHandler는 그대로 둔다.
-//   LSO_ClickRelay 쪽 설명대로, 3D 오브젝트도 Collider + 카메라의 Physics Raycaster +
-//   씬의 EventSystem만 있으면 이 인터페이스들이 그대로 동작한다.
-// - CanvasGroup(blocksRaycasts/interactable/alpha)은 3D에 없는 개념이라
-//   Collider.enabled + SpriteRenderer 알파로 대체했다.
-// - transform.SetAsLastSibling()으로 하던 "맨 앞으로"는 KTH_CardSorting(sortingOrder)으로 이동.
-//
-// 정보 표시 역할 분리:
-// 아이콘(SetIcon)/이름(SetName)/공격력(attackText)은 LSO_RewardPieceCard(및 LSO_RewardCard)가
-// 이미 그리는 항목과 겹쳐서 여기서는 빼고, 카드 프리팹에 LSO_RewardPieceCard 계열 컴포넌트를
-// 같이 붙여서 그쪽이 정보 표시를 담당하게 한다.
-// KTH_HandCard는 겹치지 않는 것만 남긴다: 선택 아웃라인, 코스트 표시, 그리고
-// 손패에서의 위치/선택/호버/드로우 애니메이션/클릭 같은 "행동" 로직.
-// 이동시킬 축을 고를 때 쓰는 간단한 열거형.
 public enum KTH_Axis3D
 {
     X,
@@ -57,6 +41,14 @@ public class KTH_HandCard : MonoBehaviour,
     [SerializeField] private float drawDipDistance = 0.5f;
     [SerializeField] private float drawHookDistance = 0.2f;
 
+    [Header("Double Click / Move Down Settings")]
+    [Tooltip("더블클릭 시 '선택되지 않은' 나머지 카드가 어느 축으로 내려갈지")]
+    [SerializeField] private KTH_Axis3D moveDownAxis = KTH_Axis3D.Y;
+    [Tooltip("더블클릭 시 나머지 카드가 얼마나 내려갈지")]
+    [SerializeField] private float moveDownAmount = 1.0f;
+    [SerializeField] private float moveDownDuration = 0.2f;
+    [SerializeField] private Ease moveDownEase = Ease.OutCubic;
+
     private LSO_WillPanel willPanel;
     private LSO_CardSO cardData;
 
@@ -64,6 +56,7 @@ public class KTH_HandCard : MonoBehaviour,
     private bool isConfirmed;
     private bool isPlacementMode;
     private bool isPointerOver;
+    private bool isMovedDown;
 
     private Vector3 originalLocalPos;
     private Vector3 originalLocalRot;
@@ -77,10 +70,14 @@ public class KTH_HandCard : MonoBehaviour,
 
     private static KTH_HandCard currentSelectedCard;
 
+    // 더블클릭 시 "나머지 카드"를 내려보내기 위해 현재 존재하는 모든 핸드카드를 추적
+    private static readonly List<KTH_HandCard> allHandCards = new List<KTH_HandCard>();
+
     public LSO_CardSO CardData => cardData;
     public bool IsSelected => isSelected;
     public bool IsConfirmed => isConfirmed;
     public bool IsPlacementMode => isPlacementMode;
+    public bool IsMovedDown => isMovedDown;
     public float SelectScale => selectScale;
 
     public static bool HasConfirmedSelection =>
@@ -89,10 +86,22 @@ public class KTH_HandCard : MonoBehaviour,
 
     public event Action<KTH_HandCard> OnCardClicked;
 
+    /// <summary>
+    /// 카드가 더블클릭됐을 때 발생하는 static 이벤트.
+    /// 파라미터로 더블클릭된 카드(KTH_HandCard)가 전달됨.
+    /// 외부 오브젝트는 OnEnable/OnDisable에서 구독/해제하면 됨.
+    /// </summary>
+    public static event Action<KTH_HandCard> OnCardDoubleClicked;
+
     private void Awake()
     {
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
+
+        if (!allHandCards.Contains(this))
+        {
+            allHandCards.Add(this);
+        }
     }
 
     public void Setup(
@@ -297,6 +306,16 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
+        // ==================================================
+        // 더블클릭 처리 (Unity가 판정한 clickCount 사용)
+        // 더블클릭이면 기존 단일클릭(선택/확정) 로직을 타지 않고 별도 처리 후 종료.
+        // ==================================================
+        if (eventData.clickCount >= 2)
+        {
+            HandleDoubleClick();
+            return;
+        }
+
         if (willPanel != null &&
             willPanel.IsSelecting)
         {
@@ -353,6 +372,103 @@ public class KTH_HandCard : MonoBehaviour,
         }
 
         OnCardClicked?.Invoke(this);
+    }
+
+    // ============================================================
+    // Double Click
+    // ============================================================
+
+    /// <summary>
+    /// 더블클릭된 카드(this)를 제외한 나머지 모든 핸드카드를 아래로 내리고,
+    /// OnCardDoubleClicked 이벤트를 발생시켜 구독중인 오브젝트가 반응하도록 함.
+    /// </summary>
+    private void HandleDoubleClick()
+    {
+        for (int i = 0; i < allHandCards.Count; i++)
+        {
+            KTH_HandCard card = allHandCards[i];
+
+            if (card == null ||
+                card == this)
+            {
+                continue;
+            }
+
+            card.PlayMoveDownAnimation();
+        }
+
+        OnCardDoubleClicked?.Invoke(this);
+    }
+
+    /// <summary>
+    /// 현재 내려가 있는 모든 카드를 원래 위치로 복구.
+    /// (더블클릭 상태를 해제하고 싶을 때 외부에서 호출)
+    /// </summary>
+    public static void RestoreAllCards()
+    {
+        for (int i = 0; i < allHandCards.Count; i++)
+        {
+            allHandCards[i]?.PlayMoveUpAnimation();
+        }
+    }
+
+    /// <summary>
+    /// 이 카드를 moveDownAxis 방향으로 moveDownAmount 만큼 내리는 애니메이션.
+    /// </summary>
+    public void PlayMoveDownAnimation()
+    {
+        if (isMovedDown)
+            return;
+
+        isMovedDown = true;
+
+        Vector3 targetPos = originalLocalPos;
+
+        switch (moveDownAxis)
+        {
+            case KTH_Axis3D.X:
+                targetPos.x -= moveDownAmount;
+                break;
+
+            case KTH_Axis3D.Y:
+                targetPos.y -= moveDownAmount;
+                break;
+
+            case KTH_Axis3D.Z:
+                targetPos.z -= moveDownAmount;
+                break;
+        }
+
+        transform.DOKill();
+
+        transform
+            .DOLocalMove(
+                targetPos,
+                moveDownDuration
+            )
+            .SetEase(moveDownEase)
+            .SetTarget(transform);
+    }
+
+    /// <summary>
+    /// 내려갔던 카드를 원래 위치(originalLocalPos)로 복구.
+    /// </summary>
+    public void PlayMoveUpAnimation()
+    {
+        if (!isMovedDown)
+            return;
+
+        isMovedDown = false;
+
+        transform.DOKill();
+
+        transform
+            .DOLocalMove(
+                originalLocalPos,
+                moveDownDuration
+            )
+            .SetEase(moveDownEase)
+            .SetTarget(transform);
     }
 
     // ============================================================
@@ -562,6 +678,7 @@ public class KTH_HandCard : MonoBehaviour,
         isConfirmed = false;
         isPlacementMode = false;
         isPointerOver = false;
+        isMovedDown = false;
 
         if (currentSelectedCard == this)
         {
@@ -879,6 +996,8 @@ public class KTH_HandCard : MonoBehaviour,
         {
             currentSelectedCard = null;
         }
+
+        allHandCards.Remove(this);
     }
 
     public static void DeselectCurrent()
