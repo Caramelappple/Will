@@ -330,6 +330,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 70646586}
@@ -589,13 +590,25 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 662376839460450822, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: handLayout
+      value: 
+      objectReference: {fileID: 163273565}
+    - target: {fileID: 662376839460450822, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: turnManager
       value: 
       objectReference: {fileID: 944642614}
     - target: {fileID: 1111860995243465467, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: hideOffsetY
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111860995243465467, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: turnManager
       value: 
       objectReference: {fileID: 944642614}
+    - target: {fileID: 1111860995243465467, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: moveDuration
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 1111860995243465467, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: handCardLayout
       value: 
@@ -603,6 +616,10 @@ PrefabInstance:
     - target: {fileID: 3392198647013307230, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: m_Name
       value: CardDrowUI (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3392198647013307230, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5639325343422250549, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: willPanel
@@ -636,6 +653,38 @@ PrefabInstance:
       propertyPath: cardPlacer
       value: 
       objectReference: {fileID: 881993166}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: closeUpEase
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: closeUpScale
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 257224524}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: cameraZoomEase
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: closeUpDuration
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: zoomedOrthoSize
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: closeUpAnchoredPos.y
+      value: -6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6709785288595645379, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
+      propertyPath: abilityExplanations.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8653503884326655924, guid: 1d3ef1a0462fbaf47a4dd0ad3e012bf5, type: 3}
       propertyPath: willPanel
       value: 
@@ -1032,6 +1081,7 @@ GameObject:
   - component: {fileID: 257224524}
   - component: {fileID: 257224523}
   - component: {fileID: 257224526}
+  - component: {fileID: 257224527}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1157,6 +1207,22 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &257224527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 257224522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c49b4cc203aa6414fae5c798d1d0e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.PhysicsRaycaster
+  m_EventMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_MaxRayIntersections: 0
 --- !u!1 &259788717
 GameObject:
   m_ObjectHideFlags: 0
@@ -2475,6 +2541,162 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &439603175
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 439603176}
+  - component: {fileID: 439603179}
+  - component: {fileID: 439603178}
+  - component: {fileID: 439603177}
+  - component: {fileID: 439603181}
+  - component: {fileID: 439603180}
+  m_Layer: 0
+  m_Name: DiscardedCardPlace
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &439603176
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.81, y: 0, z: -2.1399999}
+  m_LocalScale: {x: 0.18128784, y: 0.28111, z: 0.28111}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1204555840}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &439603177
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &439603178
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &439603179
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &439603180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ac047c0765fab4c85516000f50e31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardCardUI
+  discardCardTransform: {fileID: 439603176}
+  discardCountText: {fileID: 0}
+  discardCardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  maxStackOffset: 0.05
+  depthStackOffset: 0.03
+  stackHeight: 0.015
+  lieFlatXAngle: -90
+  maxRandomAngle: 15
+  minRandomAngle: 5
+  drawPileTransform: {fileID: 1029269879}
+  reshuffleFlyDuration: 0.35
+  reshuffleStaggerDelay: 0.03
+  reshuffleEase: 7
+  reshuffleArcHeight: 0.4
+--- !u!114 &439603181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439603175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35077cfd34965b84e89bfb17bfa852db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardCardManager
+  deckManager: {fileID: 1031362563}
+  handLayout: {fileID: 2111996866}
+  discardPile: {fileID: 439603180}
 --- !u!1 &484272660
 GameObject:
   m_ObjectHideFlags: 0
@@ -2977,6 +3199,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 1
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 3
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 571457307}
@@ -5473,6 +5696,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000893941}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1029269878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1029269879}
+  m_Layer: 0
+  m_Name: HandCardSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1029269879
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029269878}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.4951966, y: 0.4951966, z: 0.25902113}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1243056013}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1029811146
 GameObject:
   m_ObjectHideFlags: 0
@@ -5585,6 +5839,89 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029811146}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1031362561
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1031362562}
+  - component: {fileID: 1031362563}
+  - component: {fileID: 1031362565}
+  - component: {fileID: 1031362564}
+  m_Layer: 0
+  m_Name: DeckManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1031362562
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031362561}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1204555840}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1031362563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031362561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0edfb5f1588296d459f5178ba3c8c4a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DeckManager
+  deck: []
+  turnManager: {fileID: 944642614}
+  discardPile: {fileID: 439603180}
+  autoReshuffleFromDiscard: 1
+  handLayout: {fileID: 2111996866}
+  ignoreDrawLimit: 0
+  maxDrawsPerTurn: 2
+--- !u!114 &1031362564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031362561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 404da876f2381034082b82c4b7b22bad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_StartCardSet
+  startingHandCount: 5
+  drawInterval: 0.12
+--- !u!114 &1031362565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031362561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0703936731e5164eb6c7e9cdbe923d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_SpawnCard
+  deckManager: {fileID: 1031362563}
+  drawButton: {fileID: 1243056019}
+  cardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  handLayout: {fileID: 2111996866}
 --- !u!1 &1056996184
 GameObject:
   m_ObjectHideFlags: 0
@@ -6383,6 +6720,41 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1163833681}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1204555839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1204555840}
+  m_Layer: 0
+  m_Name: Deck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1204555840
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204555839}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1243056013}
+  - {fileID: 439603176}
+  - {fileID: 2111996865}
+  - {fileID: 1031362562}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1205221101
 GameObject:
   m_ObjectHideFlags: 0
@@ -6551,6 +6923,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 1
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1219364772}
@@ -6719,6 +7092,195 @@ Transform:
   - {fileID: 1585597102}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1243056012
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1243056013}
+  - component: {fileID: 1243056016}
+  - component: {fileID: 1243056015}
+  - component: {fileID: 1243056014}
+  - component: {fileID: 1243056020}
+  - component: {fileID: 1243056019}
+  - component: {fileID: 1243056018}
+  - component: {fileID: 1243056017}
+  m_Layer: 0
+  m_Name: Draw
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1243056013
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.5, y: 0, z: -1.81}
+  m_LocalScale: {x: 2.0194, y: 2.0194, z: 3.8606887}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1029269879}
+  m_Father: {fileID: 1204555840}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1243056014
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1243056015
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1243056016
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1243056017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cab92d44b2d68a4a80a107423caf788, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ClickRelay
+  onClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1243056019}
+        m_TargetAssemblyTypeName: KTH_DrawButton, Assembly-CSharp
+        m_MethodName: OnClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1243056018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dc2e9c4d0704a43806c8d8225700281, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardPool
+  cardPrefab: {fileID: 4939024106996827645, guid: 41cd7f40dafc8d44ea0172baee5024c2, type: 3}
+  prewarmCount: 10
+  poolParent: {fileID: 1243056013}
+--- !u!114 &1243056019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0bbb53d93db70847b8c38d611c32408, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DrawButton
+  willPanel: {fileID: 669969723}
+  turnManager: {fileID: 944642614}
+  visualRenderers: []
+  disabledAlpha: 0.4
+--- !u!114 &1243056020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243056012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16ea75f4090b617458363b1dde598823, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonClickHandler
+  respectInteractable: 1
+  leftButtonOnly: 1
 --- !u!1 &1260213907
 GameObject:
   m_ObjectHideFlags: 0
@@ -6885,6 +7447,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 2
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1273964880}
@@ -8825,6 +9388,7 @@ MonoBehaviour:
   team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1621688121}
@@ -10322,6 +10886,7 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 2
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2073800958}
@@ -10532,6 +11097,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2083494683}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2111996864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2111996865}
+  - component: {fileID: 2111996866}
+  m_Layer: 0
+  m_Name: HandCardConTainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2111996865
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111996864}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
+  m_LocalPosition: {x: 3.75, y: 0, z: -2.04}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1204555840}
+  m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
+--- !u!114 &2111996866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111996864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 336677f6db07f6a438b73fa1b71079cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardLayout
+  willPanel: {fileID: 669969723}
+  cardPlacer: {fileID: 881993166}
+  discardPile: {fileID: 439603180}
+  maxCardSpacing: 1
+  minCardSpacing: 0.5
+  maxHandWidth: 6
+  arcHeight: 0.5
+  maxRotation: 15
+  handTiltAngle: 20
+  staggerDelay: 0.025
+  moveEase: 9
+  maxHandSize: 8
+  drawDuration: 0.4
+  pushDuration: 0.28
+  enableMoveDown: 0
+  placementMoveDownDistance: 0.8
+  placementMoveDuration: 0.3
+  placementCenterGap: 0.8
 --- !u!1 &2138396049
 GameObject:
   m_ObjectHideFlags: 0
@@ -10714,3 +11341,4 @@ SceneRoots:
   - {fileID: 163273564}
   - {fileID: 749980573}
   - {fileID: 424069713}
+  - {fileID: 1204555840}

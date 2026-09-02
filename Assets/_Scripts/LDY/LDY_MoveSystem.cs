@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.UI.Effect;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -172,34 +173,54 @@ namespace _Scripts.LDY
             Transform t = animal != null ? animal.modelTransform : null;
             if (t == null) yield break;
 
-            if (duration <= 0f)
+            // 이동 애니메이션과 호버 연출(LSO_HoverMoveEffect)이 같은 모델 트랜스폼을 함께
+            // 움직인다. 이동 중에 커서가 기물 위를 지나가면, 호버가 "아직 도착하지 않은"
+            // 중간 위치를 자기 원래 자리로 캐싱해버려서 이동이 끝난 뒤에도 그 중간 지점으로
+            // 다시 스냅되는 문제가 생긴다. 이동하는 동안은 호버 연출만 잠깐 쉬게 한다.
+            //
+            // LSO_ButtonHoverHandler.enabled를 껐다 켜는 방식은 쓰지 않는다. 유니티 이벤트
+            // 시스템의 호버 상태 추적과 어긋나서, 다시 켰을 때 커서가 그대로 머물러 있어도
+            // 또 OnHoverEnter가 걸려 기물이 칸과 칸 사이 같은 애매한 위치로 들뜨는 문제가 있었다.
+            LSO_HoverMoveEffect hoverEffect = animal.GetComponentInChildren<LSO_HoverMoveEffect>();
+            hoverEffect?.SetSuspended(true);
+
+            try
             {
-                t.position = targetWorldPos;
-                yield break;
+                if (duration <= 0f)
+                {
+                    t.position = targetWorldPos;
+                    yield break;
+                }
+
+                Vector3 startPos = t.position;
+                float elapsed = 0f;
+
+                while (elapsed < duration)
+                {
+                    // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
+                    // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
+                    // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
+                    if (t == null) yield break;
+
+                    elapsed += Time.deltaTime;
+
+                    float progress = Mathf.Clamp01(elapsed / duration);
+                    float eased = easing != null ? easing.Evaluate(progress) : progress;
+
+                    // 곡선이 1을 넘겨 목적지를 지나쳤다 돌아오는 연출도 그대로 살리려고 Unclamped를 쓴다.
+                    t.position = Vector3.LerpUnclamped(startPos, targetWorldPos, eased);
+                    yield return null;
+                }
+
+                if (t != null)
+                    t.position = targetWorldPos;
             }
-
-            Vector3 startPos = t.position;
-            float elapsed = 0f;
-
-            while (elapsed < duration)
+            finally
             {
-                // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
-                // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
-                // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
-                if (t == null) yield break;
-
-                elapsed += Time.deltaTime;
-
-                float progress = Mathf.Clamp01(elapsed / duration);
-                float eased = easing != null ? easing.Evaluate(progress) : progress;
-
-                // 곡선이 1을 넘겨 목적지를 지나쳤다 돌아오는 연출도 그대로 살리려고 Unclamped를 쓴다.
-                t.position = Vector3.LerpUnclamped(startPos, targetWorldPos, eased);
-                yield return null;
+                // 이동 도중 기물이 파괴됐으면(위 유언·계승 케이스) hoverEffect도 이미
+                // 파괴된 상태라 Unity의 == 오버로드가 이걸 null로 취급해 건너뛴다.
+                hoverEffect?.SetSuspended(false);
             }
-
-            if (t != null)
-                t.position = targetWorldPos;
         }
     }
 }

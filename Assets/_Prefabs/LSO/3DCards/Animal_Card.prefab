@@ -825,7 +825,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_Name
-      value: Will_Card
+      value: Animal_Card
       objectReference: {fileID: 0}
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_IsActive
@@ -911,6 +911,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4650799037711057792}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8764714383092246119}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4939024106996827645}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2032586742506101883}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -7840839501847450578}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: daef46bc09db17143b8053a196891e72, type: 3}
 --- !u!4 &1467006278604692247 stripped
 Transform:
@@ -974,6 +986,76 @@ MonoBehaviour:
   descriptionText: {fileID: 0}
   attackText: {fileID: 4977333980903075961}
   healthText: {fileID: 7645140083797487888}
-  moveRangeText: {fileID: 0}
-  attackRangeText: {fileID: 0}
-  traitText: {fileID: 1448557948405940035}
+  costText: {fileID: 0}
+--- !u!114 &8764714383092246119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdfbb0299bd2904ba1cacdcb567ad62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCardFlip
+  front: {fileID: 0}
+  back: {fileID: 0}
+  flipThresholdAngle: 90
+  axis: 1
+--- !u!114 &4939024106996827645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53ac91f743cee6140873e2950d93c06d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCard
+  outlineImage: {fileID: 0}
+  cost: {fileID: 0}
+  selectScale: 1.2
+  selectMoveAxis: 1
+  selectMoveAmount: 0.2
+  selectDuration: 0.22
+  hoverEnterDelay: 0.01
+  hoverExitDelay: 0.02
+  infoPanelHoverDelay: 0.5
+  drawStartScale: 0.3
+  drawDipDistance: 0.5
+  drawHookDistance: 0.2
+--- !u!114 &2032586742506101883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fdb10e69c7ada84c9a79b6301fda24c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_CardSorting
+  frontZOffset: 0.03
+--- !u!114 &-7840839501847450578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81de8a477bc290d4ca69ed6d7913b245, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardAnimation
+  discardDuration: 0.18
+  arcHeight: 0.5
+  landingDuration: 0.08
+  landingScale: 0.96
+  shadowChildName: Shadow
+  shadowBoost: 1.8
+  shadowDuration: 0.12
