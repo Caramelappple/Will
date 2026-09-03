@@ -21,6 +21,14 @@ namespace _Scripts.LSO.Reward
         public LSO_RewardType type;
 
         public LSO_CardSO piece;
+
+        /// <summary>
+        /// 이 보상에 딸린 유언. 없으면 null.
+        ///
+        /// 유언은 카드로 나오지 않고, 뽑지도 않는다. 스테이지마다 하나로 정해져 있어
+        /// 어느 카드를 골라도 같은 것이 들어온다(LSO_StageRewardData.stageWill).
+        /// 후보 세 장이 전부 같은 값을 들고 있는 것이 맞다.
+        /// </summary>
         public DLJ_WillDataSO will;
 
         /// <summary>
@@ -33,10 +41,12 @@ namespace _Scripts.LSO.Reward
 
         public string GetName()
         {
-            if (type == LSO_RewardType.Piece)
-                return piece != null ? piece.name : "알 수 없는 기물";
+            if (type != LSO_RewardType.Piece)
+                return will != null ? will.name : "알 수 없는 유언";
 
-            return will != null ? will.name : "알 수 없는 유언";
+            // 유언은 적지 않는다. 스테이지마다 하나뿐이라 후보가 전부 같은 값을 들고 있어
+            // 확률 표에 붙여봐야 모든 줄에 같은 글자만 늘어난다.
+            return piece != null ? piece.name : "알 수 없는 기물";
         }
     }
 
@@ -55,19 +65,6 @@ namespace _Scripts.LSO.Reward
 
 
     /// <summary>
-    /// 확률 뽑기용 유언 항목
-    /// </summary>
-    [System.Serializable]
-    public class LSO_WillRewardPoolEntry
-    {
-        public DLJ_WillDataSO willSO;
-
-        [Tooltip("값이 클수록 뽑힐 확률이 높음")]
-        public float weight = 1f;
-    }
-
-
-    /// <summary>
     /// 스테이지별 보상 데이터
     /// </summary>
     [System.Serializable]
@@ -79,15 +76,15 @@ namespace _Scripts.LSO.Reward
         [Header("스테이지")]
         public int stage;
 
-        [Header("보상 후보 개수")]
-        [Min(1)]
-        public int rewardChoiceCount = 3;
-
         [Header("카드 후보")]
         public List<LSO_RewardPoolEntry> possiblePieces = new();
 
-        [Header("유언 후보")]
-        public List<LSO_WillRewardPoolEntry> possibleWills = new();
+        [Header("이 스테이지가 주는 유언")]
+        [Tooltip("어느 카드를 고르든 이것 하나가 풀린다. 뽑기가 아니다.\n" +
+                 "\n" +
+                 "비워두면 이 스테이지에서는 유언이 나오지 않고, 카드를 고르면 바로 끝난다.\n" +
+                 "처음 보는 유언이면 메모장이 올라오고, 이미 가진 것이면 조용히 지나간다.")]
+        public DLJ_WillDataSO stageWill;
     }
 
 
@@ -97,8 +94,21 @@ namespace _Scripts.LSO.Reward
     [CreateAssetMenu(fileName = "LSO_RewardTable", menuName = "LSO/Reward Table")]
     public class LSO_RewardTableSO : ScriptableObject
     {
+        [Header("공통")]
+        [Tooltip("상자에서 나올 카드 장수. 그중 하나를 고른다.\n" +
+                 "\n" +
+                 "스테이지마다 따로 두지 않는다. 어느 스테이지에서는 셋, 어디서는 다섯이면\n" +
+                 "플레이어가 매번 세어봐야 하고, 값을 고칠 때 스테이지 수만큼 반복해야 한다.\n" +
+                 "\n" +
+                 "카드 풀보다 커도 된다. 같은 카드가 여러 장 나올 뿐이다.")]
+        [SerializeField, Min(1)]
+        private int cardCount = 3;
+
         [SerializeField]
         private List<LSO_StageRewardData> stages = new();
+
+        /// <summary>상자에서 꺼낼 카드 장수. 모든 스테이지가 같은 값을 쓴다.</summary>
+        public int CardCount => Mathf.Max(1, cardCount);
 
         public List<LSO_StageRewardData> Stages => stages;
 
@@ -131,7 +141,7 @@ namespace _Scripts.LSO.Reward
         /// 씬 없이도 돌기 때문이다. 가중치를 고칠 때마다 바로 확인할 수 있다.
         ///
         /// 나오는 값은 "한 번 뽑을 때 이 보상이 후보에 낄 확률"이다.
-        /// 한 번에 rewardChoiceCount개를 뽑으므로 전부 더하면 100%를 넘는다.
+        /// 한 번에 Card Count개를 뽑으므로 전부 더하면 100%를 넘는다.
         /// </summary>
         [ContextMenu("테스트: 확률 뽑아보기")]
         private void TestRoll()
@@ -164,7 +174,7 @@ namespace _Scripts.LSO.Reward
             var text = new System.Text.StringBuilder();
 
             text.AppendLine($"{name} — 챕터 {testChapter} 스테이지 {testStage}");
-            text.AppendLine($"{testRolls}번 뽑음 / 한 번에 {Mathf.Max(1, data.rewardChoiceCount)}개");
+            text.AppendLine($"{testRolls}번 뽑음 / 한 번에 {CardCount}장");
             text.AppendLine();
 
             foreach (KeyValuePair<string, int> line in lines)

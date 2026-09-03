@@ -14,7 +14,7 @@ PlayerSettings:
   accelerometerFrequency: 60
   companyName: DefaultCompany
   productName: Will
-  defaultCursor: {fileID: 2800000, guid: ff0e1bc5da068f34a84229a405f37717, type: 3}
+  defaultCursor: {fileID: 2800000, guid: 8e0a8c3c98167274dbdb2f2f093a8c6a, type: 3}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
   m_ShowUnitySplashScreen: 1

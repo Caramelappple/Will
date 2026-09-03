@@ -44,7 +44,13 @@ namespace _Scripts.LSO.Reward
         }
 
         /// <summary>
-        /// 여러 개를 겹치지 않게 뽑는다. 후보가 모자라면 뽑을 수 있는 만큼만 돌려준다.
+        /// 여러 개를 뽑는다. 뽑은 것을 후보에서 빼지 않으므로 같은 것이 여러 번 나올 수 있다.
+        ///
+        /// 후보가 적은 초반 스테이지에서 "카드가 두 장만 나오는" 일을 막으려는 것이다.
+        /// 겹치지 않게 뽑으면 후보 수가 곧 뽑을 수 있는 최대 장수가 되어버린다.
+        ///
+        /// 뽑을 수 있는 후보가 하나도 없으면 그 자리에서 멈춘다.
+        /// 전부 제외됐거나 가중치가 0인 경우라, 몇 번을 더 돌려도 결과가 같다.
         /// </summary>
         public static List<T> PickMany<T>(
             IReadOnlyList<T> pool,
@@ -55,16 +61,12 @@ namespace _Scripts.LSO.Reward
             List<T> results = new();
             if (count <= 0) return results;
 
-            // 이번 뽑기에서 이미 나온 것도 후보에서 빼야 같은 게 두 번 나오지 않는다.
-            HashSet<T> taken = new();
-
             for (int i = 0; i < count; i++)
             {
-                T picked = Pick(pool, getWeight, x => isExcluded(x) || taken.Contains(x));
+                T picked = Pick(pool, getWeight, isExcluded);
 
                 if (EqualityComparer<T>.Default.Equals(picked, default)) break;
 
-                taken.Add(picked);
                 results.Add(picked);
             }
 

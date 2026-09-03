@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f45300591e9c4be49bbcd49696e2ea3f, type: 3}
   m_Name: RageWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_RageWillDataSO
-  description: aaaaaa
+  description: "\uC8FD\uC744 \uB54C \uC8FC\uBCC0 \uC801\uC5D0\uAC8C 3 x 3\uCE78\uC5D0
+    3 \uD53C\uD574\uB97C \uC900\uB2E4. \uC774\uB54C \uC544\uAD70 \uB610\uD55C \uAC19\uC740
+    \uD53C\uD574\uB97C \uC900\uB2E4. (\uAC19\uC740 \uBD84\uB178 \uC720\uC5B8\uC744
+    \uC120\uD0DD\uD558\uC5EC \uB3D9\uBC18 \uC0B41\uC790 \uC804\uB7B5 \uAC00\uB2A5)"
   icon: {fileID: 21300000, guid: 87bcde1484a3e40449c3d41e66c987f6, type: 3}
   effectPrefab: {fileID: 7427076468766820605, guid: 98b7bfeaf6a1a7d43b493e5714dc9fea, type: 3}
   cameraHoldDuration: 1.5
