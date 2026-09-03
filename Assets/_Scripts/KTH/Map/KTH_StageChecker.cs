@@ -1,3 +1,4 @@
+using _Scripts.LSO.Stage;
 using TMPro;
 using UnityEngine;
 
@@ -15,26 +16,32 @@ public class KTH_StageChecker : MonoBehaviour
             return;
         }
 
-        if (LDY_MapManager.Instance == null)
+        if (!LSO_StageProgression.HasInstance)
         {
             enabled = false;
             return;
         }
 
-        LDY_MapManager.Instance.onStageChanged.AddListener(UpdateStageText);
+        LSO_StageProgression.Instance.Advanced += HandleAdvanced;
 
         UpdateStageText();
     }
 
     private void OnDestroy()
     {
-        if (LDY_MapManager.Instance != null)
-            LDY_MapManager.Instance.onStageChanged.RemoveListener(UpdateStageText);
+        if (LSO_StageProgression.HasInstance)
+            LSO_StageProgression.Instance.Advanced -= HandleAdvanced;
     }
+
+    // 진행이 한 칸 넘어갈 때마다 다시 그린다. 인자는 쓰지 않는다.
+    private void HandleAdvanced(_Scripts.LDY.Stage.LDY_StageSO _) => UpdateStageText();
 
     private void UpdateStageText()
     {
-        stageText.text =
-            $"{LDY_MapManager.Instance.CurrentChapter}-{LDY_MapManager.Instance.CurrentStage}";
+        if (!LSO_StageProgression.HasInstance) return;
+
+        LSO_StageProgression p = LSO_StageProgression.Instance;
+
+        stageText.text = $"{p.ChapterNumber}-{p.StageNumber}";
     }
 }

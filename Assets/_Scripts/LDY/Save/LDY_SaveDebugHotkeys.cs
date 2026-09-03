@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.IO;
 using System.Text;
+using _Scripts.LSO.Stage;
 using UnityEngine;
 
 namespace _Scripts.LDY.Save.Debugging
@@ -79,29 +80,22 @@ namespace _Scripts.LDY.Save.Debugging
         }
 
         /// <summary>
-        /// LDY_MapManager.TryRestoreOnEntry를 부르고 어느 갈래로 갔는지 남긴다.
+        /// 세이브 진입 처리를 다시 태우고 어느 갈래로 갔는지 남긴다.
         ///
         /// Start는 세션당 한 번뿐이라 그대로 두면 분기를 다시 태워볼 수 없다.
         /// 같은 플레이 안에서 되풀이해 부를 수 있게 여기서 직접 호출한다.
         /// </summary>
         private void InvokeRestore(string label)
         {
-            LDY_MapManager map = LDY_MapManager.Instance;
-            if (map == null)
-            {
-                Debug.LogWarning("[SaveDebug] LDY_MapManager가 없어 진입 처리를 부르지 못했습니다.");
-                ShowToast("맵 매니저 없음 — 호출 불가", true);
-                return;
-            }
-
-            // TryRestoreOnEntry는 값을 돌려주지 않는다. 부르기 직전 상태로 어느 갈래였는지 가린다.
-            // 맵 쪽 분기 조건이 바뀌면 여기도 같이 고칠 것.
+            // 맵 매니저가 하던 진입 처리를 여기서 그대로 편다.
+            // 조건이 바뀌면 여기도 같이 고칠 것.
             bool wasNewRun = LDY_RunEntryState.IsStartingNewRun;
             bool hadRun = LDY_SaveService.Instance.HasRun;
 
             string before = DescribeGameState();
 
-            map.TryRestoreOnEntry();
+            if (!LDY_RunEntryState.Consume() && hadRun)
+                LDY_SaveService.Instance.LoadRun();
 
             string branch =
                 wasNewRun ? "새 런이라 LoadRun 을 건너뜀" :
@@ -185,34 +179,24 @@ namespace _Scripts.LDY.Save.Debugging
         /// </summary>
         private static string DescribeGameState()
         {
+            // 블록 주석이 겹쳐 있어 본문 전체가 주석 처리돼 있었다.
+            // 에러도 경고도 없이 늘 빈 문자열이 나와, 어느 갈래로 갔는지 볼 수 없었다.
             var text = new StringBuilder();
 
-            /*KTH_DeckDataPersistent deck = KTH_DeckDataPersistent.Instance;
-            text.Append(deck != null ? $"덱 {deck.SavedInventory.Count}장" : "덱 (매니저 없음)");
-
-            LDY_MapManager map = LDY_MapManager.Instance;
-            if (map != null)
+            if (LSO_StageProgression.HasInstance)
             {
-                int cleared = 0;
-                foreach (LDY_MapNode node in map.Nodes)
-                    if (node != null && node.isCleared) cleared++;
+                LSO_StageProgression p = LSO_StageProgression.Instance;
 
-                text.Append($" / 클리어 노드 {cleared}개");
-                text.Append($" / 현재 노드 {map.CurrentNodeIndex}");
-                text.Append($" / {map.CurrentChapter}-{map.CurrentStage}");
+                text.Append($"{p.ChapterNumber}-{p.StageNumber}");
+                text.Append($" / {(p.Current != null ? p.Current.stageName : "스테이지 없음")}");
+                text.Append(p.IsBoss ? " / 보스" : string.Empty);
             }
             else
             {
-                text.Append(" / 맵 (매니저 없음)");
+                text.Append("진행 (매니저 없음)");
             }
-            // 해금 목록을 누가 들고 있을지가 합의되기 전까지 보류.
-            /*
-            LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
-            text.Append(library != null && library.Claim != null
-                ? $" / 해금 기물 {library.Claim.Unlocks.Pieces.Count}·유언 {library.Claim.Unlocks.Wills.Count}"
-                : " / 해금 (매니저 없음)");
-            */
+            // 덱과 해금 목록은 누가 들고 있을지가 합의되기 전까지 빼둔다.
 
             return text.ToString();
         }
