@@ -180,6 +180,11 @@ public class KTH_HandCardLayout : MonoBehaviour
 
         KTH_HandCard.DeselectCurrent();
 
+        // 버려졌다가 풀에서 재사용된 카드는 더블클릭 대상 목록에서 빠진 채로
+        // 돌아온다(ResetForPool에서 뺐음). 손패에 다시 들어오는 이 시점에 다시
+        // 등록한다.
+        card.RegisterForDoubleClick();
+
         if (insertAtFront)
         {
             handCards.Insert(
@@ -592,30 +597,38 @@ public class KTH_HandCardLayout : MonoBehaviour
             Vector3 targetRot =
                 new Vector3(handTiltAngle, 0f, targetRotationZ);
 
-            card.transform.DOKill();
+            // 더블클릭으로 내려가 있는 카드는 이 부채꼴 재배치에서 건드리지 않는다.
+            // 여기서 그대로 옮겨버리면 더블클릭의 "내려간" 위치를 덮어써서 카드가
+            // 안 내려간 것처럼 보인다. 대신 "원래 자리"만 최신 값으로 갱신해두면,
+            // 나중에 더블클릭이 취소돼 원위치로 돌아올 때 지금 계산한 자리로
+            // 정확히 돌아온다.
+            if (!card.IsMovedDown)
+            {
+                card.transform.DOKill();
 
-            Sequence sequence =
-                DOTween.Sequence();
+                Sequence sequence =
+                    DOTween.Sequence();
 
-            sequence.SetTarget(card.transform);
+                sequence.SetTarget(card.transform);
 
-            sequence.Join(
-                card.transform
-                    .DOLocalMove(targetPos, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOLocalMove(targetPos, duration)
+                        .SetEase(moveEase)
+                );
 
-            sequence.Join(
-                card.transform
-                    .DOLocalRotate(targetRot, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOLocalRotate(targetRot, duration)
+                        .SetEase(moveEase)
+                );
 
-            sequence.Join(
-                card.transform
-                    .DOScale(Vector3.one, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOScale(Vector3.one, duration)
+                        .SetEase(moveEase)
+                );
+            }
 
             card.UpdateOriginalTransform(targetPos, targetRot);
         }

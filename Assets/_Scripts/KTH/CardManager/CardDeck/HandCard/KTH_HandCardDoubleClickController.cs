@@ -54,9 +54,39 @@ public class KTH_HandCardDoubleClickController
         this.moveDownDuration = moveDownDuration;
         this.moveDownEase = moveDownEase;
 
+        RegisterInHand();
+    }
+
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 목록에 넣는다. 더블클릭이 "나머지 전부"를
+    /// 찾을 때 이 목록을 쓴다.
+    ///
+    /// 생성자에서 한 번 불리지만, 그걸로 끝이 아니다. 카드는 버려질 때 Destroy되지
+    /// 않고 풀에 반납만 되는 구조라(Awake는 다시 안 돈다), 나중에 같은 인스턴스가
+    /// 다시 드로우돼 손패로 돌아오면 KTH_HandCardLayout.AddCard가 이걸 다시 불러서
+    /// 등록해줘야 한다.
+    /// </summary>
+    public void RegisterInHand()
+    {
         if (!allHandCards.Contains(owner))
         {
             allHandCards.Add(owner);
+        }
+    }
+
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 목록에서 뺀다. 버림 더미로 가서 풀에
+    /// 반납되는 시점(ResetForPool)에 부른다. 빼두지 않으면 버려진 카드가 계속
+    /// "나머지 카드" 취급을 받아서, 다른 카드를 더블클릭할 때마다 버림 더미에 있는
+    /// 카드까지 같이 내려가려 든다.
+    /// </summary>
+    public void UnregisterFromHand()
+    {
+        allHandCards.Remove(owner);
+
+        if (activeCard == owner)
+        {
+            activeCard = null;
         }
     }
 
@@ -165,24 +195,16 @@ public class KTH_HandCardDoubleClickController
             .SetTarget(owner.transform);
     }
 
-    /// <summary>풀에서 재사용하기 전 상태 초기화.</summary>
+    /// <summary>풀에서 재사용하기 전 상태 초기화. 손패 목록에서도 뺀다(위 UnregisterFromHand 참고).</summary>
     public void ResetForPool()
     {
         isMovedDown = false;
 
-        if (activeCard == owner)
-        {
-            activeCard = null;
-        }
+        UnregisterFromHand();
     }
 
     public void OnOwnerDestroyed()
     {
-        allHandCards.Remove(owner);
-
-        if (activeCard == owner)
-        {
-            activeCard = null;
-        }
+        UnregisterFromHand();
     }
 }

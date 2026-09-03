@@ -236,6 +236,17 @@ public class KTH_HandCard : MonoBehaviour,
         doubleClickController.PlayMoveUpAnimation();
     }
 
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 더블클릭 대상 목록에 (다시) 등록한다.
+    /// KTH_HandCardLayout.AddCard가 카드를 손패에 넣을 때마다 부른다. 버려졌다가
+    /// 풀에서 재사용되는 카드는 Awake가 다시 안 돌아서, 여기서 다시 등록해주지
+    /// 않으면 더블클릭 대상에서 영영 빠진 채로 남는다.
+    /// </summary>
+    public void RegisterForDoubleClick()
+    {
+        doubleClickController.RegisterInHand();
+    }
+
     // ============================================================
     // Selection (컨트롤러로 위임)
     // ============================================================
