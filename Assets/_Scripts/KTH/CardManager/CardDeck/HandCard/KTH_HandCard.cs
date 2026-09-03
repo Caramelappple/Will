@@ -98,6 +98,24 @@ public class KTH_HandCard : MonoBehaviour,
         remove => KTH_HandCardDoubleClickController.OnCardDoubleClicked -= value;
     }
 
+    /// <summary>
+    /// 더블클릭으로 활성화됐던 상태가 취소됐을 때 발생하는 static 이벤트.
+    /// (같은 카드를 다시 더블클릭했거나, 다른 카드로 넘어간 경우 둘 다.)
+    /// 파라미터로 "방금까지" 활성화돼 있던 카드가 전달됨.
+    /// OnCardDoubleClicked를 구독해 뭔가를 켰다면 이 이벤트에서 반드시 다시 꺼야 한다.
+    /// </summary>
+    public static event Action<KTH_HandCard> OnCardDoubleClickCancelled
+    {
+        add => KTH_HandCardDoubleClickController.OnCardDoubleClickCancelled += value;
+        remove => KTH_HandCardDoubleClickController.OnCardDoubleClickCancelled -= value;
+    }
+
+    /// <summary>지금 더블클릭으로 활성화된 카드가 있으면 취소한다. 없으면 아무 일도 하지 않는다.</summary>
+    public static void CancelDoubleClick()
+    {
+        KTH_HandCardDoubleClickController.CancelActive();
+    }
+
     private void Awake()
     {
         cardSorting = GetComponent<KTH_CardSorting>();
@@ -181,21 +199,22 @@ public class KTH_HandCard : MonoBehaviour,
             return;
         }
 
-        // 더블클릭이면 기존 단일클릭(선택/확정) 로직을 타지 않고 별도 처리 후 종료.
-        if (eventData.clickCount >= 2)
-        {
-            doubleClickController.HandleDoubleClick();
-            return;
-        }
-
         if (willPanel != null && willPanel.IsSelecting)
         {
             return;
         }
 
+        // 더블클릭도 한 번 클릭했을 때와 완전히 같은 확정 처리를 그대로 받는다.
+        // (이미 확정된 카드를 다시 클릭하면 HandleConfirmClick 안에서 조용히 무시된다.)
+        // 더블클릭이면 그 위에 더블클릭 전용 처리(다른 카드 내리기 + 이벤트 발행)만 추가로 더한다.
         hoverController.KillAll();
 
         selectionController.HandleConfirmClick();
+
+        if (eventData.clickCount >= 2)
+        {
+            doubleClickController.HandleDoubleClick();
+        }
     }
 
     // ============================================================
@@ -215,6 +234,17 @@ public class KTH_HandCard : MonoBehaviour,
     public void PlayMoveUpAnimation()
     {
         doubleClickController.PlayMoveUpAnimation();
+    }
+
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 더블클릭 대상 목록에 (다시) 등록한다.
+    /// KTH_HandCardLayout.AddCard가 카드를 손패에 넣을 때마다 부른다. 버려졌다가
+    /// 풀에서 재사용되는 카드는 Awake가 다시 안 돌아서, 여기서 다시 등록해주지
+    /// 않으면 더블클릭 대상에서 영영 빠진 채로 남는다.
+    /// </summary>
+    public void RegisterForDoubleClick()
+    {
+        doubleClickController.RegisterInHand();
     }
 
     // ============================================================

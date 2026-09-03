@@ -39,6 +39,11 @@ namespace _Scripts.LDY
         /// </summary>
         public event Action<LDY_Animal> OnEnemyInspectedChanged;
 
+        /// <summary>
+        /// 좌클릭한 칸의 기물을 그대로 전달한다. 같은 기물을 다시 눌러도 매번 발생한다.
+        /// </summary>
+        public event Action<LDY_Animal> OnAnimalClicked;
+
         private void Awake()
         {
             if (targetCamera == null)
@@ -100,7 +105,9 @@ namespace _Scripts.LDY
                 return;
             }
 
-            HandleSelectOrAttackClick(board.Get(gridPos));
+            LDY_Animal clickedAnimal = board.Get(gridPos);
+            OnAnimalClicked?.Invoke(clickedAnimal);
+            HandleSelectOrAttackClick(clickedAnimal);
         }
 
         // 유효한 대상인지는 DLJ_SuccessionSystem이 판단한다. 여기서는 어느 칸을 클릭했는지만 넘긴다.

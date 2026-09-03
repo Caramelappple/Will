@@ -4,6 +4,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using _Scripts.LSO.UI.Panel;
 
 // 3D 전환 메모:
@@ -97,6 +98,18 @@ public class KTH_HandCardLayout : MonoBehaviour
             transform.localPosition;
     }
 
+    private void Update()
+    {
+        // 더블클릭으로 카드들이 내려가 있는 동안, 마우스 우클릭 한 번으로 그
+        // 상태를 취소할 수 있게 한다. 활성화된 더블클릭이 없으면 CancelDoubleClick이
+        // 알아서 아무 일도 하지 않으므로 매 프레임 조건 없이 불러도 안전하다.
+        if (Mouse.current != null &&
+            Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            KTH_HandCard.CancelDoubleClick();
+        }
+    }
+
     private void OnDestroy()
     {
         if (Instance == this)
@@ -166,6 +179,11 @@ public class KTH_HandCardLayout : MonoBehaviour
         }
 
         KTH_HandCard.DeselectCurrent();
+
+        // 버려졌다가 풀에서 재사용된 카드는 더블클릭 대상 목록에서 빠진 채로
+        // 돌아온다(ResetForPool에서 뺐음). 손패에 다시 들어오는 이 시점에 다시
+        // 등록한다.
+        card.RegisterForDoubleClick();
 
         if (insertAtFront)
         {
@@ -354,6 +372,30 @@ public class KTH_HandCardLayout : MonoBehaviour
         if (!handCards.Contains(card))
         {
             return;
+        }
+
+        // 더블클릭으로 내려가 있는 카드가 있으면 부채꼴 재배치와 자리를 다투게
+        // 되므로, 배치 모드로 들어가기 전에 먼저 정리한다.
+        KTH_HandCard.CancelDoubleClick();
+
+        // 확정된 카드가 아닌데도 호버로 선택된 채 남아있는 다른 카드가 있으면,
+        // 부채꼴로 흩어지는 동안 UpdateHandLayout이 그 카드의 이동만 건너뛴다
+        // (card.IsSelected면 MoveToHandPositionWithDelay가 자리를 옮기지 않음).
+        // 그 상태로 두면 나중에 배치를 취소해도 그 카드만 계속 엉뚱한 자리에 남는다.
+        // 배치 모드에 들어가기 전에 미리 정리해서 그런 카드가 없게 한다.
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard other = handCards[i];
+
+            if (other == null || other == card)
+            {
+                continue;
+            }
+
+            if (other.IsSelected && !other.IsConfirmed)
+            {
+                other.CancelSelectionState();
+            }
         }
 
         selectedCard = card;
@@ -555,30 +597,38 @@ public class KTH_HandCardLayout : MonoBehaviour
             Vector3 targetRot =
                 new Vector3(handTiltAngle, 0f, targetRotationZ);
 
-            card.transform.DOKill();
+            // 더블클릭으로 내려가 있는 카드는 이 부채꼴 재배치에서 건드리지 않는다.
+            // 여기서 그대로 옮겨버리면 더블클릭의 "내려간" 위치를 덮어써서 카드가
+            // 안 내려간 것처럼 보인다. 대신 "원래 자리"만 최신 값으로 갱신해두면,
+            // 나중에 더블클릭이 취소돼 원위치로 돌아올 때 지금 계산한 자리로
+            // 정확히 돌아온다.
+            if (!card.IsMovedDown)
+            {
+                card.transform.DOKill();
 
-            Sequence sequence =
-                DOTween.Sequence();
+                Sequence sequence =
+                    DOTween.Sequence();
 
-            sequence.SetTarget(card.transform);
+                sequence.SetTarget(card.transform);
 
-            sequence.Join(
-                card.transform
-                    .DOLocalMove(targetPos, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOLocalMove(targetPos, duration)
+                        .SetEase(moveEase)
+                );
 
-            sequence.Join(
-                card.transform
-                    .DOLocalRotate(targetRot, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOLocalRotate(targetRot, duration)
+                        .SetEase(moveEase)
+                );
 
-            sequence.Join(
-                card.transform
-                    .DOScale(Vector3.one, duration)
-                    .SetEase(moveEase)
-            );
+                sequence.Join(
+                    card.transform
+                        .DOScale(Vector3.one, duration)
+                        .SetEase(moveEase)
+                );
+            }
 
             card.UpdateOriginalTransform(targetPos, targetRot);
         }
@@ -661,6 +711,13 @@ public class KTH_HandCardLayout : MonoBehaviour
         float duration = 0.35f,
         bool useStagger = true)
     {
+        // 더블클릭으로 "내려가 있는" 카드가 있는 채로 손패 재배치가 일어나면,
+        // 그 카드는 더블클릭 쪽 좌표(isMovedDown)와 이 재배치 쪽 좌표를 각각
+        // 다른 시점에 따로 계산해서 서로 자리를 다투게 된다(취소 시 엉뚱한
+        // 자리로 튐). 재배치가 일어나는 순간 더블클릭 상태를 먼저 정리해서
+        // 자리를 정하는 주체를 이 재배치 하나로 되돌린다.
+        KTH_HandCard.CancelDoubleClick();
+
         int count =
             handCards.Count;
 

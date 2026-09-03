@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9483ef0ad3548cabebf9c9397971a75, type: 3}
   m_Name: ContractWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_ContractWillDataSO
-  description:
+  description: "\uC8FD\uC740 \uAE30\uBB3C\uC758 \uCF54\uC2A4\uD2B8\uB97C \uC808\uBC18\uC744
+    \uB3CC\uB824\uBC1B\uB294\uB2E4."
   icon: {fileID: 0}
   effectPrefab: {fileID: 0}
   cameraHoldDuration: 1.8

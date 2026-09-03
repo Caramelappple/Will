@@ -16,11 +16,13 @@ public class KTH_DoubleClickTestTarget : MonoBehaviour
     private void OnEnable()
     {
         KTH_HandCard.OnCardDoubleClicked += HandleCardDoubleClicked;
+        KTH_HandCard.OnCardDoubleClickCancelled += HandleCardDoubleClickCancelled;
     }
 
     private void OnDisable()
     {
         KTH_HandCard.OnCardDoubleClicked -= HandleCardDoubleClicked;
+        KTH_HandCard.OnCardDoubleClickCancelled -= HandleCardDoubleClickCancelled;
     }
 
     private void HandleCardDoubleClicked(KTH_HandCard doubleClickedCard)
@@ -43,5 +45,19 @@ public class KTH_DoubleClickTestTarget : MonoBehaviour
         }
 
         targetObject.SetActive(true);
+    }
+
+    private void HandleCardDoubleClickCancelled(KTH_HandCard cancelledCard)
+    {
+        if (targetObject == null)
+        {
+            return;
+        }
+
+        Debug.Log(
+            $"[{nameof(KTH_DoubleClickTestTarget)}] 더블클릭 취소: {cancelledCard.name} -> {targetObject.name} 비활성화"
+        );
+
+        targetObject.SetActive(false);
     }
 }
