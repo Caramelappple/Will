@@ -62,24 +62,21 @@ public class KTH_HandCardSelectionController
     }
 
     /// <summary>
-    /// 단일 확정 클릭(취소 클릭 포함) 처리. KTH_HandCard.OnPointerClick의 단일클릭
-    /// 분기가 그대로 위임한다.
+    /// 단일 확정 클릭 처리. KTH_HandCard.OnPointerClick의 단일클릭 분기가 그대로 위임한다.
+    ///
+    /// 이미 확정된 카드를 다시 눌러도 취소하지 않는다(취소는 보드 우클릭 등 다른
+    /// 경로로만 이뤄진다). 그래서 이미 확정된 상태면 아무 것도 하지 않고 끝낸다.
     /// </summary>
     public void HandleConfirmClick()
     {
+        if (isConfirmed)
+        {
+            return;
+        }
+
         if (currentConfirmed != null && currentConfirmed != this)
         {
             currentConfirmed.CancelSelectionState();
-        }
-
-        if (isConfirmed)
-        {
-            CancelSelectionState();
-
-            KTH_InfoPanel.Instance?.CancleInfoPanl();
-
-            owner.RaiseCardClicked();
-            return;
         }
 
         isConfirmed = true;

@@ -4,6 +4,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using _Scripts.LSO.UI.Panel;
 
 // 3D 전환 메모:
@@ -95,6 +96,18 @@ public class KTH_HandCardLayout : MonoBehaviour
 
         originalContainerLocalPos =
             transform.localPosition;
+    }
+
+    private void Update()
+    {
+        // 더블클릭으로 카드들이 내려가 있는 동안, 마우스 우클릭 한 번으로 그
+        // 상태를 취소할 수 있게 한다. 활성화된 더블클릭이 없으면 CancelDoubleClick이
+        // 알아서 아무 일도 하지 않으므로 매 프레임 조건 없이 불러도 안전하다.
+        if (Mouse.current != null &&
+            Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            KTH_HandCard.CancelDoubleClick();
+        }
     }
 
     private void OnDestroy()
@@ -354,6 +367,30 @@ public class KTH_HandCardLayout : MonoBehaviour
         if (!handCards.Contains(card))
         {
             return;
+        }
+
+        // 더블클릭으로 내려가 있는 카드가 있으면 부채꼴 재배치와 자리를 다투게
+        // 되므로, 배치 모드로 들어가기 전에 먼저 정리한다.
+        KTH_HandCard.CancelDoubleClick();
+
+        // 확정된 카드가 아닌데도 호버로 선택된 채 남아있는 다른 카드가 있으면,
+        // 부채꼴로 흩어지는 동안 UpdateHandLayout이 그 카드의 이동만 건너뛴다
+        // (card.IsSelected면 MoveToHandPositionWithDelay가 자리를 옮기지 않음).
+        // 그 상태로 두면 나중에 배치를 취소해도 그 카드만 계속 엉뚱한 자리에 남는다.
+        // 배치 모드에 들어가기 전에 미리 정리해서 그런 카드가 없게 한다.
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard other = handCards[i];
+
+            if (other == null || other == card)
+            {
+                continue;
+            }
+
+            if (other.IsSelected && !other.IsConfirmed)
+            {
+                other.CancelSelectionState();
+            }
         }
 
         selectedCard = card;
@@ -661,6 +698,13 @@ public class KTH_HandCardLayout : MonoBehaviour
         float duration = 0.35f,
         bool useStagger = true)
     {
+        // 더블클릭으로 "내려가 있는" 카드가 있는 채로 손패 재배치가 일어나면,
+        // 그 카드는 더블클릭 쪽 좌표(isMovedDown)와 이 재배치 쪽 좌표를 각각
+        // 다른 시점에 따로 계산해서 서로 자리를 다투게 된다(취소 시 엉뚱한
+        // 자리로 튐). 재배치가 일어나는 순간 더블클릭 상태를 먼저 정리해서
+        // 자리를 정하는 주체를 이 재배치 하나로 되돌린다.
+        KTH_HandCard.CancelDoubleClick();
+
         int count =
             handCards.Count;
 
