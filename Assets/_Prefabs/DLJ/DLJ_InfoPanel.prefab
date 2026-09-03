@@ -10,6 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1036820186775113113}
   - component: {fileID: 2921028847654167105}
+  - component: {fileID: 3940482826261822375}
+  - component: {fileID: 1552100556043912120}
+  - component: {fileID: 4003570076964314448}
   m_Layer: 0
   m_Name: DLJ_InfoPanel
   m_TagString: Untagged
@@ -46,7 +49,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_InfoPanelAnimation
   animatedTarget: {fileID: 4401714454445999599}
-  hiddenOffset: {x: 0, y: 0, z: 10}
+  hiddenOffset: {x: 0, y: 0, z: -10}
   showDuration: 0.35
   showCurve:
     serializedVersion: 2
@@ -54,8 +57,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -88,8 +91,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -98,6 +101,79 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   useUnscaledTime: 1
+--- !u!114 &3940482826261822375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8427802153494374883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee60621763794c399176411990c96ed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_InfoPanel
+  selection: {fileID: 0}
+  catalog: {fileID: 11400000, guid: e9cdd964c8d961a40bfbb72ee4d5347c, type: 2}
+  willDatabase: {fileID: 0}
+  pieceDoubleClickInterval: 0.35
+  content: {fileID: 0}
+  panelAnimation: {fileID: 2921028847654167105}
+  portraitRenderer: {fileID: 3319763758514922136}
+  attackPortraitRenderer: {fileID: 2167810865908689163}
+  healthPortraitRenderer: {fileID: 5624201076734747362}
+  aRPortraitRenderer: {fileID: 195825294269580634}
+  mRPortraitRenderer: {fileID: 1640090254139506314}
+  willPortraitRenderer: {fileID: 5546465925917490310}
+  pieceName: {fileID: 2238064680111634649}
+  attack: {fileID: 2009978450337895548}
+  health: {fileID: 5094992474573757935}
+  traitName: {fileID: 1168003354699525966}
+  traitDescription: {fileID: 2101824949443749942}
+  willName: {fileID: 4888049607173302747}
+  willDescription: {fileID: 4053320212119997303}
+  attackRange: {fileID: 6776087024616589238}
+  moveRange: {fileID: 4418707551963979137}
+  cost: {fileID: 452693706261188603}
+  playerHealthPoints: {fileID: 5696275690601427065}
+--- !u!65 &1552100556043912120
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8427802153494374883}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4003570076964314448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8427802153494374883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e9a428929a9400298c397e0697ae883, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_InfoPanelClickClose
+  infoPanel: {fileID: 0}
+  targetCamera: {fileID: 0}
+  clickArea: {fileID: 0}
+  closeWithLeftClick: 1
+  closeWithRightClick: 1
 --- !u!1001 &8931987816291670307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112,39 +188,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.97563004
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.8000002
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 13.07656
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.20567554
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.6765335
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.6765335
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.20567554
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -33.82
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5107869648600849612, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -157,10 +233,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5596035680412763766, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6932344879959378378}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
 --- !u!212 &195825294269580634 stripped
 SpriteRenderer:
@@ -237,46 +310,6 @@ SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 6189881117799218107, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
   m_PrefabInstance: {fileID: 8931987816291670307}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &3917524010975666005 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5596035680412763766, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
-  m_PrefabInstance: {fileID: 8931987816291670307}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6932344879959378378
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3917524010975666005}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee60621763794c399176411990c96ed1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DLJ_InfoPanel
-  selection: {fileID: 0}
-  catalog: {fileID: 11400000, guid: e9cdd964c8d961a40bfbb72ee4d5347c, type: 2}
-  willDatabase: {fileID: 0}
-  pieceDoubleClickInterval: 0.35
-  content: {fileID: 0}
-  panelAnimation: {fileID: 2921028847654167105}
-  portraitRenderer: {fileID: 3319763758514922136}
-  attackPortraitRenderer: {fileID: 2167810865908689163}
-  healthPortraitRenderer: {fileID: 5624201076734747362}
-  aRPortraitRenderer: {fileID: 195825294269580634}
-  mRPortraitRenderer: {fileID: 1640090254139506314}
-  willPortraitRenderer: {fileID: 5546465925917490310}
-  pieceName: {fileID: 2238064680111634649}
-  attack: {fileID: 2009978450337895548}
-  health: {fileID: 5094992474573757935}
-  traitName: {fileID: 1168003354699525966}
-  traitDescription: {fileID: 2101824949443749942}
-  willName: {fileID: 4888049607173302747}
-  willDescription: {fileID: 4053320212119997303}
-  attackRange: {fileID: 6776087024616589238}
-  moveRange: {fileID: 4418707551963979137}
-  cost: {fileID: 452693706261188603}
-  playerHealthPoints: {fileID: 5696275690601427065}
 --- !u!114 &4053320212119997303 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4878668167225561684, guid: 72f124a92e859b4429ead80a7e3d3c06, type: 3}
