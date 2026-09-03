@@ -124,6 +124,8 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         if (selection != null)
             selection.OnAnimalClicked += HandleAnimalClicked;
 
+        KTH_HandCard.OnCardDoubleClicked += HandleHandCardDoubleClicked;
+
         SetVisible(false, true);
     }
 
@@ -131,6 +133,8 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     {
         if (selection != null)
             selection.OnAnimalClicked -= HandleAnimalClicked;
+
+        KTH_HandCard.OnCardDoubleClicked -= HandleHandCardDoubleClicked;
 
         BindUnit(null);
 
@@ -240,6 +244,17 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
         _lastClickedUnit = unit;
         _lastPieceClickTime = now;
+    }
+
+    private void HandleHandCardDoubleClicked(KTH_HandCard handCard)
+    {
+        if (handCard == null || handCard.CardData == null)
+        {
+            Debug.LogWarning("[DLJ_InfoPanel] 더블클릭한 카드의 CardSO를 가져올 수 없습니다.", this);
+            return;
+        }
+
+        DLJ_InfoPanelEvents.RaiseCardDoubleClicked(handCard.CardData);
     }
 
     private void ResetPieceClick()
