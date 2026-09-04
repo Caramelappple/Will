@@ -13,11 +13,17 @@ MonoBehaviour:
   m_Name: Golden pig
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
   animalName: "\uACE8\uB3FC\uC9C0"
-  description: "\uC0DD\uC874\uD55C \uD134 \uB9C8\uB2E4 \uCF54\uC2A4\uD2B8 +1 \uCD95\uC801
-    (\uCD5C\uB300 3)\r\n\uC8FD\uC73C\uBA74 \uCF54\uC2A4\uD2B8 \uBC18\uD658."
+  description: "\uC0B4\uC544 \uC788\uB294 \uB3D9\uC548 \uD669\uAE08\uC744 \uBD88\uB9AC\uB294
+    \uD0D0\uC695\uC2A4\uB7EC\uC6B4 \uB3FC\uC9C0\uC785\uB2C8\uB2E4. \uB9E4 \uD134
+    \uCF54\uC2A4\uD2B8\uB97C 1\uC529 \uCD95\uC801\uD558\uBA70, \uC8FD\uC73C\uBA74
+    \uC313\uC544 \uB454 \uCF54\uC2A4\uD2B8\uB97C \uB3CC\uB824\uC90D\uB2C8\uB2E4.
+    \uCD5C\uB300 3\uAE4C\uC9C0 \uCD95\uC801\uD569\uB2C8\uB2E4."
   maxHealth: 4
-  damage: 3
+  damage: 1
   cost: 2
+  playerHealthPoints: 0
+  moveRange: 1
   range: 0
-  ability: 15
+  abilities: 
+  defaultWill: 0
   unitPrefab: {fileID: 1552133435563877942, guid: 65e4a15c05915964db027b71da55f435, type: 3}
