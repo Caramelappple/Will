@@ -12,7 +12,7 @@ namespace _Scripts.LSO.Camera
     /// 같은 것을 코드가 아니라 인스펙터에서 정하기 위한 자리다.
     /// </summary>
     [Serializable]
-    public class LSO_CameraShot
+    public sealed class LSO_CameraShot
     {
         [Tooltip("코드에서 이 이름으로 부른다. 비워두면 카메라 오브젝트 이름을 쓴다.")]
         public string id;

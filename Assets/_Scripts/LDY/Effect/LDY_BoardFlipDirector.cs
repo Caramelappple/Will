@@ -14,9 +14,12 @@ namespace _Scripts.LDY.Effect
     ///
     /// 순서: 전투 연출 대기 → 보드 입력 차단 → 남은 기물 정리 → 보드 회전 → 보상 앵커 노출.
     ///
-    /// 카메라는 건드리지 않는다. Camera.main은 LDY_CameraShake가 런타임에 스스로 붙어서
-    /// localPosition을 흔들고 DLJ의 TestCameraMove도 같은 카메라를 트윈하는 공유 자원이라,
+    /// 카메라는 건드리지 않는다. Camera.main은 LSO_CameraDirector가 시네머신으로 잡고
+    /// DLJ의 TestCameraMove도 같은 카메라를 트윈하는 공유 자원이라,
     /// 여기서 위치나 회전을 잡으면 서로 밀어낸다. 그래서 도는 쪽은 카메라가 아니라 보드다.
+    ///
+    /// 화면 흔들림은 LSO_CameraImpulse(시네머신 Impulse)를 쓴다. 그쪽은 카메라를
+    /// 직접 밀지 않고 신호를 보내므로 이 규칙과 어긋나지 않는다.
     ///
     /// 씬 배선: rewardAnchor만 연결하면 된다. 나머지 참조는 비워두면 Awake에서 씬을 뒤져 채운다.
     ///   · rewardAnchor — 보상 quad가 붙을 빈 오브젝트. (3.5, 1.3, 1.8) / rotation (55, 0, 0)

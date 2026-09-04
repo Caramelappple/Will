@@ -32,8 +32,11 @@ namespace _Scripts.LSO.UI.Transition
         [Tooltip("다른 UI 위에 확실히 올라가도록 강제할 정렬 순서.")]
         [SerializeField] private int sortingOrder = 32000;
 
+        // 코루틴 핸들을 들고 있지 않다. Cover·Reveal은 부르는 쪽이 yield로 기다리는
+        // 형태라 이 컴포넌트가 멈출 권한을 갖지 않는다.
+        // 예전에는 쓰지 않는 _routine 필드가 남아 있어서, 읽는 사람이
+        // "어딘가에서 멈추겠거니" 하고 오해할 여지가 있었다.
         private CanvasGroup _canvasGroup;
-        private Coroutine _routine;
 
         public bool IsCovered { get; private set; }
 

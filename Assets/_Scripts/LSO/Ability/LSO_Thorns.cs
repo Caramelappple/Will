@@ -10,7 +10,7 @@ namespace _Scripts.LSO.Ability
     /// 가시: 근접 공격을 받으면 공격자에게 고정 피해를 되돌린다.
     /// 원거리·점프 공격이나 저주 같은 장판 피해에는 반응하지 않는다.
     /// </summary>
-    public class LSO_Thorns : LSO_IAbility, LSO_IOnHit, LSO_IAbilityInitializable
+    public sealed class LSO_Thorns : LSO_IAbility, LSO_IOnHit, LSO_IAbilityInitializable
     {
         private const int DefaultReflectDamage = 1;
 

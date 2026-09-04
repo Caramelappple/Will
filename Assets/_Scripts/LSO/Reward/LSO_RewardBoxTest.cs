@@ -73,7 +73,7 @@ namespace _Scripts.LSO.Reward
         {
             if (!Application.isPlaying) return;
 
-            Relayout();
+            motion.Relayout(_cards);
         }
 
         /// <summary>지금 어느 단계인지 콘솔에 찍는다. 눌러도 반응이 없을 때 본다.</summary>

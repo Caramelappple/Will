@@ -113,48 +113,19 @@ namespace _Scripts.LSO.Reward
         [Tooltip("카드가 몇 번째면 어디에 서는지. 간격·높이·기울기를 여기서 정한다.")]
         [SerializeField] private LSO_RewardLayout layout = new LSO_RewardLayout();
 
-        [Header("연출")]
-        [Tooltip("카드 한 장이 솟는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float riseDuration = 0.35f;
+        [Header("카드 움직임")]
+        [Tooltip("카드가 어떻게 솟고, 밀려나고, 덱으로 날아가고, 도로 내려가는지.\n" +
+                 "시간과 이징은 전부 이 안에 있다.")]
+        [SerializeField] private LSO_RewardCardMotion motion = new LSO_RewardCardMotion();
 
-        [Tooltip("다음 카드가 나오기까지의 간격.")]
-        [SerializeField, Min(0f)] private float dealInterval = 0.12f;
-
-        [SerializeField] private Ease riseEase = Ease.OutBack;
-
-        [Tooltip("카드를 고른 순간 그 자리에서 더 밀려나는 양. 기준 자리의 로컬 축이다.\n" +
-                 "\n" +
-                 "누른 즉시 이만큼 움직여 '골랐다'를 알린다.\n" +
-                 "(0,0,0) 으로 두면 누른 뒤 Pick Hold 동안 아무 변화가 없어 멈춘 것처럼 보인다.")]
-        [SerializeField] private Vector3 pickLift = new Vector3(0f, 0.25f, -0.2f);
-
-        [Tooltip("고른 카드가 밀려나는 데 걸리는 시간. 짧아야 누른 즉시 반응한 느낌이 난다.")]
-        [SerializeField, Min(0f)] private float pickLiftDuration = 0.12f;
-
-        [SerializeField] private Ease pickLiftEase = Ease.OutCubic;
-
-        [Tooltip("고른 카드가 떠오른 채로 머무는 시간. 위 연출이 끝난 뒤부터 센다.\n" +
+        [Header("뜸")]
+        [Tooltip("고른 카드가 떠오른 채로 머무는 시간. 밀려나는 연출이 끝난 뒤부터 센다.\n" +
                  "\n" +
                  "이 시간이 지나면 나머지는 상자로, 고른 것은 덱으로 움직인다.")]
         [SerializeField, Min(0f)] private float pickHold = 0.35f;
 
         [Tooltip("카드가 다 정리된 뒤 다음 단계로 넘어가기까지 두는 시간.")]
         [SerializeField, Min(0f)] private float claimHold = 0.6f;
-
-        [Header("덱으로 보내기")]
-        [Tooltip("고른 카드가 날아갈 자리. 손패나 덱 더미를 꽂는다.\n" +
-                 "\n" +
-                 "비워두면 그냥 상자 안으로 들어간다. 덱에 추가되는 것은 마찬가지지만,\n" +
-                 "어디로 갔는지 화면에 보이지 않는다.")]
-        [SerializeField] private Transform deckAnchor;
-
-        [Tooltip("덱까지 날아가는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float toDeckDuration = 0.5f;
-
-        [Tooltip("덱으로 들어갈 때의 크기 배율. 1보다 작으면 멀어지듯 작아진다.")]
-        [SerializeField, Min(0.01f)] private float toDeckScale = 0.5f;
-
-        [SerializeField] private Ease toDeckEase = Ease.InCubic;
 
         [Header("유언 메모장")]
         [Tooltip("고른 카드에 유언이 딸려 있을 때의 차례. 올라오고, 눌리면 들어간다.")]
@@ -329,6 +300,10 @@ namespace _Scripts.LSO.Reward
 
             _gate = new LSO_RewardClickGate(clickHandler);
 
+            // 곁가지들에 필요한 것을 넘긴다. 이 셋은 씬에서 꽂는 것이 아니라
+            // 상자가 들고 있는 것을 나눠 쓰는 관계라 여기서 연결한다.
+            motion.Bind(_pool, layout, cardAnchor, this);
+
             noteStep.Bind(_pool, noteAnchor);
             noteStep.Shown += _ => onNoteShown?.Invoke(_chosenOption);
             noteStep.Unlocked += _ => onWillUnlocked?.Invoke(_chosenOption);
@@ -456,8 +431,8 @@ namespace _Scripts.LSO.Reward
             {
                 SpawnCard(options[i], i, options.Count);
 
-                if (dealInterval > 0f)
-                    yield return new WaitForSeconds(dealInterval);
+                if (motion.DealInterval > 0f)
+                    yield return new WaitForSeconds(motion.DealInterval);
             }
 
             SetPhase(Phase.Selecting);
@@ -466,10 +441,10 @@ namespace _Scripts.LSO.Reward
         }
 
         /// <summary>
-        /// 카드 한 장을 상자 안에서 띄운다. 자리를 정하는 곳은 여기뿐이다.
+        /// 카드 한 장을 꺼낸다. 움직임은 motion이, 목록 관리는 여기가 한다.
         ///
-        /// 가운데를 기준으로 좌우 대칭이 되도록 민다.
-        /// 세 장이면 -1, 0, +1 칸이다.
+        /// 어떤 보상이 카드로 나올 수 있는지는 순서를 아는 쪽이 정해야 하므로
+        /// 그 판정만 여기 남는다.
         /// </summary>
         private void SpawnCard(LSO_RewardOption option, int index, int total)
         {
@@ -483,49 +458,11 @@ namespace _Scripts.LSO.Reward
                 return;
             }
 
-            LSO_RewardCard card = _pool.TakePiece();
+            LSO_RewardCard card = motion.Rise(option, index, total, HandleCardClicked);
 
-            if (card == null)
-            {
-                Debug.LogError($"{name}: Piece Card Prefab이 없어 기물 카드를 만들지 못했습니다.", this);
-                return;
-            }
-
-            card.transform.SetParent(cardAnchor, false);
-
-            // 상자 안에서 시작한다. 켜기 전에 자리를 잡아야 한 프레임 튀지 않는다.
-            // 좌우로는 미리 벌려둔다 — 세 장이 한 점에서 겹쳐 나오면 뭉쳐 보인다.
-            card.transform.localPosition = _pool.CardInsideLocal + layout.Spread(index, total);
-            card.transform.localRotation = layout.Tilt(index, total);
-
-            card.Bind(option, HandleCardClicked);
-
-            card.transform
-                .DOLocalMove(layout.Position(index, total), riseDuration)
-                .SetEase(riseEase)
-                .SetLink(card.gameObject);
+            if (card == null) return;
 
             _cards.Add(card);
-        }
-
-        /// <summary>
-        /// 꺼내둔 카드를 지금 설정대로 다시 늘어놓는다.
-        ///
-        /// 간격을 인스펙터에서 만지는 동안 결과를 바로 보기 위한 것이다.
-        /// 트윈 없이 즉시 옮긴다 — 값을 조금씩 바꿔볼 때 연출이 끼면 오히려 보기 어렵다.
-        /// </summary>
-        private void Relayout()
-        {
-            for (int i = 0; i < _cards.Count; i++)
-            {
-                LSO_RewardCard card = _cards[i];
-                if (card == null) continue;
-
-                card.transform.DOKill();
-
-                card.transform.localPosition = layout.Position(i, _cards.Count);
-                card.transform.localRotation = layout.Tilt(i, _cards.Count);
-            }
         }
 
         /// <summary>
@@ -565,7 +502,7 @@ namespace _Scripts.LSO.Reward
 
             // 누른 즉시 움직여 "골랐다"를 알린다. 여기서 아무것도 안 하면
             // Pick Hold 동안 화면이 멈춰 보여서 클릭이 씹힌 것처럼 느껴진다.
-            yield return StartCoroutine(LiftChosenRoutine(chosen));
+            yield return StartCoroutine(motion.Lift(chosen));
 
             // 떠오른 채로 한 박자 머문다.
             if (pickHold > 0f)
@@ -573,7 +510,7 @@ namespace _Scripts.LSO.Reward
 
             // 나머지가 상자로 돌아가는 것과 고른 카드가 덱으로 가는 것을 함께 돌린다.
             // 순서대로 하면 "치우고 나서야 받는" 것처럼 보여 한 박자 늘어진다.
-            Coroutine toDeck = StartCoroutine(SendToDeckRoutine(chosen));
+            Coroutine toDeck = StartCoroutine(motion.SendToDeck(chosen));
 
             yield return StartCoroutine(LowerRoutine(chosen));
             yield return toDeck;
@@ -590,70 +527,6 @@ namespace _Scripts.LSO.Reward
             }
 
             yield return StartCoroutine(CloseRoutine());
-        }
-
-        /// <summary>
-        /// 고른 카드를 제자리에서 한 번 밀어낸다. 클릭에 대한 즉시 반응이다.
-        ///
-        /// 트윈이 끝날 때까지 기다린다. 기다리지 않고 넘어가면 밀려나는 도중에
-        /// 덱으로 가는 트윈이 시작돼 두 움직임이 겹친다.
-        /// </summary>
-        private IEnumerator LiftChosenRoutine(LSO_RewardCard chosen)
-        {
-            if (chosen == null) yield break;
-            if (pickLift == Vector3.zero || pickLiftDuration <= 0f) yield break;
-
-            Transform card = chosen.transform;
-
-            card.DOKill();
-
-            yield return card
-                .DOLocalMove(card.localPosition + pickLift, pickLiftDuration)
-                .SetEase(pickLiftEase)
-                .SetLink(chosen.gameObject)
-                .WaitForCompletion();
-        }
-
-        /// <summary>
-        /// 고른 카드를 덱 쪽으로 날려 보낸다.
-        ///
-        /// 덱에 실제로 넣는 것은 이 연출이 아니다. 지급은 이미 끝났고(LSO_RewardClaim →
-        /// LSO_ItemLibraryManager), 여기서는 "어디로 갔는지" 만 보여준다.
-        /// 둘을 묶으면 연출이 끊겼을 때 카드가 사라지거나 두 번 들어간다.
-        ///
-        /// 덱 자리를 안 꽂았으면 상자 안으로 들어간다. 받은 것은 마찬가지지만
-        /// 어디로 갔는지 보이지 않으므로 한 번 짚어준다.
-        /// </summary>
-        private IEnumerator SendToDeckRoutine(LSO_RewardCard chosen)
-        {
-            if (chosen == null) yield break;
-
-            Transform card = chosen.transform;
-
-            card.DOKill();
-
-            if (deckAnchor == null)
-            {
-                Debug.LogWarning(
-                    $"{name}: Deck Anchor가 비어 있어 고른 카드가 상자 안으로 들어갑니다. " +
-                    "덱으로 가는 것을 보여주려면 손패나 덱 더미를 꽂으세요.", this);
-
-                yield return card
-                    .DOLocalMove(_pool.CardInsideLocal, toDeckDuration)
-                    .SetEase(toDeckEase)
-                    .SetLink(chosen.gameObject)
-                    .WaitForCompletion();
-
-                yield break;
-            }
-
-            // 월드 좌표로 움직인다. 덱은 상자의 자식이 아니라 화면 아래 다른 곳에 있다.
-            Sequence flight = DOTween.Sequence()
-                .Append(card.DOMove(deckAnchor.position, toDeckDuration).SetEase(toDeckEase))
-                .Join(card.DOScale(card.localScale * toDeckScale, toDeckDuration).SetEase(toDeckEase))
-                .SetLink(chosen.gameObject);
-
-            yield return flight.WaitForCompletion();
         }
 
         private void Claim(LSO_RewardOption option, bool includeAttachedWill)
@@ -673,11 +546,14 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 고르지 않은 카드를 상자 안으로 도로 집어넣는다. 고른 카드는 그대로 둔다.
         ///
-        /// 제자리에서 내려가는 것이 아니라 상자 입구(기준 자리의 원점)로 모인다.
-        /// 벌어져 있던 자리로만 내리면 상자 옆 허공으로 가라앉는 것처럼 보인다.
+        /// 움직이는 것은 motion이 하고, 여기서는 누구를 내릴지 고르고
+        /// 다 내려간 뒤에 풀로 돌려보낸다.
         ///
-        /// 내려간 카드는 도착한 뒤에 풀로 돌려보낸다. 먼저 돌려보내면
-        /// 꺼지면서 사라져 들어가는 것이 보이지 않는다.
+        /// 돌려보내는 것을 motion에 맡기지 않는 이유는 _cards가 여기 있기 때문이다.
+        /// 두 곳에서 목록을 건드리면 어느 쪽이 맞는지 정할 수 없다.
+        ///
+        /// 도착한 뒤에 돌려보낸다. 먼저 돌려보내면 꺼지면서 사라져
+        /// 상자로 들어가는 것이 보이지 않는다.
         /// </summary>
         private IEnumerator LowerRoutine(LSO_RewardCard chosen)
         {
@@ -687,19 +563,12 @@ namespace _Scripts.LSO.Reward
             {
                 if (card == null || card == chosen) continue;
 
-                card.transform.DOKill();
-
-                card.transform
-                    .DOLocalMove(_pool.CardInsideLocal, riseDuration)
-                    .SetEase(riseEase)
-                    .SetLink(card.gameObject);
-
                 lowering.Add(card);
             }
 
             if (lowering.Count == 0) yield break;
 
-            yield return new WaitForSeconds(riseDuration);
+            yield return StartCoroutine(motion.Lower(lowering));
 
             foreach (LSO_RewardCard card in lowering)
             {

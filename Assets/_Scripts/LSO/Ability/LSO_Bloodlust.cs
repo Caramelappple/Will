@@ -6,7 +6,7 @@ using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Ability
 {
-    public class LSO_Bloodlust : LSO_IAbility, LSO_IOnAnimalDead, IStatModifier, LSO_IAbilityInitializable
+    public sealed class LSO_Bloodlust : LSO_IAbility, LSO_IOnAnimalDead, IStatModifier, LSO_IAbilityInitializable
     {
         private const int DefaultMaxStack = 3;
 

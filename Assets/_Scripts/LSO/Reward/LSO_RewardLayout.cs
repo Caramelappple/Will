@@ -13,7 +13,7 @@ namespace _Scripts.LSO.Reward
     /// 카드가 이 값을 직접 읽어 스스로 자리를 잡기 시작하면 주인이 둘이 된다.
     /// </summary>
     [Serializable]
-    public class LSO_RewardLayout
+    public sealed class LSO_RewardLayout
     {
         [Tooltip("카드 한 칸의 간격과 방향. 기준 자리의 로컬 축이다.\n" +
                  "\n" +

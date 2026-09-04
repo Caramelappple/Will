@@ -7,7 +7,7 @@ using UnityEngine;
 namespace _Scripts.LSO.AI.Boss
 {
     [Serializable]
-    public class LSO_PreyScorer : LDY_IActionScorer
+    public sealed class LSO_PreyScorer : LDY_IActionScorer
     {
         [Tooltip("사냥감을 공격하는 후보에 주는 가산점")]
         [SerializeField] private int attackBonus = 50;
