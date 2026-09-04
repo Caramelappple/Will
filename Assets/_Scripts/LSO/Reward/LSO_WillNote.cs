@@ -64,9 +64,10 @@ namespace _Scripts.LSO.Reward
                 return;
             }
 
-            // 유언 데이터에는 이름 칸이 없다. 종류에서 표기를 가져온다.
-            // 표를 한 곳에 두면 정보창·카드창과 표기가 갈리지 않는다.
-            SetName(LSO_DisplayNames.Of(will.WillType));
+            // 에셋을 이미 손에 쥐고 있으므로 창구(LSO_DisplayNames)를 거치지 않는다.
+            // 그쪽은 enum만 아는 곳을 위해 유언 데이터베이스를 한 번 더 뒤진다.
+            // 이름·설명·아이콘이 전부 이 에셋에서 나오므로 세 줄이 같은 자리를 본다.
+            SetName(will.DisplayName);
 
             SetDescription(will.description);
             SetIcon(will.icon);
