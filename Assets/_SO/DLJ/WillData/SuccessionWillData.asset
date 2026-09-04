@@ -12,9 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c21a367eb7db49889837edbfa75646c0, type: 3}
   m_Name: SuccessionWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SuccessionWillDataSO
-  description: 
+  displayName: "\uACC4\uC2B9"
+  description: "\uC8FD\uC740 \uAE30\uBB3C\uC758 \uB2A5\uB825\uCE58 1/3\uC744 \uB2E4\uB978
+    \uC544\uAD70 \uAE30\uBB3C\uC5D0\uAC8C \uACC4\uC2B9\uD55C\uB2E4. \uAE30\uBB3C\uC740
+    \uADF8 \uAC8C\uC784 \uB7F0\uC5D0 \uC8FD\uC744 \uB54C\uAE4C\uC9C0 \uC720\uC9C0\uB418\uACE0
+    \uAC8C\uC2B9 \uBC1B\uC740 \uAE30\uBB3C\uC774 \uC8FD\uC73C\uBA74 \uC774\uC5B4\uC9C4
+    \uACC4\uC2B9\uC740 \uB04A\uAE40. (\uACC4\uC2B9\uBC1B\uC740 \uAE30\uBB3C\uC774
+    \uAE30\uC5B5\uC744 \uC720\uC5B8\uC73C\uB85C \uC120\uD0DD\uD558\uACE0 \uC8FD\uC740\uB2E4\uBA74
+    \uADF8 \uB2A5\uB825\uCE58\uB97C \uB2E4\uC2DC \uC774\uC5B4\uAC00\uAE30 \uAC00\uB2A5)"
   icon: {fileID: 21300000, guid: c4a5f32d32d809b4d9252730a90307b1, type: 3}
-  material: {fileID: 2100000, guid: 16f283b4d7e946c49ab97964e6373ab5, type: 2}
   effectPrefab: {fileID: 8113247536879051834, guid: aa8e862f5175d8f4cbbdd189e6f0a60f, type: 3}
   cameraHoldDuration: 1.8
   moveDuration: 0.8

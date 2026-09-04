@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.Will;
 using DG.Tweening;
 using UnityEngine;
@@ -18,11 +17,18 @@ namespace _Scripts.LSO.Reward
     /// 카드가 스스로 자리를 잡기 시작하면 상자가 아는 것과 어긋난다.
     /// 턴 레버에서 자리 주인이 셋이라 시스템을 통째로 버린 적이 있다.
     ///
+    /// 곁가지는 떼어냈다.
+    ///   LSO_RewardLayout     몇 번째면 어디에 서는지 (상태 없는 계산)
+    ///   LSO_RewardCardPool   빌려주고 돌려받기, 쉬는 자리
+    ///   LSO_RewardNoteStep   유언 메모장 차례 하나를 통째로
+    ///   LSO_RewardClickGate  지금 무엇이 눌려도 되는지를 핸들러에 반영
+    /// 전부 "언제"는 모른다. 순서는 여전히 이 클래스만 안다.
+    ///
     /// 씬 배선: Collider + LSO_ButtonClickHandler 와 함께 붙일 것.
     /// 3D 물건이므로 씬에 EventSystem, 카메라에 Physics Raycaster가 있어야 한다.
     /// </summary>
     [RequireComponent(typeof(LSO_ButtonClickHandler))]
-    public class LSO_RewardBox : MonoBehaviour, LSO_IClickEffect
+    public partial class LSO_RewardBox : MonoBehaviour, LSO_IClickEffect
     {
         /// <summary>보상이 어디까지 진행됐는지. 클릭의 뜻을 정하는 것이 이 값이다.</summary>
         private enum Phase
@@ -30,22 +36,13 @@ namespace _Scripts.LSO.Reward
             /// <summary>아직 시작하지 않았다. 클릭해도 아무 일이 없다.</summary>
             Idle,
 
-            /// <summary>
-            /// 닫힌 상자.
-            ///
-            /// Open On Begin이 켜져 있으면 Begin이 곧바로 여므로 여기 머물지 않는다.
-            /// 꺼져 있을 때만 여기서 클릭을 기다린다.
-            /// </summary>
+            /// <summary>닫힌 상자. 누르면 열린다.</summary>
             Closed,
 
             /// <summary>뚜껑이 도는 중. 클릭을 버린다.</summary>
             Opening,
 
-            /// <summary>
-            /// 뚜껑이 열린 채로 카드를 꺼낼 클릭을 기다린다.
-            ///
-            /// Deal On Open을 켜면 여기 머물지 않고 곧바로 Dealing으로 넘어간다.
-            /// </summary>
+            /// <summary>뚜껑이 열린 채로 카드를 꺼낼 클릭을 기다린다.</summary>
             Opened,
 
             /// <summary>카드가 하나씩 나오는 중. 클릭을 버린다.</summary>
@@ -54,17 +51,20 @@ namespace _Scripts.LSO.Reward
             /// <summary>고르기를 기다린다. 카드를 누르면 그 자리에서 확정된다.</summary>
             Selecting,
 
-            /// <summary>고른 뒤 나머지 카드가 내려가는 중. 클릭을 버린다.</summary>
+            /// <summary>
+            /// 고른 뒤 나머지 카드가 상자로 돌아가고, 고른 카드가 덱으로 가는 중.
+            /// 클릭을 버린다.
+            /// </summary>
             Lowering,
 
-            /// <summary>처음 보는 유언이라 도장이 준비됐다. 상자를 누르면 나온다.</summary>
-            StampWaiting,
+            /// <summary>처음 보는 유언이라 메모장이 준비됐다. 상자를 누르면 나온다.</summary>
+            NoteWaiting,
 
-            /// <summary>도장이 올라오는 중. 클릭을 버린다.</summary>
-            StampRising,
-
-            /// <summary>도장을 다 보기를 기다린다. 상자를 누르면 정리한다.</summary>
-            StampShown,
+            /// <summary>
+            /// 메모장 차례가 도는 중. 올라오고, 눌리기를 기다리고, 들어간다.
+            /// 그 안의 순서는 LSO_RewardNoteStep이 안다.
+            /// </summary>
+            NotePlaying,
 
             /// <summary>정리하는 중. 클릭을 버린다.</summary>
             Closing
@@ -80,38 +80,38 @@ namespace _Scripts.LSO.Reward
         [Tooltip("기물 보상에 쓸 카드 원본.")]
         [SerializeField] private LSO_RewardPieceCard pieceCardPrefab;
 
-        [Tooltip("유언에 쓸 도장 원본. 고르는 것과 보여주는 것이 같아서 하나만 꽂는다.\n" +
+        [Tooltip("유언에 쓸 메모장 원본. 고르는 것과 보여주는 것이 같아서 하나만 꽂는다.\n" +
                  "비워두면 유언 후보가 나와도 만들지 못한다.")]
-        [SerializeField] private LSO_WillStamp willStampPrefab;
+        [SerializeField] private LSO_WillNote willNotePrefab;
 
         [Tooltip("카드가 늘어설 기준 자리. 비워두면 상자 자신을 쓴다.")]
         [SerializeField] private Transform cardAnchor;
 
+        [Tooltip("카드가 드나드는 상자 속 자리. 빈 오브젝트를 하나 만들어 꽂는다.\n" +
+                 "\n" +
+                 "여기서 솟아오르고, 고르지 않은 것은 여기로 돌아간다.\n" +
+                 "뚜껑 안쪽이 보이는 깊이에 두면 상자에서 나오는 것처럼 보인다.\n" +
+                 "\n" +
+                 "비워두면 Card Anchor 자리를 그대로 쓴다.")]
+        [SerializeField] private Transform cardInsideAnchor;
+
+        [Tooltip("메모장이 올라와 멈출 자리. 비워두면 Card Anchor를 쓴다.\n" +
+                 "\n" +
+                 "카드와 따로 두는 이유는 크기도 개수도 다르기 때문이다.\n" +
+                 "카드는 세 장이 벌어져 서고, 메모장은 한 장이 가운데 선다.")]
+        [SerializeField] private Transform noteAnchor;
+
+        [Tooltip("메모장이 드나드는 상자 속 자리. 비워두면 Note Anchor 자리를 쓴다.")]
+        [SerializeField] private Transform noteInsideAnchor;
+
+        [Tooltip("상자의 클릭 핸들러. 비워두면 같은 오브젝트에서 찾는다.\n" +
+                 "연출이 도는 동안 이것을 꺼서 커서까지 함께 막는다.")]
+        [SerializeField] private LSO_ButtonClickHandler clickHandler;
+
 
         [Header("배치")]
-        [Tooltip("카드 한 칸의 간격과 방향. 기준 자리(Card Anchor)의 로컬 축이다.\n" +
-                 "\n" +
-                 "(0.6, 0, 0)      가로로 나란히\n" +
-                 "(0.6, 0.1, 0)    가로로 가면서 조금씩 올라감 (계단)\n" +
-                 "(0.5, 0, 0.2)    부채꼴처럼 앞뒤로도 벌어짐\n" +
-                 "\n" +
-                 "가운데를 기준으로 좌우 대칭이 된다. 세 장이면 -1, 0, +1 칸이다.")]
-        [SerializeField] private Vector3 cardSpacing = new Vector3(0.6f, 0f, 0f);
-
-        [Tooltip("상자 안에서 솟아오르는 높이. Card Spacing과 별개로 더해진다.")]
-        [SerializeField] private float riseHeight = 0.8f;
-
-        [Tooltip("카드마다 더 기울일 각도. 가운데 카드는 0이고 바깥으로 갈수록 커진다.\n" +
-                 "(0, 0, 5) 를 넣으면 부채꼴처럼 좌우로 기울어진다.")]
-        [SerializeField] private Vector3 cardTilt;
-
-        [Tooltip("켜면 Begin과 동시에 뚜껑이 스스로 열린다. 여는 클릭이 없다.\n" +
-                 "끄면 닫힌 채로 기다렸다가 눌러야 열린다.")]
-        [SerializeField] private bool openOnBegin = true;
-
-        [Tooltip("켜면 뚜껑이 다 열리는 즉시 카드가 나온다.\n" +
-                 "끄면 열린 채로 기다렸다가 한 번 눌러야 카드가 나온다.")]
-        [SerializeField] private bool dealOnOpen;
+        [Tooltip("카드가 몇 번째면 어디에 서는지. 간격·높이·기울기를 여기서 정한다.")]
+        [SerializeField] private LSO_RewardLayout layout = new LSO_RewardLayout();
 
         [Header("연출")]
         [Tooltip("카드 한 장이 솟는 데 걸리는 시간.")]
@@ -122,26 +122,47 @@ namespace _Scripts.LSO.Reward
 
         [SerializeField] private Ease riseEase = Ease.OutBack;
 
-        [Tooltip("고른 뒤 정리를 시작하기까지 두는 시간. 무엇을 얻었는지 볼 틈을 준다.")]
+        [Tooltip("카드를 고른 순간 그 자리에서 더 밀려나는 양. 기준 자리의 로컬 축이다.\n" +
+                 "\n" +
+                 "누른 즉시 이만큼 움직여 '골랐다'를 알린다.\n" +
+                 "(0,0,0) 으로 두면 누른 뒤 Pick Hold 동안 아무 변화가 없어 멈춘 것처럼 보인다.")]
+        [SerializeField] private Vector3 pickLift = new Vector3(0f, 0.25f, -0.2f);
+
+        [Tooltip("고른 카드가 밀려나는 데 걸리는 시간. 짧아야 누른 즉시 반응한 느낌이 난다.")]
+        [SerializeField, Min(0f)] private float pickLiftDuration = 0.12f;
+
+        [SerializeField] private Ease pickLiftEase = Ease.OutCubic;
+
+        [Tooltip("고른 카드가 떠오른 채로 머무는 시간. 위 연출이 끝난 뒤부터 센다.\n" +
+                 "\n" +
+                 "이 시간이 지나면 나머지는 상자로, 고른 것은 덱으로 움직인다.")]
+        [SerializeField, Min(0f)] private float pickHold = 0.35f;
+
+        [Tooltip("카드가 다 정리된 뒤 다음 단계로 넘어가기까지 두는 시간.")]
         [SerializeField, Min(0f)] private float claimHold = 0.6f;
 
-        [Header("유언 도장")]
-        [Tooltip("켜면 처음 보는 유언일 때만 도장이 나온다. 두 번째부터는 그냥 닫힌다.\n" +
+        [Header("덱으로 보내기")]
+        [Tooltip("고른 카드가 날아갈 자리. 손패나 덱 더미를 꽂는다.\n" +
                  "\n" +
-                 "끄면 받을 때마다 나온다. 같은 유언을 여러 번 받는 것이 흔하다면 이쪽이 낫다 —\n" +
-                 "재고에는 쌓이는데 화면에는 아무 반응이 없으면 받은 줄 모른다.")]
-        [SerializeField] private bool stampOnlyWhenNew = true;
+                 "비워두면 그냥 상자 안으로 들어간다. 덱에 추가되는 것은 마찬가지지만,\n" +
+                 "어디로 갔는지 화면에 보이지 않는다.")]
+        [SerializeField] private Transform deckAnchor;
 
-        [Tooltip("도장이 올라와 멈출 자리. 기준 자리(Card Anchor)의 로컬 좌표다.")]
-        [SerializeField] private Vector3 stampPosition = new Vector3(0f, 0.9f, -0.3f);
+        [Tooltip("덱까지 날아가는 데 걸리는 시간.")]
+        [SerializeField, Min(0f)] private float toDeckDuration = 0.5f;
 
-        [Tooltip("도장이 올라오는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float stampRiseDuration = 0.4f;
+        [Tooltip("덱으로 들어갈 때의 크기 배율. 1보다 작으면 멀어지듯 작아진다.")]
+        [SerializeField, Min(0.01f)] private float toDeckScale = 0.5f;
 
-        [SerializeField] private Ease stampRiseEase = Ease.OutBack;
+        [SerializeField] private Ease toDeckEase = Ease.InCubic;
+
+        [Header("유언 메모장")]
+        [Tooltip("고른 카드에 유언이 딸려 있을 때의 차례. 올라오고, 눌리면 들어간다.")]
+        [SerializeField] private LSO_RewardNoteStep noteStep = new LSO_RewardNoteStep();
 
         [Header("반응")]
-        [Tooltip("보상이 시작돼 상자를 누를 수 있게 됐을 때. 커서 모양 바꾸기 등을 건다.")]
+        [Tooltip("보상이 시작돼 상자를 누를 수 있게 됐을 때.\n" +
+                 "아직 닫혀 있다 — 누르면 열린다. 커서 바꾸기를 여기 건다.")]
         [SerializeField] private LSO_RewardEvent onReady;
 
         [Tooltip("뚜껑을 열기 시작했을 때. 경첩 삐걱이는 소리를 여기 건다.")]
@@ -157,35 +178,56 @@ namespace _Scripts.LSO.Reward
         [Tooltip("보상이 지급됐을 때. 인자는 고른 보상이다.")]
         [SerializeField] private LSO_RewardEvent onClaimed;
 
-        [Tooltip("처음 보는 유언이라 도장이 준비됐을 때. 커서를 바꾸는 자리다.\n" +
-                 "이때 상자를 누르면 도장이 나온다.")]
-        [SerializeField] private LSO_RewardEvent onStampReady;
+        [Tooltip("처음 보는 유언이라 메모장이 준비됐을 때. 커서를 바꾸는 자리다.\n" +
+                 "이때 상자를 누르면 메모장이 나온다.")]
+        [SerializeField] private LSO_RewardEvent onNoteReady;
 
-        [Tooltip("도장이 다 올라왔을 때.")]
-        [SerializeField] private LSO_RewardEvent onStampShown;
+        [Tooltip("메모장이 다 올라왔을 때.")]
+        [SerializeField] private LSO_RewardEvent onNoteShown;
+
+        [Tooltip("메모장이 상자로 돌아가고 유언이 풀렸을 때.")]
+        [SerializeField] private LSO_RewardEvent onWillUnlocked;
 
         [Tooltip("정리까지 끝났을 때. 다음 연출(체스판 뒤집기 등)을 여기 건다.")]
         [SerializeField] private LSO_RewardEvent onFinished;
 
+        [Header("진단")]
+        [Tooltip("켜면 단계가 바뀔 때마다 콘솔에 찍는다.\n" +
+                 "연출이 예상과 다르게 흐를 때 어디서 건너뛰었는지 보인다.")]
+        [SerializeField] private bool logPhases;
+
         private readonly LSO_RewardDraft _draft = new();
         private readonly List<LSO_RewardCard> _cards = new();
 
-        // 종류마다 풀을 따로 둔다. 하나로 묶으면 꺼낼 때마다 기물인지 유언인지 확인해야 하고,
-        // 잘못 꺼낸 카드가 조용히 빈 채로 나온다.
-        private LSO_ObjectPool<LSO_RewardPieceCard> _piecePool;
-        private LSO_ObjectPool<LSO_WillStamp> _willPool;
+        // 카드를 빌려주고 돌려받는 곳. 상자 속 자리도 이쪽이 안다.
+        private LSO_RewardCardPool _pool;
 
-        // 고른 뒤 무엇을 얻었는지 보여주려고 올려둔 도장. 고르는 것과 같은 풀에서 나온다.
-        private LSO_WillStamp _stamp;
+        // 지금 무엇이 눌려도 되는지를 핸들러에 반영한다.
+        private LSO_RewardClickGate _gate;
 
         private Phase _phase = Phase.Idle;
+
+        /// <summary>
+        /// 단계를 바꾸는 유일한 통로.
+        ///
+        /// 대입을 여기로 모아두면 "언제 어디서 바뀌었나"를 한 곳에서 볼 수 있다.
+        /// 연출이 예상과 다르게 흐를 때, 어느 줄이 단계를 옮겼는지가 제일 먼저 알고 싶은 것이다.
+        /// </summary>
+        private void SetPhase(Phase next)
+        {
+            if (_phase == next) return;
+
+            if (logPhases)
+                Debug.Log($"[{name}] 단계 {_phase} → {next}", this);
+
+            _phase = next;
+        }
         private int _chapter;
         private int _stage;
 
-        // 유언 도장을 거치는 동안 들고 있어야 하는 것들.
+        // 유언 메모장을 거치는 동안 들고 있어야 하는 것들.
         // 클릭 두 번에 걸쳐 진행되므로 코루틴 지역 변수로는 이어지지 않는다.
         private LSO_RewardOption _chosenOption;
-        private DLJ_WillDataSO _pendingWill;
 
         /// <summary>
         /// 지금 씬의 상자.
@@ -211,8 +253,40 @@ namespace _Scripts.LSO.Reward
             _phase == Phase.Opening
             || _phase == Phase.Dealing
             || _phase == Phase.Lowering
-            || _phase == Phase.StampRising
+            || _phase == Phase.NotePlaying
             || _phase == Phase.Closing;
+
+        /// <summary>
+        /// 지금 상자를 눌러서 뭔가가 일어나는지.
+        ///
+        /// 세 번 누른다 — 뚜껑을 열고, 카드를 꺼내고, 메모장을 꺼낸다.
+        /// 닫는 것만 자동이다.
+        /// </summary>
+        private bool BoxAcceptsClick =>
+            _phase == Phase.Closed
+            || _phase == Phase.Opened
+            || _phase == Phase.NoteWaiting;
+
+        /// <summary>지금 카드를 눌러서 고를 수 있는지.</summary>
+        private bool CardsAcceptClick => _phase == Phase.Selecting;
+
+        /// <summary>
+        /// 지금 무엇이 눌려도 되는지를 매 프레임 반영한다.
+        ///
+        /// 단계가 바뀌는 자리가 열 군데 넘는데, 그때마다 여닫는 코드를 같이 적으면
+        /// 한 곳만 빠뜨려도 그 단계에서만 눌린다. 눈으로 못 찾는 종류의 버그다.
+        /// 하는 일이 값 비교 몇 개라 매 프레임 돌아도 부담이 없다.
+        /// </summary>
+        private void Update()
+        {
+            if (_gate == null) return;
+
+            _gate.SetBox(BoxAcceptsClick);
+            _gate.SetCards(_cards, CardsAcceptClick);
+
+            // 메모장은 _cards에 없다. 고르는 대상이 아니라 차례가 따로 들고 있다.
+            _gate.SetNote(noteStep.Note, noteStep.AcceptsClick);
+        }
 
         private void Awake()
         {
@@ -228,20 +302,36 @@ namespace _Scripts.LSO.Reward
 
             if (cardAnchor == null) cardAnchor = transform;
 
-            if (pieceCardPrefab == null && willStampPrefab == null)
+            // 메모장 자리를 안 꽂았으면 카드와 같은 자리를 쓴다.
+            // 풀이 이 값을 부모로 잡으므로 풀을 만들기 전에 정해져 있어야 한다.
+            if (noteAnchor == null) noteAnchor = cardAnchor;
+
+            if (clickHandler == null) clickHandler = GetComponent<LSO_ButtonClickHandler>();
+
+            LSO_RewardClickGate.WarnIfShared(this);
+
+            if (clickHandler == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: LSO_ButtonClickHandler가 없어 클릭을 막을 수 없습니다. " +
+                    "연출 중에도 커서가 '누를 수 있음'으로 보입니다.", this);
+            }
+
+            if (pieceCardPrefab == null && willNotePrefab == null)
             {
                 Debug.LogError($"{name}: 카드 원본이 하나도 없어 카드를 만들 수 없습니다.", this);
                 return;
             }
 
-            // 후보는 보통 셋이다. 미리 만들어 두면 첫 스테이지에서 끊기지 않는다.
-            // 어느 쪽이 몇 장 나올지는 뽑기 결과에 달렸으므로 둘 다 넉넉히 잡는다.
-            if (pieceCardPrefab != null)
-                _piecePool = new LSO_ObjectPool<LSO_RewardPieceCard>(pieceCardPrefab, cardAnchor, prewarm: 3);
+            _pool = new LSO_RewardCardPool(
+                pieceCardPrefab, cardAnchor, cardInsideAnchor,
+                willNotePrefab, noteAnchor, noteInsideAnchor);
 
-            // 세 개가 전부 유언일 수도 있고, 그 위에 보여줄 도장이 하나 더 필요하다.
-            if (willStampPrefab != null)
-                _willPool = new LSO_ObjectPool<LSO_WillStamp>(willStampPrefab, cardAnchor, prewarm: 4);
+            _gate = new LSO_RewardClickGate(clickHandler);
+
+            noteStep.Bind(_pool, noteAnchor);
+            noteStep.Shown += _ => onNoteShown?.Invoke(_chosenOption);
+            noteStep.Unlocked += _ => onWillUnlocked?.Invoke(_chosenOption);
         }
 
         private void OnEnable()
@@ -264,12 +354,12 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 보상을 시작한다. 스테이지를 클리어한 쪽이 부른다.
         ///
-        /// Open On Begin이 켜져 있으면 여기서 뚜껑까지 연다.
+        /// 상자를 누를 수 있게만 해둔다. 여는 것은 플레이어의 첫 클릭이다.
         /// 진행 중에 다시 부르면 하던 것을 버리고 처음부터 다시 한다.
         /// </summary>
         public void Begin(int chapter, int stage)
         {
-            if (_piecePool == null && _willPool == null)
+            if (_pool == null || !_pool.HasAny)
             {
                 Debug.LogError($"{name}: 카드 풀이 없어 보상을 시작할 수 없습니다.", this);
                 return;
@@ -280,44 +370,43 @@ namespace _Scripts.LSO.Reward
 
             ReleaseAll();
 
-            _phase = Phase.Closed;
+            SetPhase(Phase.Closed);
 
             onReady?.Invoke(null);
 
-            // 여는 것은 플레이어가 할 일이 아니다. 스테이지가 끝나면 상자가 알아서 열린다.
-            // 플레이어의 클릭은 카드를 꺼내는 것부터 시작한다.
-            if (openOnBegin)
-                OpenLid();
+            // 여기서 열지 않는다. 닫힌 채로 기다렸다가 플레이어가 눌러야 열린다.
+            // On Ready에 커서 바꾸기를 걸어 "누를 수 있다"를 알려줄 것.
         }
 
+        /// <summary>
+        /// 상자를 눌렀다.
+        ///
+        /// 여는 것과 카드를 꺼내는 것은 클릭을 받지 않는다. 스테이지가 끝나면 상자가
+        /// 알아서 열리고 카드까지 나온다. 플레이어가 할 일은 고르는 것부터다.
+        ///
+        /// 상자 클릭이 필요한 자리는 유언 메모장 앞뒤 두 번뿐이다.
+        /// </summary>
         public void OnClick()
         {
             switch (_phase)
             {
-                // Open On Begin이 꺼져 있을 때만 여기까지 온다.
+                // 첫 클릭. 뚜껑을 연다.
                 case Phase.Closed:
                     OpenLid();
                     break;
 
-                // 첫 클릭이 받아지는 자리. 카드를 꺼낸다.
+                // 뚜껑이 열린 뒤의 클릭. 상자 안에서 카드가 나온다.
                 case Phase.Opened:
                     StartCoroutine(DealRoutine());
                     break;
 
-                // 처음 보는 유언을 받았다. 도장을 꺼낸다.
-                case Phase.StampWaiting:
-                    StartCoroutine(ShowStampRoutine());
-                    break;
-
-                // 다 봤다는 뜻으로 친다.
-                case Phase.StampShown:
-                    StartCoroutine(CloseRoutine());
+                // 처음 보는 유언을 받았다. 메모장을 꺼낸다.
+                case Phase.NoteWaiting:
+                    StartCoroutine(NoteRoutine());
                     break;
 
                 // 나머지는 클릭을 버린다. 큐에 쌓지 않는다 —
                 // 쌓아두면 손을 뗀 뒤에도 상자가 혼자 진행한다.
-                default:
-                    break;
             }
         }
 
@@ -325,7 +414,7 @@ namespace _Scripts.LSO.Reward
         {
             if (lid == null) return;
 
-            _phase = Phase.Opening;
+            SetPhase(Phase.Opening);
 
             lid.Open();
 
@@ -342,19 +431,16 @@ namespace _Scripts.LSO.Reward
         {
             if (_phase != Phase.Opening) return;
 
-            _phase = Phase.Opened;
+            SetPhase(Phase.Opened);
 
+            // 여기서 멈춘다. 카드는 한 번 더 눌러야 나온다.
+            // 상자 안이 보인 뒤에 뭔가가 올라와야 "상자에서 나왔다"로 읽힌다.
             onOpened?.Invoke(null);
-
-            // 이 신호를 받고 곧바로 이어간다. 클릭을 한 번 더 기다리지 않는다.
-            // On Opened는 위에서 이미 발행했으므로, 거기 건 연출은 카드와 겹쳐 재생된다.
-            if (dealOnOpen)
-                StartCoroutine(DealRoutine());
         }
 
         private IEnumerator DealRoutine()
         {
-            _phase = Phase.Dealing;
+            SetPhase(Phase.Dealing);
 
             List<LSO_RewardOption> options = _draft.Draw(table, _chapter, _stage);
 
@@ -374,7 +460,7 @@ namespace _Scripts.LSO.Reward
                     yield return new WaitForSeconds(dealInterval);
             }
 
-            _phase = Phase.Selecting;
+            SetPhase(Phase.Selecting);
 
             onDealt?.Invoke(null);
         }
@@ -387,102 +473,39 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         private void SpawnCard(LSO_RewardOption option, int index, int total)
         {
-            LSO_RewardCard card = Take(option);
+            // 상자에서 나오는 세 장은 전부 기물 카드다. 유언은 고르는 대상이 아니라
+            // 고른 뒤에 메모장으로 보여줄 것이라 여기로 오지 않는다.
+            if (option.type != LSO_RewardType.Piece)
+            {
+                Debug.LogWarning(
+                    $"{name}: {option.type} 보상은 카드로 나오지 않습니다. " +
+                    "보상 테이블의 카드 후보에 Unlock Will 로 넣으세요.", this);
+                return;
+            }
 
-            if (card == null) return;
+            LSO_RewardCard card = _pool.TakePiece();
+
+            if (card == null)
+            {
+                Debug.LogError($"{name}: Piece Card Prefab이 없어 기물 카드를 만들지 못했습니다.", this);
+                return;
+            }
 
             card.transform.SetParent(cardAnchor, false);
 
             // 상자 안에서 시작한다. 켜기 전에 자리를 잡아야 한 프레임 튀지 않는다.
-            card.transform.localPosition = SpreadOf(index, total);
-            card.transform.localRotation = TiltOf(index, total);
+            // 좌우로는 미리 벌려둔다 — 세 장이 한 점에서 겹쳐 나오면 뭉쳐 보인다.
+            card.transform.localPosition = _pool.CardInsideLocal + layout.Spread(index, total);
+            card.transform.localRotation = layout.Tilt(index, total);
 
             card.Bind(option, HandleCardClicked);
 
             card.transform
-                .DOLocalMove(PositionOf(index, total), riseDuration)
+                .DOLocalMove(layout.Position(index, total), riseDuration)
                 .SetEase(riseEase)
                 .SetLink(card.gameObject);
 
             _cards.Add(card);
-        }
-
-        /// <summary>
-        /// 보상 종류에 맞는 카드를 꺼낸다. 그 종류의 원본이 없으면 null.
-        ///
-        /// 조용히 넘기지 않는다. 유언 후보를 테이블에 넣어두고 원본을 안 꽂으면
-        /// 카드가 두 장만 나오는 것으로 보이는데, 원인이 화면에 드러나지 않는다.
-        /// </summary>
-        private LSO_RewardCard Take(LSO_RewardOption option)
-        {
-            if (option.type == LSO_RewardType.Will)
-            {
-                if (_willPool != null) return _willPool.Get();
-
-                Debug.LogError($"{name}: Will Stamp Prefab이 없어 유언 도장을 만들지 못했습니다.", this);
-                return null;
-            }
-
-            if (_piecePool != null) return _piecePool.Get();
-
-            Debug.LogError($"{name}: Piece Card Prefab이 없어 기물 카드를 만들지 못했습니다.", this);
-            return null;
-        }
-
-        /// <summary>
-        /// 다 쓴 카드를 제 풀로 돌려보낸다.
-        ///
-        /// 어느 풀에서 왔는지는 카드의 실제 타입으로 정한다.
-        /// 카드에 출처를 적어두는 방법도 있지만, 그러면 상태가 하나 늘고
-        /// 그 값이 실제와 어긋날 수 있는 자리가 생긴다.
-        /// </summary>
-        private void Return(LSO_RewardCard card)
-        {
-            switch (card)
-            {
-                case LSO_WillStamp stamp when _willPool != null:
-                    _willPool.Release(stamp);
-                    break;
-
-                case LSO_RewardPieceCard piece when _piecePool != null:
-                    _piecePool.Release(piece);
-                    break;
-
-                default:
-                    Debug.LogWarning($"{card.name}: 돌려보낼 풀을 찾지 못해 그대로 껐습니다.", card);
-                    card.gameObject.SetActive(false);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 가운데를 기준으로 몇 칸 밀린 자리인지. 솟는 높이는 빼고 좌우 배치만이다.
-        ///
-        /// 세 장이면 -1, 0, +1 칸이 된다. 짝수여도 가운데가 비어 대칭이 유지된다.
-        /// </summary>
-        private Vector3 SpreadOf(int index, int total)
-        {
-            return cardSpacing * Step(index, total);
-        }
-
-        /// <summary>카드가 최종적으로 놓일 자리.</summary>
-        private Vector3 PositionOf(int index, int total)
-        {
-            return SpreadOf(index, total) + Vector3.up * riseHeight;
-        }
-
-        /// <summary>가운데에서 멀수록 더 기울인다. Card Tilt가 0이면 전부 똑바로 선다.</summary>
-        private Quaternion TiltOf(int index, int total)
-        {
-            if (cardTilt == Vector3.zero) return Quaternion.identity;
-
-            return Quaternion.Euler(cardTilt * Step(index, total));
-        }
-
-        /// <summary>가운데를 0으로 놓았을 때 이 카드가 몇 칸째인지. 왼쪽은 음수다.</summary>
-        private static float Step(int index, int total)
-        {
-            return index - (total - 1) * 0.5f;
         }
 
         /// <summary>
@@ -500,8 +523,8 @@ namespace _Scripts.LSO.Reward
 
                 card.transform.DOKill();
 
-                card.transform.localPosition = PositionOf(i, _cards.Count);
-                card.transform.localRotation = TiltOf(i, _cards.Count);
+                card.transform.localPosition = layout.Position(i, _cards.Count);
+                card.transform.localRotation = layout.Tilt(i, _cards.Count);
             }
         }
 
@@ -516,7 +539,7 @@ namespace _Scripts.LSO.Reward
             if (_phase != Phase.Selecting) return;
             if (card == null || card.Option == null) return;
 
-            _phase = Phase.Lowering;
+            SetPhase(Phase.Lowering);
 
             StartCoroutine(ClaimRoutine(card));
         }
@@ -524,7 +547,7 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 고른 것을 지급하고 나머지 카드를 내린다.
         ///
-        /// 처음 보는 유언이었으면 여기서 멈추고 도장을 꺼낼 클릭을 기다린다.
+        /// 처음 보는 유언이었으면 여기서 멈추고 메모장을 꺼낼 클릭을 기다린다.
         /// 아니면 그대로 정리한다.
         /// </summary>
         private IEnumerator ClaimRoutine(LSO_RewardCard chosen)
@@ -533,20 +556,36 @@ namespace _Scripts.LSO.Reward
 
             // 지급 전에 확인한다. 지급하고 나면 해금 목록에 들어가
             // "처음 보는 유언"인지 알 수 없게 된다.
-            _pendingWill = FindStampWill(_chosenOption);
+            DLJ_WillDataSO note = noteStep.Resolve(_chosenOption);
 
-            Claim(_chosenOption);
+            // 처음 보는 유언은 메모장을 보여준 뒤에 푼다. 여기서 같이 풀어버리면
+            // 종이가 올라오기도 전에 해금이 끝나 순서가 뒤집힌다.
+            // 이미 가진 유언은 종이가 안 나오므로 지금 함께 푼다.
+            Claim(_chosenOption, includeAttachedWill: note == null);
+
+            // 누른 즉시 움직여 "골랐다"를 알린다. 여기서 아무것도 안 하면
+            // Pick Hold 동안 화면이 멈춰 보여서 클릭이 씹힌 것처럼 느껴진다.
+            yield return StartCoroutine(LiftChosenRoutine(chosen));
+
+            // 떠오른 채로 한 박자 머문다.
+            if (pickHold > 0f)
+                yield return new WaitForSeconds(pickHold);
+
+            // 나머지가 상자로 돌아가는 것과 고른 카드가 덱으로 가는 것을 함께 돌린다.
+            // 순서대로 하면 "치우고 나서야 받는" 것처럼 보여 한 박자 늘어진다.
+            Coroutine toDeck = StartCoroutine(SendToDeckRoutine(chosen));
 
             yield return StartCoroutine(LowerRoutine(chosen));
+            yield return toDeck;
 
             if (claimHold > 0f)
                 yield return new WaitForSeconds(claimHold);
 
-            if (_pendingWill != null && _willPool != null)
+            if (note != null)
             {
-                _phase = Phase.StampWaiting;
+                SetPhase(Phase.NoteWaiting);
 
-                onStampReady?.Invoke(_chosenOption);
+                onNoteReady?.Invoke(_chosenOption);
                 yield break;
             }
 
@@ -554,38 +593,77 @@ namespace _Scripts.LSO.Reward
         }
 
         /// <summary>
-        /// 도장으로 보여줄 유언. 없으면 null.
+        /// 고른 카드를 제자리에서 한 번 밀어낸다. 클릭에 대한 즉시 반응이다.
         ///
-        /// 기물 카드는 여기서 걸러진다. 카드가 들고 있는 것은 LSO_WillType 이라
-        /// 도장을 고를 데이터 에셋이 없다. 유언 보상만 도장을 낸다.
-        ///
-        /// 반드시 지급 전에 부를 것. 지급하고 나면 해금 목록에 들어가
-        /// 처음 보는 것인지 알 수 없게 된다.
+        /// 트윈이 끝날 때까지 기다린다. 기다리지 않고 넘어가면 밀려나는 도중에
+        /// 덱으로 가는 트윈이 시작돼 두 움직임이 겹친다.
         /// </summary>
-        private DLJ_WillDataSO FindStampWill(LSO_RewardOption option)
+        private IEnumerator LiftChosenRoutine(LSO_RewardCard chosen)
         {
-            if (option == null || option.type != LSO_RewardType.Will) return null;
-            if (option.will == null) return null;
+            if (chosen == null) yield break;
+            if (pickLift == Vector3.zero || pickLiftDuration <= 0f) yield break;
 
-            if (!stampOnlyWhenNew) return option.will;
+            Transform card = chosen.transform;
 
-            LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
+            card.DOKill();
 
-            // 해금 목록을 못 보면 처음인지 알 수 없다. 그럴 때는 보여준다 —
-            // 한 번 더 보는 것이 못 보고 넘어가는 것보다 낫다.
-            if (library == null || library.Claim == null) return option.will;
-
-            return library.Claim.Unlocks.IsWillUnlocked(option.will) ? null : option.will;
+            yield return card
+                .DOLocalMove(card.localPosition + pickLift, pickLiftDuration)
+                .SetEase(pickLiftEase)
+                .SetLink(chosen.gameObject)
+                .WaitForCompletion();
         }
 
-        private void Claim(LSO_RewardOption option)
+        /// <summary>
+        /// 고른 카드를 덱 쪽으로 날려 보낸다.
+        ///
+        /// 덱에 실제로 넣는 것은 이 연출이 아니다. 지급은 이미 끝났고(LSO_RewardClaim →
+        /// LSO_ItemLibraryManager), 여기서는 "어디로 갔는지" 만 보여준다.
+        /// 둘을 묶으면 연출이 끊겼을 때 카드가 사라지거나 두 번 들어간다.
+        ///
+        /// 덱 자리를 안 꽂았으면 상자 안으로 들어간다. 받은 것은 마찬가지지만
+        /// 어디로 갔는지 보이지 않으므로 한 번 짚어준다.
+        /// </summary>
+        private IEnumerator SendToDeckRoutine(LSO_RewardCard chosen)
+        {
+            if (chosen == null) yield break;
+
+            Transform card = chosen.transform;
+
+            card.DOKill();
+
+            if (deckAnchor == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: Deck Anchor가 비어 있어 고른 카드가 상자 안으로 들어갑니다. " +
+                    "덱으로 가는 것을 보여주려면 손패나 덱 더미를 꽂으세요.", this);
+
+                yield return card
+                    .DOLocalMove(_pool.CardInsideLocal, toDeckDuration)
+                    .SetEase(toDeckEase)
+                    .SetLink(chosen.gameObject)
+                    .WaitForCompletion();
+
+                yield break;
+            }
+
+            // 월드 좌표로 움직인다. 덱은 상자의 자식이 아니라 화면 아래 다른 곳에 있다.
+            Sequence flight = DOTween.Sequence()
+                .Append(card.DOMove(deckAnchor.position, toDeckDuration).SetEase(toDeckEase))
+                .Join(card.DOScale(card.localScale * toDeckScale, toDeckDuration).SetEase(toDeckEase))
+                .SetLink(chosen.gameObject);
+
+            yield return flight.WaitForCompletion();
+        }
+
+        private void Claim(LSO_RewardOption option, bool includeAttachedWill)
         {
             if (option == null) return;
 
             LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
             if (library != null && library.Claim != null)
-                library.Claim.Claim(option);
+                library.Claim.Claim(option, includeAttachedWill);
             else
                 Debug.LogWarning($"{name}: LSO_ItemLibraryManager가 없어 보상을 지급하지 못했습니다.", this);
 
@@ -593,25 +671,26 @@ namespace _Scripts.LSO.Reward
         }
 
         /// <summary>
-        /// 고르지 않은 카드를 상자 안으로 내린다. 고른 카드는 그대로 둔다.
+        /// 고르지 않은 카드를 상자 안으로 도로 집어넣는다. 고른 카드는 그대로 둔다.
+        ///
+        /// 제자리에서 내려가는 것이 아니라 상자 입구(기준 자리의 원점)로 모인다.
+        /// 벌어져 있던 자리로만 내리면 상자 옆 허공으로 가라앉는 것처럼 보인다.
         ///
         /// 내려간 카드는 도착한 뒤에 풀로 돌려보낸다. 먼저 돌려보내면
-        /// 꺼지면서 사라져 내려가는 것이 보이지 않는다.
+        /// 꺼지면서 사라져 들어가는 것이 보이지 않는다.
         /// </summary>
         private IEnumerator LowerRoutine(LSO_RewardCard chosen)
         {
             var lowering = new List<LSO_RewardCard>();
 
-            for (int i = 0; i < _cards.Count; i++)
+            foreach (LSO_RewardCard card in _cards)
             {
-                LSO_RewardCard card = _cards[i];
-
                 if (card == null || card == chosen) continue;
 
                 card.transform.DOKill();
 
                 card.transform
-                    .DOLocalMove(SpreadOf(i, _cards.Count), riseDuration)
+                    .DOLocalMove(_pool.CardInsideLocal, riseDuration)
                     .SetEase(riseEase)
                     .SetLink(card.gameObject);
 
@@ -625,50 +704,30 @@ namespace _Scripts.LSO.Reward
             foreach (LSO_RewardCard card in lowering)
             {
                 _cards.Remove(card);
-                Return(card);
+                _pool.Return(card);
             }
         }
 
         /// <summary>
-        /// 도장을 상자에서 꺼내 올린다.
-        ///
-        /// 고르는 것과 같은 풀에서 꺼낸다. 둘이 같은 물건이라 원본도 하나뿐이다.
-        /// 클릭 콜백은 붙이지 않는다 — 이미 고른 뒤라 다시 고를 것이 없다.
+        /// 메모장 차례. 올라오고, 눌리기를 기다리고, 들어가고, 유언이 풀린다.
+        /// 그 안의 순서는 LSO_RewardNoteStep이 안다.
         /// </summary>
-        private IEnumerator ShowStampRoutine()
+        private IEnumerator NoteRoutine()
         {
-            _phase = Phase.StampRising;
+            SetPhase(Phase.NotePlaying);
 
-            _stamp = _willPool.Get();
+            yield return StartCoroutine(noteStep.Run());
 
-            _stamp.transform.SetParent(cardAnchor, false);
-            _stamp.transform.localPosition = Vector3.zero;
-            _stamp.transform.localRotation = Quaternion.identity;
-
-            _stamp.Bind(_pendingWill);
-
-            Tween rise = _stamp.transform
-                .DOLocalMove(stampPosition, stampRiseDuration)
-                .SetEase(stampRiseEase)
-                .SetLink(_stamp.gameObject);
-
-            yield return rise.WaitForCompletion();
-
-            _phase = Phase.StampShown;
-
-            onStampShown?.Invoke(_chosenOption);
+            yield return StartCoroutine(CloseRoutine());
         }
 
         private IEnumerator CloseRoutine()
         {
-            _phase = Phase.Closing;
+            SetPhase(Phase.Closing);
 
-            if (_stamp != null)
-            {
-                _stamp.transform.DOKill();
-                _willPool.Release(_stamp);
-                _stamp = null;
-            }
+            // 연출이 중간에 끊겨 여기로 바로 왔을 수도 있다.
+            // 메모장이 남아 있으면 치우고, 못 푼 유언이 있으면 여기서 푼다.
+            noteStep.Finish();
 
             ReleaseAll();
 
@@ -677,182 +736,13 @@ namespace _Scripts.LSO.Reward
             LSO_RewardOption option = _chosenOption;
 
             _chosenOption = null;
-            _pendingWill = null;
-            _phase = Phase.Idle;
+            SetPhase(Phase.Idle);
 
             onFinished?.Invoke(option);
             OnFinished?.Invoke(option);
 
             yield break;
         }
-
-#if UNITY_EDITOR
-
-        #region 테스트용
-
-        [Header("테스트용")]
-        [Tooltip("컨텍스트 메뉴로 Begin을 부를 때 쓸 챕터·스테이지. 빌드에는 들어가지 않는다.")]
-        [SerializeField] private int testChapter = 1;
-
-        [SerializeField] private int testStage = 1;
-
-        [Tooltip("켜면 플레이를 누르는 순간 스스로 시작한다.\n" +
-                 "맵도 전투도 거치지 않으므로 상자 연출만 볼 때 쓴다.")]
-        [SerializeField] private bool testAutoBegin;
-
-        [Tooltip("Auto Begin이 켜졌을 때 어디까지 스스로 진행할지.\n" +
-                 "\n" +
-                 "Ready   누를 준비만 한다. 뚜껑부터 직접 눌러본다\n" +
-                 "Opened  뚜껑까지 열어둔다 (Deal On Open이 꺼져 있을 때만 의미가 있다)\n" +
-                 "Dealt   카드까지 꺼내둔다. 고르는 것만 해본다")]
-        [SerializeField] private TestAutoStep testAutoStep = TestAutoStep.Ready;
-
-        private enum TestAutoStep
-        {
-            Ready,
-            Opened,
-            Dealt
-        }
-
-        private void Start()
-        {
-            if (!testAutoBegin) return;
-
-            StartCoroutine(Co_TestAuto());
-        }
-
-        /// <summary>
-        /// 클릭 없이 정해둔 단계까지 밀어준다.
-        ///
-        /// OnClick을 그대로 부르지 않고 내부 함수를 직접 쓴다.
-        /// OnClick은 단계를 보고 갈라지는데, 여기서는 어느 단계를 거칠지 이미 정해져 있다.
-        /// </summary>
-        private IEnumerator Co_TestAuto()
-        {
-            // 한 프레임 기다린다. 다른 컴포넌트의 Start가 끝나야
-            // LSO_ItemLibraryManager 같은 것들이 자리를 잡는다.
-            yield return null;
-
-            TestBegin();
-
-            if (testAutoStep == TestAutoStep.Ready) yield break;
-
-            OpenLid();
-
-            while (_phase == Phase.Opening)
-                yield return null;
-
-            if (testAutoStep == TestAutoStep.Opened) yield break;
-
-            yield return StartCoroutine(DealRoutine());
-        }
-
-        /// <summary>
-        /// 맵을 거치지 않고 보상을 시작한다. 컴포넌트 톱니바퀴에서 부른다.
-        ///
-        /// 플레이 중에만 쓸 것. 정지 상태에서는 풀이 아직 없어 아무 일도 일어나지 않는다.
-        /// </summary>
-        [ContextMenu("테스트: 보상 시작")]
-        private void TestBegin()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogWarning($"{name}: 플레이 중에만 됩니다.", this);
-                return;
-            }
-
-            Debug.Log($"{name}: 테스트 시작 (챕터 {testChapter} 스테이지 {testStage})", this);
-
-            Begin(testChapter, testStage);
-        }
-
-        /// <summary>클릭 대신 뚜껑을 연다. 아직 시작하지 않았으면 시작부터 한다.</summary>
-        [ContextMenu("테스트: 뚜껑 열기")]
-        private void TestOpen()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogWarning($"{name}: 플레이 중에만 됩니다.", this);
-                return;
-            }
-
-            if (_phase == Phase.Idle) TestBegin();
-
-            if (_phase != Phase.Closed)
-            {
-                Debug.LogWarning($"{name}: 지금은 {_phase} 라 뚜껑을 열 수 없습니다.", this);
-                return;
-            }
-
-            OpenLid();
-        }
-
-        /// <summary>클릭 대신 카드를 꺼낸다. 뚜껑이 열려 있어야 한다.</summary>
-        [ContextMenu("테스트: 카드 꺼내기")]
-        private void TestDeal()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogWarning($"{name}: 플레이 중에만 됩니다.", this);
-                return;
-            }
-
-            if (_phase != Phase.Opened)
-            {
-                Debug.LogWarning($"{name}: 지금은 {_phase} 라 카드를 꺼낼 수 없습니다. 뚜껑부터 여세요.", this);
-                return;
-            }
-
-            StartCoroutine(DealRoutine());
-        }
-
-        /// <summary>시작부터 카드가 다 나올 때까지 한 번에. 고르는 것만 남긴다.</summary>
-        [ContextMenu("테스트: 카드까지 한 번에")]
-        private void TestOpenAndDeal()
-        {
-            if (!Application.isPlaying)
-            {
-                Debug.LogWarning($"{name}: 플레이 중에만 됩니다.", this);
-                return;
-            }
-
-            // StopAllCoroutines는 쓰지 않는다. 지급 중인 코루틴까지 끊어
-            // 단계가 중간에서 굳어버린다. Begin이 알아서 처음으로 되돌린다.
-            testAutoStep = TestAutoStep.Dealt;
-
-            StartCoroutine(Co_TestAuto());
-        }
-
-        /// <summary>
-        /// 인스펙터에서 값을 만지면 꺼내둔 카드를 그 자리에서 다시 늘어놓는다.
-        ///
-        /// 플레이 중에만 한다. 정지 상태에서는 꺼내둔 카드가 없다.
-        /// </summary>
-        private void OnValidate()
-        {
-            if (!Application.isPlaying) return;
-
-            Relayout();
-        }
-
-        /// <summary>지금 어느 단계인지 콘솔에 찍는다. 눌러도 반응이 없을 때 본다.</summary>
-        [ContextMenu("테스트: 지금 상태")]
-        private void TestDumpState()
-        {
-            Debug.Log(
-                $"{name}\n" +
-                $"  단계    : {_phase}\n" +
-                $"  바쁨    : {IsBusy}\n" +
-                $"  카드    : {_cards.Count}장\n" +
-                $"  기물 풀 : {(_piecePool == null ? "없음" : $"대기 {_piecePool.IdleCount} / 만든 것 {_piecePool.CreatedCount}")}\n" +
-                $"  유언 풀 : {(_willPool == null ? "없음" : $"대기 {_willPool.IdleCount} / 만든 것 {_willPool.CreatedCount}")}\n" +
-                $"  뚜껑    : {(lid == null ? "없음" : lid.IsOpened ? "열림" : "닫힘")}",
-                this);
-        }
-
-        #endregion
-
-#endif
 
         /// <summary>꺼내 쓴 카드를 전부 돌려준다. 트윈이 돌던 중이어도 끊는다.</summary>
         private void ReleaseAll()
@@ -863,7 +753,7 @@ namespace _Scripts.LSO.Reward
 
                 card.transform.DOKill();
 
-                Return(card);
+                _pool.Return(card);
             }
 
             _cards.Clear();

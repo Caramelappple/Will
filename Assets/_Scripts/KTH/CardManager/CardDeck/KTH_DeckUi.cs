@@ -5,15 +5,15 @@ using UnityEngine;
 public class KTH_DeckUi : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private RectTransform deckRect;
+    [SerializeField] private Transform deckTransform;
     [SerializeField] private LDY_TurnManager turnManager;
 
     [Header("Hand Card Layout")]
     [SerializeField] private KTH_HandCardLayout handCardLayout;
 
     [Header("Move Settings")]
-    [Tooltip("적 턴일 때 내려가는 Y 거리")]
-    [SerializeField] private float hideOffsetY = 300f;
+    [Tooltip("적 턴일 때 내려가는 로컬 Y 거리")]
+    [SerializeField] private float hideOffsetY = 1.5f;
 
     [Tooltip("내려가고 올라오는 애니메이션 지속 시간")]
     [SerializeField] private float moveDuration = 0.35f;
@@ -31,16 +31,16 @@ public class KTH_DeckUi : MonoBehaviour
     [Tooltip("가운데에서 다시 손패 형태로 펼쳐지는 시간")]
     [SerializeField] private float spreadDuration = 0.25f;
 
-    private Vector2 originalAnchoredPos;
+    private Vector3 originalLocalPos;
     private Tween currentTween;
     private Sequence currentSequence;
 
     private void Awake()
     {
-        if (deckRect != null)
+        if (deckTransform != null)
         {
-            originalAnchoredPos =
-                deckRect.anchoredPosition;
+            originalLocalPos =
+                deckTransform.localPosition;
         }
     }
 
@@ -81,7 +81,7 @@ public class KTH_DeckUi : MonoBehaviour
         currentTween?.Kill();
         currentSequence?.Kill();
 
-        if (deckRect == null)
+        if (deckTransform == null)
         {
             return;
         }
@@ -106,7 +106,7 @@ public class KTH_DeckUi : MonoBehaviour
             );
         }
 
-        // 카드가 가운데로 모인 후 전체 UI를 아래로 내림
+        // 카드가 가운데로 모인 후 전체 덱 오브젝트를 아래로 내림
         currentSequence =
             DOTween.Sequence();
 
@@ -117,12 +117,13 @@ public class KTH_DeckUi : MonoBehaviour
         );
 
         currentSequence.Append(
-            deckRect
-                .DOAnchorPos(
-                    originalAnchoredPos -
-                    new Vector2(
+            deckTransform
+                .DOLocalMove(
+                    originalLocalPos -
+                    new Vector3(
                         0f,
-                        hideOffsetY
+                        hideOffsetY,
+                        0f
                     ),
                     moveDuration
                 )
@@ -132,14 +133,14 @@ public class KTH_DeckUi : MonoBehaviour
 
     private void PlayShowAnimation()
     {
-        // 먼저 전체 UI를 원래 위치로 올림
+        // 먼저 전체 덱 오브젝트를 원래 위치로 올림
         currentSequence =
             DOTween.Sequence();
 
         currentSequence.Append(
-            deckRect
-                .DOAnchorPos(
-                    originalAnchoredPos,
+            deckTransform
+                .DOLocalMove(
+                    originalLocalPos,
                     moveDuration
                 )
                 .SetEase(showEase)
@@ -163,7 +164,7 @@ public class KTH_DeckUi : MonoBehaviour
     private void ApplyPositionInstant(
         LDY_Team turn)
     {
-        if (deckRect == null)
+        if (deckTransform == null)
         {
             return;
         }
@@ -171,13 +172,14 @@ public class KTH_DeckUi : MonoBehaviour
         bool isEnemyTurn =
             turn == LDY_Team.Enemy;
 
-        deckRect.anchoredPosition =
+        deckTransform.localPosition =
             isEnemyTurn
-                ? originalAnchoredPos -
-                  new Vector2(
+                ? originalLocalPos -
+                  new Vector3(
                       0f,
-                      hideOffsetY
+                      hideOffsetY,
+                      0f
                   )
-                : originalAnchoredPos;
+                : originalLocalPos;
     }
 }

@@ -697,20 +697,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53ac91f743cee6140873e2950d93c06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCard
-  cardImage: {fileID: 3360264093101402799}
-  outlineImage: {fileID: 3683983128935473509}
-  title: {fileID: 3628000310502491027}
-  cost: {fileID: 3483478452464298760}
-  power: {fileID: 4306098565866539661}
+  outlineImage: {fileID: 0}
+  cost: {fileID: 0}
   selectScale: 1.1
-  selectMoveY: 50
+  selectMoveAxis: 0
+  selectMoveAmount: 4
   selectDuration: 0.5
   hoverEnterDelay: 0.02
   hoverExitDelay: 0.12
   infoPanelHoverDelay: 0.5
   drawStartScale: 0.3
-  drawDipDistance: 60
-  drawHookDistance: 25
+  drawDipDistance: 0.5
+  drawHookDistance: 0.2
+  moveDownAxis: 1
+  moveDownAmount: 1
+  moveDownDuration: 0.2
+  moveDownEase: 9
 --- !u!114 &4684213440564793425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -723,6 +725,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fdb10e69c7ada84c9a79b6301fda24c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_CardSorting
+  frontZOffset: 0.05
 --- !u!114 &1957502303724078401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -737,13 +740,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardAnimation
   discardDuration: 0.25
   arcHeight: 40
-  minRandomTilt: 5
-  maxRandomTilt: 15
-  flipAngle: 180
-  minStackOffset: 3
-  maxStackOffset: 5
   landingDuration: 0.08
   landingScale: 0.96
+  shadowChildName: Shadow
   shadowBoost: 1.8
   shadowDuration: 0.12
 --- !u!114 &9050033977388421517

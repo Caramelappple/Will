@@ -76,6 +76,21 @@ namespace _Scripts.LDY.Effect
             }
         }
 
+        /// <summary>
+        /// 되돌릴 것이 없다고 표시한다. 자세는 그대로 둔다.
+        ///
+        /// 연출로 제자리에 돌아왔을 때 부른다. 이걸 안 부르면 HasMoved가 켜진 채로 남아
+        /// 다음 Play가 "아직 뒤집혀 있다"고 보고 ResetToStart로 되돌려버린다 —
+        /// 그 기준점은 이미 뒤집힌 자세라 판이 엉뚱한 곳으로 튄다.
+        /// </summary>
+        public void MarkRestored()
+        {
+            Kill();
+
+            HasMoved = false;
+            _target = null;
+        }
+
         /// <summary>돌리기 전 자세로 되돌린다. 연출이 중단됐을 때 쓴다.</summary>
         public void Restore()
         {

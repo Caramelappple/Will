@@ -1,3 +1,4 @@
+using _Scripts.LSO.Stage;
 using UnityEngine;
 
 public class KTH_Clear : MonoBehaviour
@@ -31,15 +32,12 @@ public class KTH_Clear : MonoBehaviour
 
     private void OnClearButtonClicked()
     {
-        if (LDY_MapManager.Instance == null)
+        if (!LSO_StageFlow.HasInstance)
         {
-            Debug.LogWarning("[KTH_TestClearButton] LDY_MapManager.Instance가 없습니다. (단독 테스트 씬 진입 상태일 수 있음)");
-
-            // 싱글톤이 없는 단독 씬 테스트용 예외 처리 (필요시 사용)
-            // UnityEngine.SceneManagement.SceneManager.LoadScene("MapScene");
+            Debug.LogWarning("[KTH_TestClearButton] LSO_StageFlow가 없습니다. (단독 테스트 씬일 수 있음)");
             return;
         }
 
-        LDY_MapManager.Instance.CompleteActiveNodeAndReturnToMap();
+        LSO_StageFlow.Instance.ClearStage();
     }
 }
