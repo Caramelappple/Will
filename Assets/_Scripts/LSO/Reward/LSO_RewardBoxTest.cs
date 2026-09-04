@@ -87,7 +87,7 @@ namespace _Scripts.LSO.Reward
                 $"  카드    : {_cards.Count}장\n" +
                 $"  풀      : {(_pool == null ? "없음" : _pool.Describe())}\n" +
                 $"  뚜껑    : {(lid == null ? "없음" : lid.IsOpened ? "열림" : "닫힘")}\n" +
-                $"  뜸      : Lift {pickLiftDuration}s / Pick {pickHold}s / Claim {claimHold}s",
+                $"  뜸      : Pick {pickHold}s / Claim {claimHold}s",
                 this);
         }
     }
