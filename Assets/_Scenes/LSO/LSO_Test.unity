@@ -1352,6 +1352,45 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &304335046 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3917524010975666005, guid: 2dcfe0d38931eb640883a4644617468f, type: 3}
+  m_PrefabInstance: {fileID: 320448185}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &304335050
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 304335046}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.01, y: 0.11381721, z: 0.07875921}
+  m_Center: {x: 0, y: 0, z: 0.0000000018626451}
+--- !u!114 &304335051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 304335046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33e5c75d242a1d44ba36268f86b89479, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_InfoPanelClick
+  infoPanel: {fileID: 0}
 --- !u!114 &307282529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1563,6 +1602,12 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3917524010975666005, guid: 2dcfe0d38931eb640883a4644617468f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 304335051}
+    - targetCorrespondingSourceObject: {fileID: 3917524010975666005, guid: 2dcfe0d38931eb640883a4644617468f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 304335050}
     - targetCorrespondingSourceObject: {fileID: 7513384454549957475, guid: 2dcfe0d38931eb640883a4644617468f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -2473,10 +2518,21 @@ MonoBehaviour:
   flipAngle: 180
   flipDuration: 1.6
   flipEase: 6
+  reverseRetraces: 1
   pieceHideDuration: 0.35
   pieceHideEase: 26
+  hideToFlipDelay: 0
   combatWaitTimeout: 3
   revealHold: 0.25
+  onFlipped:
+    m_PersistentCalls:
+      m_Calls: []
+  onFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  onReversed:
+    m_PersistentCalls:
+      m_Calls: []
   useGlobalInteractionLock: 0
   enableDebugHotkey: 1
   debugPlayKey: 103
@@ -2493,15 +2549,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53b244d4e4cc73040b165aa0d6172241, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Effect.Debugging.LDY_RewardAnchorDummy
-  count: 3
-  spacing: 1.95
-  quadSize: {x: 1.6, y: 2.3}
-  quadLocalEuler: {x: 0, y: 0, z: 0}
-  rewardLayerName: LDY_Reward
-  tints:
-  - {r: 0.85, g: 0.3, b: 0.3, a: 1}
-  - {r: 0.3, g: 0.7, b: 0.85, a: 1}
-  - {r: 0.85, g: 0.72, b: 0.3, a: 1}
 --- !u!4 &424069713
 Transform:
   m_ObjectHideFlags: 0
@@ -8252,12 +8299,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377c9df8f0ea2a14ea0ff6d235f77479, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
-  nodeStages:
-  - chapter: 1
-    nodeIndex: 0
-    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
-  typeStages: []
-  bossStagePool: []
 --- !u!1 &1345992235
 GameObject:
   m_ObjectHideFlags: 0
@@ -11521,10 +11562,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_GameEndManager
   turnManager: {fileID: 944642614}
-  onBossClear:
+  onStageClear:
     m_PersistentCalls:
       m_Calls: []
-  onBattleClear:
+  onDefeat:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1660057539 &9223372036854775807
