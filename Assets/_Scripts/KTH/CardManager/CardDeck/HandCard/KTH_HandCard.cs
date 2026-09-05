@@ -1,7 +1,6 @@
 using System;
 using _Scripts.LSO.Deck.Data;
 using DG.Tweening;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using _Scripts.LSO.UI.Panel;
@@ -22,15 +21,12 @@ public enum KTH_Axis3D
 // 이 클래스 자체는 Collider/EventSystem 인터페이스가 필요해서 MonoBehaviour로 남아있고,
 // 인스펙터 설정값(아래 SerializeField들)도 그대로 여기 있다 - 프리팹 값을 그대로 쓰기 위해서다.
 [RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(KTH_InitCardData))]
 public class KTH_HandCard : MonoBehaviour,
     IPointerClickHandler,
     IPointerEnterHandler,
     IPointerExitHandler
 {
-    [Header("Card Visual")]
-    [SerializeField] private SpriteRenderer outlineImage;
-    [SerializeField] private TextMeshPro cost;
-
     [Header("Select Animation Settings")]
     [SerializeField] private float selectScale = 1.2f;
     [Tooltip("선택됐을 때 카드가 어느 축으로 이동할지")]
@@ -65,6 +61,7 @@ public class KTH_HandCard : MonoBehaviour,
 
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
+    private KTH_InitCardData initCardData;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -110,16 +107,20 @@ public class KTH_HandCard : MonoBehaviour,
         remove => KTH_HandCardDoubleClickController.OnCardDoubleClickCancelled -= value;
     }
 
-    /// <summary>지금 더블클릭으로 활성화된 카드가 있으면 취소한다. 없으면 아무 일도 하지 않는다.</summary>
-    public static void CancelDoubleClick()
+    /// <summary>
+    /// 지금 더블클릭으로 활성화된 카드가 있으면 취소한다. 없으면 아무 일도 하지 않는다.
+    /// 실제로 뭔가를 취소했으면 true를 반환한다.
+    /// </summary>
+    public static bool CancelDoubleClick()
     {
-        KTH_HandCardDoubleClickController.CancelActive();
+        return KTH_HandCardDoubleClickController.CancelActive();
     }
 
     private void Awake()
     {
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
+        initCardData = GetComponent<KTH_InitCardData>();
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -154,19 +155,7 @@ public class KTH_HandCard : MonoBehaviour,
 
     public void SettingUi()
     {
-        if (cardData == null)
-        {
-            return;
-        }
-
-        // 이름 / 아이콘 / 공격력은 LSO_RewardPieceCard 계열 컴포넌트가 그린다.
-        // (이 카드 프리팹에 같이 붙어있는 걸 전제로 함)
-
-        if (cost != null)
-            cost.text = $"{cardData.Animal.cost}";
-
-        if (outlineImage != null)
-            outlineImage.gameObject.SetActive(false);
+        initCardData.SettingUi(cardData);
     }
 
     /// <summary>
@@ -237,6 +226,16 @@ public class KTH_HandCard : MonoBehaviour,
     }
 
     /// <summary>
+    /// 이미 더블클릭으로 내려가 있는 상태에서, "원래 자리"가 바뀌었을 때
+    /// (부채꼴 재배치 등) 그 새 자리를 기준으로 내려간 오프셋을 다시 적용한다.
+    /// 내려가 있지 않으면 아무 일도 하지 않는다.
+    /// </summary>
+    public void RefreshMoveDownOffset()
+    {
+        doubleClickController.RefreshMoveDownOffset();
+    }
+
+    /// <summary>
     /// 이 카드를 "지금 손패에 있는 카드" 더블클릭 대상 목록에 (다시) 등록한다.
     /// KTH_HandCardLayout.AddCard가 카드를 손패에 넣을 때마다 부른다. 버려졌다가
     /// 풀에서 재사용되는 카드는 Awake가 다시 안 돌아서, 여기서 다시 등록해주지
@@ -245,6 +244,20 @@ public class KTH_HandCard : MonoBehaviour,
     public void RegisterForDoubleClick()
     {
         doubleClickController.RegisterInHand();
+    }
+
+    /// <summary>
+    /// 이 카드를 더블클릭 대상 목록에서 뺀다. 카드가 손패를 완전히 떠나는 시점
+    /// (KTH_HandCardDiscardHandler.ConsumeAndRearrange)에서 부른다.
+    ///
+    /// ResetForPool에서도 빼주고 있지만, 버림 연출(KTH_DiscardAnimation)이 있는
+    /// 경로는 카드를 Destroy도 Pool.Release도 하지 않고 버림 더미의 자식으로
+    /// 부모만 바꿔서 그대로 눌러앉힌다 - 즉 ResetForPool이 아예 안 불린다.
+    /// 그래서 "손패를 떠나는" 시점 자체에서 한 번 더 확실히 빼준다.
+    /// </summary>
+    public void UnregisterFromDoubleClick()
+    {
+        doubleClickController.UnregisterFromHand();
     }
 
     // ============================================================
@@ -279,10 +292,7 @@ public class KTH_HandCard : MonoBehaviour,
 
     internal void SetOutlineVisible(bool visible)
     {
-        if (outlineImage != null)
-        {
-            outlineImage.gameObject.SetActive(visible);
-        }
+        initCardData.SetOutlineVisible(visible);
     }
 
     internal void RestoreSorting()
@@ -360,11 +370,7 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.ResetForPool();
         selectionController.ResetForPool();
         doubleClickController.ResetForPool();
-
-        if (outlineImage != null)
-        {
-            outlineImage.gameObject.SetActive(false);
-        }
+        initCardData.ResetForPool();
 
         enabled = true;
 
@@ -388,26 +394,11 @@ public class KTH_HandCard : MonoBehaviour,
             cardCollider.enabled = true;
         }
 
-        ResetRendererAlpha(outlineImage);
-
         transform.localScale = Vector3.one;
         transform.localRotation = Quaternion.identity;
 
         cardData = null;
         willPanel = null;
-    }
-
-    private static void ResetRendererAlpha(
-        SpriteRenderer renderer)
-    {
-        if (renderer == null)
-        {
-            return;
-        }
-
-        Color color = renderer.color;
-        color.a = 1f;
-        renderer.color = color;
     }
 
     private void OnDestroy()

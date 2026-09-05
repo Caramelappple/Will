@@ -100,14 +100,15 @@ public class KTH_HandCardDoubleClickController
     }
 
     /// <summary>
-    /// 지금 활성화된 더블클릭 상태를 취소한다. 활성화된 게 없으면 아무 일도 하지 않는다.
-    /// 외부(취소 버튼 등)에서 직접 불러도 되고, 아래 HandleDoubleClick도 이걸 쓴다.
+    /// 지금 활성화된 더블클릭 상태를 취소한다. 활성화된 게 없으면 아무 일도 하지
+    /// 않고 false를 반환한다. 외부(취소 버튼 등)에서 직접 불러도 되고, 아래
+    /// HandleDoubleClick도 이걸 쓴다.
     /// </summary>
-    public static void CancelActive()
+    public static bool CancelActive()
     {
         if (activeCard == null)
         {
-            return;
+            return false;
         }
 
         KTH_HandCard cancelled = activeCard;
@@ -116,6 +117,8 @@ public class KTH_HandCardDoubleClickController
         RestoreAllCards();
 
         OnCardDoubleClickCancelled?.Invoke(cancelled);
+
+        return true;
     }
 
     public void HandleDoubleClick()
@@ -160,6 +163,29 @@ public class KTH_HandCardDoubleClickController
 
         isMovedDown = true;
 
+        ApplyMoveDownOffset();
+    }
+
+    /// <summary>
+    /// 이미 내려가 있는 상태에서, "원래 자리"(OriginalLocalPosition)가 바뀌었을 때
+    /// (예: 확정된 카드 주위로 부채꼴 재배치되면서 자리가 새로 계산됨) 그 새 자리를
+    /// 기준으로 내려간 오프셋을 다시 적용한다.
+    ///
+    /// PlayMoveDownAnimation과 달리 isMovedDown 여부를 확인하지 않는다 - 이미
+    /// 내려가 있는 카드를 "새로고침"하는 용도이기 때문이다.
+    /// </summary>
+    public void RefreshMoveDownOffset()
+    {
+        if (!isMovedDown)
+        {
+            return;
+        }
+
+        ApplyMoveDownOffset();
+    }
+
+    private void ApplyMoveDownOffset()
+    {
         Vector3 targetPos = owner.OriginalLocalPosition;
 
         switch (moveDownAxis)
@@ -171,10 +197,21 @@ public class KTH_HandCardDoubleClickController
 
         owner.transform.DOKill();
 
-        owner.transform
-            .DOLocalMove(targetPos, moveDownDuration)
-            .SetEase(moveDownEase)
-            .SetTarget(owner.transform);
+        // 위치만 트윈하면 안 된다. RefreshMoveDownOffset은 ApplyFanAroundFocalCard가
+        // "이 카드는 새 부채꼴 자리 + 기울기로 가라"며 막 Join해둔 Sequence를 바로 위에서
+        // DOKill로 죽이고 이 메서드를 부르는 경우가 있다(빠른 더블클릭으로 카드가 아직
+        // 부채꼴 재배치 중일 때 내려가는 경우). 그때 회전을 안 건드리면 방금 죽은
+        // Sequence가 걸어뒀던 기울기 회전이 통째로 날아가서 카드가 안 기울어진 채로
+        // 멈춘다. OriginalLocalRotation은 이 시점에 이미 최신 목표 회전으로 갱신돼
+        // 있으므로(UpdateOriginalTransform) 여기서도 같이 맞춰준다.
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(owner.transform);
+
+        sequence.Join(
+            owner.transform.DOLocalMove(targetPos, moveDownDuration).SetEase(moveDownEase));
+
+        sequence.Join(
+            owner.transform.DOLocalRotate(owner.OriginalLocalRotation, moveDownDuration).SetEase(moveDownEase));
     }
 
     /// <summary>내려갔던 카드를 원래 위치로 복구.</summary>
@@ -189,10 +226,17 @@ public class KTH_HandCardDoubleClickController
 
         owner.transform.DOKill();
 
-        owner.transform
-            .DOLocalMove(owner.OriginalLocalPosition, moveDownDuration)
-            .SetEase(moveDownEase)
-            .SetTarget(owner.transform);
+        // ApplyMoveDownOffset과 같은 이유로 회전도 같이 되돌린다 - 안 그러면
+        // 내려가 있는 동안 부채꼴 재배치가 걸어둔 기울기가 복구 시 유지되지 않고
+        // DOKill로 끊긴 채 남을 수 있다.
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(owner.transform);
+
+        sequence.Join(
+            owner.transform.DOLocalMove(owner.OriginalLocalPosition, moveDownDuration).SetEase(moveDownEase));
+
+        sequence.Join(
+            owner.transform.DOLocalRotate(owner.OriginalLocalRotation, moveDownDuration).SetEase(moveDownEase));
     }
 
     /// <summary>풀에서 재사용하기 전 상태 초기화. 손패 목록에서도 뺀다(위 UnregisterFromHand 참고).</summary>

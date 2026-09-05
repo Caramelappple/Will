@@ -102,11 +102,54 @@ public class KTH_HandCardLayout : MonoBehaviour
     {
         // 더블클릭으로 카드들이 내려가 있는 동안, 마우스 우클릭 한 번으로 그
         // 상태를 취소할 수 있게 한다. 활성화된 더블클릭이 없으면 CancelDoubleClick이
-        // 알아서 아무 일도 하지 않으므로 매 프레임 조건 없이 불러도 안전하다.
+        // 알아서 아무 일도 하지 않고 false를 반환하므로 매 프레임 조건 없이 불러도 안전하다.
         if (Mouse.current != null &&
             Mouse.current.rightButton.wasPressedThisFrame)
         {
-            KTH_HandCard.CancelDoubleClick();
+            bool wasActive = KTH_HandCard.CancelDoubleClick();
+
+            // CancelActive()가 쓰는 PlayMoveUpAnimation은 각 카드가 들고 있는
+            // OriginalLocalPosition으로 돌아가는데, 이 값이 그 순간 최신이
+            // 아닐 수 있다(예: 부채꼴 재배치 애니메이션이 아직 안 끝난 도중이라
+            // 새 자리로 갱신되기 전). 취소가 실제로 일어났다면 곧바로 손패
+            // 재배치를 한 번 더 돌려서, 최신 계산값으로 무조건 맞춘다.
+            //
+            // 더블클릭은 항상 그 카드를 "확정(배치 모드)"까지 같이 켠다
+            // (KTH_HandCard.OnPointerClick 참고). 그런데 여기서는 더블클릭이
+            // 켠 "나머지 카드 내리기"만 취소하고 그 확정 상태는 그대로 두면,
+            // 포커스 카드는 계속 중앙에 남고 나머지는 그 카드를 위해 자리를
+            // 비워둔 부채꼴로만 남는다 - 우클릭으로 "취소"했는데도 손패가
+            // 촘촘하게 다시 모이지 않고 계속 벌어져 보이는 원인이다.
+            // 그래서 확정된 카드가 있으면 그 선택 상태까지 같이 취소한다.
+            if (wasActive)
+            {
+                if (selectedCard != null && selectedCard.IsPlacementMode)
+                {
+                    selectedCard.CancelSelectionState();
+                }
+
+                // UpdateHandLayout / MoveToHandPositionWithDelay는 IsSelected인
+                // 카드는 "다른 쪽에서 알아서 자리를 잡고 있다"고 보고 건너뛴다.
+                // 그런데 호버 등 다른 경로로 "선택됨(들려 있음)" 상태가 된 카드가,
+                // 여러 이벤트가 겹치는 순간(예: 마우스가 다른 카드로 넘어가는
+                // 도중에 더블클릭이 겹침) KTH_HandCardLayout.selectedCard 갱신을
+                // 놓치면 - 그 카드만 IsSelected가 true인 채로 영영 남아서
+                // 재정렬 때마다 계속 건너뛰어지고, 혼자 제자리로 못 돌아온 채
+                // 계속 떨어져 있게 된다. 우클릭 취소는 "손패를 확실히 원래대로"
+                // 되돌리는 조작이므로, 여기서 남아있는 선택 상태를 전부 강제로
+                // 정리해서 재정렬이 모든 카드를 빠짐없이 이동시키게 한다.
+                for (int i = 0; i < handCards.Count; i++)
+                {
+                    KTH_HandCard stray = handCards[i];
+
+                    if (stray != null && stray.IsSelected)
+                    {
+                        stray.CancelSelectionState();
+                    }
+                }
+
+                UpdateHandLayout(null, pushDuration, false);
+            }
         }
     }
 
@@ -597,40 +640,41 @@ public class KTH_HandCardLayout : MonoBehaviour
             Vector3 targetRot =
                 new Vector3(handTiltAngle, 0f, targetRotationZ);
 
-            // 더블클릭으로 내려가 있는 카드는 이 부채꼴 재배치에서 건드리지 않는다.
-            // 여기서 그대로 옮겨버리면 더블클릭의 "내려간" 위치를 덮어써서 카드가
-            // 안 내려간 것처럼 보인다. 대신 "원래 자리"만 최신 값으로 갱신해두면,
-            // 나중에 더블클릭이 취소돼 원위치로 돌아올 때 지금 계산한 자리로
-            // 정확히 돌아온다.
-            if (!card.IsMovedDown)
-            {
-                card.transform.DOKill();
+            card.transform.DOKill();
 
-                Sequence sequence =
-                    DOTween.Sequence();
+            Sequence sequence =
+                DOTween.Sequence();
 
-                sequence.SetTarget(card.transform);
+            sequence.SetTarget(card.transform);
 
-                sequence.Join(
-                    card.transform
-                        .DOLocalMove(targetPos, duration)
-                        .SetEase(moveEase)
-                );
+            sequence.Join(
+                card.transform
+                    .DOLocalMove(targetPos, duration)
+                    .SetEase(moveEase)
+            );
 
-                sequence.Join(
-                    card.transform
-                        .DOLocalRotate(targetRot, duration)
-                        .SetEase(moveEase)
-                );
+            sequence.Join(
+                card.transform
+                    .DOLocalRotate(targetRot, duration)
+                    .SetEase(moveEase)
+            );
 
-                sequence.Join(
-                    card.transform
-                        .DOScale(Vector3.one, duration)
-                        .SetEase(moveEase)
-                );
-            }
+            sequence.Join(
+                card.transform
+                    .DOScale(Vector3.one, duration)
+                    .SetEase(moveEase)
+            );
 
             card.UpdateOriginalTransform(targetPos, targetRot);
+
+            // 더블클릭으로 내려가 있는 카드는 "원래 자리"가 방금 새로 계산한
+            // 부채꼴 자리로 갱신됐으니, 그 새 자리를 기준으로 내려간 오프셋을
+            // 다시 적용한다. 그래야 부채꼴로도 벌어지고 내려간 채로도 있는
+            // 두 효과가 같이 보인다.
+            if (card.IsMovedDown)
+            {
+                card.RefreshMoveDownOffset();
+            }
         }
     }
 
