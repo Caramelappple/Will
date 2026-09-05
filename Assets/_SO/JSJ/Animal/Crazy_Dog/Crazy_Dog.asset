@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Crazy_Dog
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: Crazy_Dog
-  description: "\uB9E4 \uD134\uB9C8\uB2E4 \uD53C\uAC00 1 \uAE4E\uC784. \uC801 \uAE30\uBB3C\uC744
-    \uACF5\uACA9\uD558\uBA74 \uD53C 1 \uD68C\uBCF5. "
+  description: "\uD53C\uC5D0 \uB208\uC774 \uBA3C \uB4E4\uAC1C\uC785\uB2C8\uB2E4.
+    \uC0C1\uB300\uB97C \uACF5\uACA9\uD558\uBA74 HP\uB97C 1 \uD68C\uBCF5\uD558\uACE0
+    \uB9E4 \uD134\uB9C8\uB2E4 1\uC758 \uD53C\uD574\uB97C \uBC1B\uC2B5\uB2C8\uB2E4. "
   maxHealth: 2
   damage: 3
   cost: 2

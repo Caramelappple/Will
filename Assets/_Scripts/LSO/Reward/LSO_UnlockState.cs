@@ -4,7 +4,7 @@ using _Scripts.LSO.Will;
 
 namespace _Scripts.LSO.Reward
 {
-    public class LSO_UnlockState
+    public sealed class LSO_UnlockState
     {
         private readonly HashSet<LSO_AnimalSO> _unlockedPieces = new();
         private readonly HashSet<DLJ_WillDataSO> _unlockedWills = new();

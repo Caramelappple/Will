@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78b4135971ac49e0bac2ed349a5ab717, type: 3}
   m_Name: SacrificeWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SacrificeWillDataSO
+  displayName: "\uD76C\uC0DD"
   description: "\uC8FD\uC740 \uC790\uB9AC\uB97C \uAE30\uC900\uC73C\uB85C 3 X 3 \uC790\uB9AC\uC5D0
     \uB2E4\uB978 \uAE30\uBB3C\uB4E4\uC758 \uACF5\uACA9\uB825\uACFC \uCCB4\uB825\uC744
     1 \uC99D\uAC00\uC2DC\uD0A8\uB2E4."

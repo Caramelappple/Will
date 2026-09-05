@@ -1,5 +1,6 @@
 using DG.Tweening;
 using TMPro;
+using _Scripts.LSO.Stage;
 using UnityEngine;
 
 public class KTH_StartMessage : MonoBehaviour
@@ -43,8 +44,10 @@ public class KTH_StartMessage : MonoBehaviour
     {
         if (stageText == null) return;
 
-        int chapter = LDY_MapManager.Instance != null ? LDY_MapManager.Instance.CurrentChapter : 0;
-        int stage = LDY_MapManager.Instance != null ? LDY_MapManager.Instance.CurrentStage : 0;
+        bool has = LSO_StageProgression.HasInstance;
+
+        int chapter = has ? LSO_StageProgression.Instance.ChapterNumber : 0;
+        int stage = has ? LSO_StageProgression.Instance.StageNumber : 0;
         string picked = randomText != null ? randomText.GetRandomText() : string.Empty;
 
         stageText.text = string.Format(stageTextFormat, chapter, stage, picked);

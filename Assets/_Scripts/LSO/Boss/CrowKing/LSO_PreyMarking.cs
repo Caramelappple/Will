@@ -6,7 +6,7 @@ using _Scripts.LSO.Interfaces;
 
 namespace _Scripts.LSO.Boss.CrowKing
 {
-    public class LSO_PreyMarking : LSO_IAbility, LSO_IAbilityInitializable, IOnTurnStart
+    public sealed class LSO_PreyMarking : LSO_IAbility, LSO_IAbilityInitializable, IOnTurnStart
     {
         private LSO_AbilityContext _context;
         private LDY_Animal _owner;

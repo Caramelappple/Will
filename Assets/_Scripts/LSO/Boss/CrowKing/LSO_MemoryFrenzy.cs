@@ -18,7 +18,7 @@ namespace _Scripts.LSO.Boss.CrowKing
     ///   나중에 AI가 미리 계산해보려고 한 번 더 부르는 순간 충전이 사라진다.
     ///   소비는 실제로 때렸다는 알림(OnAttack)에서 한다.
     /// </summary>
-    public class LSO_MemoryFrenzy : LSO_IAbility, LSO_IAbilityCountModifier, IOnAnimalAttack, LSO_IPhaseAware,
+    public sealed class LSO_MemoryFrenzy : LSO_IAbility, LSO_IAbilityCountModifier, IOnAnimalAttack, LSO_IPhaseAware,
         LSO_IAbilityInitializable
     {
         // 공격력이 이 값의 배수를 새로 넘길 때마다 충전된다.

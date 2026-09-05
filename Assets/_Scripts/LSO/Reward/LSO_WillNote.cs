@@ -1,3 +1,4 @@
+using System;
 using _Scripts.LSO.UI.Text;
 using _Scripts.LSO.Will;
 using UnityEngine;
@@ -27,11 +28,13 @@ namespace _Scripts.LSO.Reward
         /// <summary>
         /// 보상 없이 유언만 그린다. 고른 뒤 보여줄 때 부른다.
         ///
-        /// 이쪽으로 그리면 클릭 콜백이 붙지 않는다. 눌러도 아무 일이 없는 것이 맞다 —
-        /// 이미 고른 뒤이므로 다시 고를 것이 없다.
+        /// onDismiss는 "다 읽었다"는 뜻으로 눌렀을 때 불린다. 고르는 것이 아니다 —
+        /// 이미 받은 뒤라 다시 고를 것이 없고, 치우기만 한다.
         /// </summary>
-        public void Bind(DLJ_WillDataSO will)
+        public void Bind(DLJ_WillDataSO will, Action<LSO_RewardCard> onDismiss)
         {
+            SetClickCallback(onDismiss);
+
             DrawWill(will);
         }
 
@@ -61,9 +64,10 @@ namespace _Scripts.LSO.Reward
                 return;
             }
 
-            // 유언 데이터에는 이름 칸이 없다. 종류에서 표기를 가져온다.
-            // 표를 한 곳에 두면 정보창·카드창과 표기가 갈리지 않는다.
-            SetName(LSO_DisplayNames.Of(will.WillType));
+            // 에셋을 이미 손에 쥐고 있으므로 창구(LSO_DisplayNames)를 거치지 않는다.
+            // 그쪽은 enum만 아는 곳을 위해 유언 데이터베이스를 한 번 더 뒤진다.
+            // 이름·설명·아이콘이 전부 이 에셋에서 나오므로 세 줄이 같은 자리를 본다.
+            SetName(will.DisplayName);
 
             SetDescription(will.description);
             SetIcon(will.icon);

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Events;
 #if UNITY_EDITOR
 using UnityEngine.InputSystem;
 #endif
@@ -13,9 +14,12 @@ namespace _Scripts.LDY.Effect
     ///
     /// 순서: 전투 연출 대기 → 보드 입력 차단 → 남은 기물 정리 → 보드 회전 → 보상 앵커 노출.
     ///
-    /// 카메라는 건드리지 않는다. Camera.main은 LDY_CameraShake가 런타임에 스스로 붙어서
-    /// localPosition을 흔들고 DLJ의 TestCameraMove도 같은 카메라를 트윈하는 공유 자원이라,
+    /// 카메라는 건드리지 않는다. Camera.main은 LSO_CameraDirector가 시네머신으로 잡고
+    /// DLJ의 TestCameraMove도 같은 카메라를 트윈하는 공유 자원이라,
     /// 여기서 위치나 회전을 잡으면 서로 밀어낸다. 그래서 도는 쪽은 카메라가 아니라 보드다.
+    ///
+    /// 화면 흔들림은 LSO_CameraImpulse(시네머신 Impulse)를 쓴다. 그쪽은 카메라를
+    /// 직접 밀지 않고 신호를 보내므로 이 규칙과 어긋나지 않는다.
     ///
     /// 씬 배선: rewardAnchor만 연결하면 된다. 나머지 참조는 비워두면 Awake에서 씬을 뒤져 채운다.
     ///   · rewardAnchor — 보상 quad가 붙을 빈 오브젝트. (3.5, 1.3, 1.8) / rotation (55, 0, 0)
@@ -24,7 +28,7 @@ namespace _Scripts.LDY.Effect
     /// 이 컴포넌트를 앵커와 같은 오브젝트에 붙여도 된다. 앵커를 감출 때 앵커 자신이 아니라
     /// 자식만 끄기 때문에, 디렉터가 스스로를 꺼서 사라지는 일은 없다.
     ///
-    /// 호출은 LDY_MapManager.CompleteActiveNodeAndReturnToMap()이 한다. 씬에서 이벤트를 걸 필요 없다.
+    /// 호출은 LSO_StageFlow.ClearStage()가 한다. 씬에서 이벤트를 걸 필요 없다.
     /// </summary>
     [DisallowMultipleComponent]
     public class LDY_BoardFlipDirector : MonoBehaviour
@@ -72,11 +76,25 @@ namespace _Scripts.LDY.Effect
         [SerializeField, Min(0.05f)] private float flipDuration = 1f;
         [SerializeField] private Ease flipEase = Ease.InOutCubic;
 
+        [Tooltip("되돌릴 때 왔던 길을 거꾸로 되짚을지.\n" +
+                 "\n" +
+                 "켜면 뒤집힐 때와 반대 방향으로 돈다. 넘어갔다 되넘어오는 모양이다.\n" +
+                 "끄면 같은 방향으로 계속 돌아 한 바퀴를 채운다.\n" +
+                 "\n" +
+                 "도착하는 자세는 어느 쪽이든 같다. 보이는 방향만 다르다.")]
+        [SerializeField] private bool reverseRetraces = true;
+
         [Header("남은 기물")]
         [Tooltip("보드를 돌리기 전에 살아남은 기물을 줄여서 없앤다. 0이면 즉시 끈다.")]
         [SerializeField, Min(0f)] private float pieceHideDuration = 0.35f;
 
         [SerializeField] private Ease pieceHideEase = Ease.InBack;
+
+        [Tooltip("기물이 다 사라진 뒤 보드가 돌기 시작하기까지의 뜸(초).\n" +
+                 "\n" +
+                 "0이면 사라지자마자 돈다. 두 동작이 붙어 한 덩어리로 보인다.\n" +
+                 "빈 판을 한 박자 보여주고 싶으면 0.2~0.5 정도를 준다.")]
+        [SerializeField, Min(0f)] private float hideToFlipDelay;
 
         [Header("타이밍")]
         [Tooltip("회전을 시작하기 전에 전투 연출이 끝나기를 기다리는 상한(초). 멈춤 방지선이다.")]
@@ -84,6 +102,19 @@ namespace _Scripts.LDY.Effect
 
         [Tooltip("회전이 끝난 뒤 보상이 뜨기까지의 뜸. 뒷면을 한 박자 보여준다.")]
         [SerializeField, Min(0f)] private float revealHold = 0.25f;
+
+        [Header("반응")]
+        [Tooltip("보드가 다 돌아간 순간. 앵커를 켜기 전이다.\n" +
+                 "쿵 하는 소리나 카메라 흔들림처럼 착지에 붙는 것을 여기 건다.")]
+        [SerializeField] private UnityEvent onFlipped;
+
+        [Tooltip("Reveal Hold까지 끝나 연출이 완전히 마무리됐을 때.\n" +
+                 "이 시점에 보상 앵커가 켜져 있고 입력은 닫힌 채다.")]
+        [SerializeField] private UnityEvent onFinished;
+
+        [Tooltip("보상이 끝나고 보드가 앞면으로 되돌아왔을 때.\n" +
+                 "다음 스테이지의 기물 배치가 이 뒤에 온다.")]
+        [SerializeField] private UnityEvent onReversed;
 
         [Header("전역 잠금")]
         [Tooltip("LSO_WillSelection의 전역 보드 잠금까지 쓸지.\n" +
@@ -97,7 +128,18 @@ namespace _Scripts.LDY.Effect
         private LDY_BoardInputGate _gate;
         private Coroutine _routine;
 
-        /// <summary>연출이 도는 중인지. 기다리는 쪽(LDY_MapManager)이 이 값을 본다.</summary>
+        /// <summary>
+        /// 갈 때 쓴 회전축이 지나간 지점. 되돌릴 때 그대로 다시 쓴다.
+        ///
+        /// 다시 계산하면 안 된다. BoardManager.BoardCenter는 귀퉁이 칸(boardOrigin)의
+        /// 월드 좌표에 (half, 0, half)를 그냥 더한 값이라 보드의 회전을 보지 않는다.
+        /// 보드가 뒤집히면 귀퉁이는 축 반대편으로 넘어가는데 오프셋은 월드 기준 그대로라,
+        /// 되돌릴 때 계산되는 "중심"이 갈 때의 중심과 아예 다른 점이 된다.
+        /// 그 점을 축으로 돌면 보드가 엉뚱한 데로 휘둘린다.
+        /// </summary>
+        private Vector3 _flipPivot;
+
+        /// <summary>연출이 도는 중인지. 기다리는 쪽(LSO_StageFlow)이 이 값을 본다.</summary>
         public bool IsPlaying { get; private set; }
 
         /// <summary>보상 quad가 붙을 자리. 보상 UI 쪽에서 물어볼 수 있게 열어둔다.</summary>
@@ -126,8 +168,8 @@ namespace _Scripts.LDY.Effect
 
         /// <summary>
         /// 앵커 감추기는 Awake가 아니라 Start에서 한다.
-        /// 더미 판(LDY_RewardAnchorDummy)이 Awake에서 자식을 만들기 때문에,
-        /// Awake에서 감추면 아직 없는 자식을 감추고 그 뒤에 생긴 판이 그대로 보인다.
+        /// 앵커 밑에 놓인 것이 Awake에서 자식을 더 만들 수 있기 때문이다.
+        /// Awake에서 감추면 그 뒤에 생긴 자식이 켜진 채로 남는다.
         /// 모든 Awake가 끝난 뒤인 Start 시점에는 자식이 다 모여 있다.
         /// </summary>
         private void Start()
@@ -146,7 +188,7 @@ namespace _Scripts.LDY.Effect
         /// 앵커에 놓인 것들을 보이거나 감춘다.
         ///
         /// 앵커 자신은 절대 끄지 않는다. 디렉터가 앵커와 같은 오브젝트에 붙어 있는 경우
-        /// 스스로를 꺼버리게 되고, 그러면 LDY_MapManager의 FindFirstObjectByType이
+        /// 스스로를 꺼버리게 되고, 그러면 밖에서 FindFirstObjectByType이
         /// (기본값이 비활성 제외라) 디렉터를 못 찾아 연출이 통째로 건너뛰어진다.
         /// 실제로 그렇게 배선돼서 회전이 한 번도 돌지 않은 적이 있다.
         /// </summary>
@@ -248,6 +290,48 @@ namespace _Scripts.LDY.Effect
         public bool IsFlipped => _motion.HasMoved;
 
         /// <summary>
+        /// 뒤집힌 보드를 연출로 되돌린다. 보상이 끝난 뒤 다음 스테이지로 넘어갈 때 쓴다.
+        ///
+        /// Abort의 ResetToStart와 다르다. 그쪽은 순간이동으로 물리는 취소용이고,
+        /// 이쪽은 같은 시간·이징으로 천천히 돌아온다.
+        ///
+        /// 기물은 되살리지 않는다. 숨겨둔 것은 지나간 스테이지의 기물이고,
+        /// 다음 스테이지는 자기 기물을 새로 놓는다(LDY_StageDirector).
+        /// 여기서 되살리면 죽은 기물이 다시 서 있는 판 위에 새 기물이 겹친다.
+        ///
+        /// 앵커는 다시 감춘다. 보상 상자가 뒤집힌 면에 붙어 있으므로
+        /// 되돌아오면 보이면 안 된다.
+        /// </summary>
+        public IEnumerator PlayReverse()
+        {
+            if (board == null || board.BoardRoot == null) yield break;
+
+            // 돌아간 적이 없으면 되돌릴 것도 없다.
+            if (!IsFlipped) yield break;
+
+            if (hideAnchorUntilFlip)
+                SetAnchorContentVisible(false);
+
+            Transform boardRoot = board.BoardRoot;
+
+            // 갈 때 쓴 축 지점을 그대로 쓴다. 다시 계산하면 다른 점이 나온다(_flipPivot 주석 참고).
+            Vector3 pivot = _flipPivot;
+
+            // 되짚으면 왔던 길을 거꾸로, 이어 돌면 같은 방향으로 한 바퀴를 채운다.
+            // 어느 쪽이든 도착하는 자세는 같다.
+            float angle = reverseRetraces ? -flipAngle : flipAngle;
+
+            yield return _motion.Rotate(
+                boardRoot, pivot, flipAxis, angle, flipDuration, flipEase, boardRoot.gameObject);
+
+            // 제자리로 돌아왔다. 되돌릴 것이 없다고 표시해야 다음 Play가
+            // "아직 뒤집혀 있다"고 보고 엉뚱한 기준점으로 튀지 않는다.
+            _motion.MarkRestored();
+
+            onReversed?.Invoke();
+        }
+
+        /// <summary>
         /// 연출을 중단하고 시작 전 상태로 되돌린다.
         /// 기다리는 쪽이 상한 시간을 넘겼을 때, 그리고 이 컴포넌트가 꺼질 때 불린다.
         /// </summary>
@@ -291,12 +375,22 @@ namespace _Scripts.LDY.Effect
             // 3. 살아남은 기물을 정리한다. 부모가 갈려 있어 보드와 같이 돌릴 수 없다.
             yield return _pieceHider.Hide(CollectSurvivingPieces(), pieceHideDuration, pieceHideEase);
 
+            // 3-1. 빈 판을 한 박자 보여준다.
+            //      Realtime인 이유는 기물을 줄이는 트윈도 timeScale을 무시하기 때문이다.
+            //      한쪽만 스케일 시간이면 유언 연출이 시간을 쥐는 구간에서 뜸이 늘어난다.
+            if (hideToFlipDelay > 0f)
+                yield return new WaitForSecondsRealtime(hideToFlipDelay);
+
             // 4. 보드를 뒤집는다.
+            //    축이 지나간 지점을 남겨둔다. 되돌릴 때 같은 점을 써야 왔던 길로 돌아온다.
             Transform boardRoot = board.BoardRoot;
-            Vector3 pivot = board.BoardCenter + Vector3.up * pivotHeightOffset;
+            _flipPivot = board.BoardCenter + Vector3.up * pivotHeightOffset;
 
             yield return _motion.Rotate(
-                boardRoot, pivot, flipAxis, flipAngle, flipDuration, flipEase, boardRoot.gameObject);
+                boardRoot, _flipPivot, flipAxis, flipAngle, flipDuration, flipEase, boardRoot.gameObject);
+
+            // 4-1. 다 돌았다. 착지에 붙는 것들이 이 신호를 받는다.
+            onFlipped?.Invoke();
 
             // 5. 드러난 자리에 보상이 놓일 것들을 켠다.
             SetAnchorContentVisible(true);
@@ -310,6 +404,10 @@ namespace _Scripts.LDY.Effect
 
             _routine = null;
             IsPlaying = false;
+
+            // 상태를 다 정리한 뒤에 알린다. 여기 걸린 쪽이 IsPlaying을 물어볼 수 있고,
+            // 그때 아직 true면 "아직 도는 중"으로 잘못 읽는다.
+            onFinished?.Invoke();
         }
 
         /// <summary>

@@ -136,9 +136,24 @@ namespace _Scripts.LSO.Reward
          _tween = null;
       }
 
+      /// <summary>
+      /// 도중에 꺼지면 뚜껑이 어중간한 각도에서 멈춘다.
+      ///
+      /// _isOpened는 트윈을 걸기 전에 이미 바뀌어 있으므로(위 주석 참고),
+      /// 자세만 어긋난 채로 남는다. 그러면 _isOpened가 "열림"이라
+      /// 다음 Open()은 곧바로 돌아가고 Close()는 반쯤 열린 데서 시작한다.
+      /// 뚜껑이 비뚤어진 채 굳고, 그 상태를 바로잡을 방법이 없다.
+      ///
+      /// 그래서 자세를 _isOpened에 맞춘다. 둘 중 하나가 기준이어야 하는데,
+      /// 밖에서 읽는 것은 IsOpened이므로 그쪽을 사실로 삼는다.
+      /// </summary>
       private void OnDisable()
       {
          KillTween();
+
+         if (boxTop == null) return;
+
+         boxTop.transform.localRotation = _isOpened ? OpenedRotation : _originalRotation;
       }
    }
 }

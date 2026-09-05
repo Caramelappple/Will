@@ -10,7 +10,7 @@ namespace _Scripts.LSO.Ability
     /// 복수: 죽을 때 자신을 처치한 상대에게 고정 피해를 준다.
     /// 처치자가 없는 죽음(자멸, 장판 피해 등)에는 발동하지 않는다.
     /// </summary>
-    public class LSO_Vengeance : LSO_IAbility, LSO_IOnDeath, LSO_IAbilityInitializable
+    public sealed class LSO_Vengeance : LSO_IAbility, LSO_IOnDeath, LSO_IAbilityInitializable
     {
         private const int DefaultRevengeDamage = 1;
 

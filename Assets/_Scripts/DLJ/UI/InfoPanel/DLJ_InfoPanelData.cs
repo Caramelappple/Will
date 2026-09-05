@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Ability.Catalog;
 using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI.Text;
@@ -73,8 +74,10 @@ public readonly struct DLJ_InfoPanelData
         Attack = FormatChangedStat(animal.damage, currentAttack);
         Health = FormatChangedStat(animal.maxHealth, currentHealth);
         TraitName = DescribeTraits(animal.AbilityTypes);
-        TraitDescription = animal.description ?? string.Empty;
-        WillName = LSO_DisplayNames.Of(willType);
+        TraitDescription = DescribeTraitEffects(animal.AbilityTypes);
+        // 에셋이 있으면 거기서 바로 읽는다. 창구는 enum만 아는 곳을 위한 것이라
+        // 유언 데이터베이스를 한 번 더 뒤진다 — 여기서는 이미 손에 쥐고 있다.
+        WillName = willData != null ? willData.DisplayName : LSO_DisplayNames.Of(willType);
         WillDescription = willData != null ? willData.description ?? string.Empty : string.Empty;
         AttackRange = FormatAttackRange(animal.range);
         MoveRange = animal.MoveRange.ToString();
@@ -225,6 +228,45 @@ public readonly struct DLJ_InfoPanelData
         }
 
         return builder.Length > 0 ? builder.ToString() : "없음";
+    }
+
+    /// <summary>
+    /// 특성이 무슨 일을 하는지. 여러 개면 줄을 나눠 쌓는다.
+    ///
+    /// 예전에는 이 칸에 animal.description(동물 소개 문구)이 들어갔다.
+    /// 이름 칸에는 "가시, 복수"가 뜨는데 설명 칸에는 그와 무관한 문장이 뜨니,
+    /// 플레이어가 특성이 뭘 하는지 알 방법이 창 안에 없었다.
+    ///
+    /// 문구는 특성 사전(Assets/Resources/LSO_AbilityCatalog.asset)이 들고 있다.
+    /// 비어 보이면 그 에셋에 설명을 안 적은 것이다.
+    /// </summary>
+    private static string DescribeTraitEffects(IReadOnlyList<LSO_AbilityType> traits)
+    {
+        if (traits == null || traits.Count == 0) return string.Empty;
+
+        var builder = new StringBuilder();
+
+        for (int i = 0; i < traits.Count; i++)
+        {
+            LSO_AbilityType trait = traits[i];
+            if (trait == LSO_AbilityType.None) continue;
+
+            string description = LSO_AbilityText.DescriptionOf(trait);
+            if (string.IsNullOrWhiteSpace(description)) continue;
+
+            if (builder.Length > 0) builder.Append('\n');
+
+            // 특성이 둘 이상이면 어느 설명이 어느 특성 것인지 알 수 없다. 이름을 붙여준다.
+            if (traits.Count > 1)
+            {
+                builder.Append(LSO_AbilityText.NameOf(trait));
+                builder.Append(" — ");
+            }
+
+            builder.Append(description);
+        }
+
+        return builder.ToString();
     }
 
     private static DLJ_WillDataSO ResolveWill(

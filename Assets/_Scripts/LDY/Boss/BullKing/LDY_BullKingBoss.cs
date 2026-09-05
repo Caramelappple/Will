@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO.Boss;
+using _Scripts.LSO.Camera;
 using UnityEngine;
 using _Scripts.LSO.Reward;
 
@@ -68,7 +69,10 @@ namespace _Scripts.LDY.Boss.BullKing
         [Tooltip("부딪혔을 때 화면을 흔드는 시간.")]
         [SerializeField, Min(0f)] private float shakeDuration = 0.25f;
 
-        [Tooltip("화면 흔들림 폭(월드 단위). 카메라 거리에 따라 체감이 달라지니 보면서 맞출 것.")]
+        [Tooltip("화면 흔들림 세기. 시네머신 Impulse로 나가므로 카메라의 Listener Gain에도 곱해진다.\n" +
+                 "\n" +
+                 "예전 방식(카메라를 직접 밀기)과 계산이 달라 같은 숫자여도 체감이 다르다.\n" +
+                 "보면서 다시 맞출 것.")]
         [SerializeField, Min(0f)] private float shakeStrength = 0.15f;
 
         [Tooltip("맞은 기물이 떠오르는 데 걸리는 시간. 뒤로 밀려나는 수평 이동도 이 구간에서 끝난다.")]
@@ -125,10 +129,18 @@ namespace _Scripts.LDY.Boss.BullKing
             manager.PlaySfx(chargeSfx);
         }
 
-        /// <summary>부딪힌 충격으로 화면을 흔든다.</summary>
+        /// <summary>
+        /// 부딪힌 충격으로 화면을 흔든다.
+        ///
+        /// 시네머신 Impulse를 거친다. 예전에는 Camera.main을 직접 밀었는데,
+        /// 같은 카메라를 LSO_CameraDirector가 시네머신으로 잡고 있어서 서로 밀어냈다.
+        ///
+        /// 흔들림이 안 보이면 카메라에 Cinemachine Impulse Listener 가 붙었는지 볼 것.
+        /// 안 붙어 있으면 콘솔에 한 번 경고가 남는다.
+        /// </summary>
         public void ShakeOnCollision()
         {
-            LDY_CameraShake.Shake(shakeDuration, shakeStrength);
+            LSO_CameraImpulse.Shake(shakeDuration, shakeStrength);
         }
 
         public int RageChainDamage => rageChainDamage;

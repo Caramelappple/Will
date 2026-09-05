@@ -13,7 +13,7 @@ namespace _Scripts.LSO.Boss.CrowKing
     /// HP는 Health를 직접 키울 수밖에 없어서 한쪽만 가상으로 두면 저장·복원이 서로 어긋나기 때문이다.
     /// LSO_CrowKingMemory에 남는 값은 적용된 총량 기록이며, 계산에는 쓰이지 않는다.
     /// </summary>
-    public class LSO_Predation : LSO_IAbility, LSO_IOnKill, LSO_IAbilityInitializable, LSO_IPhaseAware
+    public sealed class LSO_Predation : LSO_IAbility, LSO_IOnKill, LSO_IAbilityInitializable, LSO_IPhaseAware
     {
         private const float InheritDivisor = 3f;
         

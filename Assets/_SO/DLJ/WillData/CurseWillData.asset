@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd3ed839426f454e8f907795a472555a, type: 3}
   m_Name: CurseWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CurseWillDataSO
+  displayName: "\uC800\uC8FC"
   description: "\uC8FD\uC740 \uC704\uCE58\uB97C \uAE30\uC900\uC73C\uB85C 3 x 3 \uB9CC\uD07C
     \uC800\uC8FC \uC9C0\uC5ED\uC774 2\uD134 \uB3D9\uC548 \uD65C\uC131\uD654\uB428.
     \uC800\uC8FC \uC9C0\uC5ED\uC5D0\uC11C\uB294 \uAE30\uBB3C\uB4E4\uC5D0\uAC8C \uB514\uBC84\uD504\uB97C
