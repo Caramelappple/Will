@@ -47,6 +47,11 @@ namespace _Scripts.LDY
 
         private LSO_CardSO _pendingCard;
         private LDY_Team _pendingTeam;
+
+        // 카드에 미리 붙여둔 유언. 칸을 고르는 동안 들고 있다가 소환할 때 쓴다.
+        // 값이 없으면(null) 예전처럼 소환 뒤에 고르는 창이 뜬다.
+        private LSO_WillType? _pendingWill;
+
         private Action<LDY_Animal> _onPlaced;
         private Action _onCancelled;
 
@@ -96,15 +101,17 @@ namespace _Scripts.LDY
 
             LSO_CardSO card = _pendingCard;
             LDY_Team team = _pendingTeam;
+            LSO_WillType? will = _pendingWill;
             Action<LDY_Animal> onPlaced = _onPlaced;
 
             IsPlacing = false;
             ClearPlacementHighlights();
             _pendingCard = null;
+            _pendingWill = null;
             _onCancelled = null;
             _onPlaced = null;
 
-            LDY_Animal animal = PlaceCard(card, team, pos);
+            LDY_Animal animal = PlaceCard(card, team, pos, will);
             onPlaced?.Invoke(animal);
         }
 
@@ -141,8 +148,18 @@ namespace _Scripts.LDY
             return card != null && card.IsValid && card.Cost <= CurrentCost;
         }
 
-        // 배치할 칸을 직접 정할 때 사용.
-        public LDY_Animal PlaceCard(LSO_CardSO card, LDY_Team team, Vector3Int pos)
+        /// <summary>
+        /// 배치할 칸을 직접 정할 때 사용.
+        /// </summary>
+        /// <param name="will">
+        /// 카드에 미리 붙여둔 유언. 촛대에서 붙인 값을 여기로 넘긴다.
+        ///
+        /// 넘기면 그 값으로 확정되고 고르는 창이 뜨지 않는다.
+        /// 넘기지 않으면(null) 예전처럼 소환 뒤에 창이 뜬다 —
+        /// 촛대 배선이 끝나기 전까지의 길이다.
+        /// </param>
+        public LDY_Animal PlaceCard(
+            LSO_CardSO card, LDY_Team team, Vector3Int pos, LSO_WillType? will = null)
         {
             if (board == null || card == null || !card.IsValid) return null;
 
@@ -166,7 +183,12 @@ namespace _Scripts.LDY
             board.Place(animal, pos);
             ActionPoints?.TryConsume(card.Cost);
 
-            RequestWill(card, animal);
+            // 카드에 이미 유언이 붙어 있으면 그걸로 끝이다. 고르는 창을 띄우지 않는다.
+            // 촛대에서 놓기 전에 정하는 것이 지금 기획이고, 여기서 또 물으면 두 번 고르게 된다.
+            if (will.HasValue)
+                Apply(animal, will.Value);
+            else
+                RequestWill(card, animal);
 
             return animal;
         }
@@ -254,7 +276,17 @@ namespace _Scripts.LDY
         // 상대 턴이거나 코스트가 부족하면 바로 false를 반환하고 아무것도 시작하지 않는다.
         // onPlaced는 실제로 칸을 클릭해 소환이 끝난 뒤(성공/실패 모두) 호출되고,
         // onCancelled는 우클릭으로 취소했을 때만 호출된다.
-        public bool BeginPlacement(LSO_CardSO card, LDY_Team team, Action<LDY_Animal> onPlaced, Action onCancelled = null)
+        //
+        // will 은 촛대에서 카드에 미리 붙여둔 유언이다. 손패 쪽에서 이렇게 넘긴다.
+        //     cardPlacer.BeginPlacement(cardData, LDY_Team.Player, onPlaced, onCancelled,
+        //         will: card.GetComponent<LSO_CardWill>()?.Will);
+        // 안 넘기면 예전처럼 소환 뒤에 고르는 창이 뜬다.
+        public bool BeginPlacement(
+            LSO_CardSO card,
+            LDY_Team team,
+            Action<LDY_Animal> onPlaced,
+            Action onCancelled = null,
+            LSO_WillType? will = null)
         {
             if (!IsPlayerTurn)
             {
@@ -272,6 +304,7 @@ namespace _Scripts.LDY
 
             _pendingCard = card;
             _pendingTeam = team;
+            _pendingWill = will;
             _onPlaced = onPlaced;
             _onCancelled = onCancelled;
             IsPlacing = true;
@@ -287,6 +320,9 @@ namespace _Scripts.LDY
             IsPlacing = false;
             ClearPlacementHighlights();
             _pendingCard = null;
+
+            // 유언도 같이 놓는다. 안 비우면 다음 배치가 지난 카드의 유언을 물고 간다.
+            _pendingWill = null;
 
             Action cancelled = _onCancelled;
             _onCancelled = null;
