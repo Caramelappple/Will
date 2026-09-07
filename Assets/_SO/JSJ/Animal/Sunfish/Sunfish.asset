@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
-  m_Name: Crazy_Dog
+  m_Name: Sunfish
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: Crazy_Dog
-  description: "\uD53C\uC5D0 \uB208\uC774 \uBA3C \uB4E4\uAC1C\uC785\uB2C8\uB2E4.
-    \uC0C1\uB300\uB97C \uACF5\uACA9\uD558\uBA74 HP\uB97C 1 \uD68C\uBCF5\uD558\uACE0
-    \uB9E4 \uD134\uB9C8\uB2E4 1\uC758 \uD53C\uD574\uB97C \uBC1B\uC2B5\uB2C8\uB2E4. "
-  maxHealth: 2
-  damage: 3
-  cost: 2
+  animalName: Sunfish
+  description: "\uC0B4\uC544\uB0A8\uC544\uB77C \uAC1C\uBCF5\uCE58! \uB9E4 \uD134\uB9C8\uB2E4
+    67% \uD655\uB960\uB85C \uC0B4\uC544\uB0A8\uAC70\uB098 33%\uD655\uB960\uB85C \uC8FD\uC2B5\uB2C8\uB2E4."
+  maxHealth: 9999
+  damage: 1
+  cost: 4
   playerHealthPoints: 0
   moveRange: 1
   range: 0
-  abilities: 06000000
-  defaultWill: -1
-  unitPrefab: {fileID: 619289546545079267, guid: d95c99b1e9f9d9a4fa7272e82d829148, type: 3}
+  abilities: 0a000000
+  defaultWill: 0
+  unitPrefab: {fileID: 35707693876418127, guid: 49ee4117d1a595549864953eb79ccf29, type: 3}

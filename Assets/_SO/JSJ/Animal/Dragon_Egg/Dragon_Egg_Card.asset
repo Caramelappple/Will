@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b5895b4ef1a4686aa2e57804e18f12b, type: 3}
-  m_Name: Crazy_Dog_Card
+  m_Name: Dragon_Egg_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
-  animal: {fileID: 11400000, guid: 85fdb9405a7154945b6204b4a82532d0, type: 2}
-  image: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  animal: {fileID: 11400000, guid: ecdc491194d3a9243b4080bd7d15195e, type: 2}
+  image: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}

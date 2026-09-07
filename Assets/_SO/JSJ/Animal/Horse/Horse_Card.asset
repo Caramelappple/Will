@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5895b4ef1a4686aa2e57804e18f12b, type: 3}
   m_Name: Horse_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
-  animal: {fileID: 0}
-  image: {fileID: 0}
+  animal: {fileID: 11400000, guid: 470cd2824d665be46a62ce7242956713, type: 2}
+  image: {fileID: 21300000, guid: 04ab0467271cd944bb500685b2730bdd, type: 3}

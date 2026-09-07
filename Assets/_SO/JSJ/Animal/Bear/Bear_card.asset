@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5895b4ef1a4686aa2e57804e18f12b, type: 3}
   m_Name: Bear_card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
-  animal: {fileID: 0}
-  image: {fileID: 0}
+  animal: {fileID: 11400000, guid: fd9d3e2d7da6cad4f89469331f124a69, type: 2}
+  image: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}

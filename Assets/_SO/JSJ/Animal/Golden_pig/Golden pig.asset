@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Golden pig
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
-  animalName: "\uACE8\uB3FC\uC9C0"
+  animalName: GoldPig
   description: "\uC0B4\uC544 \uC788\uB294 \uB3D9\uC548 \uD669\uAE08\uC744 \uBD88\uB9AC\uB294
     \uD0D0\uC695\uC2A4\uB7EC\uC6B4 \uB3FC\uC9C0\uC785\uB2C8\uB2E4. \uB9E4 \uD134
     \uCF54\uC2A4\uD2B8\uB97C 1\uC529 \uCD95\uC801\uD558\uBA70, \uC8FD\uC73C\uBA74

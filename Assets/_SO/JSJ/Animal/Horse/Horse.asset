@@ -12,14 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Horse
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: 
-  description: 
-  maxHealth: 0
-  damage: 0
-  cost: 0
+  animalName: Horse
+  description: "\uC804\uC7A5\uC744 \uAC70\uCE68\uC5C6\uC774 \uB0B4\uB2EC\uB9AC\uB294
+    \uB9D0\uC785\uB2C8\uB2E4. \uB2E4\uB978 \uAE30\uBB3C\uBCF4\uB2E4 \uD55C \uCE78
+    \uB354 \uC774\uB3D9\uD574, \uD55C \uBC88\uC5D0 \uCD5C\uB300 2\uCE78\uAE4C\uC9C0
+    \uC6C0\uC9C1\uC77C \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  maxHealth: 3
+  damage: 2
+  cost: 3
   playerHealthPoints: 0
-  moveRange: 1
+  moveRange: 2
   range: 0
   abilities: 
   defaultWill: 0
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 1378042923824690505, guid: 0b18fb02a27a91544bbbf467c08cbd3b, type: 3}
