@@ -54,9 +54,39 @@ public class KTH_HandCardDoubleClickController
         this.moveDownDuration = moveDownDuration;
         this.moveDownEase = moveDownEase;
 
+        RegisterInHand();
+    }
+
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 목록에 넣는다. 더블클릭이 "나머지 전부"를
+    /// 찾을 때 이 목록을 쓴다.
+    ///
+    /// 생성자에서 한 번 불리지만, 그걸로 끝이 아니다. 카드는 버려질 때 Destroy되지
+    /// 않고 풀에 반납만 되는 구조라(Awake는 다시 안 돈다), 나중에 같은 인스턴스가
+    /// 다시 드로우돼 손패로 돌아오면 KTH_HandCardLayout.AddCard가 이걸 다시 불러서
+    /// 등록해줘야 한다.
+    /// </summary>
+    public void RegisterInHand()
+    {
         if (!allHandCards.Contains(owner))
         {
             allHandCards.Add(owner);
+        }
+    }
+
+    /// <summary>
+    /// 이 카드를 "지금 손패에 있는 카드" 목록에서 뺀다. 버림 더미로 가서 풀에
+    /// 반납되는 시점(ResetForPool)에 부른다. 빼두지 않으면 버려진 카드가 계속
+    /// "나머지 카드" 취급을 받아서, 다른 카드를 더블클릭할 때마다 버림 더미에 있는
+    /// 카드까지 같이 내려가려 든다.
+    /// </summary>
+    public void UnregisterFromHand()
+    {
+        allHandCards.Remove(owner);
+
+        if (activeCard == owner)
+        {
+            activeCard = null;
         }
     }
 
@@ -70,14 +100,15 @@ public class KTH_HandCardDoubleClickController
     }
 
     /// <summary>
-    /// 지금 활성화된 더블클릭 상태를 취소한다. 활성화된 게 없으면 아무 일도 하지 않는다.
-    /// 외부(취소 버튼 등)에서 직접 불러도 되고, 아래 HandleDoubleClick도 이걸 쓴다.
+    /// 지금 활성화된 더블클릭 상태를 취소한다. 활성화된 게 없으면 아무 일도 하지
+    /// 않고 false를 반환한다. 외부(취소 버튼 등)에서 직접 불러도 되고, 아래
+    /// HandleDoubleClick도 이걸 쓴다.
     /// </summary>
-    public static void CancelActive()
+    public static bool CancelActive()
     {
         if (activeCard == null)
         {
-            return;
+            return false;
         }
 
         KTH_HandCard cancelled = activeCard;
@@ -86,6 +117,8 @@ public class KTH_HandCardDoubleClickController
         RestoreAllCards();
 
         OnCardDoubleClickCancelled?.Invoke(cancelled);
+
+        return true;
     }
 
     public void HandleDoubleClick()
@@ -130,6 +163,29 @@ public class KTH_HandCardDoubleClickController
 
         isMovedDown = true;
 
+        ApplyMoveDownOffset();
+    }
+
+    /// <summary>
+    /// 이미 내려가 있는 상태에서, "원래 자리"(OriginalLocalPosition)가 바뀌었을 때
+    /// (예: 확정된 카드 주위로 부채꼴 재배치되면서 자리가 새로 계산됨) 그 새 자리를
+    /// 기준으로 내려간 오프셋을 다시 적용한다.
+    ///
+    /// PlayMoveDownAnimation과 달리 isMovedDown 여부를 확인하지 않는다 - 이미
+    /// 내려가 있는 카드를 "새로고침"하는 용도이기 때문이다.
+    /// </summary>
+    public void RefreshMoveDownOffset()
+    {
+        if (!isMovedDown)
+        {
+            return;
+        }
+
+        ApplyMoveDownOffset();
+    }
+
+    private void ApplyMoveDownOffset()
+    {
         Vector3 targetPos = owner.OriginalLocalPosition;
 
         switch (moveDownAxis)
@@ -141,10 +197,21 @@ public class KTH_HandCardDoubleClickController
 
         owner.transform.DOKill();
 
-        owner.transform
-            .DOLocalMove(targetPos, moveDownDuration)
-            .SetEase(moveDownEase)
-            .SetTarget(owner.transform);
+        // 위치만 트윈하면 안 된다. RefreshMoveDownOffset은 ApplyFanAroundFocalCard가
+        // "이 카드는 새 부채꼴 자리 + 기울기로 가라"며 막 Join해둔 Sequence를 바로 위에서
+        // DOKill로 죽이고 이 메서드를 부르는 경우가 있다(빠른 더블클릭으로 카드가 아직
+        // 부채꼴 재배치 중일 때 내려가는 경우). 그때 회전을 안 건드리면 방금 죽은
+        // Sequence가 걸어뒀던 기울기 회전이 통째로 날아가서 카드가 안 기울어진 채로
+        // 멈춘다. OriginalLocalRotation은 이 시점에 이미 최신 목표 회전으로 갱신돼
+        // 있으므로(UpdateOriginalTransform) 여기서도 같이 맞춰준다.
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(owner.transform);
+
+        sequence.Join(
+            owner.transform.DOLocalMove(targetPos, moveDownDuration).SetEase(moveDownEase));
+
+        sequence.Join(
+            owner.transform.DOLocalRotate(owner.OriginalLocalRotation, moveDownDuration).SetEase(moveDownEase));
     }
 
     /// <summary>내려갔던 카드를 원래 위치로 복구.</summary>
@@ -159,30 +226,29 @@ public class KTH_HandCardDoubleClickController
 
         owner.transform.DOKill();
 
-        owner.transform
-            .DOLocalMove(owner.OriginalLocalPosition, moveDownDuration)
-            .SetEase(moveDownEase)
-            .SetTarget(owner.transform);
+        // ApplyMoveDownOffset과 같은 이유로 회전도 같이 되돌린다 - 안 그러면
+        // 내려가 있는 동안 부채꼴 재배치가 걸어둔 기울기가 복구 시 유지되지 않고
+        // DOKill로 끊긴 채 남을 수 있다.
+        Sequence sequence = DOTween.Sequence();
+        sequence.SetTarget(owner.transform);
+
+        sequence.Join(
+            owner.transform.DOLocalMove(owner.OriginalLocalPosition, moveDownDuration).SetEase(moveDownEase));
+
+        sequence.Join(
+            owner.transform.DOLocalRotate(owner.OriginalLocalRotation, moveDownDuration).SetEase(moveDownEase));
     }
 
-    /// <summary>풀에서 재사용하기 전 상태 초기화.</summary>
+    /// <summary>풀에서 재사용하기 전 상태 초기화. 손패 목록에서도 뺀다(위 UnregisterFromHand 참고).</summary>
     public void ResetForPool()
     {
         isMovedDown = false;
 
-        if (activeCard == owner)
-        {
-            activeCard = null;
-        }
+        UnregisterFromHand();
     }
 
     public void OnOwnerDestroyed()
     {
-        allHandCards.Remove(owner);
-
-        if (activeCard == owner)
-        {
-            activeCard = null;
-        }
+        UnregisterFromHand();
     }
 }

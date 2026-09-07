@@ -29,6 +29,12 @@ public static class KTH_HandCardDiscardHandler
             KTH_HandCardLayout.Instance.RemoveCard(card);
         }
 
+        // 더블클릭 대상(allHandCards) 목록에서도 뺀다. 아래 디스카드 애니메이션
+        // 경로는 카드를 Destroy/Pool.Release 하지 않고 버림 더미의 자식으로
+        // 부모만 바꿔 그대로 눌러앉히므로, ResetForPool이 불릴 거라고 기대할 수
+        // 없다. 손패를 떠나는 이 시점에 확실히 빼둔다.
+        card.UnregisterFromDoubleClick();
+
         // ==================================================
         // 디스카드 더미가 없는 경우
         // ==================================================

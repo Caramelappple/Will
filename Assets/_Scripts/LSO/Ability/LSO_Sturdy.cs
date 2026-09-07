@@ -10,9 +10,10 @@ namespace _Scripts.LSO.Ability
     /// 옹골참: 처음으로 즉사할 만한 데미지를 받으면 HP를 1 남기고 버틴다.
     /// 개체당 한 번만 발동하므로 반드시 개체마다 새 인스턴스를 만들어 써야 한다.
     /// </summary>
-    public class LSO_Sturdy : LSO_IAbility, LSO_IDamageModifier
+    public sealed class LSO_Sturdy : LSO_IAbility, LSO_IDamageModifier
     {
-        public int Priority => 1000;
+        /// <summary>맨 뒤. "이 피해로 죽는가"를 보려면 최종 값이어야 한다.</summary>
+        public int Priority => LSO_DamagePriority.LastStand;
 
         public bool HasTriggered { get; private set; }
         

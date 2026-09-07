@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Will;
-using TMPro;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -137,7 +136,7 @@ namespace _Scripts.LSO.UI.Panel
             _onSelected = onSelected;
             _onCancelled = onCancelled;
             IsSelecting = true;
-            
+
             BuildOptions(options);
 
             LSO_PanelOps.Open(Root);

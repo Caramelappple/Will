@@ -9,11 +9,17 @@ namespace _Scripts.LSO.Ability
 {
     /// <summary>
     /// 허약: 턴이 시작될 때마다 일정 확률로 죽는다. 어느 팀 턴이든 판정한다.
+    ///
+    /// **맞아서는 죽지 않는다.** 들어오는 피해를 전부 0으로 만들고,
+    /// 오직 턴 판정으로만 쓰러진다. 개복치처럼 "때려도 안 죽는데 저절로 죽는"
+    /// 기물을 위한 것이다. 때리면 죽는 기물을 만들려는 것이라면 이 특성이 아니다.
+    ///
     /// 한 라운드(아군 턴 + 적 턴)에 두 번 굴리므로, 확률 p의 실효 사망률은 1-(1-p)^2 이다.
-    /// 기본값 0.6 기준으로 라운드당 약 84%.
+    /// 기본값 0.33 기준으로 라운드당 약 55%.
+    ///
     /// 직접 파괴하지 않고 사망 창구를 거치므로 유언과 사망 이벤트가 정상적으로 발동한다.
     /// </summary>
-    public class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier
+    public sealed class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier
     {
         private const float DefaultDeathChance = 0.33f;
 
@@ -48,11 +54,11 @@ namespace _Scripts.LSO.Ability
         }
 
         /// <summary>
-        /// 0으로 두는 것은 의도다.
-        /// 회피·저주 면역(-1000)이 먼저 돌고, 여기서 0이 된 값을 옹골참(1000)이 받는다.
+        /// 보통 자리에 두는 것은 의도다.
+        /// 회피·저주 면역(Nullify)이 먼저 돌고, 여기서 0이 된 값을 옹골참(LastStand)이 받는다.
         /// 무효화 계열보다 앞에 두면 그 특성들이 헛되이 발동한 것으로 기록된다.
         /// </summary>
-        public int Priority => 0;
+        public int Priority => LSO_DamagePriority.Normal;
 
         /// <summary>피해를 전부 무시한다. 허약은 맞아서 죽지 않고 턴 판정으로만 쓰러진다.</summary>
         public int ModifyIncomingDamage(DamageableResources target, DamageData data, int damage)

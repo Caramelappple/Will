@@ -304,6 +304,19 @@ namespace _Scripts.LSO.Camera
             _holdRoutine = null;
         }
 
+        /// <summary>
+        /// 꺼지면 코루틴은 유니티가 알아서 죽이지만 _holdRoutine 은 그대로 남는다.
+        /// 죽은 핸들이 남아 있으면 다음에 켜졌을 때 "아직 머무는 중"으로 읽혀서,
+        /// 그 샷이 시간이 다 돼도 다음으로 넘어가지 않는다.
+        ///
+        /// 카메라 우선순위는 건드리지 않는다. 지금 잡고 있는 그림까지 되돌리면
+        /// 잠깐 껐다 켜는 것만으로 화면이 튄다.
+        /// </summary>
+        private void OnDisable()
+        {
+            StopHold();
+        }
+
         private LSO_CameraShot Find(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;

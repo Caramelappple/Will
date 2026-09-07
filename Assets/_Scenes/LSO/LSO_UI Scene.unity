@@ -892,13 +892,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c38d5b8534f01949b9a8db67d62c581, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.LSO_VerticalText
-  sourceText: "\uD3EC\uC2DD\n\uB418\uBA39\uC784\n\uD45C\uC2DD\n\uD5C8\uC57D\uAF2C\uB974\uBCF4\n\uC639\uACE8\uCC38\n\n\n"
-  charactersPerColumn: 12
-  rightToLeftColumns: 0
-  columnSpacing: 1
-  forceMonospace: 1
-  monospaceEm: 1
-  keepSpaces: 1
 --- !u!1 &881147946
 GameObject:
   m_ObjectHideFlags: 0
@@ -2043,7 +2036,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1888479043
 Transform:
   m_ObjectHideFlags: 0
@@ -2447,11 +2440,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1972211207}
   m_CullTransparentMesh: 1
---- !u!1 &2091471488 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3515382597119299351, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-  m_PrefabInstance: {fileID: 6459078002576491201}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &2095046557 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5370417714118086486, guid: b0590d3dc33c63c46abd62ca159688e3, type: 3}
@@ -2961,6 +2949,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 17
       objectReference: {fileID: 0}
+    - target: {fileID: 7401953269683813595, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: gameSceneName
+      value: LSO_TestScene
+      objectReference: {fileID: 0}
     - target: {fileID: 7802721521594952959, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -3048,10 +3040,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4976155727419384940, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6459078002576491208}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
 --- !u!224 &6459078002576491202 stripped
 RectTransform:
@@ -3069,111 +3058,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbd89d30420a03a40b6795511ffdc106, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.LSO_MenuActions
---- !u!1 &6459078002576491204 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4338229189987416507, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-  m_PrefabInstance: {fileID: 6459078002576491201}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6459078002576491205 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4840233720212807129, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-  m_PrefabInstance: {fileID: 6459078002576491201}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6459078002576491206 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5505901794527421621, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-  m_PrefabInstance: {fileID: 6459078002576491201}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6459078002576491207 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4976155727419384940, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
-  m_PrefabInstance: {fileID: 6459078002576491201}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6459078002576491208
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6459078002576491207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5379709b668c434491eaa5c2898555c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_EscapeKeyHandler
-  escapeTargets:
-  - panel: {fileID: 0}
-    returnButton: {fileID: 0}
-    onEscape:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 2091471488}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - panel: {fileID: 0}
-    returnButton: {fileID: 0}
-    onEscape:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 6459078002576491205}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - panel: {fileID: 0}
-    returnButton: {fileID: 0}
-    onEscape:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 6459078002576491204}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - panel: {fileID: 0}
-    returnButton: {fileID: 0}
-    onEscape:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 6459078002576491206}
-          m_TargetAssemblyTypeName: 
-          m_MethodName: 
-          m_Mode: 0
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  menuActions: {fileID: 6459078002576491203}
-  cardPlacer: {fileID: 0}
-  moveSystem: {fileID: 0}
-  attackSystem: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -212,6 +212,16 @@ namespace _Scripts.LDY
             return result;
         }
 
+        /// <summary>
+        /// 격자 칸 → 월드 좌표.
+        ///
+        /// ⚠ **판이 앞면일 때만 맞다.** 원점으로 쓰는 boardOrigin 이 곧 연출이 돌리는
+        /// 당사자라, 뒤집힌 동안에는 축 반대편으로 넘어가 position 자체가 달라진다.
+        /// 회전을 안 본다는 뜻이지 위치까지 그대로라는 뜻이 아니다.
+        ///
+        /// 뒤집힌 상태에서 좌표가 필요하면 LDY_BoardFlipDirector.RunAtHomePose 를 거칠 것.
+        /// 실제로 여기서 두 번 밟혔다 — BoardCenter 와, 다음 스테이지 기물 배치.
+        /// </summary>
         public Vector3 GridToWorld(Vector3Int p)
         {
             Vector3 origin = boardOrigin != null ? boardOrigin.position : Vector3.zero;

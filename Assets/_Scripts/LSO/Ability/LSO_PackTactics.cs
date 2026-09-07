@@ -8,7 +8,7 @@ namespace _Scripts.LSO.Ability
     /// "늑대 옆의 늑대"처럼 동물SO가 같은 기물을 센다. 늑대에게 붙이면 곧 "인접 늑대 수"가 된다.
     /// 매번 보드를 다시 세므로 기물이 이동해도 값이 알아서 따라간다.
     /// </summary>
-    public class LSO_PackTactics : LSO_IAbility, IStatModifier, LSO_IAbilityInitializable
+    public sealed class LSO_PackTactics : LSO_IAbility, IStatModifier, LSO_IAbilityInitializable
     {
         // 대각선 포함 8방향. 사거리 판정(LDY_MeleeRange)과 같은 기준이다.
         private static readonly Vector3Int[] Directions =

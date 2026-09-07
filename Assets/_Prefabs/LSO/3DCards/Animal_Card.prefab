@@ -911,6 +911,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4650799037711057792}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -794011768380766205}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 381058167921420306}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: daef46bc09db17143b8053a196891e72, type: 3}
 --- !u!4 &1467006278604692247 stripped
 Transform:
@@ -941,7 +947,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.4, y: 2, z: 0.5}
+  m_Size: {x: 1.4, y: 2, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8794413094688060880
 MonoBehaviour:
@@ -975,3 +981,41 @@ MonoBehaviour:
   attackText: {fileID: 4977333980903075961}
   healthText: {fileID: 7645140083797487888}
   costText: {fileID: 0}
+--- !u!114 &-794011768380766205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
+--- !u!114 &381058167921420306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc95dce9e9bc750448754362fe4707d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverScaleEffect
+  target: {fileID: 0}
+  shrinkRatio: 0.92
+  shrinkDuration: 0.07
+  restoreDuration: 0.12
+  ignoreTimeScale: 1
+  easeIn: 6
+  easeOut: 27
+  mode: 0
+  hoverRatio: 1.06
+  enterDuration: 0.12
+  exitDuration: 0.12
+  enterEase: 27
+  exitEase: 6

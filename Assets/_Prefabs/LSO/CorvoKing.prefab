@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: -6896967360982338821}
   - component: {fileID: -7636761853291911157}
   - component: {fileID: -8885750701138979324}
+  - component: {fileID: 2690842137087686527}
   m_Layer: 0
   m_Name: CorvoKing
   m_TagString: Untagged
@@ -130,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 0
+  <MaxValue>k__BackingField: 20
   <MinValue>k__BackingField: 0
   _value: 0
   logDamage: 1
@@ -147,10 +148,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
   health: {fileID: 507233932844191505}
-  pos: {x: 0, y: 0, z: 0}
-  team: 0
+  pos: {x: 2, y: 0, z: 0}
+  team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
@@ -182,7 +183,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyMarkView
   markPrefab: {fileID: 4226619876032977035, guid: 1681959ce347c06418e889296d5656e4, type: 3}
-  localOffset: {x: 0, y: 0.6, z: 0}
+  localOffset: {x: 0, y: 0.6, z: 5}
   localScale: {x: 1, y: 1, z: 1}
 --- !u!114 &-7636761853291911157
 MonoBehaviour:
@@ -210,3 +211,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_CrowKingMemory
   maxStoredAbilities: 3
+--- !u!114 &2690842137087686527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4488470074872201150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0e840a0c6176b45b5383a736fc3c91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.KTH_BossPhaseEffectHook
+  phaseEffects:
+  - phase: 2
+    onEnter:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 6793830608638814323, guid: 8380c7c960d008b4786fff87dc31b533, type: 3}
+          m_TargetAssemblyTypeName: UnityEngine.ParticleSystem, UnityEngine
+          m_MethodName: Play
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2

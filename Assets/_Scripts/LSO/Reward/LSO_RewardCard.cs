@@ -41,6 +41,17 @@ namespace _Scripts.LSO.Reward
             Draw(option);
         }
 
+        /// <summary>
+        /// 눌렸을 때 알릴 곳만 정한다. 보상 없이 그려지는 카드가 쓴다.
+        ///
+        /// 유언 메모장이 그렇다 — 고르는 것이 아니라 보여주는 것이라 Option이 없는데,
+        /// 눌러서 치울 수는 있어야 한다.
+        /// </summary>
+        protected void SetClickCallback(Action<LSO_RewardCard> onClick)
+        {
+            _onClick = onClick;
+        }
+
         /// <summary>받은 보상을 화면에 옮긴다. 하위 클래스가 자기 수치를 채운다.</summary>
         protected abstract void Draw(LSO_RewardOption option);
 

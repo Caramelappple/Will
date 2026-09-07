@@ -825,7 +825,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_Name
-      value: Animal_Card
+      value: Hand_Card
       objectReference: {fileID: 0}
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_IsActive
@@ -910,13 +910,13 @@ PrefabInstance:
       addedObject: {fileID: 8794413094688060880}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4650799037711057792}
-    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 8764714383092246119}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4939024106996827645}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 305657525707530255}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2032586742506101883}
@@ -969,24 +969,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonClickHandler
   respectInteractable: 1
   leftButtonOnly: 1
---- !u!114 &4650799037711057792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7166954046189101145}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b60f5e655548db45a0b3d72491953b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_RewardPieceCard
-  iconImage: {fileID: 4013683501568438188}
-  nameText: {fileID: 4079789683650949461}
-  descriptionText: {fileID: 0}
-  attackText: {fileID: 4977333980903075961}
-  healthText: {fileID: 7645140083797487888}
-  costText: {fileID: 0}
 --- !u!114 &8764714383092246119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1015,8 +997,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53ac91f743cee6140873e2950d93c06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCard
-  outlineImage: {fileID: 0}
-  cost: {fileID: 0}
   selectScale: 1.2
   selectMoveAxis: 1
   selectMoveAmount: 0.2
@@ -1027,6 +1007,29 @@ MonoBehaviour:
   drawStartScale: 0.3
   drawDipDistance: 0.5
   drawHookDistance: 0.2
+  moveDownAxis: 1
+  moveDownAmount: 1
+  moveDownDuration: 0.2
+  moveDownEase: 9
+--- !u!114 &305657525707530255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f7e40e52a534f45aaa74f1f1dc5df9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_InitCardData
+  cardName: {fileID: 4079789683650949461}
+  cardImage: {fileID: 4013683501568438188}
+  atkText: {fileID: 4977333980903075961}
+  hpText: {fileID: 7645140083797487888}
+  abillityText: {fileID: 1448557948405940035}
+  outlineImage: {fileID: 0}
+  cost: {fileID: 0}
 --- !u!114 &2032586742506101883
 MonoBehaviour:
   m_ObjectHideFlags: 0

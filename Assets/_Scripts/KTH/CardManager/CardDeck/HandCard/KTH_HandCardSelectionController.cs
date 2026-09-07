@@ -57,8 +57,6 @@ public class KTH_HandCardSelectionController
         KTH_HandCard card = currentConfirmed.owner;
 
         card.CancelSelectionState();
-
-        KTH_InfoPanel.Instance?.CancleInfoPanl();
     }
 
     /// <summary>
@@ -89,16 +87,6 @@ public class KTH_HandCardSelectionController
         SetSelected(true);
 
         KTH_HandCardLayout.Instance?.EnterPlacementMode(owner);
-
-        if (KTH_InfoPanel.Instance != null)
-        {
-            if (KTH_InfoPanel.Instance.CurrentCard != owner)
-            {
-                KTH_InfoPanel.Instance.StartInfoPanl(owner.CardData, owner);
-            }
-
-            KTH_InfoPanel.Instance.SelectInfoPanl();
-        }
 
         owner.RaiseCardClicked();
     }

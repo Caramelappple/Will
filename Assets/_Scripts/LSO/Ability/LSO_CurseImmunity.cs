@@ -10,13 +10,13 @@ namespace _Scripts.LSO.Ability
     /// 키위 - 저주 면역: 저주에서 온 피해를 전부 무효화한다. 횟수 제한은 없다.
     /// 출처가 Curse인 피해만 막으므로 일반 공격이나 다른 유언 피해는 그대로 받는다.
     /// </summary>
-    public class LSO_CurseImmunity : LSO_IAbility, LSO_IDamageModifier
+    public sealed class LSO_CurseImmunity : LSO_IAbility, LSO_IDamageModifier
     {
         /// <summary>
         /// 무효화 계열은 다른 감쇄보다 먼저 처리한다.
         /// 여기서 0으로 만들어두면 옹골참 같은 1회성 특성이 헛되이 소진되지 않는다.
         /// </summary>
-        public int Priority => -1000;
+        public int Priority => LSO_DamagePriority.Nullify;
 
         /// <summary>무효화가 일어났을 때 알린다. 연출·로그용.</summary>
         public event Action<DamageableResources> Immuned;

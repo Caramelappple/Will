@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Stage;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,11 +29,13 @@ public class KTH_GameEndManager : MonoBehaviour
     [Header("턴 매니저 참조")]
     [SerializeField] private LDY_TurnManager turnManager;
 
-    [Header("보스 승리 시 연출용 (선택)")]
-    [SerializeField] private UnityEvent onBossClear;
+    [Header("스테이지 클리어 시 연출용 (선택)")]
+    [Tooltip("보스인지 일반인지 가르지 않는다. 그 판단은 LSO_StageProgression이 하고,\n" +
+             "갈래 연출은 LSO_StageIntroDirector가 발행한다.")]
+    [SerializeField] private UnityEvent onStageClear;
 
-    [Header("일반 배틀 클리어 시 연출용 (선택)")]
-    [SerializeField] private UnityEvent onBattleClear;
+    [Header("패배 시 연출용 (선택)")]
+    [SerializeField] private UnityEvent onDefeat;
 
 
     // =========================================================
@@ -435,15 +438,6 @@ public class KTH_GameEndManager : MonoBehaviour
             _enemyClearCheckCoroutine = null;
         }
 
-        if (LDY_MapManager.Instance == null)
-        {
-            Debug.LogError(
-                "[KTH_GameEndManager] LDY_MapManager.Instance를 찾을 수 없습니다."
-            );
-
-            return;
-        }
-
         StartCoroutine(Co_ClearStage());
     }
 
@@ -460,60 +454,22 @@ public class KTH_GameEndManager : MonoBehaviour
                 yield return null;
         }
 
-        LDY_NodeType stageType = ResolveCurrentStageType();
+        Debug.Log("[KTH_GameEndManager] ★ 스테이지 클리어!");
 
-        Debug.Log(
-            $"[KTH_GameEndManager] 스테이지 클리어 타입: {stageType}"
-        );
+        // 보스인지 일반인지 여기서 가르지 않는다.
+        // 그 판단은 진행(LSO_StageProgression)이 하고, 흐름은 LSO_StageFlow가 안다.
+        // 두 곳에서 판단하면 어긋났을 때 어느 쪽이 맞는지 정할 수 없다.
+        onStageClear?.Invoke();
 
-        switch (stageType)
+        if (LSO_StageFlow.HasInstance)
         {
-            case LDY_NodeType.Boss:
-                ClearBossStage();
-                break;
-
-            case LDY_NodeType.Battle:
-            default:
-                ClearBattleStage();
-                break;
-        }
-    }
-
-
-    private void ClearBattleStage()
-    {
-        Debug.Log(
-            "[KTH_GameEndManager] ★ 일반 배틀 스테이지 클리어!"
-        );
-
-        onBattleClear?.Invoke();
-
-        LDY_MapManager.Instance.CompleteActiveNodeAndReturnToMap();
-    }
-
-
-    private void ClearBossStage()
-    {
-        Debug.Log(
-            "[KTH_GameEndManager] ★ 보스 스테이지 클리어!"
-        );
-
-        onBossClear?.Invoke();
-
-        // 보스는 KTH_ChapterClearManager에게 넘긴다.
-        // 다음 챕터가 있으면 MapScene으로 돌아가고,
-        // 마지막 챕터면 완전 클리어 처리를 한다.
-        if (KTH_ChapterClearManager.Instance == null)
-        {
-            Debug.LogError(
-                "[KTH_GameEndManager] " +
-                "KTH_ChapterClearManager를 찾을 수 없습니다."
-            );
-
-            return;
+            LSO_StageFlow.Instance.ClearStage();
+            yield break;
         }
 
-        KTH_ChapterClearManager.Instance.HandleBossClear();
+        Debug.LogError(
+            "[KTH_GameEndManager] LSO_StageFlow를 찾을 수 없어 클리어를 넘기지 못했습니다."
+        );
     }
 
 
@@ -532,44 +488,17 @@ public class KTH_GameEndManager : MonoBehaviour
             "[KTH_GameEndManager] ★ 모든 Ally가 사망했습니다. 스테이지 패배!"
         );
 
-        if (LDY_MapManager.Instance == null)
-        {
-            Debug.LogError(
-                "[KTH_GameEndManager] LDY_MapManager.Instance를 찾을 수 없습니다."
-            );
+        onDefeat?.Invoke();
 
+        if (LSO_StageFlow.HasInstance)
+        {
+            LSO_StageFlow.Instance.Defeat();
             return;
         }
 
-        LDY_MapManager.Instance.FailActiveNodeAndReturnToMap();
-    }
-
-
-    // =========================================================
-    // 현재 스테이지 타입
-    // =========================================================
-
-    private LDY_NodeType ResolveCurrentStageType()
-    {
-        LDY_MapManager mapManager = LDY_MapManager.Instance;
-
-        if (mapManager == null)
-            return LDY_NodeType.Battle;
-
-        int activeIndex = mapManager.ActiveNodeIndex;
-
-        if (activeIndex < 0 ||
-            activeIndex >= mapManager.Nodes.Count)
-        {
-            Debug.LogWarning(
-                "[KTH_GameEndManager] " +
-                "ActiveNodeIndex가 유효하지 않아 Battle로 취급합니다."
-            );
-
-            return LDY_NodeType.Battle;
-        }
-
-        return mapManager.Nodes[activeIndex].type;
+        Debug.LogError(
+            "[KTH_GameEndManager] LSO_StageFlow를 찾을 수 없어 패배를 넘기지 못했습니다."
+        );
     }
 
 
