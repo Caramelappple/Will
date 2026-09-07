@@ -2,187 +2,124 @@ using UnityEngine;
 
 namespace _Scripts.DLJ.UI.WorldUI
 {
-    /// <summary>
-    /// 여우왕의 수탈 자원과 탐욕 마일스톤을 공통 기물 UI로 전달한다.
-    /// 자원이 줄면 감소량을 잠깐 보여준 뒤 최신 보유량으로 복귀한다.
-    /// </summary>
+    /// <summary>여우왕의 효과 발생량만 순간 팝업에 전달한다. 초기값이나 보유량은 표시하지 않는다.</summary>
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(DLJ_PieceFeedback))]
     public sealed class DLJ_FoxKingWorldUIBinder : MonoBehaviour
     {
         [SerializeField] private global::DLJ_FoxKingBoss foxKing;
-        [SerializeField] private DLJ_WorldUIController worldUI;
+        [SerializeField] private DLJ_PieceFeedback feedback;
 
-        [Header("수탈 자원")]
-        [SerializeField] private DLJ_WorldUISlotId resourceSlot = DLJ_WorldUISlotId.Resource;
+        [Header("수탈 자원 효과")]
         [SerializeField] private Sprite resourceIcon;
         [SerializeField] private Color resourceTint = Color.white;
         [SerializeField] private Color spendTint = new(1f, 0.55f, 0.25f, 1f);
         [SerializeField, Min(0.05f)] private float spendFeedbackDuration = 0.8f;
 
-        [Header("탐욕 마일스톤")]
+        [Header("탐욕 단계 달성 효과")]
         [SerializeField] private bool showGreedMilestones = true;
-        [SerializeField] private DLJ_WorldUISlotId greedSlot = DLJ_WorldUISlotId.Greed;
         [SerializeField] private Sprite greedIcon;
         [SerializeField] private Color achievedTint = new(1f, 0.85f, 0.25f, 1f);
-        [SerializeField] private Color pendingTint = new(0.18f, 0.18f, 0.18f, 1f);
 
         private int _lastResourceValue;
-        private int _accumulatedSpend;
-        private float _spendWindowEnd;
-        private bool _reportedNullMilestone;
-
-        private void Awake()
-        {
-            ResolveReferences();
-
-            if (foxKing == null)
-                Debug.LogWarning($"{name}: FoxKing World UI에 연결할 DLJ_FoxKingBoss가 없습니다.", this);
-            if (worldUI == null)
-                Debug.LogWarning($"{name}: FoxKing World UI Controller가 없습니다.", this);
-            if (showGreedMilestones && greedIcon == null)
-                Debug.LogWarning($"{name}: 탐욕 마일스톤 아이콘이 없어 상태 슬롯을 숨깁니다.", this);
-        }
+        private int _lastAchievedMilestones;
+        private int _pendingGain;
+        private int _pendingSpend;
+        private int _pendingMilestones;
 
         private void OnEnable()
         {
-            if (foxKing == null || worldUI == null) return;
+            ResolveReferences();
+            if (foxKing == null || feedback == null)
+            {
+                Debug.LogWarning($"{name}: FoxKing과 PieceFeedback 연결이 필요합니다.", this);
+                return;
+            }
 
-            _lastResourceValue = foxKing.StolenResources;
-            _accumulatedSpend = 0;
-            _spendWindowEnd = 0f;
+            RefreshAll();
             foxKing.OnStolenResourcesChanged += HandleResourceChanged;
             foxKing.OnGreedChanged += HandleGreedChanged;
-
-            RefreshResource(foxKing.StolenResources);
-            RefreshGreed(foxKing.Greed);
         }
 
         private void OnDisable()
         {
-            if (foxKing == null) return;
-
-            foxKing.OnStolenResourcesChanged -= HandleResourceChanged;
-            foxKing.OnGreedChanged -= HandleGreedChanged;
+            if (foxKing != null)
+            {
+                foxKing.OnStolenResourcesChanged -= HandleResourceChanged;
+                foxKing.OnGreedChanged -= HandleGreedChanged;
+            }
+            ClearPending();
         }
 
+        /// <summary>표시 없이 현재 값을 기준점으로 잡는다. 초기화/재활성화가 효과로 오인되지 않는다.</summary>
         [ContextMenu("Refresh FoxKing World UI")]
         public void RefreshAll()
         {
             ResolveReferences();
-            if (foxKing == null || worldUI == null) return;
-
+            ClearPending();
+            if (foxKing == null) return;
             _lastResourceValue = foxKing.StolenResources;
-            RefreshResource(foxKing.StolenResources);
-            RefreshGreed(foxKing.Greed);
+            _lastAchievedMilestones = CountAchievedMilestones(foxKing.Greed);
         }
 
         private void HandleResourceChanged(int current)
         {
-            int spent = Mathf.Max(0, _lastResourceValue - current);
-            bool gained = current > _lastResourceValue;
+            int change = current - _lastResourceValue;
             _lastResourceValue = current;
-
-            // 임시 표시가 끝날 때 복귀할 최신 값을 먼저 저장한다.
-            RefreshResource(current);
-
-            if (spent > 0)
-            {
-                float now = Time.unscaledTime;
-                _accumulatedSpend = now <= _spendWindowEnd
-                    ? _accumulatedSpend + spent
-                    : spent;
-                _spendWindowEnd = now + spendFeedbackDuration;
-
-                worldUI.ShowTemporary(
-                    resourceSlot,
-                    DLJ_WorldUIData.TextValue($"-{_accumulatedSpend}", resourceIcon, spendTint),
-                    spendFeedbackDuration);
-            }
-            else if (gained)
-            {
-                _accumulatedSpend = 0;
-                _spendWindowEnd = 0f;
-            }
+            if (change > 0) _pendingGain += change;
+            else if (change < 0) _pendingSpend -= change;
         }
 
         private void HandleGreedChanged(int current)
         {
-            RefreshGreed(current);
+            int achieved = CountAchievedMilestones(current);
+            if (showGreedMilestones)
+                _pendingMilestones += Mathf.Max(0, achieved - _lastAchievedMilestones);
+            _lastAchievedMilestones = achieved;
         }
 
-        private void RefreshResource(int current)
+        private void LateUpdate()
         {
-            worldUI.Set(
-                resourceSlot,
-                DLJ_WorldUIData.TextValue(current.ToString(), resourceIcon, resourceTint));
+            if (feedback == null) return;
+
+            // 같은 프레임의 이중 투자 비용은 합산하고 획득/소비는 서로 상쇄하지 않는다.
+            if (_pendingGain > 0)
+                feedback.ShowText(resourceIcon, FormatDelta("RES", _pendingGain, resourceIcon),
+                    resourceTint, spendFeedbackDuration);
+            if (_pendingSpend > 0)
+                feedback.ShowText(resourceIcon, FormatDelta("RES", -_pendingSpend, resourceIcon),
+                    spendTint, spendFeedbackDuration);
+            if (_pendingMilestones > 0)
+                feedback.ShowText(greedIcon, FormatDelta("GREED", _pendingMilestones, greedIcon),
+                    achievedTint, spendFeedbackDuration);
+            ClearPending();
         }
 
-        private void RefreshGreed(int current)
+        private int CountAchievedMilestones(int greed)
         {
-            if (!showGreedMilestones || greedIcon == null || foxKing.GreedMilestones.Count == 0)
-            {
-                worldUI.Hide(greedSlot);
-                return;
-            }
+            int count = 0;
+            foreach (global::DLJ_GreedMilestone milestone in foxKing.GreedMilestones)
+                if (milestone != null && greed >= milestone.threshold) count++;
+            return count;
+        }
 
-            int achieved = 0;
-            int capacity = 0;
-            for (int i = 0; i < foxKing.GreedMilestones.Count; i++)
-            {
-                global::DLJ_GreedMilestone milestone = foxKing.GreedMilestones[i];
-                if (milestone == null)
-                {
-                    if (!_reportedNullMilestone)
-                    {
-                        _reportedNullMilestone = true;
-                        Debug.LogWarning($"{name}: 비어 있는 탐욕 마일스톤을 건너뜁니다.", foxKing);
-                    }
+        private static string FormatDelta(string label, int value, Sprite icon)
+        {
+            string number = value > 0 ? $"+{value}" : value.ToString();
+            return icon != null ? number : $"{label} {number}";
+        }
 
-                    continue;
-                }
-
-                capacity++;
-                if (current >= milestone.threshold)
-                    achieved++;
-            }
-
-            if (capacity == 0)
-            {
-                worldUI.Hide(greedSlot);
-                return;
-            }
-
-            worldUI.Set(
-                greedSlot,
-                DLJ_WorldUIData.Stacks(
-                    achieved,
-                    greedIcon,
-                    achievedTint,
-                    capacity: capacity,
-                    inactiveTint: pendingTint));
+        private void ClearPending()
+        {
+            _pendingGain = 0;
+            _pendingSpend = 0;
+            _pendingMilestones = 0;
         }
 
         private void ResolveReferences()
         {
-            if (foxKing == null)
-                foxKing = GetComponentInParent<global::DLJ_FoxKingBoss>();
-            if (foxKing == null)
-                foxKing = GetComponentInChildren<global::DLJ_FoxKingBoss>(true);
-
-            if (worldUI == null)
-                worldUI = GetComponentInChildren<DLJ_WorldUIController>(true);
-            if (worldUI == null)
-                worldUI = GetComponentInParent<DLJ_WorldUIController>();
+            if (foxKing == null) foxKing = GetComponent<global::DLJ_FoxKingBoss>();
+            if (feedback == null) feedback = GetComponent<DLJ_PieceFeedback>();
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (spendFeedbackDuration < 0.05f)
-                spendFeedbackDuration = 0.05f;
-
-            ResolveReferences();
-        }
-#endif
     }
 }

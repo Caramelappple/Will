@@ -304,7 +304,7 @@ MonoBehaviour:
   offscreenViewportX: -0.1
   aboveViewportOffset: 0
   horizontalDuration: 0.3
-  dropDuration: 0.18
+  dropDuration: 0.01
   coinInterval: 0.1
   maxEntranceDuration: 1.2
   horizontalEase:
@@ -511,7 +511,7 @@ MonoBehaviour:
   firstCase: {fileID: 2518376996775724083}
   caseRoot: {fileID: 5143151016832537363}
   coinsPerCase: 5
-  caseStep: {x: 6, y: 0, z: 0}
+  caseStep: {x: -1, y: 0, z: 0}
   removeUnusedCases: 1
 --- !u!1 &6561152438443855745
 GameObject:
