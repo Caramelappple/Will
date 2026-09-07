@@ -1374,8 +1374,7 @@ Transform:
   m_LocalPosition: {x: 1730.7822, y: -0, z: 736.5514}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1030060860}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &332319255
@@ -1429,8 +1428,8 @@ MonoBehaviour:
   stageDirector: {fileID: 0}
   followReward: 1
   reloadCurrentWhenNoStage: 1
-  beforeFlipDelay: 0.4
   beforePlaceDelay: 0.2
+  beforeFlipDelay: 0.4
   onPlaced:
     m_PersistentCalls:
       m_Calls: []
@@ -2287,9 +2286,9 @@ MonoBehaviour:
   flipAngle: 180
   flipDuration: 2.5
   flipEase: 4
-  pieceHideDuration: 0.35
-  pieceHideEase: 18
-  hideToFlipDelay: 1
+  reverseRetraces: 1
+  beforeFlipDelay: 1
+  hidePiecesAfterFlip: 0
   combatWaitTimeout: 3
   revealHold: 0.25
   onFlipped:
@@ -5108,6 +5107,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000893941}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1019731394 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+  m_PrefabInstance: {fileID: 2090978284}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1029811146
 GameObject:
   m_ObjectHideFlags: 0
@@ -5220,11 +5224,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029811146}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1030060860 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-  m_PrefabInstance: {fileID: 1163437098450184582}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1056996184
 GameObject:
   m_ObjectHideFlags: 0
@@ -7113,37 +7112,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1145484064242629433, guid: 19a747f32b7491045b591a801491b512, type: 3}
+    - {fileID: 3946817691590983830, guid: 19a747f32b7491045b591a801491b512, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1336432048}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 19a747f32b7491045b591a801491b512, type: 3}
---- !u!1 &1336432047 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
-  m_PrefabInstance: {fileID: 1336432046}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1336432048
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1336432047}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 377c9df8f0ea2a14ea0ff6d235f77479, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageRouter
-  nodeStages:
-  - chapter: 1
-    nodeIndex: 0
-    stage: {fileID: 11400000, guid: d9c9dc736fbc07f4db88a2d5b7212c44, type: 2}
-  typeStages: []
-  bossStagePool: []
 --- !u!1 &1345992235
 GameObject:
   m_ObjectHideFlags: 0
@@ -10115,6 +10090,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 441501791}
     m_Modifications:
+    - target: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 13.49
+      objectReference: {fileID: 0}
+    - target: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 3278057653856455913, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.23376298
@@ -10167,6 +10154,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RewardBox
       objectReference: {fileID: 0}
+    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: motion.deckAnchor
+      value: 
+      objectReference: {fileID: 1019731394}
     - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
       propertyPath: onReady.m_PersistentCalls.m_Calls.Array.size
       value: 0
@@ -10288,88 +10279,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2138396049}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &1163437098450184582
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 332319254}
-    m_Modifications:
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1703365267014624388, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: uiCamera
-      value: 
-      objectReference: {fileID: 257224524}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: infoPanel
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: cardPlacer
-      value: 
-      objectReference: {fileID: 881993166}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: drawButton
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: deckPanelRoot
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: handContainer
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 7106791959211226552, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-      propertyPath: m_Name
-      value: DeckManager
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 2218537075097201443, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b0c9e37581cdd79409123fc67f7bb77a, type: 3}
 --- !u!114 &4597706533223753243
 MonoBehaviour:
   m_ObjectHideFlags: 0

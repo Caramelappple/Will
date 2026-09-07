@@ -19,8 +19,10 @@ namespace _Scripts.LSO.Reward
     /// 한때 유언마다 다른 3D 도장 모델을 켜고 끄는 방식이었다. 기획이 메모장으로
     /// 돌아오면서 모델 목록이 통째로 필요 없어졌다.
     ///
-    /// 도장은 유언 "선택"에만 남아 있다 — LSO_StampRack · LSO_StampSlot ·
-    /// LSO_WillStampView. 손패 카드에 찍는 그쪽과 헷갈리지 말 것.
+    /// 유언을 "고르는" 쪽도 도장을 버리고 촛대로 갔다 —
+    /// LSO_WillRack · LSO_WillSlot · LSO_WillCandleView.
+    /// 이 메모장은 보상으로 유언을 **받을 때** 보여주는 것이고,
+    /// 촛대는 그 유언을 카드에 **붙일 때** 쓰는 것이다. 둘을 헷갈리지 말 것.
     /// ─────────────────────────────────────────────────────────
     /// </summary>
     public class LSO_WillNote : LSO_RewardCard

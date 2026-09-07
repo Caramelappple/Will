@@ -22,6 +22,14 @@ namespace _Scripts.LSO.Will
         [Header("Icon")]
         public Sprite icon;
 
+        [Header("Candle")]
+        [Tooltip("유언 촛대에서 이 유언을 나타낼 불꽃 색.\n" +
+                 "\n" +
+                 "HDR이므로 1을 넘겨서 빛나게 할 수 있다.\n" +
+                 "색으로만 구분하면 외우기 부담이 있으니, 서로 확실히 다른 색으로 고를 것.")]
+        [ColorUsage(false, true)]
+        public Color flameColor = Color.white;
+
         [Header("Effect")]
         public GameObject effectPrefab;
 
