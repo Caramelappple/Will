@@ -12804,6 +12804,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1339783577053936908, guid: 9d9a78bbb0464e943a39dd314f2dbed2, type: 3}
+      propertyPath: LightsModule.enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8768805689184825978, guid: 9d9a78bbb0464e943a39dd314f2dbed2, type: 3}
       propertyPath: m_Name
       value: PlayerHealth

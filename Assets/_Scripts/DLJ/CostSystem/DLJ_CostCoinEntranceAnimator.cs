@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 코인을 케이스와 분리한 뒤 화면 밖 왼쪽 → 슬롯 위 → 슬롯 안 경로로 이동시킨다.
+/// 케이스가 도착한 뒤 코인을 화면 밖 왼쪽에서 슬롯 안으로 수평 이동시킨다.
 /// 코인 상태 개수는 모르며, 전달받은 슬롯의 입장 연출만 담당한다.
 /// </summary>
 [DisallowMultipleComponent]
@@ -17,19 +17,14 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
     [Tooltip("코인이 출발할 화면 X 위치. 0이 화면 왼쪽 끝이며 음수면 화면 밖이다.")]
     [SerializeField] private float offscreenViewportX = -0.1f;
 
-    [Tooltip("코인이 케이스 위에서 대기할 화면 높이. 화면 높이의 비율로 계산한다.")]
-    [SerializeField, Min(0f)] private float aboveViewportOffset = 0.08f;
-
     [Header("Timing")]
     [SerializeField, Min(0.01f)] private float horizontalDuration = 0.3f;
-    [SerializeField, Min(0.01f)] private float dropDuration = 0.18f;
     [SerializeField, Min(0f)] private float coinInterval = 0.1f;
 
     [Tooltip("첫 코인 출발부터 마지막 코인 도착까지 허용할 최대 시간.")]
     [SerializeField, Min(0.01f)] private float maxEntranceDuration = 1.2f;
 
     [SerializeField] private AnimationCurve horizontalEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    [SerializeField] private AnimationCurve dropEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     [Header("Playback")]
     [SerializeField] private bool playOnStart = true;
@@ -41,10 +36,11 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
     [SerializeField] private bool ignoreTimeScale;
 
     private readonly Dictionary<Transform, Sequence> _sequences = new Dictionary<Transform, Sequence>();
+    private readonly HashSet<DLJ_CostCoinSlot> _pendingSlots = new HashSet<DLJ_CostCoinSlot>();
     private IReadOnlyList<DLJ_CostCoinSlot> _slots;
     private Transform _animationRoot;
     private IDLJ_CostCaseEntrance _caseEntrance;
-    private int _pendingInitialCount;
+    private float _pendingDelay;
     private bool _waitingForCase;
 
     private Camera EntranceCamera => screenCamera != null ? screenCamera : Camera.main;
@@ -72,24 +68,14 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
         EnsureAnimationRoot();
         slot.DetachTo(_animationRoot);
         slot.Coin.gameObject.SetActive(false);
+        _pendingSlots.Add(slot);
     }
 
     public void PlayInitial(int filledCount)
     {
         if (!playOnStart || _slots == null) return;
 
-        _pendingInitialCount = Mathf.Clamp(filledCount, 0, _slots.Count);
-        ResolveCaseEntrance();
-
-        if (waitForCaseEntrance && _caseEntrance != null && _caseEntrance.IsPlaying)
-        {
-            UnsubscribeFromCaseEntrance();
-            _waitingForCase = true;
-            _caseEntrance.Completed += HandleCaseEntranceCompleted;
-            return;
-        }
-
-        PlayRange(0, _pendingInitialCount, afterCaseEntranceDelay);
+        PlayRange(0, filledCount, afterCaseEntranceDelay);
     }
 
     public void PlayRange(int startIndex, int endIndex, float initialDelay = 0f)
@@ -98,44 +84,67 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
 
         startIndex = Mathf.Clamp(startIndex, 0, _slots.Count);
         endIndex = Mathf.Clamp(endIndex, startIndex, _slots.Count);
-        int animatedCount = endIndex - startIndex;
+        for (int i = startIndex; i < endIndex; i++)
+            PrepareSlot(_slots[i]);
+
+        ResolveCaseEntrance();
+        if (waitForCaseEntrance && _caseEntrance != null && _caseEntrance.IsPlaying)
+        {
+            _pendingDelay = Mathf.Max(_pendingDelay, initialDelay, afterCaseEntranceDelay);
+            if (!_waitingForCase)
+            {
+                _waitingForCase = true;
+                _caseEntrance.Completed += HandleCaseEntranceCompleted;
+            }
+            return;
+        }
+
+        PlayPreparedSlots(initialDelay);
+    }
+
+    private void PlayPreparedSlots(float initialDelay)
+    {
+        int animatedCount = _pendingSlots.Count;
         if (animatedCount <= 0) return;
 
-        float rawDuration = horizontalDuration + dropDuration + coinInterval * (animatedCount - 1);
+        float rawDuration = horizontalDuration + coinInterval * (animatedCount - 1);
         float timingScale = rawDuration > maxEntranceDuration
             ? maxEntranceDuration / rawDuration
             : 1f;
 
         float actualHorizontalDuration = horizontalDuration * timingScale;
-        float actualDropDuration = dropDuration * timingScale;
         float actualInterval = coinInterval * timingScale;
 
-        for (int i = startIndex; i < endIndex; i++)
+        int order = 0;
+        for (int i = 0; i < _slots.Count; i++)
         {
             DLJ_CostCoinSlot slot = _slots[i];
-            if (slot == null || !slot.IsValid) continue;
-
-            int order = i - startIndex;
-            PrepareSlot(slot);
+            if (slot == null || !slot.IsValid || !_pendingSlots.Remove(slot)) continue;
 
             Sequence sequence = DOTween.Sequence()
                 .SetDelay(initialDelay + actualInterval * order)
-                .AppendCallback(() => BeginEntrance(slot, actualHorizontalDuration, actualDropDuration))
+                .AppendCallback(() => BeginEntrance(slot, actualHorizontalDuration))
                 .SetUpdate(ignoreTimeScale)
                 .SetLink(gameObject);
 
             Track(slot.Coin, sequence);
+            order++;
         }
     }
 
     public bool IsAnimating(DLJ_CostCoinSlot slot)
     {
-        return slot != null && slot.IsValid && _sequences.ContainsKey(slot.Coin);
+        // 케이스를 기다리는 동안에도 코스트 갱신이 코인을 슬롯에 복구하면 안 된다.
+        return slot != null && slot.IsValid &&
+            (_pendingSlots.Contains(slot) || _sequences.ContainsKey(slot.Coin));
     }
 
     public void Stop(DLJ_CostCoinSlot slot)
     {
-        if (slot == null || !slot.IsValid || !_sequences.TryGetValue(slot.Coin, out Sequence sequence)) return;
+        if (slot == null) return;
+
+        _pendingSlots.Remove(slot);
+        if (!slot.IsValid || !_sequences.TryGetValue(slot.Coin, out Sequence sequence)) return;
 
         _sequences.Remove(slot.Coin);
         sequence.Kill();
@@ -158,8 +167,7 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
 
     private void BeginEntrance(
         DLJ_CostCoinSlot slot,
-        float actualHorizontalDuration,
-        float actualDropDuration)
+        float actualHorizontalDuration)
     {
         if (slot == null || !slot.IsValid) return;
 
@@ -173,24 +181,18 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
         }
 
         Vector3 restViewportPosition = cameraForEntrance.WorldToViewportPoint(restWorldPosition);
-        Vector3 aboveViewportPosition = new Vector3(
-            restViewportPosition.x,
-            restViewportPosition.y + aboveViewportOffset,
-            restViewportPosition.z);
         Vector3 startViewportPosition = new Vector3(
             offscreenViewportX,
-            aboveViewportPosition.y,
+            restViewportPosition.y,
             restViewportPosition.z);
 
-        Vector3 aboveWorldPosition = cameraForEntrance.ViewportToWorldPoint(aboveViewportPosition);
         Vector3 startWorldPosition = cameraForEntrance.ViewportToWorldPoint(startViewportPosition);
 
         slot.Coin.position = startWorldPosition;
         slot.Coin.gameObject.SetActive(true);
 
         Sequence movement = DOTween.Sequence()
-            .Append(slot.Coin.DOMove(aboveWorldPosition, actualHorizontalDuration).SetEase(horizontalEase))
-            .Append(slot.Coin.DOMove(restWorldPosition, actualDropDuration).SetEase(dropEase))
+            .Append(slot.Coin.DOMove(restWorldPosition, actualHorizontalDuration).SetEase(horizontalEase))
             .SetUpdate(ignoreTimeScale)
             .SetLink(gameObject)
             .OnComplete(() => slot.Restore(true));
@@ -225,8 +227,10 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
 
     private void HandleCaseEntranceCompleted()
     {
+        float initialDelay = _pendingDelay;
         UnsubscribeFromCaseEntrance();
-        PlayRange(0, _pendingInitialCount, afterCaseEntranceDelay);
+        // 대기 중 소비된 코인은 Stop에서 제거되므로 다시 나타나지 않는다.
+        PlayPreparedSlots(initialDelay);
     }
 
     private void UnsubscribeFromCaseEntrance()
@@ -235,6 +239,7 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
             _caseEntrance.Completed -= HandleCaseEntranceCompleted;
 
         _waitingForCase = false;
+        _pendingDelay = 0f;
     }
 
     private void EnsureAnimationRoot()
@@ -250,6 +255,7 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
 
     private void KillAllSequences()
     {
+        _pendingSlots.Clear();
         Sequence[] sequences = new Sequence[_sequences.Count];
         _sequences.Values.CopyTo(sequences, 0);
         _sequences.Clear();
@@ -274,17 +280,13 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
     private void OnValidate()
     {
         horizontalDuration = Mathf.Max(0.01f, horizontalDuration);
-        dropDuration = Mathf.Max(0.01f, dropDuration);
         coinInterval = Mathf.Max(0f, coinInterval);
         maxEntranceDuration = Mathf.Max(0.01f, maxEntranceDuration);
-        aboveViewportOffset = Mathf.Max(0f, aboveViewportOffset);
         afterCaseEntranceDelay = Mathf.Max(0f, afterCaseEntranceDelay);
 
         if (horizontalEase == null || horizontalEase.length == 0)
             horizontalEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
-        if (dropEase == null || dropEase.length == 0)
-            dropEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     }
 #endif
 }

@@ -233,6 +233,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4281d4737708c794ebc27f2070b1be7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CostAnimation
+  enterFromScreenLeft: 1
+  screenCamera: {fileID: 0}
+  entranceAnchor: {fileID: 3814760321840627880}
+  offscreenViewportX: -0.2
   entranceOffset: {x: 6, y: 0, z: 0}
   entranceDuration: 0.45
   entranceDelay: 0
@@ -302,36 +306,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_CostCoinEntranceAnimator
   screenCamera: {fileID: 0}
   offscreenViewportX: -0.1
-  aboveViewportOffset: 0
   horizontalDuration: 0.3
-  dropDuration: 0.01
   coinInterval: 0.1
   maxEntranceDuration: 1.2
   horizontalEase:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  dropEase:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
