@@ -154,6 +154,8 @@ public sealed class DLJ_CostCase : MonoBehaviour
 
     private void HideSlot(DLJ_CostCoinSlot slot, bool playSpendEffect)
     {
+        // 아직 출발하지 않은 코인을 소비 효과 때문에 케이스 안에 꺼내 놓지 않는다.
+        playSpendEffect &= slot.Coin.gameObject.activeInHierarchy;
         _entranceEffect?.Stop(slot);
 
         if (playSpendEffect && _spendEffect != null)
