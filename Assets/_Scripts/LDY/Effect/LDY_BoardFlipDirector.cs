@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEngine.InputSystem;
 #endif
@@ -12,7 +13,17 @@ namespace _Scripts.LDY.Effect
     /// <summary>
     /// 전투 승리 뒤 보드를 뒤집어 뒷면을 드러내는 연출을 진행한다.
     ///
-    /// 순서: 전투 연출 대기 → 보드 입력 차단 → 남은 기물 정리 → 보드 회전 → 보상 앵커 노출.
+    /// 순서: 전투 연출 대기 → 보드 입력 차단 → 기물과 보상 앵커를 판에 태우기
+    ///       → 보드 회전 → 기물 내려놓기.
+    ///
+    /// **판 위의 것은 판과 함께 돈다.** 켜고 끄지 않는다.
+    /// 기물은 예전에 돌리기 전에 줄여서 없앴고, 보상 상자는 회전이 끝난 뒤에 켰다.
+    /// 둘 다 판만 돌고 나머지는 그 자리에서 나타나거나 사라져 보였다.
+    /// 태우고 내리는 것은 LSO_BoardRiders 가 맡는다.
+    ///
+    /// 기물과 앵커는 수명이 다르다.
+    ///   기물   회전이 끝나면 바로 내려놓고 감춘다. 지나간 스테이지의 것이다.
+    ///   앵커   보상이 끝나고 판이 되돌아올 때까지 실린 채로 남는다.
     ///
     /// 카메라는 건드리지 않는다. Camera.main은 LSO_CameraDirector가 시네머신으로 잡고
     /// DLJ의 TestCameraMove도 같은 카메라를 트윈하는 공유 자원이라,
@@ -58,7 +69,10 @@ namespace _Scripts.LDY.Effect
                  "로컬 +X가 화면 오른쪽, +Y가 화면 위, +Z가 화면 안쪽이 된다.")]
         [SerializeField] private Transform rewardAnchor;
 
-        [Tooltip("켜면 회전이 끝날 때까지 앵커를 꺼둔다. 전투 중에 보상 quad가 보이는 것을 막는다.")]
+        [Tooltip("켜면 전투 중에는 앵커를 꺼둔다. 보상 quad가 판 위에 떠 있는 것을 막는다.\n" +
+                 "\n" +
+                 "회전이 시작될 때 켜진다. 판 뒷면에서 같이 돌아 올라오므로,\n" +
+                 "회전이 끝난 뒤가 아니라 시작할 때 켜야 들어오는 것이 보인다.")]
         [SerializeField] private bool hideAnchorUntilFlip = true;
 
         [Header("회전")]
@@ -85,16 +99,22 @@ namespace _Scripts.LDY.Effect
         [SerializeField] private bool reverseRetraces = true;
 
         [Header("남은 기물")]
-        [Tooltip("보드를 돌리기 전에 살아남은 기물을 줄여서 없앤다. 0이면 즉시 끈다.")]
-        [SerializeField, Min(0f)] private float pieceHideDuration = 0.35f;
-
-        [SerializeField] private Ease pieceHideEase = Ease.InBack;
-
-        [Tooltip("기물이 다 사라진 뒤 보드가 돌기 시작하기까지의 뜸(초).\n" +
+        [Tooltip("보드가 돌기 시작하기까지의 뜸(초).\n" +
                  "\n" +
-                 "0이면 사라지자마자 돈다. 두 동작이 붙어 한 덩어리로 보인다.\n" +
-                 "빈 판을 한 박자 보여주고 싶으면 0.2~0.5 정도를 준다.")]
-        [SerializeField, Min(0f)] private float hideToFlipDelay;
+                 "기물은 판에 실린 채 같이 돈다. 이 값은 판이 돌기 직전에 한 박자\n" +
+                 "쉬는 시간이다. 0이면 전투가 끝나자마자 돈다.")]
+        [FormerlySerializedAs("hideToFlipDelay")]
+        [SerializeField, Min(0f)] private float beforeFlipDelay;
+
+        [Tooltip("판이 다 돌아간 뒤 지난 스테이지 기물을 감출지.\n" +
+                 "\n" +
+                 "켜면 회전이 끝나는 즉시 끈다. 보상 화면에 지난 판의 흔적이 남지 않는다.\n" +
+                 "\n" +
+                 "끄면 판에 매달린 채로 둔다. 판이 기물을 가려준다면 이쪽이 더 자연스럽다.\n" +
+                 "어느 쪽이든 다음 스테이지를 세울 때 파괴되므로 남아 쌓이지는 않는다.\n" +
+                 "\n" +
+                 "눈으로 보고 정할 것 — 기물이 판 실루엣 밖으로 삐져나오는지가 갈림길이다.")]
+        [SerializeField] private bool hidePiecesAfterFlip = true;
 
         [Header("타이밍")]
         [Tooltip("회전을 시작하기 전에 전투 연출이 끝나기를 기다리는 상한(초). 멈춤 방지선이다.")]
@@ -123,7 +143,17 @@ namespace _Scripts.LDY.Effect
         [SerializeField] private bool useGlobalInteractionLock = false;
 
         private readonly LDY_BoardFlipMotion _motion = new();
-        private readonly LDY_BoardPieceHider _pieceHider = new();
+
+        /// <summary>기물. 다 돌면 내려놓고 감춘다.</summary>
+        private readonly LSO_BoardRiders _riders = new();
+
+        /// <summary>
+        /// 보상 앵커. 기물과 수명이 달라 따로 둔다.
+        ///
+        /// 기물은 회전이 끝나면 바로 치우지만, 앵커는 보상이 끝나고 판이 되돌아올 때까지
+        /// 판에 실린 채로 남아야 한다. 한 목록에 섞으면 Settle이 앵커까지 꺼버린다.
+        /// </summary>
+        private readonly LSO_BoardRiders _anchorRider = new();
 
         private LDY_BoardInputGate _gate;
         private Coroutine _routine;
@@ -139,8 +169,34 @@ namespace _Scripts.LDY.Effect
         /// </summary>
         private Vector3 _flipPivot;
 
+        /// <summary>
+        /// 뒤집기 전 보드 루트의 자세. 격자 계산을 하려면 이 자세여야 한다.
+        ///
+        /// LDY_BoardManager.GridToWorld 는 boardOrigin.position 에 칸 크기를 더해서 좌표를 낸다.
+        /// 그런데 boardOrigin 이 곧 회전하는 당사자라, 뒤집히면 축 반대편으로 넘어가면서
+        /// position 자체가 달라진다. 그 상태로 기물을 놓으면 어긋난 원점 기준으로 놓인다.
+        ///
+        /// BoardCenter 가 같은 이유로 틀렸던 적이 있다(_flipPivot 주석 참고).
+        /// 근본은 하나다 — **격자 계산은 판이 앞면일 때만 맞다.**
+        /// </summary>
+        private Vector3 _homePosition;
+
+        private Quaternion _homeRotation;
+
         /// <summary>연출이 도는 중인지. 기다리는 쪽(LSO_StageFlow)이 이 값을 본다.</summary>
         public bool IsPlaying { get; private set; }
+
+        /// <summary>
+        /// 앞면 회전이 완전히 끝났을 때. Reveal Hold까지 지난 뒤다.
+        ///
+        /// 인스펙터의 On Finished와 같은 시점이지만 이쪽은 코드용이다.
+        /// **누가 돌렸든** 이 신호가 나가므로, 디버그 재생(F10)으로 돌려도
+        /// 실제 클리어와 똑같이 보상이 이어진다.
+        ///
+        /// 되돌리기(PlayReverse)에서는 나가지 않는다. 그쪽은 보상이 끝난 뒤라
+        /// 여기 걸린 쪽이 다시 시작하면 안 된다.
+        /// </summary>
+        public event System.Action Finished;
 
         /// <summary>보상 quad가 붙을 자리. 보상 UI 쪽에서 물어볼 수 있게 열어둔다.</summary>
         public Transform RewardAnchor => rewardAnchor;
@@ -213,7 +269,10 @@ namespace _Scripts.LDY.Effect
 
             // 호버 연출은 여기서 끄지 않는다. 예전에는 이 오브젝트에 함께 붙어 있었지만
             // 지금은 기물마다 따로 들고 있어서 여기서 모을 수가 없다.
-            // 대신 LDY_BoardPieceHider가 기물을 끄고, 그때 각자의 OnDisable이 원위치로 돌려놓는다.
+            //
+            // 대신 입력을 막는 이 문(gate)이 닫히면 기물을 고를 수 없고,
+            // 회전이 끝나면 LSO_BoardRiders가 기물을 꺼서 각자의 OnDisable이 원위치로 돌린다.
+            // 회전이 도는 동안에는 기물이 판과 함께 움직이므로 커서가 얹힐 일이 거의 없다.
             if (selectionController != null)
                 gated.Add(selectionController);
 
@@ -233,8 +292,14 @@ namespace _Scripts.LDY.Effect
         }
 
         /// <summary>
-        /// 앵커가 보드 루트 밑에 있으면 보드와 함께 돌아가 버린다.
-        /// 그러면 회전 각도를 바꿀 때마다 보상 배치가 따라 틀어져서, 앵커를 따로 둔 의미가 없어진다.
+        /// 앵커가 처음부터 보드 루트 밑에 있으면 안 된다.
+        ///
+        /// 이제 앵커도 판과 함께 돌지만, **태우는 것은 연출이 할 일이다.**
+        /// 회전 직전에 뒷면 자리로 옮겼다가 태우고, 되돌아오면 원래 부모로 내려놓는다
+        /// (LSO_BoardRiders.AttachForArrival).
+        ///
+        /// 처음부터 보드 밑에 놓아두면 그 계산이 한 번 더 얹혀서 두 번 뒤집힌 자리로 간다.
+        /// 씬에서는 **보상이 보이길 원하는 자리**에 보드 밖으로 놓을 것.
         /// </summary>
         private void WarnIfAnchorRidesTheBoard()
         {
@@ -245,7 +310,8 @@ namespace _Scripts.LDY.Effect
 
             Debug.LogWarning(
                 $"[LDY_BoardFlipDirector] 보상 앵커 '{rewardAnchor.name}'가 보드 루트 '{boardRoot.name}' 아래에 있습니다. " +
-                "보드와 함께 회전하므로 보드 밖으로 꺼내 주세요.", rewardAnchor);
+                "판에 태우는 것은 연출이 알아서 하므로, 보상이 보이길 원하는 자리에 보드 밖으로 놓아 주세요. " +
+                "여기 두면 뒷면 계산이 한 번 더 얹혀 두 번 뒤집힌 자리로 갑니다.", rewardAnchor);
         }
 
         // =========================================================
@@ -290,6 +356,46 @@ namespace _Scripts.LDY.Effect
         public bool IsFlipped => _motion.HasMoved;
 
         /// <summary>
+        /// 판을 잠깐 앞면 자세로 돌려놓고 일을 시킨 뒤, 뒤집힌 자세로 되돌린다.
+        ///
+        /// **격자 계산은 판이 앞면일 때만 맞다.** LDY_BoardManager.GridToWorld 가
+        /// boardOrigin.position 을 원점으로 쓰는데, 그 boardOrigin 이 곧 회전하는 당사자라
+        /// 뒤집힌 동안에는 원점이 축 반대편으로 넘어가 있다.
+        ///
+        /// 그래서 다음 스테이지 기물을 미리 놓을 때처럼 뒤집힌 채로 좌표를 구해야 하면
+        /// 이걸 거친다. 한 프레임 안에서 되돌렸다 놓으므로 화면에는 아무것도 비치지 않는다.
+        ///
+        /// 뒤집힌 적이 없으면 그냥 부른다. 그때는 지금 자세가 곧 앞면이다.
+        /// </summary>
+        public void RunAtHomePose(System.Action action)
+        {
+            if (action == null) return;
+
+            Transform boardRoot = board != null ? board.BoardRoot : null;
+
+            if (boardRoot == null || !IsFlipped)
+            {
+                action();
+                return;
+            }
+
+            boardRoot.GetPositionAndRotation(out Vector3 flipped, out Quaternion flippedRotation);
+
+            boardRoot.SetPositionAndRotation(_homePosition, _homeRotation);
+
+            try
+            {
+                action();
+            }
+            finally
+            {
+                // 일이 도중에 터져도 판은 원래 있던 자리로 돌려놓는다.
+                // 뒤집힌 자세로 못 돌아가면 다음 회전이 엉뚱한 데서 출발한다.
+                boardRoot.SetPositionAndRotation(flipped, flippedRotation);
+            }
+        }
+
+        /// <summary>
         /// 뒤집힌 보드를 연출로 되돌린다. 보상이 끝난 뒤 다음 스테이지로 넘어갈 때 쓴다.
         ///
         /// Abort의 ResetToStart와 다르다. 그쪽은 순간이동으로 물리는 취소용이고,
@@ -299,8 +405,9 @@ namespace _Scripts.LDY.Effect
         /// 다음 스테이지는 자기 기물을 새로 놓는다(LDY_StageDirector).
         /// 여기서 되살리면 죽은 기물이 다시 서 있는 판 위에 새 기물이 겹친다.
         ///
-        /// 앵커는 다시 감춘다. 보상 상자가 뒤집힌 면에 붙어 있으므로
-        /// 되돌아오면 보이면 안 된다.
+        /// 앵커는 판에 실린 채로 같이 돌아 내려간다. 화면 밖으로 나간 뒤에 감춘다.
+        /// 돌기 전에 감추면 상자가 그 자리에서 사라져 버려서, 들어올 때와 나갈 때가
+        /// 서로 다른 연출이 된다.
         /// </summary>
         public IEnumerator PlayReverse()
         {
@@ -308,9 +415,6 @@ namespace _Scripts.LDY.Effect
 
             // 돌아간 적이 없으면 되돌릴 것도 없다.
             if (!IsFlipped) yield break;
-
-            if (hideAnchorUntilFlip)
-                SetAnchorContentVisible(false);
 
             Transform boardRoot = board.BoardRoot;
 
@@ -321,8 +425,24 @@ namespace _Scripts.LDY.Effect
             // 어느 쪽이든 도착하는 자세는 같다.
             float angle = reverseRetraces ? -flipAngle : flipAngle;
 
+            // 판 위에 놓인 기물을 태운다. 다음 스테이지 기물을 미리 놓아둔 경우,
+            // 놓인 자리를 도착점으로 삼아 뒷면에서 함께 실려 올라온다.
+            //
+            // 놓여 있지 않으면 아무 일도 하지 않으므로, 빈 판만 돌아오는 경우도 그대로 된다.
+            _riders.AttachForArrival(CollectSurvivingPieces(), boardRoot, pivot, flipAxis, angle);
+
             yield return _motion.Rotate(
                 boardRoot, pivot, flipAxis, angle, flipDuration, flipEase, boardRoot.gameObject);
+
+            // 기물을 내려놓는다. 놓여 있던 자세와 부모로 정확히 돌아가고 호버도 되살아난다.
+            _riders.Restore();
+
+            // 앵커를 내려놓는다. 씬에 놓여 있던 자세와 부모로 정확히 돌아간다.
+            // Restore 를 쓰는 것은 감추지 않고 되돌리기 때문이다 — 감추는 것은 그다음 줄에서 한다.
+            _anchorRider.Restore();
+
+            if (hideAnchorUntilFlip)
+                SetAnchorContentVisible(false);
 
             // 제자리로 돌아왔다. 되돌릴 것이 없다고 표시해야 다음 Play가
             // "아직 뒤집혀 있다"고 보고 엉뚱한 기준점으로 튀지 않는다.
@@ -355,7 +475,12 @@ namespace _Scripts.LDY.Effect
         private void ResetToStart()
         {
             _motion.Restore();
-            _pieceHider.Restore();
+            _riders.Restore();
+
+            // 앵커도 내려놓는다. 판에 실린 채로 두면 다음 재생이 뒷면 자리로 한 번 더
+            // 옮겨서, 두 번 뒤집힌 자리로 간다.
+            _anchorRider.Restore();
+
             _gate?.Open();
 
             if (hideAnchorUntilFlip)
@@ -372,19 +497,34 @@ namespace _Scripts.LDY.Effect
             _gate = new LDY_BoardInputGate(cardPlacer, CollectInputBehaviours(), useGlobalInteractionLock);
             _gate.Close();
 
-            // 3. 살아남은 기물을 정리한다. 부모가 갈려 있어 보드와 같이 돌릴 수 없다.
-            yield return _pieceHider.Hide(CollectSurvivingPieces(), pieceHideDuration, pieceHideEase);
-
-            // 3-1. 빈 판을 한 박자 보여준다.
-            //      Realtime인 이유는 기물을 줄이는 트윈도 timeScale을 무시하기 때문이다.
-            //      한쪽만 스케일 시간이면 유언 연출이 시간을 쥐는 구간에서 뜸이 늘어난다.
-            if (hideToFlipDelay > 0f)
-                yield return new WaitForSecondsRealtime(hideToFlipDelay);
-
-            // 4. 보드를 뒤집는다.
-            //    축이 지나간 지점을 남겨둔다. 되돌릴 때 같은 점을 써야 왔던 길로 돌아온다.
+            // 3. 살아남은 기물을 판에 태운다. 부모가 갈려 있어 그냥 두면 보드만 돌고
+            //    기물은 제자리에 떠 있는다. 겉보기는 변하지 않고 부모만 바뀐다.
             Transform boardRoot = board.BoardRoot;
+
+            _riders.Attach(CollectSurvivingPieces(), boardRoot);
+
+            // 3-1. 한 박자 쉰다.
+            //      Realtime인 이유는 회전 트윈도 timeScale을 무시하기 때문이다.
+            //      한쪽만 스케일 시간이면 유언 연출이 시간을 쥐는 구간에서 뜸이 늘어난다.
+            if (beforeFlipDelay > 0f)
+                yield return new WaitForSecondsRealtime(beforeFlipDelay);
+
+            // 4. 보드를 뒤집는다. 기물이 판에 실려 같이 넘어간다.
+            //    축이 지나간 지점과 뒤집기 전 자세를 남겨둔다.
+            //    되돌릴 때 같은 점을 써야 왔던 길로 돌아오고,
+            //    뒤집힌 동안 격자 계산을 하려면 앞면 자세를 되짚어야 한다.
             _flipPivot = board.BoardCenter + Vector3.up * pivotHeightOffset;
+
+            boardRoot.GetPositionAndRotation(out _homePosition, out _homeRotation);
+
+            // 4-0. 보상 상자도 태운다. 판 뒷면에서 같이 올라오게 하려는 것이다.
+            //      씬에 놓인 자세를 "도착점"으로 보고 뒷면 자리로 옮겼다가 태우므로,
+            //      배치는 지금까지처럼 보이고 싶은 자리에 그냥 놓으면 된다.
+            //
+            //      켜는 것도 여기서 한다. 회전이 끝난 뒤에 켜면 가운데에 띡 하고 나타난다.
+            _anchorRider.AttachForArrival(rewardAnchor, boardRoot, _flipPivot, flipAxis, flipAngle);
+
+            SetAnchorContentVisible(true);
 
             yield return _motion.Rotate(
                 boardRoot, _flipPivot, flipAxis, flipAngle, flipDuration, flipEase, boardRoot.gameObject);
@@ -392,8 +532,12 @@ namespace _Scripts.LDY.Effect
             // 4-1. 다 돌았다. 착지에 붙는 것들이 이 신호를 받는다.
             onFlipped?.Invoke();
 
-            // 5. 드러난 자리에 보상이 놓일 것들을 켠다.
-            SetAnchorContentVisible(true);
+            // 4-2. 지난 스테이지 기물을 정리한다.
+            //      감출지는 Hide Pieces After Flip 이 정한다 — 판이 가려주면 안 감춰도 된다.
+            //      어느 쪽이든 다음 스테이지가 세워질 때 파괴된다.
+            //
+            //      앵커는 내려놓지 않는다. 보상이 끝나고 판이 되돌아올 때까지 실린 채여야 한다.
+            _riders.Settle(hidePiecesAfterFlip);
 
             if (revealHold > 0f)
                 yield return new WaitForSecondsRealtime(revealHold);
@@ -408,6 +552,7 @@ namespace _Scripts.LDY.Effect
             // 상태를 다 정리한 뒤에 알린다. 여기 걸린 쪽이 IsPlaying을 물어볼 수 있고,
             // 그때 아직 true면 "아직 도는 중"으로 잘못 읽는다.
             onFinished?.Invoke();
+            Finished?.Invoke();
         }
 
         /// <summary>
@@ -451,9 +596,10 @@ namespace _Scripts.LDY.Effect
 
 #if UNITY_EDITOR
         [Header("디버그 — 에디터 전용")]
-        [Tooltip("전투 없이 회전 연출만 즉시 재생한다. 각도·시간·앵커 좌표를 맞출 때 쓴다.\n" +
-                 "전체 흐름(회전 → 보상 → 맵 복귀)까지 보려면 KTH_StageScene에서 Play를 시작하고 " +
-                 "KTH_TestClearButton을 쓸 것.")]
+        [Tooltip("전투 없이 회전 연출을 즉시 재생한다. 각도·시간·앵커 좌표를 맞출 때 쓴다.\n" +
+                 "\n" +
+                 "회전이 끝나면 실제 클리어와 똑같이 보상까지 이어진다.\n" +
+                 "(LSO_StageFlow가 Finished 신호를 듣는다. 씬에 없으면 회전만 하고 끝난다)")]
         [SerializeField] private bool enableDebugHotkey = true;
 
         [Tooltip("F5·F7·F8·F9는 LDY_SaveDebugHotkeys가 쓰고 있다.")]
