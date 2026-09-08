@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using _Scripts.LSO.Reward;
-using _Scripts.LSO.UI.Input;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,10 +22,10 @@ namespace _Scripts.LSO.Will.Candle
     /// "유언 없음"은 목록의 한 자리이고, 그것을 고르면 불이 꺼진다.
     ///
     /// 씬 배선: 양초 오브젝트에 붙이고 View 를 연결할 것.
-    /// 눌러서도 넘기려면 Collider + LSO_ButtonClickHandler 를 같이 붙인다.
+    /// 같은 오브젝트에 LSO_WillPainter 를 붙이면 눌러서 카드에 붙일 수 있다.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class LSO_WillCandle : MonoBehaviour, LSO_IClickEffect
+    public sealed class LSO_WillCandle : MonoBehaviour
     {
         [Header("연결")]
         [Tooltip("불꽃 색을 바꿀 겉모습. 비워두면 자신과 자식에서 찾는다.")]
@@ -47,9 +46,9 @@ namespace _Scripts.LSO.Will.Candle
                  "'유언 없음'이 마지막 번호다.")]
         [SerializeField] private bool useNumberKeys = true;
 
-        [Tooltip("켜면 양초를 눌러서 다음 색으로 넘길 수 있다.\n" +
-                 "숫자키를 모르는 사람도 빠져나올 길이 생긴다.")]
-        [SerializeField] private bool clickToCycle = true;
+        // 양초를 누르는 것은 "색 넘기기"가 아니라 "고른 카드에 불을 대기"다.
+        // 그쪽은 LSO_WillPainter 가 맡는다 — 같은 오브젝트에 붙여두면 된다.
+        // 색은 숫자키 전담이다.
 
         [Header("반응")]
         [Tooltip("든 유언이 바뀔 때마다. 이름을 화면에 띄우는 쪽이 듣는다.")]
@@ -185,14 +184,6 @@ namespace _Scripts.LSO.Will.Candle
             if (_wills.Count == 0) return;
 
             SelectAt((_index + 1) % _wills.Count);
-        }
-
-        /// <summary>양초를 눌렀다. 다음 색으로 넘긴다.</summary>
-        public void OnClick()
-        {
-            if (!clickToCycle) return;
-
-            Next();
         }
 
         private void Update()

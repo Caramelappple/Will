@@ -52,18 +52,36 @@ namespace _Scripts.LSO.Will.Candle
         }
 
         /// <summary>
-        /// 유언을 붙인다. 아이콘이 드러나는 연출이 함께 돈다.
+        /// 유언을 붙인다.
         /// </summary>
         /// <param name="will">붙일 유언. None 이면 "유언 없음"으로 확정된다.</param>
         /// <param name="from">불이 있던 월드 좌표. 그쪽에서부터 번진다.</param>
-        public void Apply(LSO_WillType will, Vector3? from = null)
+        /// <param name="revealNow">
+        /// 아이콘 드러나는 연출을 지금 돌릴지.
+        ///
+        /// 양초가 다가온 뒤에 드러내고 싶으면 false 로 두고, 닿는 순간 Reveal 을 부른다.
+        /// <b>값은 어느 쪽이든 지금 붙는다</b> — 연출이 끝나기 전에 카드를 놓아도
+        /// 유언이 빠지지 않아야 한다.
+        /// </param>
+        public void Apply(LSO_WillType will, Vector3? from = null, bool revealNow = true)
         {
             Will = will;
             HasWill = true;
 
-            if (reveal != null) reveal.Play(will, from);
+            if (revealNow) Reveal(from);
 
             Changed?.Invoke(Will, HasWill);
+        }
+
+        /// <summary>
+        /// 붙어 있는 유언의 아이콘을 드러낸다. 값은 건드리지 않는다.
+        ///
+        /// 양초가 카드에 닿는 순간 이걸 부른다. 값과 연출을 나눠둔 이유는
+        /// 연출이 도는 동안에도 카드가 이미 그 유언을 들고 있어야 하기 때문이다.
+        /// </summary>
+        public void Reveal(Vector3? from = null)
+        {
+            if (reveal != null) reveal.Play(Will, from);
         }
 
         /// <summary>
