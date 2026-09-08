@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DLJ_PlayerHealth : MonoBehaviour
 {
@@ -32,7 +33,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
             return total;
         }
     }
-    
+
     public bool IsDead => TotalHealth <= 0;
 
     private void Awake()
@@ -47,6 +48,12 @@ public class DLJ_PlayerHealth : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         ValidateHealth();
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current.tKey.wasPressedThisFrame)
+            TakeDamage(20);
     }
 
     private void OnDestroy()

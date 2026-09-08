@@ -6,10 +6,10 @@ using UnityEngine;
 namespace _Scripts.LSO.Will.Candle
 {
     /// <summary>
-    /// 촛대에 꽂힌 초 하나의 겉모습. 어떤 유언인지를 **불꽃 색**으로 보여준다.
+    /// 유언 양초의 겉모습. 어떤 유언인지를 **불꽃 색**으로 보여준다.
     ///
     /// ── 도장에서 넘어온 이유 ──────────────────────────────────
-    /// 예전에는 유언마다 도장 모델을 하나씩 만들어 켜고 껐다(LSO_WillStampView).
+    /// 예전에는 유언마다 도장 모델을 하나씩 만들어 켜고 껐다.
     /// 모델 5종에 찍는 애니메이션까지 필요해서 만들 것이 너무 많았다.
     ///
     /// 초는 제자리에서 색과 밝기만 바뀐다. 새로 만들 동작이 없다.
@@ -19,9 +19,11 @@ namespace _Scripts.LSO.Will.Candle
     /// 색은 DLJ_WillDataSO.flameColor 에서 가져온다. 이름·설명·아이콘이 거기 있으므로
     /// 색도 같은 자리에 둔다. 여기서 유언마다 값을 또 들고 있지 않는다.
     ///
-    /// None을 주면 **불을 끈다.** 그것이 "유언 없음" 초다.
+    /// None을 주면 **불을 끈다.** 그것이 "유언 없음"이다.
     ///
-    /// 씬 배선: 초 프리팹에 붙이고 Flame Light 를 연결할 것.
+    /// 무엇을 들고 있는지는 LSO_WillCandle 하나만 안다. 여기는 시키는 대로 보여준다.
+    ///
+    /// 씬 배선: 양초에 붙이고 Flame Light 를 연결할 것.
     /// 불꽃 메시가 따로 있으면 Flame Body 에도 연결하면 색이 같이 바뀐다.
     /// </summary>
     public sealed class LSO_WillCandleView : MonoBehaviour
@@ -37,17 +39,23 @@ namespace _Scripts.LSO.Will.Candle
         [SerializeField] private string colorProperty = "_BaseColor";
 
         [Header("밝기")]
-        [Tooltip("평소 켜져 있을 때의 밝기.")]
+        [Tooltip("켜져 있을 때의 밝기.")]
         [SerializeField, Min(0f)] private float litIntensity = 1f;
 
-        [Tooltip("고른 초의 밝기. 평소보다 밝아야 어느 것을 들었는지 보인다.")]
+        [Tooltip("색이 막 바뀐 순간 잠깐 밝아지는 세기.\n" +
+                 "\n" +
+                 "숫자키를 눌렀을 때 반응이 있어야 바뀐 것을 알아챈다.\n" +
+                 "Lit Intensity 와 같게 두면 번쩍임이 없어진다.")]
         [SerializeField, Min(0f)] private float highlightIntensity = 2.2f;
 
-        [Tooltip("고른 초가 커지는 배율.")]
+        [Tooltip("색이 막 바뀐 순간 잠깐 커지는 배율.")]
         [SerializeField, Min(1f)] private float highlightScale = 1.15f;
 
         [Tooltip("밝기와 크기가 바뀌는 데 걸리는 시간.")]
         [SerializeField, Min(0f)] private float fadeDuration = 0.15f;
+
+        [Tooltip("번쩍인 뒤 평소로 돌아가기까지 머무는 시간.")]
+        [SerializeField, Min(0f)] private float highlightHold = 0.12f;
 
         private LSO_CandleFlicker _flicker;
         private MaterialPropertyBlock _block;
@@ -82,39 +90,51 @@ namespace _Scripts.LSO.Will.Candle
         /// </summary>
         public void Show(LSO_WillType type)
         {
+            bool changed = Current != type;
+
             Current = type;
 
-            Color color = ResolveColor(type);
-
-            ApplyColor(color);
+            ApplyColor(ResolveColor(type));
             ApplyIntensity(IsLit ? litIntensity : 0f, instant: true);
 
-            SetHighlighted(false);
+            // 처음 세팅할 때는 번쩍이지 않는다. 화면에 나오자마자 튀면 놀란다.
+            if (changed) Flash();
         }
 
         /// <summary>
-        /// 골라졌는지 보여준다. 밝아지고 조금 커진다.
+        /// 색이 바뀌었다고 한 번 번쩍인다.
         ///
-        /// 값을 기억하지 않는다. 무엇이 골라졌는지는 촛대(LSO_WillRack) 하나만 안다.
+        /// 초가 하나뿐이라 "무엇이 골라졌나"를 자리로 알릴 수 없다.
+        /// 숫자키를 눌렀는데 색만 슬쩍 바뀌면 눌린 줄 모르므로, 반응을 한 번 준다.
+        ///
+        /// 불이 꺼진 상태("유언 없음")에서는 밝기 대신 크기로만 알린다.
         /// </summary>
-        public void SetHighlighted(bool on)
+        public void Flash()
         {
-            // 불 꺼진 초도 골라질 수 있다("유언 없음"). 그때는 밝기 대신 크기로만 알린다.
-            if (IsLit)
-                ApplyIntensity(on ? highlightIntensity : litIntensity, instant: false);
-
             _scaleTween?.Kill();
 
-            Vector3 target = on ? _baseScale * highlightScale : _baseScale;
-
-            if (fadeDuration <= 0f || !isActiveAndEnabled)
+            if (!isActiveAndEnabled || fadeDuration <= 0f)
             {
-                transform.localScale = target;
+                transform.localScale = _baseScale;
                 return;
             }
 
-            _scaleTween = transform
-                .DOScale(target, fadeDuration)
+            if (IsLit)
+            {
+                ApplyIntensity(highlightIntensity, instant: false);
+
+                // 밝기는 시퀀스로 묶지 않는다. 흔들림이 켜져 있으면
+                // ApplyIntensity 가 기준값만 바꾸고 트윈을 안 쓰기 때문이다.
+                DOVirtual
+                    .DelayedCall(fadeDuration + highlightHold,
+                        () => ApplyIntensity(litIntensity, instant: false), false)
+                    .SetLink(gameObject);
+            }
+
+            _scaleTween = DOTween.Sequence()
+                .Append(transform.DOScale(_baseScale * highlightScale, fadeDuration))
+                .AppendInterval(highlightHold)
+                .Append(transform.DOScale(_baseScale, fadeDuration))
                 .SetUpdate(true)
                 .SetLink(gameObject);
         }
