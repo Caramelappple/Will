@@ -22,7 +22,6 @@ public enum KTH_Axis3D
 // 인스펙터 설정값(아래 SerializeField들)도 그대로 여기 있다 - 프리팹 값을 그대로 쓰기 위해서다.
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(KTH_InitCardData))]
-[RequireComponent(typeof(KTH_HandCardScaleSetting))]
 public class KTH_HandCard : MonoBehaviour,
     IPointerClickHandler,
     IPointerEnterHandler,
@@ -35,6 +34,7 @@ public class KTH_HandCard : MonoBehaviour,
     [Tooltip("선택됐을 때 위 축 방향으로 얼마나 이동할지")]
     [SerializeField] private float selectMoveAmount = 0.2f;
     [SerializeField] private float selectDuration = 0.12f;
+
 
     [Header("Hover Settings")]
     [SerializeField] private float hoverEnterDelay = 0.01f;
@@ -63,7 +63,7 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
     private KTH_InitCardData initCardData;
-    private KTH_HandCardScaleSetting scaleSetting;
+    private Transform visualAnchor;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -71,7 +71,26 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_HandCardMotionAnimator motionAnimator;
 
     public LSO_CardSO CardData => cardData;
-    public Vector3 BaseScale => scaleSetting.BaseScale;
+
+    // Anchor(자식 오브젝트)의 크기가 카드가 '정지 상태'일 때 기준 크기다.
+    // 자리·상태를 정하는 주체를 Anchor 하나로 유지한다 - KTH_HandCardScaleSetting은 더 이상 쓰지 않는다.
+    public Vector3 BaseScale
+    {
+        get
+        {
+            if (visualAnchor == null)
+            {
+                Debug.LogWarning(
+                    "[KTH_HandCard] Anchor 자식을 찾지 못해 BaseScale을 Vector3.one으로 대체합니다.",
+                    this
+                );
+
+                return Vector3.one;
+            }
+
+            return visualAnchor.localScale;
+        }
+    }
     public bool IsSelected => selectionController.IsSelected;
     public bool IsConfirmed => selectionController.IsConfirmed;
     public bool IsPlacementMode => selectionController.IsPlacementMode;
@@ -124,7 +143,7 @@ public class KTH_HandCard : MonoBehaviour,
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
         initCardData = GetComponent<KTH_InitCardData>();
-        scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
+        visualAnchor = transform.Find("Anchor");
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -398,12 +417,12 @@ public class KTH_HandCard : MonoBehaviour,
             cardCollider.enabled = true;
         }
 
-        if (scaleSetting == null)
+        if (visualAnchor == null)
         {
-            scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
+            visualAnchor = transform.Find("Anchor");
         }
 
-        transform.localScale = scaleSetting.BaseScale;
+        transform.localScale = BaseScale;
         transform.localRotation = Quaternion.identity;
 
         cardData = null;

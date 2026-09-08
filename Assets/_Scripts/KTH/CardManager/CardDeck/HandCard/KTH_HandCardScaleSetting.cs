@@ -15,6 +15,17 @@ public class KTH_HandCardScaleSetting : MonoBehaviour
 
     public Vector3 BaseScale => baseScale;
 
+    // 외부(설정 메뉴 등)에서 값을 넣어줄 때 이 프로퍼티로 세팅하면 즉시 Anchor 크기에 반영된다.
+    public Vector3 AnchorScale
+    {
+        get => anchorScale;
+        set
+        {
+            anchorScale = value;
+            ApplyAnchorScale();
+        }
+    }
+
     private void Awake()
     {
         ApplyAnchorScale();
