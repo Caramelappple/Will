@@ -497,7 +497,7 @@ public class KTH_HandCardLayout : MonoBehaviour
         moveToCenterSequence.Join(
             selectedCard.transform
                 .DOScale(
-                    Vector3.one *
+                    selectedCard.BaseScale *
                     selectedCard.SelectScale,
                     placementMoveDuration
                 )
@@ -661,7 +661,7 @@ public class KTH_HandCardLayout : MonoBehaviour
 
             sequence.Join(
                 card.transform
-                    .DOScale(Vector3.one, duration)
+                    .DOScale(card.BaseScale, duration)
                     .SetEase(moveEase)
             );
 
@@ -720,7 +720,7 @@ public class KTH_HandCardLayout : MonoBehaviour
         selectedSequence.Join(
             selectedCard.transform
                 .DOScale(
-                    Vector3.one * selectedCard.SelectScale,
+                    selectedCard.BaseScale * selectedCard.SelectScale,
                     placementMoveDuration
                 )
                 .SetEase(Ease.OutBack)
@@ -907,7 +907,7 @@ public class KTH_HandCardLayout : MonoBehaviour
             gatherSequence.Join(
                 card.transform
                     .DOScale(
-                        Vector3.one,
+                        card.BaseScale,
                         duration
                     )
                     .SetEase(Ease.InBack)

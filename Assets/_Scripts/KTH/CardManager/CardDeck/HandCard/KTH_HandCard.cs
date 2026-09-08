@@ -22,6 +22,7 @@ public enum KTH_Axis3D
 // 인스펙터 설정값(아래 SerializeField들)도 그대로 여기 있다 - 프리팹 값을 그대로 쓰기 위해서다.
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(KTH_InitCardData))]
+[RequireComponent(typeof(KTH_HandCardScaleSetting))]
 public class KTH_HandCard : MonoBehaviour,
     IPointerClickHandler,
     IPointerEnterHandler,
@@ -62,6 +63,7 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
     private KTH_InitCardData initCardData;
+    private KTH_HandCardScaleSetting scaleSetting;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -69,6 +71,7 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_HandCardMotionAnimator motionAnimator;
 
     public LSO_CardSO CardData => cardData;
+    public Vector3 BaseScale => scaleSetting.BaseScale;
     public bool IsSelected => selectionController.IsSelected;
     public bool IsConfirmed => selectionController.IsConfirmed;
     public bool IsPlacementMode => selectionController.IsPlacementMode;
@@ -121,6 +124,7 @@ public class KTH_HandCard : MonoBehaviour,
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
         initCardData = GetComponent<KTH_InitCardData>();
+        scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -394,7 +398,12 @@ public class KTH_HandCard : MonoBehaviour,
             cardCollider.enabled = true;
         }
 
-        transform.localScale = Vector3.one;
+        if (scaleSetting == null)
+        {
+            scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
+        }
+
+        transform.localScale = scaleSetting.BaseScale;
         transform.localRotation = Quaternion.identity;
 
         cardData = null;

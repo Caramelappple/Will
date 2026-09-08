@@ -29,7 +29,7 @@ public class KTH_HandCardMotionAnimator
     {
         owner.transform.position = worldPos;
         owner.transform.localRotation = Quaternion.identity;
-        owner.transform.localScale = Vector3.one;
+        owner.transform.localScale = owner.BaseScale;
     }
 
     public void MoveToHandPositionWithDelay(
@@ -51,7 +51,7 @@ public class KTH_HandCardMotionAnimator
 
         sequence.Join(owner.transform.DOLocalMove(targetPos, duration).SetDelay(delay).SetEase(ease));
         sequence.Join(owner.transform.DOLocalRotate(targetRot, duration).SetDelay(delay).SetEase(ease));
-        sequence.Join(owner.transform.DOScale(Vector3.one, duration).SetDelay(delay).SetEase(ease));
+        sequence.Join(owner.transform.DOScale(owner.BaseScale, duration).SetDelay(delay).SetEase(ease));
     }
 
     public void PlayDrawAnimation(Vector3 targetLocalPos, Vector3 targetLocalRot, float duration)
@@ -62,7 +62,7 @@ public class KTH_HandCardMotionAnimator
 
         t.DOKill();
 
-        t.localScale = Vector3.one * drawStartScale;
+        t.localScale = owner.BaseScale * drawStartScale;
 
         Vector3 startPos = t.localPosition;
 
@@ -80,6 +80,6 @@ public class KTH_HandCardMotionAnimator
 
         sequence.Join(t.DOLocalPath(path, duration, PathType.CatmullRom).SetEase(Ease.InOutSine));
         sequence.Join(t.DOLocalRotate(targetLocalRot, duration).SetEase(Ease.OutCubic));
-        sequence.Join(t.DOScale(Vector3.one, duration).SetEase(Ease.OutBack));
+        sequence.Join(t.DOScale(owner.BaseScale, duration).SetEase(Ease.OutBack));
     }
 }

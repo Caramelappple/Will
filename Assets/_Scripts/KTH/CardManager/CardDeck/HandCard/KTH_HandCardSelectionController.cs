@@ -163,7 +163,7 @@ public class KTH_HandCardSelectionController
             owner.transform.DOLocalMove(targetPos, selectDuration).SetEase(Ease.OutBack, 0.7f));
 
         sequence.Join(
-            owner.transform.DOScale(Vector3.one * owner.SelectScale, selectDuration).SetEase(Ease.OutBack, 0.7f));
+            owner.transform.DOScale(owner.BaseScale * owner.SelectScale, selectDuration).SetEase(Ease.OutBack, 0.7f));
     }
 
     private void PlayDeselectAnimation()
@@ -178,7 +178,7 @@ public class KTH_HandCardSelectionController
             owner.transform.DOLocalRotate(owner.OriginalLocalRotation, selectDuration).SetEase(Ease.OutCubic));
 
         sequence.Join(
-            owner.transform.DOScale(Vector3.one, selectDuration).SetEase(Ease.OutCubic));
+            owner.transform.DOScale(owner.BaseScale, selectDuration).SetEase(Ease.OutCubic));
     }
 
     /// <summary>풀에서 재사용하기 전 상태 초기화.</summary>

@@ -119,7 +119,7 @@ public class KTH_HandCardPool : MonoBehaviour
 
         cardTransform.localPosition = Vector3.zero;
         cardTransform.localRotation = Quaternion.identity;
-        cardTransform.localScale = Vector3.one;
+        cardTransform.localScale = card.BaseScale;
 
         card.gameObject.SetActive(true);
 
