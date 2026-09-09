@@ -352,6 +352,11 @@ namespace _Scripts.LSO.Stage
         {
             if (IsBossStage())
             {
+                // 챕터 기억은 갱신해둔다. HasChapterChanged 는 물어볼 때마다 기억을 고치는데,
+                // 보스일 때 안 물어보면 기억이 낡은 채로 남는다.
+                // 그러면 보스로 챕터를 넘어간 다음 판이 "챕터 전환"으로 잡히지 않는다.
+                HasChapterChanged();
+
                 Log("갈래: 보스");
                 onBossStage?.Invoke();
                 return;
