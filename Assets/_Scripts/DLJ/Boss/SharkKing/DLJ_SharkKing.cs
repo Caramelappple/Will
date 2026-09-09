@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using _Scripts.LDY;
 using _Scripts.LSO.Manager;
 using UnityEngine;
@@ -20,12 +21,27 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     [Header("Hunting Ground Effect")]
     [Tooltip("각 경고 쿼드의 중심에 생성할 SharkSpin 모델 또는 프리팹")]
-    [SerializeField] private GameObject sharkSpinPrefab;
+    [SerializeField] private GameObject sharkTeethPrefab;
 
     [Tooltip("경고 쿼드 표면을 기준으로 SharkSpin 모델을 띄울 높이")]
-    [SerializeField] private float sharkSpinHeightOffset = 0f;
+    [SerializeField] private float sharkTeethHeightOffset = 0f;
+
+    [Header("Hunting Ground Attack Effect")]
+    [Tooltip("공격 시 솟아오를 상어 모델 또는 프리팹. 비워두면 큐브 사용")]
+    [SerializeField] private GameObject attackSharkPrefab;
+
+    [Tooltip("공격 영역 너비에 대한 큐브 한 변의 비율")]
+    [SerializeField, Range(0.1f, 1f)] private float attackCubeSizeRatio = 0.6f;
+    [Tooltip("최고점에서 공격 모델 아랫면과 바닥 사이의 거리")]
+    [SerializeField, Min(0f)] private float attackCubeRiseHeight = 1f;
+    [SerializeField, Min(0.01f)] private float attackCubeRiseDuration = 0.2f;
+    [SerializeField, Min(0f)] private float attackCubeHoldDuration = 0.15f;
+    [SerializeField, Min(0.01f)] private float attackCubeSinkDuration = 0.35f;
+    [Tooltip("비워두면 기본 큐브 머티리얼 사용")]
+    [SerializeField] private Material attackCubeMaterial;
 
     private readonly Dictionary<object, List<GameObject>> _warnings = new();
+    private readonly HashSet<GameObject> _attackEffects = new();
     private LDY_TurnManager _turnManager;
     private DLJ_SharkKingHuntingGround _huntingGround;
 
@@ -127,20 +143,103 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             DisableEffectColliders(instance);
             instances.Add(instance);
 
-            if (sharkSpinPrefab != null)
+            if (sharkTeethPrefab != null)
             {
                 // 쿼드의 회전과 영역 크기 보정이 모델에 적용되지 않도록 별도로 생성한다.
                 GameObject sharkSpin = Instantiate(
-                    sharkSpinPrefab,
-                    areaCenter + Vector3.up * (attackHighlightHeightOffset + sharkSpinHeightOffset),
-                    sharkSpinPrefab.transform.rotation,
+                    sharkTeethPrefab,
+                    areaCenter + Vector3.up * (attackHighlightHeightOffset + sharkTeethHeightOffset),
+                    sharkTeethPrefab.transform.rotation,
                     null);
+                sharkSpin.transform.localScale = new Vector3(15f, 15f, 15f);
                 DisableEffectColliders(sharkSpin);
                 instances.Add(sharkSpin);
             }
         }
 
         Debug.Log($"[상어왕] {areaSize}x{areaSize} 사냥 영역 경고 {uniqueOrigins.Count}개 표시", this);
+    }
+
+    public void PlayAttackEffects(
+        IEnumerable<Vector3Int> origins,
+        int areaSize,
+        LDY_BoardManager board)
+    {
+        if (!isActiveAndEnabled || origins == null || areaSize <= 0 || board == null) return;
+
+        float cellWidth = Vector3.Distance(board.GridToWorld(Vector3Int.zero), board.GridToWorld(Vector3Int.right));
+        float cellDepth = Vector3.Distance(board.GridToWorld(Vector3Int.zero), board.GridToWorld(new Vector3Int(0, 0, 1)));
+        float cubeSize = Mathf.Max(0.01f,
+            Mathf.Min(cellWidth, cellDepth) * areaSize * Mathf.Clamp(attackCubeSizeRatio, 0.1f, 1f));
+
+        HashSet<Vector3Int> uniqueOrigins = new();
+        foreach (Vector3Int origin in origins)
+        {
+            Vector3Int floorOrigin = new Vector3Int(origin.x, 0, origin.z);
+            Vector3Int opposite = floorOrigin + new Vector3Int(areaSize - 1, 0, areaSize - 1);
+            if (!board.IsInside(floorOrigin) || !board.IsInside(opposite) || !uniqueOrigins.Add(floorOrigin))
+                continue;
+
+            Vector3 center = (board.GridToWorld(floorOrigin) + board.GridToWorld(opposite)) * 0.5f;
+            GameObject effect;
+            if (attackSharkPrefab != null)
+            {
+                effect = Instantiate(attackSharkPrefab, center, attackSharkPrefab.transform.rotation);
+            }
+            else
+            {
+                effect = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                effect.name = "DLJ_SharkKingAttackCube";
+                effect.transform.position = center;
+                effect.transform.localScale = Vector3.one * cubeSize;
+                if (attackCubeMaterial != null)
+                    effect.GetComponent<Renderer>().sharedMaterial = attackCubeMaterial;
+            }
+
+            DisableEffectColliders(effect);
+            if (!TryGetRendererBounds(effect, out Bounds effectBounds))
+                effectBounds = new Bounds(effect.transform.position, Vector3.one * cubeSize);
+
+            // 모델 피벗 위치가 달라도 외형 중심을 영역에 맞추고, 전체가 바닥 아래로 내려가게 한다.
+            Vector3 position = effect.transform.position;
+            float buriedY = position.y + center.y - effectBounds.max.y - 0.05f;
+            float peakY = position.y + center.y - effectBounds.min.y + Mathf.Max(0f, attackCubeRiseHeight);
+            effect.transform.position = new Vector3(
+                position.x + center.x - effectBounds.center.x,
+                buriedY,
+                position.z + center.z - effectBounds.center.z);
+
+            // 경고가 제거된 뒤에도 재생을 마치도록 공격 연출은 별도로 관리한다.
+            _attackEffects.Add(effect);
+            DOTween.Sequence()
+                .Append(effect.transform.DOMoveY(peakY, Mathf.Max(0.01f, attackCubeRiseDuration)).SetEase(Ease.OutCubic))
+                .AppendInterval(Mathf.Max(0f, attackCubeHoldDuration))
+                .Append(effect.transform.DOMoveY(buriedY, Mathf.Max(0.01f, attackCubeSinkDuration)).SetEase(Ease.InCubic))
+                .SetTarget(effect.transform)
+                .SetLink(effect)
+                .OnComplete(() =>
+                {
+                    _attackEffects.Remove(effect);
+                    Destroy(effect);
+                });
+        }
+    }
+
+    private void ClearAttackEffects()
+    {
+        foreach (GameObject effect in _attackEffects)
+        {
+            if (effect == null) continue;
+            effect.transform.DOKill();
+            Destroy(effect);
+        }
+
+        _attackEffects.Clear();
+    }
+
+    private void OnDisable()
+    {
+        ClearAttackEffects();
     }
 
     private static void DisableEffectColliders(GameObject instance)
@@ -221,6 +320,8 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     private void OnDestroy()
     {
+        ClearAttackEffects();
+
         if (GameManager.HasInstance)
             GameManager.Instance.TurnManagerChanged -= BindTurnManager;
 
