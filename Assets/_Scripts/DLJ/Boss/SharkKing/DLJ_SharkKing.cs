@@ -112,7 +112,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             GameObject instance = Instantiate(
                 attackHighlightPrefab,
                 areaCenter,
-                Quaternion.identity,
+                Quaternion.Euler(90f, 0f, 0f),
                 null);
 
             FitHighlightToArea(instance, board, areaSize, areaCenter);

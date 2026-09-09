@@ -5,6 +5,7 @@ using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Manager;
 using _Scripts.LSO.Will;
+using _Scripts.LSO.UI.Effect;
 using UnityEngine;
 using _Scripts.LSO.Interfaces;
 
@@ -27,10 +28,13 @@ namespace _Scripts.LDY
         public bool IsBusy => _activeCount > 0;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         private int _activeCount;
+        private readonly HashSet<LDY_Animal> _attackingAnimals = new();
+
+        public bool IsAttacking(LDY_Animal animal) => animal != null && _attackingAnimals.Contains(animal);
 
         public List<Vector3Int> GetAttackableTiles(LDY_Animal attacker)
         {
-            if (attacker == null) return new List<Vector3Int>();
+            if (attacker == null || IsAttacking(attacker)) return new List<Vector3Int>();
             if (actionPoints != null && !actionPoints.HasActionPoints) return new List<Vector3Int>();
 
             return AttackableTilesFrom(attacker, attacker.pos, board);
@@ -98,9 +102,15 @@ namespace _Scripts.LDY
         /// </summary>
         private IEnumerator AttackRoutine(LDY_Animal attacker, LDY_Animal target)
         {
+            _attackingAnimals.Add(attacker);
             _activeCount++;
+            var hoverEffects = attacker.GetComponentsInChildren<LSO_HoverMoveEffect>(true);
             try
             {
+                // 선택 해제의 복귀 트윈도 정리한 뒤 공격 시작 위치를 읽는다.
+                foreach (var effect in hoverEffects)
+                    if (effect != null) effect.SetSuspended(true);
+
                 int count = ResolveAttackCount(attacker, target);
 
                 for (int i = 0; i < count; i++)
@@ -115,6 +125,9 @@ namespace _Scripts.LDY
             finally
             {
                 _activeCount--;
+                _attackingAnimals.Remove(attacker);
+                foreach (var effect in hoverEffects)
+                    if (effect != null) effect.SetSuspended(false);
             }
         }
 

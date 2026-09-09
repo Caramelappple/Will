@@ -12,10 +12,15 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [Tooltip("한 칸을 지나는 데 걸리는 연출 시간. 여러 칸을 움직이면 칸 수에 비례해 늘어난다.")]
         [SerializeField] private float moveDuration = 0.3f;
+        [Tooltip("이동 포물선의 최대 높이. 월드 단위이며 0이면 직선으로 이동한다.")]
+        [SerializeField, Min(0f)] private float moveArcHeight = 0.3f;
 
         // 이동 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         public bool IsBusy => _activeCount > 0;
         private int _activeCount;
+        private readonly HashSet<LDY_Animal> _movingAnimals = new();
+
+        public bool IsMoving(LDY_Animal animal) => animal != null && _movingAnimals.Contains(animal);
 
         // 체스 킹처럼 대각선 포함 8방향. y(높이)는 타일 값에 관여하지 않는다.
         private static readonly Vector3Int[] Directions =
@@ -37,7 +42,7 @@ namespace _Scripts.LDY
         public List<Vector3Int> GetMovableTiles(LDY_Animal animal, int? range = null)
         {
             var result = new List<Vector3Int>();
-            if (animal == null) return result;
+            if (animal == null || IsMoving(animal)) return result;
             if (actionPoints != null && !actionPoints.HasActionPoints) return result;
 
             int steps = Mathf.Max(1, range ?? animal.MoveRange);
@@ -140,13 +145,15 @@ namespace _Scripts.LDY
 
         private IEnumerator MoveVisual(LDY_Animal animal, Vector3Int from, Vector3 targetWorldPos)
         {
+            _movingAnimals.Add(animal);
             _activeCount++;
             try
             {
                 int distance = Mathf.Max(
                     Mathf.Abs(animal.pos.x - from.x), Mathf.Abs(animal.pos.z - from.z));
 
-                yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance), ResolveEasing(animal));
+                yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance),
+                    ResolveEasing(animal), Mathf.Max(0f, moveArcHeight));
 
                 // 도착한 뒤에 알린다. 돌진처럼 이동이 방아쇠인 특성은 부딪히는 순간에 맞춰
                 // 밀어내기를 일으켜야 하는데, 출발할 때 알리면 황소왕이 아직 오는 중인데
@@ -164,11 +171,12 @@ namespace _Scripts.LDY
             {
                 // 중간에 빠져나가도 IsBusy가 켜진 채 남지 않도록 finally에서 되돌린다.
                 _activeCount--;
+                _movingAnimals.Remove(animal);
             }
         }
 
         private static IEnumerator Travel(
-            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing)
+            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing, float arcHeight)
         {
             Transform t = animal != null ? animal.modelTransform : null;
             if (t == null) yield break;
@@ -181,8 +189,9 @@ namespace _Scripts.LDY
             // LSO_ButtonHoverHandler.enabled를 껐다 켜는 방식은 쓰지 않는다. 유니티 이벤트
             // 시스템의 호버 상태 추적과 어긋나서, 다시 켰을 때 커서가 그대로 머물러 있어도
             // 또 OnHoverEnter가 걸려 기물이 칸과 칸 사이 같은 애매한 위치로 들뜨는 문제가 있었다.
-            LSO_HoverMoveEffect hoverEffect = animal.GetComponentInChildren<LSO_HoverMoveEffect>();
-            hoverEffect?.SetSuspended(true);
+            var hoverEffects = animal.GetComponentsInChildren<LSO_HoverMoveEffect>(true);
+            foreach (var effect in hoverEffects)
+                if (effect != null) effect.SetSuspended(true);
 
             try
             {
@@ -208,7 +217,10 @@ namespace _Scripts.LDY
                     float eased = easing != null ? easing.Evaluate(progress) : progress;
 
                     // 곡선이 1을 넘겨 목적지를 지나쳤다 돌아오는 연출도 그대로 살리려고 Unclamped를 쓴다.
-                    t.position = Vector3.LerpUnclamped(startPos, targetWorldPos, eased);
+                    // 출발/도착의 추가 높이는 0, 경로 중간은 arcHeight인 포물선이다.
+                    float arcProgress = Mathf.Clamp01(eased);
+                    float height = 4f * arcHeight * arcProgress * (1f - arcProgress);
+                    t.position = Vector3.LerpUnclamped(startPos, targetWorldPos, eased) + Vector3.up * height;
                     yield return null;
                 }
 
@@ -217,9 +229,9 @@ namespace _Scripts.LDY
             }
             finally
             {
-                // 이동 도중 기물이 파괴됐으면(위 유언·계승 케이스) hoverEffect도 이미
-                // 파괴된 상태라 Unity의 == 오버로드가 이걸 null로 취급해 건너뛴다.
-                hoverEffect?.SetSuspended(false);
+                // Unity의 null 비교로 이동 중 파괴된 컴포넌트를 건너뛴다.
+                foreach (var effect in hoverEffects)
+                    if (effect != null) effect.SetSuspended(false);
             }
         }
     }
