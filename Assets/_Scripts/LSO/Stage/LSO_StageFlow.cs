@@ -54,7 +54,12 @@ namespace _Scripts.LSO.Stage
         [SerializeField, Min(0f)] private float flipWaitTimeout = 6f;
 
         [Header("반응")]
-        [Tooltip("스테이지 하나를 깼을 때. 보상이 뜨기 전이다.")]
+        [Tooltip("스테이지 하나를 깼을 때. **판이 돌기도 전이다.**\n" +
+                 "\n" +
+                 "승리 소리처럼 곧바로 나와야 하는 것만 건다.\n" +
+                 "\n" +
+                 "여기에 LSO_RewardBox.Begin 을 걸지 말 것. 보상은 판이 다 돌고 나서\n" +
+                 "이 흐름이 직접 시작시킨다. 여기 걸면 보상 카메라가 도는 판을 가린다.")]
         [SerializeField] private UnityEvent onStageCleared;
 
         [Tooltip("패배했을 때.")]
@@ -259,6 +264,16 @@ namespace _Scripts.LSO.Stage
             }
 
             _rewardStarted = true;
+
+            // 여기 오기 전에 이미 시작돼 있으면 시작시키는 곳이 둘이라는 뜻이다.
+            // 그쪽은 회전을 기다리지 않으므로 보상 카메라가 도는 판을 가리고 들어온다.
+            if (box.HasBegun)
+            {
+                Debug.LogWarning(
+                    $"{name}: 보상이 이미 시작돼 있습니다. 판이 다 돌기 전에 시작시킨 곳이 따로 있습니다. " +
+                    "On Stage Cleared 같은 인스펙터 이벤트에 LSO_RewardBox.Begin 이 걸려 있지 않은지 보세요. " +
+                    "보상을 시작하는 것은 이 흐름의 몫입니다.", this);
+            }
 
             // 몇 챕터 몇 스테이지인지는 상자가 진행에게 직접 묻는다.
             // 여기서 읽어 넘기면 같은 조회가 두 곳에 생긴다.
