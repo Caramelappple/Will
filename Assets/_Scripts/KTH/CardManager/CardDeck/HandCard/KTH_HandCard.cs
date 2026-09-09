@@ -22,7 +22,6 @@ public enum KTH_Axis3D
 // 인스펙터 설정값(아래 SerializeField들)도 그대로 여기 있다 - 프리팹 값을 그대로 쓰기 위해서다.
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(KTH_InitCardData))]
-[RequireComponent(typeof(KTH_HandCardScaleSetting))]
 public class KTH_HandCard : MonoBehaviour,
     IPointerClickHandler,
     IPointerEnterHandler,
@@ -35,6 +34,7 @@ public class KTH_HandCard : MonoBehaviour,
     [Tooltip("선택됐을 때 위 축 방향으로 얼마나 이동할지")]
     [SerializeField] private float selectMoveAmount = 0.2f;
     [SerializeField] private float selectDuration = 0.12f;
+
 
     [Header("Hover Settings")]
     [SerializeField] private float hoverEnterDelay = 0.01f;
@@ -63,7 +63,11 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
     private KTH_InitCardData initCardData;
-    private KTH_HandCardScaleSetting scaleSetting;
+    [Tooltip("카드가 정지 상태일 때의 크기. 모든 애니메이션이 이 값으로 돌아온다.\n" +
+             "\n" +
+             "프리팹의 Transform Scale 과는 다르다 — 그쪽은 연출 도중에 계속 바뀌므로\n" +
+             "돌아올 자리를 따로 적어둔다.")]
+    [SerializeField] private Vector3 baseScale = Vector3.one;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -71,7 +75,14 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_HandCardMotionAnimator motionAnimator;
 
     public LSO_CardSO CardData => cardData;
-    public Vector3 BaseScale => scaleSetting.BaseScale;
+
+    // 카드가 '정지 상태'일 때의 기준 크기.
+    // 뽑기·선택·재정렬 애니메이션이 원래대로 돌아올 때 전부 이 값을 기준으로 삼는다.
+    //
+    // 예전에는 'Anchor'라는 자식의 크기를 읽었다. 그 자식이 없는 프리팹에서는
+    // 조용히 (1,1,1)로 떨어졌고, 어느 카드가 그런지 알 방법도 없었다.
+    // 이제 카드 자신이 값을 들고 있다 — 없는 자식을 찾을 일이 없다.
+    public Vector3 BaseScale => baseScale;
     public bool IsSelected => selectionController.IsSelected;
     public bool IsConfirmed => selectionController.IsConfirmed;
     public bool IsPlacementMode => selectionController.IsPlacementMode;
@@ -84,6 +95,14 @@ public class KTH_HandCard : MonoBehaviour,
     internal LSO_WillPanel WillPanel => willPanel;
 
     public static bool HasConfirmedSelection => KTH_HandCardSelectionController.HasConfirmedSelection;
+
+    /// <summary>
+    /// 지금 확정된(배치 모드인) 카드. 없으면 null.
+    ///
+    /// 손패 밖에서 "지금 고른 카드"가 필요할 때 쓴다.
+    /// 쓰는 곳: LSO_WillPainter — 양초를 누르면 이 카드에 유언을 붙인다.
+    /// </summary>
+    public static KTH_HandCard ConfirmedCard => KTH_HandCardSelectionController.ConfirmedCard;
 
     public event Action<KTH_HandCard> OnCardClicked;
 
@@ -124,7 +143,6 @@ public class KTH_HandCard : MonoBehaviour,
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
         initCardData = GetComponent<KTH_InitCardData>();
-        scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -398,12 +416,7 @@ public class KTH_HandCard : MonoBehaviour,
             cardCollider.enabled = true;
         }
 
-        if (scaleSetting == null)
-        {
-            scaleSetting = GetComponent<KTH_HandCardScaleSetting>();
-        }
-
-        transform.localScale = scaleSetting.BaseScale;
+        transform.localScale = BaseScale;
         transform.localRotation = Quaternion.identity;
 
         cardData = null;

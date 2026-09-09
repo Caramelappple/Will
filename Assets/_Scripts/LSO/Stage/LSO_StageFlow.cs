@@ -260,12 +260,11 @@ namespace _Scripts.LSO.Stage
 
             _rewardStarted = true;
 
-            int chapter = Progression != null ? Progression.ChapterNumber : 1;
-            int stage = Progression != null ? Progression.StageNumber : 1;
+            // 몇 챕터 몇 스테이지인지는 상자가 진행에게 직접 묻는다.
+            // 여기서 읽어 넘기면 같은 조회가 두 곳에 생긴다.
+            Log("보상 시작");
 
-            Log($"보상 시작 — {chapter}-{stage}");
-
-            box.Begin(chapter, stage);
+            box.Begin();
         }
 
         /// <summary>

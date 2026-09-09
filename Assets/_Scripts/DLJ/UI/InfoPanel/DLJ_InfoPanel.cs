@@ -144,11 +144,20 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
     public void Show(LSO_CardSO card)
     {
+        Show(card, null);
+    }
+
+    /// <param name="willOverride">
+    /// 손패에서 이 카드에 붙여둔 유언. 넘기면 기본값 대신 그것을 보여준다.
+    /// </param>
+    public void Show(LSO_CardSO card, LSO_WillType? willOverride)
+    {
         if (!DLJ_InfoPanelData.TryFromCard(
                 card,
                 CommonPortraits,
                 willDatabase,
-                out DLJ_InfoPanelData data))
+                out DLJ_InfoPanelData data,
+                willOverride))
         {
             Debug.LogWarning("[DLJ_InfoPanel] 표시할 카드 SO가 유효하지 않습니다.", this);
             return;
