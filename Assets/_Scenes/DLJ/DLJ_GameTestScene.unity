@@ -368,12 +368,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2015590848}
     - target: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
       propertyPath: m_Name
       value: StageDirector
+      objectReference: {fileID: 0}
+    - target: {fileID: 5426190892188255294, guid: 19a747f32b7491045b591a801491b512, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7812526902520188685, guid: 19a747f32b7491045b591a801491b512, type: 3}
       propertyPath: board
@@ -6157,6 +6157,42 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1319539621}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1320877716
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1320877717}
+  m_Layer: 0
+  m_Name: DLJ_Stage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1320877717
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320877716}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 5.12323, y: 2.28956, z: 2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2109000001}
+  - {fileID: 2109000011}
+  - {fileID: 2109000021}
+  - {fileID: 2109000031}
+  - {fileID: 2109000041}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1339222908
 GameObject:
   m_ObjectHideFlags: 0
@@ -10718,6 +10754,444 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2101640036}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2109000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2109000001}
+  - component: {fileID: 2109000002}
+  - component: {fileID: 2109000003}
+  - component: {fileID: 2109000004}
+  - component: {fileID: 2109000005}
+  - component: {fileID: 2109000006}
+  - component: {fileID: 2109000007}
+  - component: {fileID: 2109000008}
+  m_Layer: 0
+  m_Name: DLJ_StageSequence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2109000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.12323, y: -2.28956, z: -2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1320877717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2109000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d19aff955639af446938d2ff80c54848, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageDirector
+  defaultStage: {fileID: 0}
+  loadOnStart: 0
+--- !u!114 &2109000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf727b4154cc4d07afd9414668895712, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.SceneFlow.DLJ_StageBoardSetup
+  board: {fileID: 1007328538}
+  actionPoints: {fileID: 1007328532}
+--- !u!114 &2109000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd63cdf1018d9ae44bac6783b62c2ba0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_EnemyPlacementStep
+  spawnerSource: {fileID: 2109000005}
+--- !u!114 &2109000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 468549046780bfa4e9e4081c472e88a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_BoardUnitSpawner
+  board: {fileID: 1007328538}
+--- !u!114 &2109000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81b9edf7b484707468b7811341455035, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageIntroDirector
+  flipDirector: {fileID: 2109000032}
+  stageDirector: {fileID: 2109000002}
+  followReward: 1
+  reloadCurrentWhenNoStage: 0
+  beforePlaceDelay: 0.2
+  beforeFlipDelay: 0.35
+  onPlaced:
+    m_PersistentCalls:
+      m_Calls: []
+  onNormalStage:
+    m_PersistentCalls:
+      m_Calls: []
+  onChapterChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onBossStage:
+    m_PersistentCalls:
+      m_Calls: []
+  onRunFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  logSteps: 0
+--- !u!114 &2109000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb7e12fc50154c688e010eb059d2ed02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.SceneFlow.DLJ_StagePresentation
+  intro: {fileID: 2109000006}
+  stages: {fileID: 2109000002}
+  progression: {fileID: 2109000012}
+  flow: {fileID: 2109000022}
+  board: {fileID: 1007328538}
+  font: {fileID: 11400000, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
+  sourceFont: {fileID: 12800000, guid: 37dc8b9eb1fcfca408c7b6774f7e7b44, type: 3}
+  chapterLooks:
+  - chapter: {fileID: 11400000, guid: 292542c5a8224748937d43bedbbbb3f6, type: 2}
+    bossName: "\uD669\uC18C\uC655"
+    bossEpithet: "\uB4E4\uD310\uC758 \uD3ED\uAD70"
+    lightTile: {r: 0.64, g: 0.52, b: 0.35, a: 1}
+    darkTile: {r: 0.19, g: 0.13, b: 0.08, a: 1}
+    environment: {fileID: 0}
+  - chapter: {fileID: 11400000, guid: 6024a2971e924765906183d5f125ce88, type: 2}
+    bossName: "\uC5EC\uC6B0\uC655"
+    bossEpithet: "\uD0D0\uC695\uC758 \uC9C0\uBC30\uC790"
+    lightTile: {r: 0.48, g: 0.57, b: 0.66, a: 1}
+    darkTile: {r: 0.08, g: 0.13, b: 0.22, a: 1}
+    environment: {fileID: 0}
+  normalHold: 1.5
+  glitchDuration: 0.65
+  titleHold: 1.8
+  fadeDuration: 0.45
+  useBossTextEffect: 1
+  bossTypeInterval: 0.2
+  bossTitleDelay: 0.5
+  bossBeatInterval: 0.6
+  bossPunchDuration: 0.18
+  bossShakeDuration: 0.2
+  bossShakeStrength: 0.14
+  bossUiShake: 10
+--- !u!114 &2109000008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2c7403a4e0441843a0967bdfdb52236, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_GameEndManager
+  turnManager: {fileID: 1007328539}
+  stageDirector: {fileID: 2109000002}
+  onStageClear:
+    m_PersistentCalls:
+      m_Calls: []
+  onDefeat:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &2109000010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2109000011}
+  - component: {fileID: 2109000012}
+  m_Layer: 0
+  m_Name: DLJ_StageProgression
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2109000011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000010}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.12323, y: -2.28956, z: -2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1320877717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2109000012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a62f209b42fa0b544abe556717076efa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageProgression
+  chapters:
+  - {fileID: 11400000, guid: 292542c5a8224748937d43bedbbbb3f6, type: 2}
+  - {fileID: 11400000, guid: 6024a2971e924765906183d5f125ce88, type: 2}
+  startChapterIndex: 0
+  startStageIndex: 0
+  logSteps: 0
+--- !u!1 &2109000020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2109000021}
+  - component: {fileID: 2109000022}
+  m_Layer: 0
+  m_Name: DLJ_StageFlow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2109000021
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000020}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.12323, y: -2.28956, z: -2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1320877717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2109000022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e23fd6532c1e164b8d3981beba439f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageFlow
+  flipDirector: {fileID: 2109000032}
+  introDirector: {fileID: 2109000006}
+  startOnPlay: 0
+  restartOnDefeat: 1
+  flipWaitTimeout: 6
+  onStageCleared:
+    m_PersistentCalls:
+      m_Calls: []
+  onDefeat:
+    m_PersistentCalls:
+      m_Calls: []
+  logSteps: 0
+--- !u!1 &2109000030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2109000031}
+  - component: {fileID: 2109000032}
+  m_Layer: 0
+  m_Name: DLJ_BoardFlip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2109000031
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000030}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.12323, y: -2.28956, z: -2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1320877717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2109000032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8179ed41a77a6e64ab3c8505d6dcd00a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Effect.LDY_BoardFlipDirector
+  board: {fileID: 1007328538}
+  turnManager: {fileID: 1007328539}
+  cardPlacer: {fileID: 2015590848}
+  selectionController: {fileID: 1007328534}
+  additionalInputBehaviours:
+  - {fileID: 2109000050}
+  - {fileID: 2109000051}
+  rewardAnchor: {fileID: 2109000041}
+  hideAnchorUntilFlip: 1
+  pivotSource: {fileID: 0}
+  pivotOffset: {x: 0, y: -0.05, z: 0}
+  flipAxis: {x: 1, y: 0, z: 0}
+  drawPivotGizmo: 0
+  flipAngle: 180
+  flipDuration: 1
+  flipEase: 9
+  reverseRetraces: 1
+  beforeFlipDelay: 0.2
+  hidePiecesAfterFlip: 1
+  combatWaitTimeout: 3
+  revealHold: 0.25
+  onFlipped:
+    m_PersistentCalls:
+      m_Calls: []
+  onFinished:
+    m_PersistentCalls:
+      m_Calls: []
+  onReversed:
+    m_PersistentCalls:
+      m_Calls: []
+  useGlobalInteractionLock: 0
+  enableDebugHotkey: 1
+  debugPlayKey: 103
+  debugResetKey: 104
+--- !u!1 &2109000040
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2109000041}
+  m_Layer: 0
+  m_Name: DLJ_RewardAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2109000041
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000040}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.12323, y: -2.28956, z: -2.47352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2109000042}
+  m_Father: {fileID: 1320877717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &2109000042 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3278057653856455913, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+  m_PrefabInstance: {fileID: 6226452985398064379}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2109000050 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 833765202251568231, guid: f59783791285cee4f9e57a49d1ebc035, type: 3}
+  m_PrefabInstance: {fileID: 4254623904117347597}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16ea75f4090b617458363b1dde598823, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.LSO_ButtonClickHandler
+--- !u!114 &2109000051 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1356377888081124778, guid: f59783791285cee4f9e57a49d1ebc035, type: 3}
+  m_PrefabInstance: {fileID: 4254623904117347597}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16ea75f4090b617458363b1dde598823, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.LSO_ButtonClickHandler
+--- !u!4 &2109000052 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+  m_PrefabInstance: {fileID: 6226452985398064379}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2121754914
 GameObject:
   m_ObjectHideFlags: 0
@@ -11190,22 +11664,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2109000041}
     m_Modifications:
-    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-      propertyPath: willNotePrefab
-      value:
-      objectReference: {fileID: 5297091941680574243, guid: 7f220aac0d754b11a3e6d98d5ea658d3, type: 3}
-    - target: {fileID: 6504594334167721476, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-      propertyPath: m_Size.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-      propertyPath: motion.deckAnchor
-      value:
-      objectReference: {fileID: 2109000052}
-    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-      propertyPath: table
-      value:
-      objectReference: {fileID: 11400000, guid: 14cd0f7ee7b5444fa0602b65d5747dd3, type: 2}
     - target: {fileID: 3278057653856455913, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.6
@@ -11246,10 +11704,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6504594334167721476, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: m_Size.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8028855512331633009, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
       propertyPath: m_Name
       value: RewardBox
       objectReference: {fileID: 0}
+    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: table
+      value: 
+      objectReference: {fileID: 11400000, guid: 14cd0f7ee7b5444fa0602b65d5747dd3, type: 2}
+    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: willNotePrefab
+      value: 
+      objectReference: {fileID: 5297091941680574243, guid: 7f220aac0d754b11a3e6d98d5ea658d3, type: 3}
+    - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
+      propertyPath: motion.deckAnchor
+      value: 
+      objectReference: {fileID: 2109000052}
     - target: {fileID: 9188185698421503311, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
       propertyPath: onReady.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -11383,441 +11857,6 @@ MonoBehaviour:
   swayRadius: 0.04
   swayDuration: 0.5
   ignoreTimeScale: 1
---- !u!1 &2109000000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2109000001}
-  - component: {fileID: 2109000002}
-  - component: {fileID: 2109000003}
-  - component: {fileID: 2109000004}
-  - component: {fileID: 2109000005}
-  - component: {fileID: 2109000006}
-  - component: {fileID: 2109000007}
-  - component: {fileID: 2109000008}
-  m_Layer: 0
-  m_Name: DLJ_StageSequence
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2109000001
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2109000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d19aff955639af446938d2ff80c54848, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageDirector
-  defaultStage: {fileID: 0}
-  loadOnStart: 0
---- !u!114 &2109000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf727b4154cc4d07afd9414668895712, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.SceneFlow.DLJ_StageBoardSetup
-  board: {fileID: 1007328538}
-  actionPoints: {fileID: 1007328532}
---- !u!114 &2109000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd63cdf1018d9ae44bac6783b62c2ba0, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_EnemyPlacementStep
-  spawnerSource: {fileID: 2109000005}
---- !u!114 &2109000005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 468549046780bfa4e9e4081c472e88a3, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_BoardUnitSpawner
-  board: {fileID: 1007328538}
---- !u!114 &2109000006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81b9edf7b484707468b7811341455035, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageIntroDirector
-  flipDirector: {fileID: 2109000032}
-  stageDirector: {fileID: 2109000002}
-  followReward: 1
-  reloadCurrentWhenNoStage: 0
-  beforePlaceDelay: 0.2
-  beforeFlipDelay: 0.35
-  onPlaced:
-    m_PersistentCalls:
-      m_Calls: []
-  onNormalStage:
-    m_PersistentCalls:
-      m_Calls: []
-  onChapterChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  onBossStage:
-    m_PersistentCalls:
-      m_Calls: []
-  onRunFinished:
-    m_PersistentCalls:
-      m_Calls: []
-  logSteps: 0
---- !u!114 &2109000007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb7e12fc50154c688e010eb059d2ed02, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.SceneFlow.DLJ_StagePresentation
-  intro: {fileID: 2109000006}
-  stages: {fileID: 2109000002}
-  progression: {fileID: 2109000012}
-  flow: {fileID: 2109000022}
-  board: {fileID: 1007328538}
-  font: {fileID: 11400000, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
-  sourceFont: {fileID: 12800000, guid: 37dc8b9eb1fcfca408c7b6774f7e7b44, type: 3}
-  chapterLooks:
-  - chapter: {fileID: 11400000, guid: 292542c5a8224748937d43bedbbbb3f6, type: 2}
-    bossName: "황소왕"
-    bossEpithet: "들판의 폭군"
-    lightTile: {r: 0.64, g: 0.52, b: 0.35, a: 1}
-    darkTile: {r: 0.19, g: 0.13, b: 0.08, a: 1}
-    environment: {fileID: 0}
-  - chapter: {fileID: 11400000, guid: 6024a2971e924765906183d5f125ce88, type: 2}
-    bossName: "여우왕"
-    bossEpithet: "탐욕의 지배자"
-    lightTile: {r: 0.48, g: 0.57, b: 0.66, a: 1}
-    darkTile: {r: 0.08, g: 0.13, b: 0.22, a: 1}
-    environment: {fileID: 0}
-  normalHold: 1.5
-  glitchDuration: 0.65
-  titleHold: 1.8
-  fadeDuration: 0.45
-  useBossTextEffect: 1
-  bossTypeInterval: 0.045
-  bossTitleDelay: 0.12
-  bossBeatInterval: 0.16
-  bossPunchDuration: 0.18
-  bossShakeDuration: 0.2
-  bossShakeStrength: 0.14
-  bossUiShake: 10
---- !u!114 &2109000008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2c7403a4e0441843a0967bdfdb52236, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::KTH_GameEndManager
-  turnManager: {fileID: 1007328539}
-  stageDirector: {fileID: 2109000002}
-  onStageClear:
-    m_PersistentCalls:
-      m_Calls: []
-  onDefeat:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!1 &2109000010
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2109000011}
-  - component: {fileID: 2109000012}
-  m_Layer: 0
-  m_Name: DLJ_StageProgression
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2109000011
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000010}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2109000012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a62f209b42fa0b544abe556717076efa, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageProgression
-  chapters:
-  - {fileID: 11400000, guid: 292542c5a8224748937d43bedbbbb3f6, type: 2}
-  - {fileID: 11400000, guid: 6024a2971e924765906183d5f125ce88, type: 2}
-  startChapterIndex: 0
-  startStageIndex: 0
-  logSteps: 0
---- !u!1 &2109000020
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2109000021}
-  - component: {fileID: 2109000022}
-  m_Layer: 0
-  m_Name: DLJ_StageFlow
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2109000021
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000020}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2109000022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e23fd6532c1e164b8d3981beba439f9, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageFlow
-  flipDirector: {fileID: 2109000032}
-  introDirector: {fileID: 2109000006}
-  startOnPlay: 0
-  restartOnDefeat: 1
-  flipWaitTimeout: 6
-  onStageCleared:
-    m_PersistentCalls:
-      m_Calls: []
-  onDefeat:
-    m_PersistentCalls:
-      m_Calls: []
-  logSteps: 0
---- !u!1 &2109000030
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2109000031}
-  - component: {fileID: 2109000032}
-  m_Layer: 0
-  m_Name: DLJ_BoardFlip
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2109000031
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000030}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2109000032
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000030}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8179ed41a77a6e64ab3c8505d6dcd00a, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Effect.LDY_BoardFlipDirector
-  board: {fileID: 1007328538}
-  turnManager: {fileID: 1007328539}
-  cardPlacer: {fileID: 2015590848}
-  selectionController: {fileID: 1007328534}
-  additionalInputBehaviours:
-  - {fileID: 2109000050}
-  - {fileID: 2109000051}
-  rewardAnchor: {fileID: 2109000041}
-  hideAnchorUntilFlip: 1
-  pivotSource: {fileID: 0}
-  pivotOffset: {x: 0, y: -0.05, z: 0}
-  flipAxis: {x: 1, y: 0, z: 0}
-  flipAngle: 180
-  flipDuration: 1
-  flipEase: 9
-  reverseRetraces: 1
-  drawPivotGizmo: 0
-  beforeFlipDelay: 0.2
-  hidePiecesAfterFlip: 1
-  combatWaitTimeout: 3
-  revealHold: 0.25
-  onFlipped:
-    m_PersistentCalls:
-      m_Calls: []
-  onFinished:
-    m_PersistentCalls:
-      m_Calls: []
-  onReversed:
-    m_PersistentCalls:
-      m_Calls: []
-  useGlobalInteractionLock: 0
---- !u!1 &2109000040
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2109000041}
-  m_Layer: 0
-  m_Name: DLJ_RewardAnchor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2109000041
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2109000040}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2109000042}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &2109000042 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3278057653856455913, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-  m_PrefabInstance: {fileID: 6226452985398064379}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2109000050 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 833765202251568231, guid: f59783791285cee4f9e57a49d1ebc035, type: 3}
-  m_PrefabInstance: {fileID: 4254623904117347597}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16ea75f4090b617458363b1dde598823, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
---- !u!114 &2109000051 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1356377888081124778, guid: f59783791285cee4f9e57a49d1ebc035, type: 3}
-  m_PrefabInstance: {fileID: 4254623904117347597}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16ea75f4090b617458363b1dde598823, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
---- !u!4 &2109000052 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3244379202641921550, guid: eab83d3e927cba94085f7897bc790ba2, type: 3}
-  m_PrefabInstance: {fileID: 6226452985398064379}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -11838,8 +11877,4 @@ SceneRoots:
   - {fileID: 1800790449}
   - {fileID: 1966616780}
   - {fileID: 1392587303}
-  - {fileID: 2109000001}
-  - {fileID: 2109000011}
-  - {fileID: 2109000021}
-  - {fileID: 2109000031}
-  - {fileID: 2109000041}
+  - {fileID: 1320877717}
