@@ -6,12 +6,21 @@ using UnityEngine;
 /// 코스트 케이스를 왼쪽 바깥에서 원래 자리로 밀어 넣는다.
 ///
 /// 이 컴포넌트가 붙은 오브젝트의 로컬 위치를 도착점으로 사용한다.
-/// Entrance Offset과 Ease Curve는 인스펙터에서 직접 조절할 수 있다.
+/// 화면 왼쪽에서 시작하거나 로컬 오프셋을 사용하도록 설정할 수 있다.
 /// </summary>
 [DefaultExecutionOrder(-100)]
 public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
 {
     [Header("Entrance")]
+    [SerializeField] private bool enterFromScreenLeft;
+    [SerializeField] private Camera screenCamera;
+
+    [Tooltip("화면 밖 시작 위치를 계산할 케이스 중심. 비워두면 이 오브젝트를 기준으로 한다.")]
+    [SerializeField] private Transform entranceAnchor;
+
+    [Tooltip("0은 화면 왼쪽 끝. 케이스 폭까지 화면 밖에 놓이도록 음수 여백을 준다.")]
+    [SerializeField] private float offscreenViewportX = -0.2f;
+
     [Tooltip("도착점 기준 시작 위치의 로컬 오프셋. 화면에서 보이는 방향은 카메라와 부모 Transform의 축 방향에 따라 달라진다.")]
     [SerializeField] private Vector3 entranceOffset = new Vector3(6f, 0f, 0f);
 
@@ -79,7 +88,8 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
 
         KillEntranceTween();
 
-        transform.localPosition = _restLocalPosition + entranceOffset;
+        transform.localPosition = _restLocalPosition;
+        transform.localPosition = GetEntranceLocalPosition();
 
         _entranceTween = transform
             .DOLocalMove(_restLocalPosition, entranceDuration)
@@ -89,6 +99,23 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
             .SetLink(gameObject)
             .OnComplete(() => Completed?.Invoke())
             .OnKill(() => _entranceTween = null);
+    }
+
+    private Vector3 GetEntranceLocalPosition()
+    {
+        Camera entranceCamera = screenCamera != null ? screenCamera : Camera.main;
+        if (!enterFromScreenLeft || entranceCamera == null)
+            return _restLocalPosition + entranceOffset;
+
+        Vector3 anchorPosition = entranceAnchor != null ? entranceAnchor.position : transform.position;
+        Vector3 viewportPosition = entranceCamera.WorldToViewportPoint(anchorPosition);
+        viewportPosition.x = offscreenViewportX;
+        Vector3 startWorldPosition = transform.position +
+            entranceCamera.ViewportToWorldPoint(viewportPosition) - anchorPosition;
+
+        return transform.parent != null
+            ? transform.parent.InverseTransformPoint(startWorldPosition)
+            : startWorldPosition;
     }
 
     /// <summary>진행 중인 연출을 멈추고 즉시 도착점에 놓는다.</summary>

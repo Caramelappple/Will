@@ -111,8 +111,6 @@ public class KTH_HandCardHoverController
         {
             return;
         }
-
-        KTH_InfoPanel.Instance?.StartHoverInfo(owner.CardData, owner);
     }
 
     public void HandlePointerExit()
@@ -140,8 +138,6 @@ public class KTH_HandCardHoverController
         {
             return;
         }
-
-        KTH_InfoPanel.Instance?.CancelHoverSelection(owner);
 
         if (owner.IsSelected)
         {

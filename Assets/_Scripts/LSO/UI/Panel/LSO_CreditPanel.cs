@@ -86,7 +86,8 @@ namespace _Scripts.LSO.UI.Panel
 
       private void OnDisable()
       {
-         Stop();
+         // 닫지 않는다. 이미 꺼지는 중인데 또 닫으라고 하면 되돌아 들어간다.
+         KillTween();
       }
 
       private void LoadText()
@@ -105,7 +106,9 @@ namespace _Scripts.LSO.UI.Panel
       {
          if (_layoutRect == null) return;
 
-         Stop();
+         // 여기서 Stop을 부르면 안 된다. Stop은 창을 닫는 것까지 하므로
+         // 다시 틀 때마다 시작하자마자 메인으로 돌아가버린다.
+         KillTween();
 
          // 방금 만든 텍스트들은 이번 프레임 끝에야 배치된다.
          // 그 전에 높이를 읽으면 0이라 아무것도 안 움직인다.
@@ -131,13 +134,29 @@ namespace _Scripts.LSO.UI.Panel
             _tween.SetLoops(-1, LoopType.Restart);
       }
 
+      /// <summary>
+      /// 다 흘렀으니 창을 닫는다. 끝까지 재생됐을 때만 부른다.
+      ///
+      /// 정리(KillTween)와 닫기를 나눠둔 이유는, 예전에 이 둘이 한 함수였을 때
+      /// "다시 틀기"와 "꺼지는 중 정리"까지 전부 창을 닫아버렸기 때문이다.
+      /// 트윈을 멈추는 것과 화면을 넘기는 것은 서로 다른 일이다.
+      /// </summary>
       private void Stop()
+      {
+         if (_tween == null) return;
+
+         KillTween();
+
+         if (menuActions != null)
+            menuActions.CloseCredits();
+      }
+
+      private void KillTween()
       {
          if (_tween == null) return;
 
          _tween.Kill();
          _tween = null;
-         menuActions.CloseCredits();
       }
 
       /// <summary>잘라낼 영역의 높이. 목록이 화면 밖에서 들어와 화면 밖으로 나가게 하는 데 쓴다.</summary>

@@ -25,7 +25,7 @@ namespace _Scripts.LSO.CoreLib
     /// _pool.Release(item);
     /// </code>
     /// </summary>
-    public class LSO_ObjectPool<T> where T : Component
+    public sealed class LSO_ObjectPool<T> where T : Component
     {
         private readonly T _prefab;
         private readonly Transform _parent;

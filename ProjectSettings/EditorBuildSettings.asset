@@ -15,12 +15,6 @@ EditorBuildSettings:
     path: Assets/_Scenes/LDY/LDY_TestScene.unity
     guid: d0b46644fbe5ca24f8cca2fab700874e
   - enabled: 1
-    path: Assets/_Scenes/KTH/KTH_StageScene.unity
-    guid: ceb83a3633c7c3149b502ad48d4511e4
-  - enabled: 0
-    path: Assets/_Scenes/KTH/KTH_LoadingScene.unity
-    guid: 7c7763e920e65074db3a37edc2f0c967
-  - enabled: 1
     path: Assets/_Scenes/KTH/KTH_TestScene.unity
     guid: 8259af19b903c424eb423cc54bf334e4
   - enabled: 1
@@ -29,5 +23,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/KTH/KTH_BossClearScene.unity
     guid: 7fc2bcaac8f26bd4e9ccec491b46c2f7
+  - enabled: 1
+    path: Assets/_Scenes/LSO/LSO_TestScene.unity
+    guid: 6eee892ae5eb8f547831affcd3b70f54
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

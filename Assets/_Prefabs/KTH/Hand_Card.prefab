@@ -25,9 +25,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1947302122605711411}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: -0.018}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.20000009, z: -0.018000146}
+  m_LocalScale: {x: 0.20000002, y: 0.20000002, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1467006278604692247}
@@ -116,8 +116,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2298852822368279124}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.017}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.016999729}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -125,7 +125,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.299, y: -0.7}
+  m_AnchoredPosition: {x: 0.299, y: -0.7000001}
   m_SizeDelta: {x: 0.5, y: 0.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4376720648288545028
@@ -297,8 +297,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4027116630666939651}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.017}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.016999897}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -478,8 +478,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7861976621601064931}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.0169}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.016900115}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -487,7 +487,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.803}
+  m_AnchoredPosition: {x: 0, y: 0.80300003}
   m_SizeDelta: {x: 1.2, y: 0.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &1675264178852429054
@@ -659,8 +659,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7987981289349516032}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.017}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.016999729}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -668,7 +668,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.3, y: -0.7}
+  m_AnchoredPosition: {x: -0.3, y: -0.7000001}
   m_SizeDelta: {x: 0.5, y: 0.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &7729613027360137595
@@ -825,7 +825,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_Name
-      value: Animal_Card
+      value: Hand_Card
       objectReference: {fileID: 0}
     - target: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_IsActive
@@ -833,15 +833,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalPosition.x
@@ -857,19 +857,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9365834
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.35044482
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -910,13 +910,13 @@ PrefabInstance:
       addedObject: {fileID: 8794413094688060880}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4650799037711057792}
-    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 8764714383092246119}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4939024106996827645}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 305657525707530255}
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2032586742506101883}
@@ -969,24 +969,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonClickHandler
   respectInteractable: 1
   leftButtonOnly: 1
---- !u!114 &4650799037711057792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7166954046189101145}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b60f5e655548db45a0b3d72491953b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_RewardPieceCard
-  iconImage: {fileID: 4013683501568438188}
-  nameText: {fileID: 4079789683650949461}
-  descriptionText: {fileID: 0}
-  attackText: {fileID: 4977333980903075961}
-  healthText: {fileID: 7645140083797487888}
-  costText: {fileID: 0}
 --- !u!114 &8764714383092246119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1015,8 +997,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53ac91f743cee6140873e2950d93c06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KTH_HandCard
-  outlineImage: {fileID: 0}
-  cost: {fileID: 0}
   selectScale: 1.2
   selectMoveAxis: 1
   selectMoveAmount: 0.2
@@ -1027,6 +1007,29 @@ MonoBehaviour:
   drawStartScale: 0.3
   drawDipDistance: 0.5
   drawHookDistance: 0.2
+  moveDownAxis: 1
+  moveDownAmount: 1
+  moveDownDuration: 0.2
+  moveDownEase: 9
+--- !u!114 &305657525707530255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f7e40e52a534f45aaa74f1f1dc5df9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_InitCardData
+  cardName: {fileID: 4079789683650949461}
+  cardImage: {fileID: 4013683501568438188}
+  atkText: {fileID: 4977333980903075961}
+  hpText: {fileID: 7645140083797487888}
+  abillityText: {fileID: 1448557948405940035}
+  outlineImage: {fileID: 0}
+  cost: {fileID: 0}
 --- !u!114 &2032586742506101883
 MonoBehaviour:
   m_ObjectHideFlags: 0

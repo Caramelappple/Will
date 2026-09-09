@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 2585178828559655044}
   - component: {fileID: 7812526902520188685}
   - component: {fileID: 7355823318049587859}
-  - component: {fileID: 1145484064242629433}
-  - component: {fileID: 3946817691590983830}
   - component: {fileID: 2835441762936283171}
   m_Layer: 0
   m_Name: StageDirector
@@ -77,32 +75,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_EnemyPlacementStep
   spawnerSource: {fileID: 0}
---- !u!114 &1145484064242629433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5426190892188255294}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70ce6936787ca4940a1ff444bfcf2f46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_ActionPointStageStep
-  actionPoints: {fileID: 0}
---- !u!114 &3946817691590983830
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5426190892188255294}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb90d7514be1b1c4b951894c52ddcdf5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_SummonCostStageStep
-  cardPlacer: {fileID: 0}
 --- !u!114 &2835441762936283171
 MonoBehaviour:
   m_ObjectHideFlags: 0

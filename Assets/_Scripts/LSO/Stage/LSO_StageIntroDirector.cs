@@ -52,15 +52,23 @@ namespace _Scripts.LSO.Stage
         [SerializeField] private bool reloadCurrentWhenNoStage = true;
 
         [Header("타이밍")]
-        [Tooltip("상자가 닫히고 판이 돌기 시작하기까지의 뜸(초).\n" +
-                 "뚜껑이 닫히는 것과 판이 도는 것이 겹치지 않게 한 박자 둔다.")]
-        [SerializeField, Min(0f)] private float beforeFlipDelay = 1f;
-
-        [Tooltip("판이 되돌아온 뒤 기물이 놓이기까지의 뜸(초).")]
+        [Tooltip("상자가 닫히고 다음 기물을 놓기까지의 뜸(초).\n" +
+                 "\n" +
+                 "이때 판은 아직 뒤집혀 있어서 기물을 놓아도 화면에 보이지 않는다.\n" +
+                 "뚜껑이 닫히는 것과 다음 준비가 겹치지 않게 한 박자 둔다.")]
         [SerializeField, Min(0f)] private float beforePlaceDelay = 0.2f;
 
+        [Tooltip("기물을 다 놓고 판이 돌기 시작하기까지의 뜸(초).\n" +
+                 "\n" +
+                 "기물은 이미 판 뒷면에 실려 있다. 이 값은 돌기 직전에 쉬는 시간이다.")]
+        [SerializeField, Min(0f)] private float beforeFlipDelay = 1f;
+
         [Header("갈래")]
-        [Tooltip("기물 배치가 끝났을 때. 세 갈래 중 무엇도 아닐 때도 발행된다.")]
+        [Tooltip("기물 배치가 끝났을 때. 세 갈래 중 무엇도 아닐 때도 발행된다.\n" +
+                 "\n" +
+                 "이 시점에는 판이 아직 뒤집혀 있어 기물이 보이지 않는다.\n" +
+                 "화면에 뭔가를 띄우려면 갈래 이벤트(On Normal Stage 등)를 쓸 것 —\n" +
+                 "그쪽은 판이 다 돌아온 뒤에 발행된다.")]
         [SerializeField] private UnityEvent onPlaced;
 
         [Tooltip("일반 스테이지. 위 대화창에 스테이지 이름을 띄우는 자리다.")]
@@ -206,10 +214,35 @@ namespace _Scripts.LSO.Stage
         {
             Log("시작");
 
+            if (beforePlaceDelay > 0f)
+                yield return new WaitForSecondsRealtime(beforePlaceDelay);
+
+            // 1. 기물을 먼저 놓는다. 판은 아직 뒤집혀 있어 화면에 보이지 않는다.
+            //
+            //    반드시 RunAtHomePose 를 거쳐야 한다.
+            //    격자 계산(GridToWorld)이 boardOrigin.position 을 원점으로 쓰는데,
+            //    그 boardOrigin 이 곧 회전하는 당사자라 뒤집힌 동안에는 원점이
+            //    축 반대편으로 넘어가 있다. 그냥 놓으면 그만큼 어긋난 자리에 놓인다.
+            //
+            //    판을 비우는 것도 LDY_StageDirector 의 스텝이 한다.
+            LDY_StageSO target = Resolve(stage);
+
+            if (target != null && stageDirector != null)
+            {
+                Log($"기물 배치 — {target.stageName}");
+
+                if (flipDirector != null)
+                    flipDirector.RunAtHomePose(() => stageDirector.LoadStage(target));
+                else
+                    stageDirector.LoadStage(target);
+            }
+
+            onPlaced?.Invoke();
+
             if (beforeFlipDelay > 0f)
                 yield return new WaitForSecondsRealtime(beforeFlipDelay);
 
-            // 1. 판을 앞면으로 되돌린다.
+            // 2. 판을 앞면으로 되돌린다. 방금 놓은 기물이 판에 실려 같이 올라온다.
             if (flipDirector != null)
             {
                 Log("판 되돌리기");
@@ -217,22 +250,7 @@ namespace _Scripts.LSO.Stage
                 yield return StartCoroutine(flipDirector.PlayReverse());
             }
 
-            if (beforePlaceDelay > 0f)
-                yield return new WaitForSecondsRealtime(beforePlaceDelay);
-
-            // 2. 기물을 놓는다. 판을 비우는 것도 LDY_StageDirector의 스텝이 한다.
-            LDY_StageSO target = Resolve(stage);
-
-            if (target != null && stageDirector != null)
-            {
-                Log($"기물 배치 — {target.stageName}");
-
-                stageDirector.LoadStage(target);
-            }
-
-            onPlaced?.Invoke();
-
-            // 3. 갈래를 고른다.
+            // 3. 갈래를 고른다. 판이 다 돌아온 뒤라야 지역 이름 같은 것이 제때 뜬다.
             RaiseBranch(target);
 
             Ready?.Invoke(target);

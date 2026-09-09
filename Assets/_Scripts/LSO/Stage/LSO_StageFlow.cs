@@ -65,6 +65,12 @@ namespace _Scripts.LSO.Stage
 
         private bool _clearing;
 
+        // 보상을 이미 시작했는지. 회전이 끝났다는 신호가 두 곳에서 오기 때문에 필요하다.
+        //   · 이 클래스의 Co_Clear 가 회전을 기다린 뒤 (정상 경로)
+        //   · 디렉터의 Finished 이벤트 (디버그 재생 F10 처럼 밖에서 돌린 경우)
+        // 어느 쪽이 먼저 오든 한 번만 시작한다.
+        private bool _rewardStarted;
+
         /// <summary>클리어 처리가 도는 중인지. 같은 판이 두 번 정산되는 것을 막는다.</summary>
         public bool IsClearing => _clearing;
 
@@ -82,9 +88,47 @@ namespace _Scripts.LSO.Stage
 
         private void Start()
         {
+            SubscribeFlip();
+
             if (!startOnPlay) return;
 
             StartRun();
+        }
+
+        /// <summary>
+        /// override 여야 한다. MonoSingleton이 여기서 Instance를 비우므로,
+        /// private으로 새로 선언하면 베이스 쪽이 아예 안 돌아 죽은 참조가 남는다.
+        /// </summary>
+        protected override void OnDestroy()
+        {
+            if (flipDirector != null)
+                flipDirector.Finished -= HandleFlipFinished;
+
+            base.OnDestroy();
+        }
+
+        /// <summary>
+        /// 보드 회전이 끝났다는 신호를 듣는다.
+        ///
+        /// Co_Clear 가 이미 회전을 기다렸다가 보상을 시작하는데도 따로 구독하는 이유는,
+        /// **회전을 시작하는 길이 하나가 아니기 때문이다.**
+        /// 디렉터의 디버그 키(F10)로 돌리면 Co_Clear 를 거치지 않아 보상이 뜨지 않았다.
+        ///
+        /// 이제 "판이 다 돌았다"가 곧 "보상을 시작한다"이고, 누가 돌렸는지는 상관없다.
+        /// </summary>
+        private void SubscribeFlip()
+        {
+            if (flipDirector == null) flipDirector = FindAnyObjectByType<LDY_BoardFlipDirector>();
+
+            if (flipDirector == null) return;
+
+            flipDirector.Finished -= HandleFlipFinished;
+            flipDirector.Finished += HandleFlipFinished;
+        }
+
+        private void HandleFlipFinished()
+        {
+            BeginReward();
         }
 
         /// <summary>
@@ -127,6 +171,7 @@ namespace _Scripts.LSO.Stage
             }
 
             _clearing = true;
+            _rewardStarted = false;
 
             StartCoroutine(Co_Clear());
         }
@@ -176,7 +221,27 @@ namespace _Scripts.LSO.Stage
             yield return Co_Flip();
 
             // 2. 보상을 시작한다.
-            //    그 뒤는 LSO_RewardBox.OnFinished → LSO_StageIntroDirector 가 이어간다.
+            //    회전이 정상적으로 끝났다면 디렉터의 Finished 가 이미 시작시켰다.
+            //    그때는 아래가 잠금에 걸려 아무 일도 하지 않는다.
+            //    여기서 한 번 더 부르는 것은 상한 시간을 넘겨 기다리기를 포기한 경우를 위해서다.
+            BeginReward();
+
+            _clearing = false;
+        }
+
+        /// <summary>
+        /// 보상을 시작한다. 두 번 불려도 한 번만 시작한다.
+        ///
+        /// 시작하는 길이 둘이라 잠금이 필요하다 —
+        /// 회전을 기다리던 Co_Clear 와, 디렉터가 보내는 Finished 신호.
+        /// 디버그 재생처럼 Co_Clear 를 거치지 않는 경로가 있어 둘 다 열어둔다.
+        ///
+        /// 그 뒤는 LSO_RewardBox.OnFinished → LSO_StageIntroDirector 가 이어간다.
+        /// </summary>
+        private void BeginReward()
+        {
+            if (_rewardStarted) return;
+
             LSO_RewardBox box = LSO_RewardBox.Instance;
 
             if (box == null)
@@ -184,20 +249,23 @@ namespace _Scripts.LSO.Stage
                 Debug.LogWarning(
                     $"{name}: 씬에 LSO_RewardBox가 없어 보상을 건너뜁니다.", this);
 
+                _rewardStarted = true;
+
                 // 상자가 없으면 OnFinished도 오지 않는다. 진행이 여기서 멈추지 않게 직접 넘긴다.
                 if (introDirector != null)
                     introDirector.PlayNext();
 
-                _clearing = false;
-                yield break;
+                return;
             }
+
+            _rewardStarted = true;
 
             int chapter = Progression != null ? Progression.ChapterNumber : 1;
             int stage = Progression != null ? Progression.StageNumber : 1;
 
-            box.Begin(chapter, stage);
+            Log($"보상 시작 — {chapter}-{stage}");
 
-            _clearing = false;
+            box.Begin(chapter, stage);
         }
 
         /// <summary>

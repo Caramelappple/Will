@@ -13,7 +13,7 @@ namespace _Scripts.LSO.Boss
 
         [Header("페이즈의 전환 기준점이 되는 체력 경계")]
         [SerializeField, Min(1)] private int healthThreshold = 15;
-        
+
         public int CurrentPhase { get; private set; } = 1;
 
         public event Action<int> OnPhaseChange;
@@ -47,13 +47,15 @@ namespace _Scripts.LSO.Boss
             if (CurrentPhase >= MaxPhase) return;
 
             if (data.currentHealth > healthThreshold) return;
-            
+
             CurrentPhase = MaxPhase;
-            
+
             OnPhaseChange?.Invoke(CurrentPhase);
 
             LSO_AbilityNotify.Notify<LSO_IPhaseAware>(
                 _animal.Abilities, a => a.OnPhaseChanged(_animal, CurrentPhase));
+
+            Debug.Log("2페이즈 진입");
         }
     }
 }
