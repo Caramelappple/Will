@@ -3059,7 +3059,6 @@ MonoBehaviour:
   board: {fileID: 579526130}
   actionPoints: {fileID: 579526123}
   moveDuration: 0.3
-  moveArcHeight: 0.3
 --- !u!114 &579526130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8890,6 +8889,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1601476643}
   - component: {fileID: 1601476642}
+  - component: {fileID: 1601476644}
   m_Layer: 0
   m_Name: CinemachineCameraMain
   m_TagString: Untagged
@@ -8955,6 +8955,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 47.4, y: -180, z: -0.076}
+--- !u!114 &1601476644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601476641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 1
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 0
+    FrequencyGain: 1
+    Duration: 0
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1626731832
 GameObject:
   m_ObjectHideFlags: 0
@@ -12564,6 +12588,14 @@ PrefabInstance:
       propertyPath: sharkSpinPrefab
       value: 
       objectReference: {fileID: 919132149155446097, guid: c81d0da726be5074aae2623f27583977, type: 3}
+    - target: {fileID: 7982987346592010603, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
+      propertyPath: attackSharkPrefab
+      value: 
+      objectReference: {fileID: 919132149155446097, guid: 1df21d0bcfb4f6041b3ab71add2ce4a7, type: 3}
+    - target: {fileID: 7982987346592010603, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
+      propertyPath: attackCubeSizeRatio
+      value: 0.653
+      objectReference: {fileID: 0}
     - target: {fileID: 7982987346592010603, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: attackHighlightHeightOffset
       value: 0.05
