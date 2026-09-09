@@ -3059,6 +3059,7 @@ MonoBehaviour:
   board: {fileID: 579526130}
   actionPoints: {fileID: 579526123}
   moveDuration: 0.3
+  moveArcHeight: 0.3
 --- !u!114 &579526130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3110,6 +3111,7 @@ MonoBehaviour:
     m_Bits: 256
   highlighter: {fileID: 579526127}
   targetCamera: {fileID: 257224524}
+  logWill: 0
 --- !u!114 &579526133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12516,7 +12518,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3987908019727028490, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7539038748984187631, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -12558,6 +12560,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7982987346592010603, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
+      propertyPath: sharkSpinPrefab
+      value: 
+      objectReference: {fileID: 919132149155446097, guid: c81d0da726be5074aae2623f27583977, type: 3}
+    - target: {fileID: 7982987346592010603, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
+      propertyPath: attackHighlightHeightOffset
+      value: 0.05
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12577,7 +12587,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2469521785137200648, guid: 386c17c92a23470449d329990d6a8761, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5341040291356438945, guid: 386c17c92a23470449d329990d6a8761, type: 3}
       propertyPath: m_LocalPosition.x

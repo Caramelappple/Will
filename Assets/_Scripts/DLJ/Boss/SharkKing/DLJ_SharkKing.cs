@@ -5,7 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// 상어왕 프리팹에 붙이는 인스펙터 설정 컴포넌트.
-/// 사냥 영역의 바닥 경고 프리팹과 표시 높이를 보관하고 경고 오브젝트를 관리한다.
+/// 사냥 영역의 바닥 경고와 SharkSpin 모델 설정을 보관하고 생성된 이펙트를 관리한다.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(LDY_Animal))]
@@ -17,6 +17,13 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     [Tooltip("바닥과 겹쳐 깜빡이는 현상을 막기 위한 높이 보정")]
     [SerializeField] private float attackHighlightHeightOffset = 0.05f;
+
+    [Header("Hunting Ground Effect")]
+    [Tooltip("각 경고 쿼드의 중심에 생성할 SharkSpin 모델 또는 프리팹")]
+    [SerializeField] private GameObject sharkSpinPrefab;
+
+    [Tooltip("경고 쿼드 표면을 기준으로 SharkSpin 모델을 띄울 높이")]
+    [SerializeField] private float sharkSpinHeightOffset = 0f;
 
     private readonly Dictionary<object, List<GameObject>> _warnings = new();
     private LDY_TurnManager _turnManager;
@@ -117,15 +124,31 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
             FitHighlightToArea(instance, board, areaSize, areaCenter);
 
-            // 경고 표시는 판정용 오브젝트가 아니므로 보드 클릭과 공격 레이캐스트를 막지 않는다.
-            Collider[] colliders = instance.GetComponentsInChildren<Collider>(true);
-            for (int i = 0; i < colliders.Length; i++)
-                colliders[i].enabled = false;
-
+            DisableEffectColliders(instance);
             instances.Add(instance);
+
+            if (sharkSpinPrefab != null)
+            {
+                // 쿼드의 회전과 영역 크기 보정이 모델에 적용되지 않도록 별도로 생성한다.
+                GameObject sharkSpin = Instantiate(
+                    sharkSpinPrefab,
+                    areaCenter + Vector3.up * (attackHighlightHeightOffset + sharkSpinHeightOffset),
+                    sharkSpinPrefab.transform.rotation,
+                    null);
+                DisableEffectColliders(sharkSpin);
+                instances.Add(sharkSpin);
+            }
         }
 
-        Debug.Log($"[상어왕] {areaSize}x{areaSize} 사냥 영역 경고 {instances.Count}개 표시", this);
+        Debug.Log($"[상어왕] {areaSize}x{areaSize} 사냥 영역 경고 {uniqueOrigins.Count}개 표시", this);
+    }
+
+    private static void DisableEffectColliders(GameObject instance)
+    {
+        // 경고와 모델은 판정용 오브젝트가 아니므로 보드 클릭과 공격 레이캐스트를 막지 않는다.
+        Collider[] colliders = instance.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+            colliders[i].enabled = false;
     }
 
     private void FitHighlightToArea(
