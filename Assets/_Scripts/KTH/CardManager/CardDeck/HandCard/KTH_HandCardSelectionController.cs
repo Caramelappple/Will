@@ -27,6 +27,18 @@ public class KTH_HandCardSelectionController
     public static bool HasConfirmedSelection =>
         currentConfirmed != null && currentConfirmed.isConfirmed;
 
+    /// <summary>
+    /// 지금 확정된 카드. 없으면 null.
+    ///
+    /// 이미 currentConfirmed로 "한 장만 확정된다"를 지키고 있으므로 그 값을 그대로 열어준다.
+    /// 밖에서 손패를 훑어 IsSelected를 하나씩 물어보면 같은 사실을 두 곳에서 세게 되고,
+    /// 손패 구조가 바뀔 때마다 그 훑는 코드가 같이 깨진다.
+    ///
+    /// 쓰는 곳: LSO_WillPainter — 양초를 누르면 이 카드에 유언을 붙인다.
+    /// </summary>
+    public static KTH_HandCard ConfirmedCard =>
+        HasConfirmedSelection ? currentConfirmed.owner : null;
+
     public KTH_HandCardSelectionController(
         KTH_HandCard owner,
         KTH_Axis3D selectMoveAxis,

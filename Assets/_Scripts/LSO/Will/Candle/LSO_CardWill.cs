@@ -36,6 +36,15 @@ namespace _Scripts.LSO.Will.Candle
         /// <summary>유언이 붙어 있는지. 빈 초(없음)를 붙였어도 참이다.</summary>
         public bool HasWill { get; private set; }
 
+        /// <summary>
+        /// 이번 전투에 이미 붙였는지. 참이면 다시 못 붙인다.
+        ///
+        /// HasWill 과 따로 두는 이유는 **다음 전투가 와도 유언은 그대로 남기 때문이다.**
+        /// 잠금만 풀리고 값은 유지된다 — 붙여둔 것을 전투가 바뀌었다고 잃으면
+        /// 플레이어가 정한 것을 게임이 마음대로 지우는 셈이다.
+        /// </summary>
+        public bool PaintedThisBattle { get; private set; }
+
         /// <summary>붙거나 지워졌을 때. 인자는 Will 과 HasWill.</summary>
         public event Action<LSO_WillType, bool> Changed;
 
@@ -67,10 +76,21 @@ namespace _Scripts.LSO.Will.Candle
         {
             Will = will;
             HasWill = true;
+            PaintedThisBattle = true;
 
             if (revealNow) Reveal(from);
 
             Changed?.Invoke(Will, HasWill);
+        }
+
+        /// <summary>
+        /// 새 전투가 시작돼 다시 붙일 수 있게 한다. **붙어 있던 유언은 그대로 둔다.**
+        ///
+        /// 값까지 지우려면 Clear 를 쓴다. 그쪽은 카드를 풀에서 돌려쓸 때다.
+        /// </summary>
+        public void UnlockForNewBattle()
+        {
+            PaintedThisBattle = false;
         }
 
         /// <summary>
@@ -81,7 +101,17 @@ namespace _Scripts.LSO.Will.Candle
         /// </summary>
         public void Reveal(Vector3? from = null)
         {
-            if (reveal != null) reveal.Play(Will, from);
+            if (reveal == null)
+            {
+                // 값은 붙었는데 화면에만 안 나오는 경우다. 조용히 넘기면
+                // "유언이 안 붙었다"로 오해하게 된다.
+                Debug.LogWarning(
+                    $"{name}: LSO_WillRevealEffect 가 없어 아이콘이 드러나지 않습니다. " +
+                    "유언은 정상적으로 붙었습니다 — 카드의 아이콘 자리에 그 컴포넌트를 붙여 주세요.", this);
+                return;
+            }
+
+            reveal.Play(Will, from);
         }
 
         /// <summary>
@@ -92,6 +122,8 @@ namespace _Scripts.LSO.Will.Candle
         /// </summary>
         public void Clear()
         {
+            PaintedThisBattle = false;
+
             if (!HasWill && Will == LSO_WillType.None) return;
 
             Will = LSO_WillType.None;

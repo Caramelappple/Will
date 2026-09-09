@@ -1,4 +1,5 @@
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.UI.Feedback;
 using UnityEngine;
 
 public class KTH_SpawnCard : MonoBehaviour
@@ -67,14 +68,17 @@ public class KTH_SpawnCard : MonoBehaviour
 
         if (handLayout.IsFull)
         {
-            Debug.LogWarning($"[KTH_SpawnCard] 손패가 가득 차서 드로우할 수 없습니다! ({handLayout.HandCount}/{handLayout.MaxHandSize})");
+            // 손패가 찬 것도 규칙대로 돌아간 결과다. 콘솔이 아니라 화면으로 알린다.
+            LSO_RejectSignal.Raise(LSO_RejectReason.HandFull);
             RefreshDrawButtonState();
             return false;
         }
 
+        // 왜 못 뽑는지는 KTH_DeckManager 가 이미 거부 신호로 알린다.
+        // 여기서 또 알리면 같은 사건이 두 번 나가고, 나중에 문구를 고칠 때
+        // 두 곳을 맞춰야 한다. 여기서는 버튼 상태만 되돌린다.
         if (!bypassDrawLimit && !deckManager.CanDraw())
         {
-            Debug.LogWarning($"[KTH_SpawnCard] 이번 턴 드로우 횟수를 모두 사용했습니다! ({deckManager.DrawsUsedThisTurn}/{deckManager.MaxDrawsPerTurn})");
             RefreshDrawButtonState();
             return false;
         }
@@ -82,7 +86,6 @@ public class KTH_SpawnCard : MonoBehaviour
         LSO_CardSO cardData = deckManager.DrawCard(bypassTurnLimit: bypassDrawLimit);
         if (cardData == null)
         {
-            Debug.LogWarning("[KTH_SpawnCard] 덱에 남아있는 카드가 없습니다!");
             RefreshDrawButtonState();
             return false;
         }

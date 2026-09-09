@@ -4,6 +4,7 @@ using _Scripts.LSO.Animal;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI.Feedback;
 using _Scripts.LSO.Will;
+using _Scripts.LSO.Will.Candle;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -45,12 +46,20 @@ namespace _Scripts.LDY
 
         public event Action<int, int> OnCostChanged;
 
+        [Header("진단")]
+        [Tooltip("켜면 소환할 때 어떤 유언으로 갔는지 콘솔에 찍는다.\n" +
+                 "양초로 붙인 것이 기물에 안 들어갈 때 어디서 끊겼는지 보인다.")]
+        [SerializeField] private bool logWill;
+
         private LSO_CardSO _pendingCard;
         private LDY_Team _pendingTeam;
 
-        // 카드에 미리 붙여둔 유언. 칸을 고르는 동안 들고 있다가 소환할 때 쓴다.
-        // 값이 없으면(null) 예전처럼 소환 뒤에 고르는 창이 뜬다.
-        private LSO_WillType? _pendingWill;
+        // 놓으려는 손패 카드의 유언 칸. **값이 아니라 그 카드를 들고 있는다.**
+        //
+        // 값으로 붙잡아두면 안 된다. 배치를 시작하는 시점(카드를 고른 순간)에는
+        // 아직 양초로 안 붙였을 수 있고, 그 뒤에 붙여도 반영되지 않는다.
+        // 실제로 그렇게 짰다가 "붙였는데 기본값으로 소환되는" 일이 있었다.
+        private LSO_CardWill _pendingCardWill;
 
         private Action<LDY_Animal> _onPlaced;
         private Action _onCancelled;
@@ -96,18 +105,39 @@ namespace _Scripts.LDY
             }
 
             if (!Mouse.current.leftButton.wasPressedThisFrame) return;
+
+            // 보드를 아예 안 맞혔으면 조용히 넘어간다.
+            //
+            // 칸을 고르는 도중에도 양초를 눌러 유언을 붙인다(LSO_WillPainter).
+            // 보드 밖 클릭까지 거부로 치면 그 정상 조작이 매번 거부로 찍힌다.
             if (!TryRaycastToGrid(out var pos)) return;
-            if (!IsValidPlacementTile(pos, _pendingTeam)) return;
+
+            // 보드는 맞혔는데 놓을 수 없는 칸이다. 이건 알려야 한다 —
+            // 안 알리면 눌러도 아무 일이 없어서 조작이 씹힌 것처럼 보인다.
+            //
+            // PlaceCard 안에도 같은 검사가 있지만 이 경로에서는 거기까지 못 간다.
+            // 여기를 통과한 칸만 내려가므로 그쪽 InvalidTile 은 자동 배치
+            // (PlaceCardAtNextAvailable 등) 전용이다.
+            if (!IsValidPlacementTile(pos, _pendingTeam))
+            {
+                LSO_RejectSignal.Raise(LSO_RejectReason.InvalidTile);
+                return;
+            }
 
             LSO_CardSO card = _pendingCard;
             LDY_Team team = _pendingTeam;
-            LSO_WillType? will = _pendingWill;
             Action<LDY_Animal> onPlaced = _onPlaced;
+
+            // 지금 읽는다. 칸을 고르는 사이에 양초로 붙였을 수 있다.
+            LSO_WillType? will =
+                _pendingCardWill != null && _pendingCardWill.HasWill
+                    ? _pendingCardWill.Will
+                    : null;
 
             IsPlacing = false;
             ClearPlacementHighlights();
             _pendingCard = null;
-            _pendingWill = null;
+            _pendingCardWill = null;
             _onCancelled = null;
             _onPlaced = null;
 
@@ -184,11 +214,29 @@ namespace _Scripts.LDY
             ActionPoints?.TryConsume(card.Cost);
 
             // 카드에 이미 유언이 붙어 있으면 그걸로 끝이다. 고르는 창을 띄우지 않는다.
-            // 촛대에서 놓기 전에 정하는 것이 지금 기획이고, 여기서 또 물으면 두 번 고르게 된다.
+            // 양초에서 놓기 전에 정하는 것이 지금 기획이고, 여기서 또 물으면 두 번 고르게 된다.
             if (will.HasValue)
+            {
+                if (logWill)
+                {
+                    Debug.Log(
+                        $"[{name}] 카드에 붙어 있던 유언으로 소환 — {will.Value} " +
+                        $"(None이면 '유언 없음'을 고른 것이다)", animal);
+                }
+
                 Apply(animal, will.Value);
+            }
             else
+            {
+                if (logWill)
+                {
+                    Debug.Log(
+                        $"[{name}] 카드에 붙은 유언이 없어 고르는 창을 띄운다 — " +
+                        "양초로 안 붙였거나 LSO_CardWill 이 카드에 없다", animal);
+                }
+
                 RequestWill(card, animal);
+            }
 
             return animal;
         }
@@ -277,16 +325,20 @@ namespace _Scripts.LDY
         // onPlaced는 실제로 칸을 클릭해 소환이 끝난 뒤(성공/실패 모두) 호출되고,
         // onCancelled는 우클릭으로 취소했을 때만 호출된다.
         //
-        // will 은 촛대에서 카드에 미리 붙여둔 유언이다. 손패 쪽에서 이렇게 넘긴다.
+        // cardWill 은 놓으려는 손패 카드의 유언 칸이다. 손패 쪽에서 이렇게 넘긴다.
         //     cardPlacer.BeginPlacement(cardData, LDY_Team.Player, onPlaced, onCancelled,
-        //         will: card.GetComponent<LSO_CardWill>()?.Will);
+        //         cardWill: card.GetComponentInChildren<LSO_CardWill>(true));
+        //
+        // 값이 아니라 컴포넌트를 받는 이유는, 칸을 고르는 사이에 양초로 유언을 붙일 수 있어서다.
+        // 값으로 받으면 여기서 붙잡힌 시점의 것이 그대로 굳는다.
+        //
         // 안 넘기면 예전처럼 소환 뒤에 고르는 창이 뜬다.
         public bool BeginPlacement(
             LSO_CardSO card,
             LDY_Team team,
             Action<LDY_Animal> onPlaced,
             Action onCancelled = null,
-            LSO_WillType? will = null)
+            LSO_CardWill cardWill = null)
         {
             if (!IsPlayerTurn)
             {
@@ -304,7 +356,7 @@ namespace _Scripts.LDY
 
             _pendingCard = card;
             _pendingTeam = team;
-            _pendingWill = will;
+            _pendingCardWill = cardWill;
             _onPlaced = onPlaced;
             _onCancelled = onCancelled;
             IsPlacing = true;
@@ -321,8 +373,8 @@ namespace _Scripts.LDY
             ClearPlacementHighlights();
             _pendingCard = null;
 
-            // 유언도 같이 놓는다. 안 비우면 다음 배치가 지난 카드의 유언을 물고 간다.
-            _pendingWill = null;
+            // 유언 칸도 같이 놓는다. 안 비우면 다음 배치가 지난 카드의 유언을 물고 간다.
+            _pendingCardWill = null;
 
             Action cancelled = _onCancelled;
             _onCancelled = null;

@@ -50,9 +50,22 @@ namespace _Scripts.LSO.Will.Candle
         // 그쪽은 LSO_WillPainter 가 맡는다 — 같은 오브젝트에 붙여두면 된다.
         // 색은 숫자키 전담이다.
 
+        [Tooltip("해금 목록이 비었을 때 전부 고를 수 있게 할지.\n" +
+                 "\n" +
+                 "켜면 테스트 씬처럼 LSO_ItemLibraryManager 가 없거나 목록이 빈 곳에서도\n" +
+                 "다섯 유언을 다 눌러볼 수 있다. LDY_CardPlacer 도 같은 대비를 하고 있다.\n" +
+                 "\n" +
+                 "끄면 해금한 것만 나온다 — 실제 플레이 규칙이다.")]
+        [SerializeField] private bool fallbackToAllWhenEmpty = true;
+
         [Header("반응")]
         [Tooltip("든 유언이 바뀔 때마다. 이름을 화면에 띄우는 쪽이 듣는다.")]
         [SerializeField] private LSO_WillTypeEvent onChanged;
+
+        [Header("진단")]
+        [Tooltip("켜면 목록을 다시 만들 때와 숫자키를 누를 때마다 콘솔에 찍는다.\n" +
+                 "숫자키가 안 먹을 때 목록에 무엇이 들어 있는지 보인다.")]
+        [SerializeField] private bool logSteps;
 
         private readonly List<LSO_WillType> _wills = new();
         private int _index;
@@ -68,6 +81,10 @@ namespace _Scripts.LSO.Will.Candle
 
         /// <summary>고를 수 있는 유언 수. 숫자키 개수와 같다.</summary>
         public int Count => _wills.Count;
+
+        // 양초는 잠기지 않는다. 전투당 한 번이라는 제한은 **카드 한 장**에 걸린다
+        // (LSO_CardWill.PaintedThisBattle). 이미 붙인 카드가 있어도 다른 카드에는
+        // 계속 붙일 수 있으므로, 양초는 늘 켜져 있고 숫자키도 늘 먹는다.
 
         /// <summary>든 유언이 바뀌었을 때. 코드로 구독하는 쪽이 쓴다.</summary>
         public event Action<LSO_WillType> Changed;
@@ -110,6 +127,18 @@ namespace _Scripts.LSO.Will.Candle
             _wills.Clear();
             CollectWills(_wills);
 
+            // 해금 목록이 비면 고를 것이 '없음' 하나뿐이라, 숫자키를 눌러도
+            // 아무 변화가 없는 것처럼 보인다. 테스트 씬에서 이걸로 한참 헤맨다.
+            if (_wills.Count == 0 && fallbackToAllWhenEmpty)
+            {
+                _wills.AddRange(AllWills);
+
+                Debug.LogWarning(
+                    $"{name}: 해금된 유언이 없어 전부를 고를 수 있게 했습니다. " +
+                    "실제 규칙대로 하려면 LSO_ItemLibraryManager 의 Unlocked Wills 를 채우거나 " +
+                    "Fallback To All When Empty 를 끄세요.", this);
+            }
+
             if (includeNone) _wills.Add(LSO_WillType.None);
 
             if (_wills.Count == 0)
@@ -124,8 +153,31 @@ namespace _Scripts.LSO.Will.Candle
 
             _index = keep >= 0 ? keep : Mathf.Clamp(startIndex, 0, _wills.Count - 1);
 
+            if (logSteps)
+            {
+                var names = new string[_wills.Count];
+
+                for (int i = 0; i < _wills.Count; i++)
+                    names[i] = $"{i + 1}={_wills[i]}";
+
+                Debug.Log($"[{name}] 목록 {_wills.Count}개 — {string.Join(", ", names)}", this);
+            }
+
             Apply();
         }
+
+        /// <summary>
+        /// 해금 정보가 없을 때 쓸 목록. None 은 빼둔다 — 그건 includeNone 이 따로 넣는다.
+        /// LDY_CardPlacer 의 AllWills 와 같은 값이다.
+        /// </summary>
+        private static readonly LSO_WillType[] AllWills =
+        {
+            LSO_WillType.Curse,
+            LSO_WillType.Rage,
+            LSO_WillType.Succession,
+            LSO_WillType.Contract,
+            LSO_WillType.Sacrifice
+        };
 
         /// <summary>
         /// 보유한 유언을 얻은 순서대로 모은다.
@@ -178,6 +230,7 @@ namespace _Scripts.LSO.Will.Candle
             Apply();
         }
 
+
         /// <summary>다음 색으로 넘긴다. 끝에서는 처음으로 돌아온다.</summary>
         public void Next()
         {
@@ -198,6 +251,9 @@ namespace _Scripts.LSO.Will.Candle
                 Key key = Key.Digit1 + i;
 
                 if (!Keyboard.current[key].wasPressedThisFrame) continue;
+
+                if (logSteps)
+                    Debug.Log($"[{name}] 숫자키 {i + 1} → {_wills[i]}", this);
 
                 SelectAt(i);
                 return;

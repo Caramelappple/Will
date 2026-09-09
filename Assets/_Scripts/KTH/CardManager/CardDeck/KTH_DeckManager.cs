@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Reward;
+using _Scripts.LSO.UI.Feedback;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -382,14 +383,13 @@ public class KTH_DeckManager : MonoBehaviour
         // 드로우 횟수 제한
         // =====================================================
 
+        // 더 못 뽑는 것은 규칙대로 돌아간 결과지 잘못이 아니다.
+        // 콘솔 경고 대신 거부 신호로 알린다 — 그래야 화면에서 흔들거나 소리를 낼 수 있고,
+        // 정상 플레이에서 경고가 쌓여 진짜 경고를 덮는 일도 없다.
         if (!bypassTurnLimit &&
             !CanDraw())
         {
-            Debug.LogWarning(
-                $"[KTH_DeckManager] 이번 턴 드로우 횟수를 " +
-                $"모두 사용했습니다! " +
-                $"({drawsUsedThisTurn}/{maxDrawsPerTurn})"
-            );
+            LSO_RejectSignal.Raise(LSO_RejectReason.NoDrawsLeft);
 
             return null;
         }
@@ -404,10 +404,8 @@ public class KTH_DeckManager : MonoBehaviour
             // 이미 소진 상태임을 확실하게 기록
             deckWasExhausted = true;
 
-            Debug.LogWarning(
-                "[KTH_DeckManager] 현재 덱이 비어 있습니다. " +
-                "적 턴 시작 시 버린 카드 더미를 확인합니다."
-            );
+            // 덱이 비는 것도 정상이다. 적 턴이 시작되면 버린 더미가 돌아온다.
+            LSO_RejectSignal.Raise(LSO_RejectReason.DeckEmpty);
 
             return null;
         }

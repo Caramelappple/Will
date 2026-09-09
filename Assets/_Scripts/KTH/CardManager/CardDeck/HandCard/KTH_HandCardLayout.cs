@@ -6,6 +6,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using _Scripts.LSO.UI.Panel;
+using _Scripts.LSO.Will.Candle;
 
 // 3D 전환 메모:
 // 이 스크립트는 원래도 RectTransform이 아니라 transform.DOLocalMove / DOLocalRotate를
@@ -75,6 +76,9 @@ public class KTH_HandCardLayout : MonoBehaviour
     private Vector3 originalContainerLocalPos;
     private bool isCurrentlyDown;
     private KTH_HandCard selectedCard;
+
+    // 카드 프리팹에 LSO_CardWill 이 없다는 경고를 이미 냈는지. SetupCard 참고.
+    private bool warnedMissingCardWill;
 
     public int HandCount => handCards.Count;
 
@@ -168,6 +172,42 @@ public class KTH_HandCardLayout : MonoBehaviour
         if (card == null)
         {
             return;
+        }
+
+        // 카드 오브젝트는 풀에서 돌려쓴다. 지난 판에 붙인 유언이 그대로 남은 채로
+        // 돌아오면, 방금 뽑은 카드가 이미 저주가 붙어 있는 것처럼 보이고
+        // 그대로 소환된다. 새 카드 데이터를 넣는 이 자리에서 지운다.
+        //
+        // KTH_HandCard.ResetForPool 이 아니라 여기인 이유:
+        // 버림 연출(KTH_DiscardAnimation) 경로는 카드를 Pool.Release 하지 않고
+        // 버림 더미의 자식으로 부모만 바꿔 눌러앉힌다 - 그 경로에서는
+        // ResetForPool 이 아예 안 불린다(KTH_HandCardDiscardHandler 주석 참고).
+        // 반면 SetupCard 는 풀에서 왔든 새로 만들었든 손패로 들어오는 모든 카드가
+        // 반드시 한 번 거친다.
+        LSO_CardWill cardWill =
+            card.GetComponentInChildren<LSO_CardWill>(true);
+
+        if (cardWill != null)
+        {
+            cardWill.Clear();
+        }
+        else if (!warnedMissingCardWill)
+        {
+            // 카드 프리팹에 LSO_CardWill 이 없으면 유언을 아예 붙일 수 없다.
+            // LSO_WillPainter 도 경고를 내지만 그쪽은 양초를 눌러야 나온다 -
+            // 한 번도 안 눌러보면 배선이 빠진 채로 넘어간다. 그래서 여기서도 알린다.
+            //
+            // 다만 드로우할 때마다 불리는 자리라 매번 내면 콘솔이 덮인다.
+            // 처음 한 번만 내고 그 뒤로는 침묵한다 - 배선이 빠졌다는 사실은
+            // 한 줄이면 충분하고, 고치면 어차피 다시 안 나온다.
+            warnedMissingCardWill = true;
+
+            Debug.LogWarning(
+                $"[KTH_HandCardLayout] 카드 '{card.name}' 에 LSO_CardWill 이 없어 " +
+                "유언을 붙일 수 없습니다. 카드 프리팹에 그 컴포넌트를 붙여 주세요. " +
+                "(이 경고는 한 번만 나옵니다)",
+                card
+            );
         }
 
         card.Setup(
@@ -342,10 +382,17 @@ public class KTH_HandCardLayout : MonoBehaviour
             return;
         }
 
+        // 유언 칸을 통째로 넘긴다. **값을 읽어서 넘기면 안 된다** —
+        // 지금은 아직 양초로 안 붙였을 수 있고, 칸을 고르는 사이에 붙이기 때문이다.
+        // 값은 실제로 놓는 순간 LDY_CardPlacer 가 읽는다.
+        LSO_CardWill cardWill =
+            card.GetComponentInChildren<LSO_CardWill>(true);
+
         bool started =
             cardPlacer.BeginPlacement(
                 cardData,
                 LDY_Team.Player,
+                cardWill: cardWill,
                 onPlaced: animal =>
                 {
                     if (animal != null)

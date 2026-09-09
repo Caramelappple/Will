@@ -63,7 +63,11 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
     private KTH_InitCardData initCardData;
-    private Transform visualAnchor;
+    [Tooltip("카드가 정지 상태일 때의 크기. 모든 애니메이션이 이 값으로 돌아온다.\n" +
+             "\n" +
+             "프리팹의 Transform Scale 과는 다르다 — 그쪽은 연출 도중에 계속 바뀌므로\n" +
+             "돌아올 자리를 따로 적어둔다.")]
+    [SerializeField] private Vector3 baseScale = Vector3.one;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -72,25 +76,13 @@ public class KTH_HandCard : MonoBehaviour,
 
     public LSO_CardSO CardData => cardData;
 
-    // Anchor(자식 오브젝트)의 크기가 카드가 '정지 상태'일 때 기준 크기다.
-    // 자리·상태를 정하는 주체를 Anchor 하나로 유지한다 - KTH_HandCardScaleSetting은 더 이상 쓰지 않는다.
-    public Vector3 BaseScale
-    {
-        get
-        {
-            if (visualAnchor == null)
-            {
-                Debug.LogWarning(
-                    "[KTH_HandCard] Anchor 자식을 찾지 못해 BaseScale을 Vector3.one으로 대체합니다.",
-                    this
-                );
-
-                return Vector3.one;
-            }
-
-            return visualAnchor.localScale;
-        }
-    }
+    // 카드가 '정지 상태'일 때의 기준 크기.
+    // 뽑기·선택·재정렬 애니메이션이 원래대로 돌아올 때 전부 이 값을 기준으로 삼는다.
+    //
+    // 예전에는 'Anchor'라는 자식의 크기를 읽었다. 그 자식이 없는 프리팹에서는
+    // 조용히 (1,1,1)로 떨어졌고, 어느 카드가 그런지 알 방법도 없었다.
+    // 이제 카드 자신이 값을 들고 있다 — 없는 자식을 찾을 일이 없다.
+    public Vector3 BaseScale => baseScale;
     public bool IsSelected => selectionController.IsSelected;
     public bool IsConfirmed => selectionController.IsConfirmed;
     public bool IsPlacementMode => selectionController.IsPlacementMode;
@@ -103,6 +95,14 @@ public class KTH_HandCard : MonoBehaviour,
     internal LSO_WillPanel WillPanel => willPanel;
 
     public static bool HasConfirmedSelection => KTH_HandCardSelectionController.HasConfirmedSelection;
+
+    /// <summary>
+    /// 지금 확정된(배치 모드인) 카드. 없으면 null.
+    ///
+    /// 손패 밖에서 "지금 고른 카드"가 필요할 때 쓴다.
+    /// 쓰는 곳: LSO_WillPainter — 양초를 누르면 이 카드에 유언을 붙인다.
+    /// </summary>
+    public static KTH_HandCard ConfirmedCard => KTH_HandCardSelectionController.ConfirmedCard;
 
     public event Action<KTH_HandCard> OnCardClicked;
 
@@ -143,7 +143,6 @@ public class KTH_HandCard : MonoBehaviour,
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
         initCardData = GetComponent<KTH_InitCardData>();
-        visualAnchor = transform.Find("Anchor");
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -415,11 +414,6 @@ public class KTH_HandCard : MonoBehaviour,
         if (cardCollider != null)
         {
             cardCollider.enabled = true;
-        }
-
-        if (visualAnchor == null)
-        {
-            visualAnchor = transform.Find("Anchor");
         }
 
         transform.localScale = BaseScale;
