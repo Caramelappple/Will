@@ -30,10 +30,35 @@ namespace _Scripts.LDY.Stage
                 return;
             }
 
-            foreach (LDY_StageEnemyEntry entry in stage.enemies)
+            if (stage.enemies == null || stage.enemies.Count == 0)
             {
-                if (entry == null || entry.card == null) continue;
-                _spawner.Spawn(entry.card, LDY_Team.Enemy, entry.pos);
+                Debug.LogWarning(
+                    $"{name}: {stage.stageName} 의 Enemies 가 비어 있어 놓을 적이 없습니다.", stage);
+                return;
+            }
+
+            int placed = 0;
+
+            for (int i = 0; i < stage.enemies.Count; i++)
+            {
+                LDY_StageEnemyEntry entry = stage.enemies[i];
+
+                // 조용히 건너뛰지 않는다. 칸이 비어 보이는 것과 데이터가 빈 것은 다른 일이다.
+                if (entry == null || entry.card == null)
+                {
+                    Debug.LogWarning(
+                        $"{name}: {stage.stageName} 의 Enemies[{i}] 에 카드가 없어 건너뜁니다.", stage);
+                    continue;
+                }
+
+                if (_spawner.Spawn(entry.card, LDY_Team.Enemy, entry.pos) != null) placed++;
+            }
+
+            if (placed == 0)
+            {
+                Debug.LogWarning(
+                    $"{name}: {stage.stageName} 의 적을 하나도 놓지 못했습니다. " +
+                    "위의 경고에 막힌 이유가 적혀 있습니다.", stage);
             }
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using _Scripts.LDY;
 using _Scripts.LDY.Effect;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.Reward;
@@ -89,6 +90,12 @@ namespace _Scripts.LSO.Stage
         [SerializeField] private bool logSteps;
 
         private Coroutine _routine;
+
+        /// <summary>구독해둔 상자. 끊을 때 같은 것에서 끊으려고 들고 있는다.</summary>
+        private LSO_RewardBox _subscribedBox;
+
+        /// <summary>무엇이 놓였는지 세어볼 때만 쓴다. 자리를 정하지는 않는다.</summary>
+        private LDY_BoardManager _board;
         private int _lastChapter = -1;
 
         /// <summary>연출이 도는 중인지. 기다리는 쪽이 본다.</summary>
@@ -111,28 +118,62 @@ namespace _Scripts.LSO.Stage
 
         private void OnEnable()
         {
+            // 여기서는 못 잡아도 조용히 넘어간다. 상자의 Awake가 아직 안 돌았을 수 있다.
+            SubscribeReward(warnIfMissing: false);
+        }
+
+        /// <summary>
+        /// 모든 Awake가 끝난 뒤에 한 번 더 잡는다.
+        ///
+        /// OnEnable 한 번으로 끝내면 안 된다. 그때 상자의 Awake가 아직 안 돌았으면
+        /// Instance가 비어 있는데, 거기서 포기하면 **다시는 시도하지 않는다.**
+        /// 보상은 정상적으로 끝나는데 다음 판이 세워지지 않는 모양이 된다.
+        /// </summary>
+        private void Start()
+        {
+            SubscribeReward(warnIfMissing: true);
+        }
+
+        /// <summary>
+        /// 보상이 끝나는 것을 듣는다. 두 번 불려도 한 번만 걸린다.
+        ///
+        /// 상자는 스테이지마다 새로 생긴다. 인스펙터 참조로 물면 씬을 넘길 때 끊기므로
+        /// 그때그때 Instance에게 묻는다.
+        /// </summary>
+        private void SubscribeReward(bool warnIfMissing)
+        {
             if (!followReward) return;
 
-            // 상자는 스테이지마다 새로 생긴다. 인스펙터 참조로 물면 씬을 넘길 때 끊긴다.
             LSO_RewardBox box = LSO_RewardBox.Instance;
 
             if (box == null)
             {
-                Debug.LogWarning(
-                    $"{name}: 씬에 LSO_RewardBox가 없어 보상 종료를 들을 수 없습니다. " +
-                    "밖에서 Play를 불러주세요.", this);
+                if (warnIfMissing)
+                {
+                    Debug.LogWarning(
+                        $"{name}: 씬에 LSO_RewardBox가 없어 보상 종료를 들을 수 없습니다. " +
+                        "보상이 끝나도 다음 판이 세워지지 않습니다. " +
+                        "밖에서 Play나 PlayNext를 불러주세요.", this);
+                }
+
                 return;
             }
 
             box.OnFinished -= HandleRewardFinished;
             box.OnFinished += HandleRewardFinished;
+
+            // 끊을 때 같은 상자에서 끊어야 한다. Instance가 그 사이에 바뀌면
+            // 엉뚱한 상자에서 빼면서 이쪽 구독은 남는다.
+            _subscribedBox = box;
+
+            Log("보상 종료를 듣기 시작했습니다.");
         }
 
         private void OnDisable()
         {
-            LSO_RewardBox box = LSO_RewardBox.Instance;
+            if (_subscribedBox != null) _subscribedBox.OnFinished -= HandleRewardFinished;
 
-            if (box != null) box.OnFinished -= HandleRewardFinished;
+            _subscribedBox = null;
 
             // 꺼지면 코루틴도 함께 죽는다. IsPlaying을 켠 채로 두면
             // 다시 켰을 때 Play가 "이미 도는 중"으로 보고 아무것도 하지 않는다.
@@ -149,7 +190,13 @@ namespace _Scripts.LSO.Stage
         /// </summary>
         public void Play(LDY_StageSO stage)
         {
-            if (IsPlaying) return;
+            if (IsPlaying)
+            {
+                Debug.LogWarning(
+                    $"{name}: 이미 다음 판을 세우는 중이라 무시했습니다. " +
+                    "지난 연출이 끝나지 않은 채 멈춰 있으면 여기서 영영 막힙니다.", this);
+                return;
+            }
 
             IsPlaying = true;
             _routine = StartCoroutine(Co_Play(stage));
@@ -227,7 +274,22 @@ namespace _Scripts.LSO.Stage
             //    판을 비우는 것도 LDY_StageDirector 의 스텝이 한다.
             LDY_StageSO target = Resolve(stage);
 
-            if (target != null && stageDirector != null)
+            if (stageDirector == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: LDY_StageDirector가 없어 기물을 놓지 못했습니다. " +
+                    "빈 판만 돌아옵니다.", this);
+            }
+            else if (target == null)
+            {
+                // 다음 스테이지도, 다시 세울 지금 스테이지도 없다.
+                // 여기서 조용히 넘어가면 "판은 돌아오는데 기물만 없는" 모양이 된다.
+                Debug.LogWarning(
+                    $"{name}: 세울 스테이지가 없어 기물을 놓지 못했습니다. " +
+                    "LSO_StageProgression 의 챕터 목록이 비었거나 마지막 스테이지까지 다 왔습니다. " +
+                    "(Reload Current When No Stage 를 켜면 지금 스테이지를 다시 세웁니다)", this);
+            }
+            else
             {
                 Log($"기물 배치 — {target.stageName}");
 
@@ -235,6 +297,8 @@ namespace _Scripts.LSO.Stage
                     flipDirector.RunAtHomePose(() => stageDirector.LoadStage(target));
                 else
                     stageDirector.LoadStage(target);
+
+                LogPlacedPieces();
             }
 
             onPlaced?.Invoke();
@@ -335,6 +399,34 @@ namespace _Scripts.LSO.Stage
             _lastChapter = chapter;
 
             return changed;
+        }
+
+        /// <summary>
+        /// 방금 무엇이 놓였는지 적는다.
+        ///
+        /// 하나도 안 놓였으면 경고한다. 판은 멀쩡히 돌아오는데 위가 비어 있으면,
+        /// 화면만 봐서는 배치가 막힌 것인지 스테이지에 적이 없는 것인지 알 수 없다.
+        /// </summary>
+        private void LogPlacedPieces()
+        {
+            if (_board == null) _board = FindAnyObjectByType<LDY_BoardManager>();
+
+            if (_board == null) return;
+
+            int enemies = _board.GetAllByTeam(LDY_Team.Enemy).Count;
+            int allies = _board.GetAllByTeam(LDY_Team.Player).Count;
+
+            if (enemies == 0)
+            {
+                Debug.LogWarning(
+                    $"{name}: 기물을 놓았는데 판 위에 적이 하나도 없습니다. " +
+                    "스테이지 SO 의 Enemies 가 비었거나, 칸이 겹쳐 소환이 막혔을 수 있습니다. " +
+                    "바로 위 줄에 LDY_BoardUnitSpawner 의 경고가 있는지 보세요.", this);
+
+                return;
+            }
+
+            Log($"놓임 — 적 {enemies}, 아군 {allies}");
         }
 
         private void Log(string message)

@@ -75,14 +75,33 @@ namespace _Scripts.LDY.Effect
                  "회전이 끝난 뒤가 아니라 시작할 때 켜야 들어오는 것이 보인다.")]
         [SerializeField] private bool hideAnchorUntilFlip = true;
 
-        [Header("회전")]
-        [Tooltip("보드 중심에서 위아래로 얼마나 떨어진 곳을 축이 지나갈지.\n" +
-                 "타일 중심 높이(-0.05)에 두면 보드가 제자리에서 앞뒤 면만 맞바뀐다.")]
-        [SerializeField] private float pivotHeightOffset = -0.05f;
+        [Header("회전축")]
+        [Tooltip("축이 지나갈 자리를 잡아줄 오브젝트. **비워두면 보드 중심을 쓴다.**\n" +
+                 "\n" +
+                 "눈으로 보면서 맞추고 싶을 때 빈 오브젝트를 하나 만들어 끌어다 놓는다.\n" +
+                 "그 오브젝트를 씬에서 옮기면 도는 축이 따라 옮겨진다.\n" +
+                 "\n" +
+                 "보드 루트의 자식으로 두면 안 된다. 판과 같이 돌아버려서\n" +
+                 "되돌릴 때 축이 딴 데로 간다. 넣으면 검사해서 경고한다.")]
+        [SerializeField] private Transform pivotSource;
 
-        [Tooltip("월드 기준 회전축. X축이면 카메라 쪽으로 앞뒤로 넘어간다.")]
+        [Tooltip("그 자리에서 얼마나 옮길지. 월드 기준이다.\n" +
+                 "\n" +
+                 "Y = -0.05 는 타일 중심 높이다. 여기 두면 보드가 제자리에서\n" +
+                 "앞뒤 면만 맞바뀐다.\n" +
+                 "\n" +
+                 "Z 를 앞으로 빼면 판이 카메라 쪽으로 넘어오면서 돌고,\n" +
+                 "뒤로 밀면 저 안쪽에서 넘어간다. X 는 좌우로 치우친 축이 된다.")]
+        [SerializeField] private Vector3 pivotOffset = new Vector3(0f, -0.05f, 0f);
+
+        [Tooltip("월드 기준 축 방향. X축이면 카메라 쪽으로 앞뒤로 넘어간다.")]
         [SerializeField] private Vector3 flipAxis = Vector3.right;
 
+        [Tooltip("켜면 씬 화면에 축이 지나가는 선을 그린다. 플레이 중이 아니어도 보인다.\n" +
+                 "축을 옮겨보며 맞출 때 켜둘 것.")]
+        [SerializeField] private bool drawPivotGizmo = true;
+
+        [Header("회전")]
         [Tooltip("180 = 완전히 뒤집어 같은 자리에 뒷면을 놓는다.\n" +
                  "145 = 뒷면이 카메라를 정면으로 마주 본다(90 + 카메라 피치 55).")]
         [SerializeField] private float flipAngle = 180f;
@@ -513,7 +532,7 @@ namespace _Scripts.LDY.Effect
             //    축이 지나간 지점과 뒤집기 전 자세를 남겨둔다.
             //    되돌릴 때 같은 점을 써야 왔던 길로 돌아오고,
             //    뒤집힌 동안 격자 계산을 하려면 앞면 자세를 되짚어야 한다.
-            _flipPivot = board.BoardCenter + Vector3.up * pivotHeightOffset;
+            _flipPivot = ResolvePivot();
 
             boardRoot.GetPositionAndRotation(out _homePosition, out _homeRotation);
 
@@ -589,6 +608,95 @@ namespace _Scripts.LDY.Effect
             survivors.AddRange(board.GetAllByTeam(LDY_Team.Enemy));
             return survivors;
         }
+
+        // =========================================================
+        // 회전축
+        // =========================================================
+
+        /// <summary>
+        /// 이번에 돌 때 축이 지나갈 지점.
+        ///
+        /// 자리를 정하는 것은 여기 하나다. Pivot Source 가 있으면 그 오브젝트의 위치,
+        /// 없으면 보드 중심을 기준으로 삼고, 거기에 Pivot Offset 을 더한다.
+        ///
+        /// 한 번 정한 값은 _flipPivot 에 남겨 되돌릴 때 그대로 쓴다.
+        /// 다시 계산하면 안 되는 이유는 _flipPivot 주석에 적어뒀다.
+        /// </summary>
+        private Vector3 ResolvePivot()
+        {
+            if (pivotSource == null)
+            {
+                if (board != null) return board.BoardCenter + pivotOffset;
+
+                Debug.LogWarning(
+                    $"{name}: LDY_BoardManager가 없어 축을 이 오브젝트 자리에서 잡습니다. " +
+                    "판이 엉뚱한 데로 휘둘리면 Board 를 연결하거나 Pivot Source 를 넣으세요.", this);
+
+                return transform.position + pivotOffset;
+            }
+
+            WarnIfPivotRidesBoard();
+
+            return pivotSource.position + pivotOffset;
+        }
+
+        /// <summary>
+        /// 축 오브젝트가 판에 실려 같이 도는지 본다.
+        ///
+        /// 그러면 갈 때와 돌아올 때의 축이 달라진다 — 보드 원점(boardOrigin)으로 좌표를
+        /// 계산했다가 두 번 물렸던 것과 같은 종류다. 근본은 하나다.
+        /// **도는 것을 기준으로 도는 자리를 정하면 안 된다.**
+        /// </summary>
+        private void WarnIfPivotRidesBoard()
+        {
+            if (board == null) return;
+
+            Transform boardRoot = board.BoardRoot;
+
+            if (boardRoot == null) return;
+            if (!pivotSource.IsChildOf(boardRoot)) return;
+
+            Debug.LogWarning(
+                $"{name}: 회전축 오브젝트 '{pivotSource.name}' 가 보드 루트의 자식입니다. " +
+                "판과 같이 돌아서 되돌릴 때 축이 딴 데로 갑니다. 보드 밖으로 빼세요.", this);
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 축이 지나가는 선을 씬 화면에 그린다. 옮겨보며 맞추라고 있는 것이다.
+        ///
+        /// 도는 중에는 이번에 실제로 쓰는 축(_flipPivot)을 그린다.
+        /// 멈춰 있을 때는 지금 설정대로면 어디가 될지를 그린다.
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (!drawPivotGizmo) return;
+
+            Vector3 pivot = IsPlaying ? _flipPivot : PreviewPivot();
+
+            if (flipAxis.sqrMagnitude <= Mathf.Epsilon) return;
+
+            Vector3 half = flipAxis.normalized * 5f;
+
+            Gizmos.color = new Color(1f, 0.6f, 0.1f, 0.9f);
+            Gizmos.DrawLine(pivot - half, pivot + half);
+            Gizmos.DrawSphere(pivot, 0.12f);
+        }
+
+        /// <summary>
+        /// 멈춰 있을 때 보여줄 축 자리. 경고를 내지 않는 조용한 판이다.
+        ///
+        /// ResolvePivot 을 그대로 쓰면 화면을 다시 그릴 때마다 경고가 쏟아진다.
+        /// 실제 경고는 돌기 시작할 때 한 번만 나가면 된다.
+        /// </summary>
+        private Vector3 PreviewPivot()
+        {
+            if (pivotSource != null) return pivotSource.position + pivotOffset;
+            if (board != null) return board.BoardCenter + pivotOffset;
+
+            return transform.position + pivotOffset;
+        }
+#endif
 
         // =========================================================
         // 디버그 (에디터 전용)
