@@ -220,6 +220,18 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         public event System.Action<LSO_RewardOption> OnFinished;
 
+        /// <summary>
+        /// 보상이 이미 시작된 뒤인지.
+        ///
+        /// 시작시키는 곳이 둘이 되는 실수를 잡으려고 열어둔다.
+        /// 흐름(LSO_StageFlow)이 시작시키기 전에 이미 켜져 있으면,
+        /// 인스펙터에서도 Begin을 부르고 있다는 뜻이다.
+        ///
+        /// 그러면 판이 다 돌기 전에 보상 카메라가 들어와 회전을 가린다.
+        /// 정리가 끝나면 다시 꺼진다.
+        /// </summary>
+        public bool HasBegun => _phase != Phase.Idle;
+
         /// <summary>클릭을 받지 않는 구간인지. 밖에서 커서 모양을 바꿀 때 본다.</summary>
         public bool IsBusy =>
             _phase == Phase.Opening
