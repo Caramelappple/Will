@@ -258,6 +258,14 @@ namespace _Scripts.LDY
             Transform tt = target.modelTransform;
             Vector3 dir = LocalDirectionTo(tt, attacker.modelTransform.position, tt.position);
 
+            // 맞는 쪽의 호버 연출(LSO_HoverMoveEffect)도 같은 트랜스폼의 localPosition을 건드린다.
+            // 여기서 안 쉬게 하면 커서가 대상 위에 있을 때 두 트윈이 같은 값을 두고 다퉈서
+            // 위아래로 떨리고, 호버 쪽 트윈이 중간에 끊겨 나중에 마우스를 떼도 안 풀리는 것처럼 보인다(KTH).
+            // 이동(LDY_MoveSystem)이 자기 자신을 쉬게 하는 것과 같은 이유·같은 패턴이다.
+            var hoverEffects = target.GetComponentsInChildren<LSO_HoverMoveEffect>(true);
+            foreach (var effect in hoverEffects)
+                if (effect != null) effect.SetSuspended(true, restore: false);
+
             // 밀려나가는 쪽까지 트윈으로 처리하면 이징 곡선 때문에 처음 한두 프레임은
             // 거의 안 움직이는 것처럼 보여서 "맞고 나서 잠깐 뒤에 밀림"처럼 느껴진다.
             // 그래서 나가는 건 트윈 없이 그 자리에서 바로 스냅하고, 돌아오는 길만 애니메이션한다.
@@ -266,7 +274,16 @@ namespace _Scripts.LDY
 
             tt.DOLocalMove(originalLocalPos, knockbackReturnDuration)
                 .SetEase(Ease.OutBack)
-                .SetLink(target.gameObject);
+                .SetLink(target.gameObject)
+                .OnComplete(() =>
+                {
+                    foreach (var effect in hoverEffects)
+                    {
+                        if (effect == null) continue;
+                        effect.ClearOffset();
+                        effect.SetSuspended(false);
+                    }
+                });
         }
 
         /// <summary>

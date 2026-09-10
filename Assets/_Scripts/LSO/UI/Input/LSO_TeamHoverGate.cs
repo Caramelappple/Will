@@ -4,11 +4,14 @@ using UnityEngine;
 namespace _Scripts.LSO.UI.Input
 {
     /// <summary>
-    /// 정해둔 팀의 기물만 호버를 받게 한다. 여닫는 것 외의 책임은 갖지 않는다.
+    /// 정해둔 팀의 기물만, 그 팀의 턴일 때만 호버를 받게 한다. 여닫는 것 외의 책임은 갖지 않는다.
     ///
     /// 적 기물이 커서를 따라 떠오르면 "고를 수 있는 것"으로 읽힌다.
     /// 그래서 호버 자체를 막는다 — 연출마다 팀을 확인하게 두면 그 검사가 흩어지고,
     /// 하나만 빠뜨려도 그것만 반응한다.
+    ///
+    /// 턴도 같은 이유로 여기서 함께 본다(KTH) — 적 턴에 내 기물이 떠오르면 지금 조작할 수
+    /// 있는 것처럼 보이는데, 실제로는 내 턴이 아니라 아무 반응도 없다. 화면과 실제가 어긋난다.
     ///
     /// 막는 대상은 LSO_ButtonHoverHandler다. 콜라이더는 그대로 두므로
     /// 클릭이나 다른 판정에는 영향이 없다. LSO_TurnClickGate와 같은 규칙이다.
@@ -25,7 +28,14 @@ namespace _Scripts.LSO.UI.Input
         [Tooltip("비우면 자신과 부모에서 찾는다.")]
         [SerializeField] private LDY_Animal animal;
 
-        [Tooltip("켜면 매 프레임 팀을 다시 본다.\n" +
+        [Tooltip("켜면 지금이 allowedTeam의 턴일 때만 호버를 받는다 (KTH).\n" +
+                 "턴 매니저를 못 찾으면(씬에 없거나 배선이 안 됐으면) 턴은 안 보고 팀만 본다.")]
+        [SerializeField] private bool alsoRequireTurn = true;
+
+        [Tooltip("비우면 씬에서 찾는다. alsoRequireTurn을 쓸 때만 필요하다.")]
+        [SerializeField] private LDY_TurnManager turnManager;
+
+        [Tooltip("켜면 매 프레임 팀·턴을 다시 본다.\n" +
                  "\n" +
                  "LDY_Animal.team은 소환할 때 정해지는데 알려주는 신호가 없다.\n" +
                  "OnEnable에서 한 번만 보면 그 뒤에 정해진 팀을 놓친다.\n" +
@@ -42,6 +52,15 @@ namespace _Scripts.LSO.UI.Input
 
             if (animal == null)
                 Debug.LogWarning($"{name}: LDY_Animal을 찾지 못해 팀을 볼 수 없습니다. 항상 열어둡니다.", this);
+        }
+
+        private void Start()
+        {
+            // Awake가 아니라 Start다. 턴 매니저가 자기 Awake를 마친 뒤여야 한다.
+            if (alsoRequireTurn && turnManager == null)
+                turnManager = FindAnyObjectByType<LDY_TurnManager>();
+
+            Refresh();
         }
 
         /// <summary>
@@ -72,16 +91,18 @@ namespace _Scripts.LSO.UI.Input
         }
 
         /// <summary>
-        /// 지금 팀을 보고 문을 여닫는다. 팀을 바꾼 쪽에서 직접 불러도 된다.
+        /// 지금 팀·턴을 보고 문을 여닫는다. 팀을 바꾼 쪽에서 직접 불러도 된다.
         ///
-        /// 기물을 못 찾았으면 열어둔다. 없다는 이유로 막으면
+        /// 기물을 못 찾았거나 턴 매니저를 못 찾았으면 그 조건은 열어둔다. 없다는 이유로 막으면
         /// 배선을 빠뜨렸을 때 영영 반응이 없는 상태가 되어 원인을 찾기 어렵다.
         /// </summary>
         public void Refresh()
         {
             if (_handler == null) return;
 
-            bool open = animal == null || animal.team == allowedTeam;
+            bool teamOk = animal == null || animal.team == allowedTeam;
+            bool turnOk = !alsoRequireTurn || turnManager == null || turnManager.CurrentTurn == allowedTeam;
+            bool open = teamOk && turnOk;
 
             // 값이 그대로면 건드리지 않는다. 매 프레임 껐다 켜면
             // 호버 핸들러의 OnDisable이 돌아 다른 것들이 함께 반응한다.

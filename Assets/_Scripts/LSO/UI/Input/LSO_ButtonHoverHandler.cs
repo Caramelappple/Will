@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,8 +15,15 @@ namespace _Scripts.LSO.UI.Input
         [Tooltip("Selectable이 있을 때 interactable이 false면 연출을 재생하지 않는다.")]
         [SerializeField] private bool respectInteractable = true;
 
+        [Tooltip("이탈을 곧바로 처리하지 않고 이만큼 기다린다 (KTH). 3D 기물은 뜨면서 콜라이더도 같이\n" +
+                 "움직이는데, 커서가 경계에 걸쳐 있으면 뜬 순간 콜라이더가 커서를 벗어나 이탈 → 복귀\n" +
+                 "→ 다시 진입 → 다시 이탈을 반복하며 위아래로 떤다. 유예 시간 안에 다시 진입하면 그\n" +
+                 "이탈은 없었던 일로 친다. 0이면 예전처럼 즉시 이탈 처리한다.")]
+        [SerializeField, Min(0f)] private float exitGraceSeconds = 0.08f;
+
         private LSO_IHoverEffect[] _effects;
         private Selectable _selectable;
+        private Coroutine _pendingExit;
 
         /// <summary>지금 커서가 올라가 있는지. 밖에서 상태를 볼 때 쓴다.</summary>
         public bool IsHovered { get; private set; }
@@ -46,6 +54,15 @@ namespace _Scripts.LSO.UI.Input
         {
             if (!CanPlay()) return;
 
+            // 유예 중이던 이탈이 있으면 취소한다 — 실제로는 계속 커서 안에 있었던 것이다.
+            // 이미 IsHovered가 true이고 연출도 뜬 채로 있으므로 OnHoverEnter를 또 부르지 않는다.
+            if (_pendingExit != null)
+            {
+                StopCoroutine(_pendingExit);
+                _pendingExit = null;
+                return;
+            }
+
             IsHovered = true;
 
             foreach (var effect in _effects)
@@ -56,6 +73,21 @@ namespace _Scripts.LSO.UI.Input
         {
             if (!CanPlay()) return;
 
+            if (exitGraceSeconds <= 0f)
+            {
+                SendExit();
+                return;
+            }
+
+            if (_pendingExit != null) StopCoroutine(_pendingExit);
+            _pendingExit = StartCoroutine(ExitAfterGrace());
+        }
+
+        private IEnumerator ExitAfterGrace()
+        {
+            yield return new WaitForSeconds(exitGraceSeconds);
+
+            _pendingExit = null;
             SendExit();
         }
 
@@ -64,9 +96,16 @@ namespace _Scripts.LSO.UI.Input
         ///
         /// 게이트가 이 컴포넌트를 껐을 때가 그렇다. 그대로 두면 올라간 물건이 떠오른 채로,
         /// 커서 요청이 걸린 채로 굳는다. 꺼지기 전에 이탈을 한 번 보내 정리한다.
+        /// 유예 중이던 이탈도 즉시 확정한다 — 꺼지는 마당에 유예를 더 기다릴 이유가 없다.
         /// </summary>
         private void OnDisable()
         {
+            if (_pendingExit != null)
+            {
+                StopCoroutine(_pendingExit);
+                _pendingExit = null;
+            }
+
             SendExit();
         }
 

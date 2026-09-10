@@ -349,7 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4262e43e9d077324d891b538aa3ed2d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverMoveEffect
-  target: {fileID: 4620970819943915915}
+  target: {fileID: 5281586973659791504}
   offset: {x: 0, y: 0.2, z: 0}
   enterDuration: 0.1
   exitDuration: 0.16

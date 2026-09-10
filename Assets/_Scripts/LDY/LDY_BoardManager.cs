@@ -144,7 +144,12 @@ namespace _Scripts.LDY
             // 격자 위치(GridToWorld)와 기물 자신의 바닥 보정치(restHeight)는 서로 다른 주체가 정하는
             // 값이라 여기서만 합친다 — GridToWorld 자체에 기물별 높이를 넣으면 다른 호출부(공격/효과 연출 등)의
             // 좌표까지 특정 기물 사정에 맞춰 어긋난다.
-            Vector3 finalWorldPos = GridToWorld(p) + Vector3.up * animal.restHeight;
+            //
+            // 처음 배치될 때 딱 한 번 이 높이를 RestWorldY로 기억해둔다(KTH). 그 뒤로 이동·공격·호버가
+            // "원래 높이로 돌아온다"고 할 때는 이 값을 그대로 재사용한다 — 매번 다시 계산하지 않는다.
+            Vector3 gridWorldPos = GridToWorld(p);
+            animal.RememberRestWorldY(gridWorldPos.y + animal.restHeight);
+            Vector3 finalWorldPos = new Vector3(gridWorldPos.x, animal.RestWorldY.Value, gridWorldPos.z);
             placementAnimation.Play(animal.modelTransform, finalWorldPos, animal.gameObject);
 
             RaiseBoardChanged();

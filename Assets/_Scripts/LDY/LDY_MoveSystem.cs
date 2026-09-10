@@ -13,6 +13,8 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [Tooltip("한 칸을 지나는 데 걸리는 연출 시간. 여러 칸을 움직이면 칸 수에 비례해 늘어난다.")]
         [SerializeField] private float moveDuration = 0.3f;
+        [Tooltip("이동 방향을 바라보게 돌아가는 데 걸리는 시간 (KTH). 두트윈으로 부드럽게 돈다.")]
+        [SerializeField] private float turnDuration = 0.15f;
         [Tooltip("미끄러지듯 가는 대신 떠오르고-이동하고-내려놓는 연출 (KTH).")]
         [SerializeField] private KTH_MoveAnimation moveAnimation = new KTH_MoveAnimation();
 
@@ -93,9 +95,13 @@ namespace _Scripts.LDY
                 animal.Abilities, a => a.OnMoveStarted(animal, from, animal.pos));
 
             // board.Move가 높이(y)를 유지한 채 animal.pos를 갱신하므로, 연출도 그 최종 위치를 따라간다.
-            // restHeight(KTH)는 배치 때와 같은 이유로 여기서도 더한다 — 안 더하면 이동할 때마다
-            // 기물이 자기 바닥 보정치를 잃고 GridToWorld 그대로(바닥)로 내려앉는다.
-            StartCoroutine(MoveVisual(animal, from, board.GridToWorld(animal.pos) + Vector3.up * animal.restHeight));
+            // 높이(y)는 RestWorldY(KTH)를 쓴다 — 처음 배치될 때 기억해둔 값을 그대로 재사용해서, 여기서
+            // 다시 계산하다 restHeight를 빠뜨리는 사고를 막는다. 아직 한 번도 배치를 안 거친 기물이면
+            // (있을 수 없는 경우지만) GridToWorld+restHeight로 즉석에서 계산해 대비한다.
+            float landY = animal.RestWorldY ?? (board.GridToWorld(animal.pos).y + animal.restHeight);
+            Vector3 targetWorldPos = board.GridToWorld(animal.pos);
+            targetWorldPos.y = landY;
+            StartCoroutine(MoveVisual(animal, from, targetWorldPos));
         }
 
         /// <summary>
@@ -156,7 +162,7 @@ namespace _Scripts.LDY
                     Mathf.Abs(animal.pos.x - from.x), Mathf.Abs(animal.pos.z - from.z));
 
                 yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance),
-                    ResolveEasing(animal), moveAnimation);
+                    ResolveEasing(animal), moveAnimation, turnDuration);
 
                 // 도착한 뒤에 알린다. 돌진처럼 이동이 방아쇠인 특성은 부딪히는 순간에 맞춰
                 // 밀어내기를 일으켜야 하는데, 출발할 때 알리면 황소왕이 아직 오는 중인데
@@ -180,17 +186,24 @@ namespace _Scripts.LDY
 
         private static IEnumerator Travel(
             LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing,
-            KTH_MoveAnimation moveAnimation)
+            KTH_MoveAnimation moveAnimation, float turnDuration)
         {
             Transform t = animal != null ? animal.modelTransform : null;
             if (t == null) yield break;
 
             // 이동 방향을 바라보도록 돌려놓는다. 공격 쪽(LDY_AttackSystem)과 마찬가지로
             // 방향을 다시 되돌리지 않는다 — 다음 행동이 있기 전까지 마지막으로 향한 쪽을 계속 본다.
+            // 두트윈으로 부드럽게 돈다(KTH) — 이동 자체와 동시에 재생되도록 완료를 기다리지 않는다.
             Vector3 moveDir = targetWorldPos - t.position;
             moveDir.y = 0f;
             if (moveDir.sqrMagnitude > 0.0001f)
-                t.rotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
+            {
+                Quaternion faceMoveDir = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
+                if (turnDuration <= 0f)
+                    t.rotation = faceMoveDir;
+                else
+                    t.DORotateQuaternion(faceMoveDir, turnDuration).SetLink(animal.gameObject);
+            }
 
             // 이동 애니메이션과 호버 연출(LSO_HoverMoveEffect)이 같은 모델 트랜스폼을 함께
             // 움직인다. 이동 중에 커서가 기물 위를 지나가면, 호버가 "아직 도착하지 않은"
