@@ -15,6 +15,8 @@ namespace _Scripts.LDY
         [SerializeField] private Transform boardOrigin;
         [SerializeField] private float cellSize = 0.75f;
         [SerializeField] private float heightStep = 1f;
+        [Tooltip("기물을 배치할 때 지정한 높이만큼 아래에서 솟아오르는 연출 (KTH).")]
+        [SerializeField] private KTH_PlacementAnimation placementAnimation = new KTH_PlacementAnimation();
 
         /// <summary>정사각형 보드 루트에 적용된 실제 월드 스케일.</summary>
         public float UniformWorldScale
@@ -138,7 +140,12 @@ namespace _Scripts.LDY
 
             _grid[p.x, p.z] = animal;
             animal.pos = p;
-            animal.modelTransform.position = GridToWorld(p);
+
+            // 격자 위치(GridToWorld)와 기물 자신의 바닥 보정치(restHeight)는 서로 다른 주체가 정하는
+            // 값이라 여기서만 합친다 — GridToWorld 자체에 기물별 높이를 넣으면 다른 호출부(공격/효과 연출 등)의
+            // 좌표까지 특정 기물 사정에 맞춰 어긋난다.
+            Vector3 finalWorldPos = GridToWorld(p) + Vector3.up * animal.restHeight;
+            placementAnimation.Play(animal.modelTransform, finalWorldPos, animal.gameObject);
 
             RaiseBoardChanged();
         }

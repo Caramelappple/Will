@@ -74,6 +74,9 @@ namespace _Scripts.LDY
         [Header("3D")]
         [Tooltip("이동/공격 연출 시 실제로 움직일 3D 모델 트랜스폼. 비워두면 자기 자신의 transform을 사용한다.")]
         public Transform modelTransform;
+        [Tooltip("보드에 배치됐을 때 바닥에서 얼마나 띄워서 놓을지 (KTH). 모델 피벗이 바닥에 있지 않은 기물을 " +
+                 "기물별로 보정한다. LDY_BoardManager.GridToWorld의 격자 층 계산과는 별개로 항상 그대로 더해진다.")]
+        public float restHeight = 0f;
 
         private readonly List<LSO_IAbility> _abilities = new();
         private bool _abilitiesRegistered;

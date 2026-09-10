@@ -1187,7 +1187,6 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 156028759}
-  restHeight: 0
 --- !u!114 &156028761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2626,7 +2625,6 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 534439822}
-  restHeight: 0
 --- !u!114 &534439824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5066,7 +5064,7 @@ MonoBehaviour:
   lungeRatio: 0.4
   lungeArcHeight: 0
   lungeTiltAngle: 0
-  turnDuration: 0.08
+  turnDuration: 0.03
   windupLeanAngle: 20
   windupLeanDuration: 0.1
   knockbackDistance: 0.6
@@ -5110,10 +5108,9 @@ MonoBehaviour:
   cellSize: 1
   heightStep: 1
   placementAnimation:
-    riseHeight: 0.13
+    riseHeight: 0.5
     duration: 0.25
-    riseEase: 6
-    settleEase: 30
+    ease: 27
 --- !u!114 &1007328539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5335,7 +5332,6 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1100688258}
-  restHeight: 0
 --- !u!114 &1100688260
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6536,7 +6532,6 @@ MonoBehaviour:
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1385833812}
-  restHeight: 0
 --- !u!114 &1385833814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10945,7 +10940,6 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2101640037}
-  restHeight: 0
 --- !u!114 &2101640039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11099,7 +11093,6 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2121754915}
-  restHeight: 0
 --- !u!114 &2121754917
 MonoBehaviour:
   m_ObjectHideFlags: 0
