@@ -354,6 +354,8 @@ public sealed class DLJ_SharkKingHuntingGround :
         LDY_BoardManager board = _context.Board;
         if (board == null || _owner == null || _owner.health == null) return;
 
+        _sharkKing?.PlayAttackEffects(volley.Origins, volley.Size, board);
+
         // 두 경고 영역이 겹쳐도 같은 발동에서 한 기물은 한 번만 맞는다.
         HashSet<LDY_Animal> victims = new();
         foreach (Vector3Int tile in EnumerateTiles(volley))

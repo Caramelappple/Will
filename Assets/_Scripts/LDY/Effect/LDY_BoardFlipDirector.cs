@@ -467,6 +467,9 @@ namespace _Scripts.LDY.Effect
             // "아직 뒤집혀 있다"고 보고 엉뚱한 기준점으로 튀지 않는다.
             _motion.MarkRestored();
 
+            // 같은 씬에서 다음 전투를 시작하므로 회전 중 닫았던 입력도 되돌린다.
+            _gate?.Open();
+
             onReversed?.Invoke();
         }
 
