@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.HealthSystem.Data;
 using UnityEngine;
@@ -11,6 +12,7 @@ public sealed class DLJ_SharkKingPreyMark : MonoBehaviour, LSO_IDamageModifier
     private const int BonusDamage = 2;
 
     private readonly HashSet<Health> _sharks = new();
+    private readonly Dictionary<Health, GameObject> _markVisuals = new();
     private Health _health;
     private bool _registered;
 
@@ -21,8 +23,21 @@ public sealed class DLJ_SharkKingPreyMark : MonoBehaviour, LSO_IDamageModifier
     {
         if (shark == null) return;
 
-        _sharks.Add(shark);
+        bool added = _sharks.Add(shark);
         RegisterModifier();
+
+        if (!added || _markVisuals.ContainsKey(shark)) return;
+
+        DLJ_SharkKing sharkKing = shark.GetComponent<DLJ_SharkKing>();
+        LDY_Animal prey = GetComponent<LDY_Animal>();
+        Transform anchor = prey != null && prey.modelTransform != null
+            ? prey.modelTransform
+            : transform;
+        GameObject visual = sharkKing != null
+            ? sharkKing.CreatePredationMarkVisual(anchor)
+            : null;
+        if (visual != null)
+            _markVisuals.Add(shark, visual);
     }
 
     public bool IsMarkedBy(Health shark)
@@ -57,5 +72,13 @@ public sealed class DLJ_SharkKingPreyMark : MonoBehaviour, LSO_IDamageModifier
     {
         if (_registered && _health != null)
             _health.RemoveDamageModifier(this);
+
+        foreach (GameObject visual in _markVisuals.Values)
+        {
+            if (visual != null)
+                Destroy(visual);
+        }
+
+        _markVisuals.Clear();
     }
 }
