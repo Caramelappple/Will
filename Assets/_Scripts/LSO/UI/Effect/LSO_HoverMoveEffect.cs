@@ -44,6 +44,33 @@ namespace _Scripts.LSO.UI.Effect
         [SerializeField] private Ease easeEnter = Ease.OutQuad;
         [SerializeField] private Ease easeExit = Ease.OutQuad;
 
+        [Header("추가 애니메이션 (선택)")]
+        [Tooltip("비워두면 아무 일도 안 한다. 기물에서 뜨는 동작과 같이 재생할 " +
+                 "추가 연출(KTH)이 있을 때만 연결한다.")]
+        [SerializeField] private KTH_PiecesHoveringAnimation extraAnimation;
+
+        /// <summary>호버로 떠오를 때 옮기는 오프셋. 다른 연출(예: 이동 시 뜨는 높이)이 같은
+        /// 값을 따라가고 싶을 때 읽는 용도 — 값을 정하는 주체는 여전히 이 컴포넌트 하나다.</summary>
+        public Vector3 Offset => offset;
+
+        /// <summary>
+        /// 지금 화면에 보이는 위치가 아니라, 뜨기 전 "진짜 바닥"의 월드 y를 돌려준다.
+        ///
+        /// 떠 있는 중(트윈이 아직 한 프레임도 안 돌았을 수도 있음)에 target.position.y를 그대로
+        /// 읽으면 뜬 높이를 바닥으로 착각할 수 있다. 여기서는 대신 캐싱해둔 _originalPosition
+        /// (뜨기 직전 로컬 좌표)을 쓴다 — 떠 있는 적이 없으면 지금 위치가 곧 바닥이다.
+        /// </summary>
+        public float GroundWorldY()
+        {
+            if (_target == null) return 0f;
+            if (!_isOffset) return _target.position.y;
+
+            Vector3 groundWorld = _target.parent != null
+                ? _target.parent.TransformPoint(_originalPosition)
+                : _originalPosition;
+            return groundWorld.y;
+        }
+
         private Transform _target;
         private Vector3 _originalPosition;
         private bool _isOffset;
@@ -56,6 +83,9 @@ namespace _Scripts.LSO.UI.Effect
         private void Awake()
         {
             _target = target != null ? target : transform;
+
+            // 인스펙터에서 안 걸어뒀으면 같은 오브젝트에서 자동으로 찾는다.
+            if (extraAnimation == null) extraAnimation = GetComponent<KTH_PiecesHoveringAnimation>();
         }
 
         /// <summary>
@@ -123,6 +153,7 @@ namespace _Scripts.LSO.UI.Effect
                 if (!_isOffset) _originalPosition = _target.localPosition;
                 _isOffset = true;
                 MoveTo(_originalPosition + offset, enterDuration, easeEnter);
+                extraAnimation?.PlayHoverEnter();
             }
             else if (_isOffset)
             {
@@ -132,6 +163,7 @@ namespace _Scripts.LSO.UI.Effect
                     _tween.OnComplete(() => { _isOffset = false; _tween = null; });
                 else
                     _isOffset = false;
+                extraAnimation?.PlayHoverExit();
             }
         }
 
@@ -152,9 +184,37 @@ namespace _Scripts.LSO.UI.Effect
         /// </summary>
         public void SetSuspended(bool suspended)
         {
+            SetSuspended(suspended, restore: true);
+        }
+
+        /// <summary>
+        /// 지금 있는 자리를 새 "원래 자리"로 받아들인다. 위치는 건드리지 않고 오프셋 상태만 지운다.
+        ///
+        /// restore: false로 쉬는 동안 외부(이동 등)가 대상을 아예 다른 칸으로 옮겨놓았을 때 필요하다.
+        /// 그 상태로 그냥 SetSuspended(false)만 부르면, 옛 칸에서 기억해둔 _originalPosition이
+        /// 여전히 남아있어서 복귀 트윈이 새로 도착한 칸에서 옛 칸으로 끌고 가버린다.
+        /// 이동이 끝나 자리를 완전히 새로 잡은 뒤, 재개하기 전에 불러서 그 기억을 지운다.
+        /// </summary>
+        public void ClearOffset()
+        {
+            _isOffset = false;
+            _liftRequested = false;
+        }
+
+        /// <summary>
+        /// restore를 false로 주면 쉬기 시작할 때 원래 자리로 되돌리지 않고 트윈만 멈춘다.
+        /// 뜬 자리에서 그대로 재생해야 하는 외부 연출(예: 공격 포물선)이 있을 때 쓴다.
+        /// 이 경우 자리를 되돌리는 책임은 호출한 쪽이 이후에 SetSelected(false) 등으로 진다.
+        /// </summary>
+        public void SetSuspended(bool suspended, bool restore)
+        {
             if (suspended)
             {
-                if (++_suspendCount == 1) RestoreImmediate();
+                if (++_suspendCount == 1)
+                {
+                    if (restore) RestoreImmediate();
+                    else KillTween();
+                }
                 return;
             }
 
