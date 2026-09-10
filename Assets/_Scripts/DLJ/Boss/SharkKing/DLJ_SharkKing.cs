@@ -3,6 +3,7 @@ using DG.Tweening;
 using _Scripts.LDY;
 using _Scripts.LSO.Camera;
 using _Scripts.LSO.Manager;
+using _Scripts.LSO.UI.Popup;
 using UnityEngine;
 
 /// <summary>
@@ -55,6 +56,16 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     [SerializeField, Min(0f)] private float attackShakeDuration = 0.18f;
     [SerializeField, Min(0f)] private float attackShakeStrength = 0.08f;
 
+    [Header("Predation Mark")]
+    [Tooltip("포식 상태의 기물 위에 표시할 문양 프리팹. 비워두면 임시 Quad 사용")]
+    [SerializeField] private GameObject predationMarkPrefab;
+    [Tooltip("기물 모델을 기준으로 한 문양 위치")]
+    [SerializeField] private Vector3 predationMarkLocalOffset = new(0f, 1f, 0f);
+    [Tooltip("문양 프리팹의 원래 크기에 곱할 배율")]
+    [SerializeField] private Vector3 predationMarkScale = new(0.35f, 0.35f, 0.35f);
+    [Tooltip("임시 Quad에만 적용할 색상")]
+    [SerializeField] private Color fallbackPredationMarkColor = new(0.65f, 0.05f, 0.05f, 1f);
+
     private readonly Dictionary<object, List<GameObject>> _warnings = new();
     private readonly HashSet<GameObject> _attackEffects = new();
     private LDY_TurnManager _turnManager;
@@ -76,6 +87,41 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     public void RegisterHuntingGround(DLJ_SharkKingHuntingGround huntingGround)
     {
         _huntingGround = huntingGround;
+    }
+
+    public GameObject CreatePredationMarkVisual(Transform targetAnchor)
+    {
+        if (targetAnchor == null) return null;
+
+        GameObject mark;
+        if (predationMarkPrefab != null)
+        {
+            mark = Instantiate(predationMarkPrefab, targetAnchor);
+            mark.name = $"{predationMarkPrefab.name}_PredationMark";
+        }
+        else
+        {
+            mark = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            mark.name = "DLJ_SharkKingPredationMark_Quad";
+            mark.transform.SetParent(targetAnchor, false);
+            mark.AddComponent<LSO_Billboard>();
+
+            Renderer renderer = mark.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                MaterialPropertyBlock properties = new();
+                renderer.GetPropertyBlock(properties);
+                properties.SetColor("_BaseColor", fallbackPredationMarkColor);
+                properties.SetColor("_Color", fallbackPredationMarkColor);
+                renderer.SetPropertyBlock(properties);
+                renderer.sortingOrder = 10;
+            }
+        }
+
+        mark.transform.localPosition = predationMarkLocalOffset;
+        mark.transform.localScale = Vector3.Scale(mark.transform.localScale, predationMarkScale);
+        DisableEffectColliders(mark);
+        return mark;
     }
 
     private void BindTurnManager(LDY_TurnManager turnManager)
