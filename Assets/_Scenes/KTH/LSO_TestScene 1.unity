@@ -5060,8 +5060,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_AttackSystem
   board: {fileID: 1007328538}
   actionPoints: {fileID: 1007328532}
-  attackDuration: 0.3
+  attackDuration: 1
   lungeRatio: 0.4
+  lungeArcHeight: 2
+  lungeTiltAngle: 15
 --- !u!114 &1007328537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5077,6 +5079,7 @@ MonoBehaviour:
   board: {fileID: 1007328538}
   actionPoints: {fileID: 1007328532}
   moveDuration: 0.3
+  hoverSettleDelay: 0.16
 --- !u!114 &1007328538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6341,8 +6344,10 @@ MonoBehaviour:
   additionalInputBehaviours: []
   rewardAnchor: {fileID: 999754950}
   hideAnchorUntilFlip: 1
-  pivotHeightOffset: -0.05
+  pivotSource: {fileID: 0}
+  pivotOffset: {x: 0, y: -0.05, z: 0}
   flipAxis: {x: 1, y: 0, z: 0}
+  drawPivotGizmo: 1
   flipAngle: 180
   flipDuration: 1
   flipEase: 10

@@ -12,6 +12,9 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [Tooltip("한 칸을 지나는 데 걸리는 연출 시간. 여러 칸을 움직이면 칸 수에 비례해 늘어난다.")]
         [SerializeField] private float moveDuration = 0.3f;
+        [Tooltip("이동 시작 전, 선택 해제로 뜬 상태에서 내려오는 호버 연출이 끝날 때까지 기다리는 시간.\n" +
+                 "LSO_HoverMoveEffect의 Exit Duration과 맞춰둘 것 (기본값 0.16).")]
+        [SerializeField] private float hoverSettleDelay = 0.16f;
 
         // 이동 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         public bool IsBusy => _activeCount > 0;
@@ -151,7 +154,7 @@ namespace _Scripts.LDY
                     Mathf.Abs(animal.pos.x - from.x), Mathf.Abs(animal.pos.z - from.z));
 
                 yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance),
-                    ResolveEasing(animal));
+                    ResolveEasing(animal), hoverSettleDelay);
 
                 // 도착한 뒤에 알린다. 돌진처럼 이동이 방아쇠인 특성은 부딪히는 순간에 맞춰
                 // 밀어내기를 일으켜야 하는데, 출발할 때 알리면 황소왕이 아직 오는 중인데
@@ -174,9 +177,18 @@ namespace _Scripts.LDY
         }
 
         private static IEnumerator Travel(
-            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing)
+            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing,
+            float hoverSettleDelay)
         {
             Transform t = animal != null ? animal.modelTransform : null;
+            if (t == null) yield break;
+
+            // 선택 해제(Deselect)가 시작한 하강 트윈이 끝날 때까지 기다린 뒤에야 이동을 시작한다.
+            // 그래야 "떠있다가 -> 내려오고 -> 이동"이 순서대로 보인다. 곧바로 이어가면 아래
+            // SetSuspended(true)가 하강 트윈을 중간에 끊고 바닥으로 순간 스냅해버려 뚝 떨어져 보인다.
+            if (hoverSettleDelay > 0f)
+                yield return new WaitForSecondsRealtime(hoverSettleDelay);
+
             if (t == null) yield break;
 
             // 이동 애니메이션과 호버 연출(LSO_HoverMoveEffect)이 같은 모델 트랜스폼을 함께
@@ -206,7 +218,7 @@ namespace _Scripts.LDY
                 {
                     // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
                     // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
-                    // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
+                    // (이동 연출은 코루틴 Lerp를 쓴다. 공격 쪽 돌진은 두트윈(DOJump)으로 바뀌었다.)
                     if (t == null) yield break;
 
                     elapsed += Time.deltaTime;

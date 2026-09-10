@@ -44,6 +44,11 @@ namespace _Scripts.LSO.UI.Effect
         [SerializeField] private Ease easeEnter = Ease.OutQuad;
         [SerializeField] private Ease easeExit = Ease.OutQuad;
 
+        [Header("추가 애니메이션 (선택)")]
+        [Tooltip("비워두면 아무 일도 안 한다. 기물에서 뜨는 동작과 같이 재생할 " +
+                 "추가 연출(KTH)이 있을 때만 연결한다.")]
+        [SerializeField] private KTH_PiecesHoveringAnimation extraAnimation;
+
         private Transform _target;
         private Vector3 _originalPosition;
         private bool _isOffset;
@@ -56,6 +61,9 @@ namespace _Scripts.LSO.UI.Effect
         private void Awake()
         {
             _target = target != null ? target : transform;
+
+            // 인스펙터에서 안 걸어뒀으면 같은 오브젝트에서 자동으로 찾는다.
+            if (extraAnimation == null) extraAnimation = GetComponent<KTH_PiecesHoveringAnimation>();
         }
 
         /// <summary>
@@ -123,6 +131,7 @@ namespace _Scripts.LSO.UI.Effect
                 if (!_isOffset) _originalPosition = _target.localPosition;
                 _isOffset = true;
                 MoveTo(_originalPosition + offset, enterDuration, easeEnter);
+                extraAnimation?.PlayHoverEnter();
             }
             else if (_isOffset)
             {
@@ -132,6 +141,7 @@ namespace _Scripts.LSO.UI.Effect
                     _tween.OnComplete(() => { _isOffset = false; _tween = null; });
                 else
                     _isOffset = false;
+                extraAnimation?.PlayHoverExit();
             }
         }
 
@@ -152,9 +162,23 @@ namespace _Scripts.LSO.UI.Effect
         /// </summary>
         public void SetSuspended(bool suspended)
         {
+            SetSuspended(suspended, restore: true);
+        }
+
+        /// <summary>
+        /// restore를 false로 주면 쉬기 시작할 때 원래 자리로 되돌리지 않고 트윈만 멈춘다.
+        /// 뜬 자리에서 그대로 재생해야 하는 외부 연출(예: 공격 포물선)이 있을 때 쓴다.
+        /// 이 경우 자리를 되돌리는 책임은 호출한 쪽이 이후에 SetSelected(false) 등으로 진다.
+        /// </summary>
+        public void SetSuspended(bool suspended, bool restore)
+        {
             if (suspended)
             {
-                if (++_suspendCount == 1) RestoreImmediate();
+                if (++_suspendCount == 1)
+                {
+                    if (restore) RestoreImmediate();
+                    else KillTween();
+                }
                 return;
             }
 

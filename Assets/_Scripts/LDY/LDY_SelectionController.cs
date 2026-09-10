@@ -169,8 +169,10 @@ namespace _Scripts.LDY
             if (occupant != null && attackSystem.GetAttackTargets(Selected).Contains(occupant))
             {
                 LDY_Animal attacker = Selected;
-                Deselect();
-                attackSystem.Attack(attacker, occupant);
+                // 공격은 뜬 상태에서 그대로 재생돼야 하므로("공격할때는 떠있는 상태에서 포물선으로"),
+                // 선택은 지금 풀되 호버는 내리지 않는다. 내리는 건 공격 연출이 끝난 뒤 콜백에서 한다.
+                Deselect(lowerHover: false);
+                attackSystem.Attack(attacker, occupant, () => SetSelectedHover(attacker, false));
                 return;
             }
 
@@ -210,11 +212,16 @@ namespace _Scripts.LDY
             OnSelectionChanged?.Invoke(animal);
         }
 
-        private void Deselect()
+        /// <summary>
+        /// lowerHover를 false로 주면 선택은 풀되 호버는 뜬 채로 남겨둔다.
+        /// 공격처럼 뜬 상태에서 이어서 연출을 재생해야 할 때 쓴다 — 그 경우 호출한 쪽이
+        /// 연출이 끝난 뒤 SetSelectedHover(animal, false)로 직접 내려놓아야 한다.
+        /// </summary>
+        private void Deselect(bool lowerHover = true)
         {
             bool hadSelection = Selected != null;
 
-            SetSelectedHover(Selected, false);
+            if (lowerHover) SetSelectedHover(Selected, false);
             Selected = null;
             if (highlighter != null) highlighter.ClearHighlights(this);
 

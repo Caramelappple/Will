@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem.Data;
@@ -18,6 +20,11 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [SerializeField] private float attackDuration = 0.3f;
         [SerializeField] private float lungeRatio = 0.4f;
+        [Tooltip("공격 돌진이 그리는 포물선의 높이. 너무 높으면 점프처럼 보인다.")]
+        [SerializeField] private float lungeArcHeight = 0.12f;
+        [Tooltip("달려드는 동안 대상 쪽으로 기울어지는 각도(도). 축은 공격자->대상 방향으로 자동 계산하므로\n" +
+                 "앞/뒤/양옆 어느 쪽을 공격하든 그 방향으로 수그러진다. 복귀할 때는 원래 각도로 돌아온다.")]
+        [SerializeField] private float lungeTiltAngle = 15f;
 
         // 특성이 공격 횟수를 잘못 계산했을 때 연출이 끝나지 않는 것을 막는 상한.
         // 기획상 필요한 값이 아니라 폭주 방지선이므로 인스펙터에 열지 않는다.
@@ -87,29 +94,41 @@ namespace _Scripts.LDY
             return targets;
         }
 
-        public void Attack(LDY_Animal attacker, LDY_Animal target)
+        /// <summary>
+        /// onComplete는 공격 연출이 완전히 끝난 뒤(성공하든 검증에 막히든) 반드시 호출된다.
+        /// 호출자가 공격 전에 호버를 뜬 채로 남겨뒀다면(Deselect의 lowerHover: false 등),
+        /// 그 자리를 내려놓는 책임은 이 콜백을 받는 쪽에 있다 — 여기서 실패해도 안 부르면
+        /// 기물이 영영 뜬 채로 남는다.
+        /// </summary>
+        public void Attack(LDY_Animal attacker, LDY_Animal target, Action onComplete = null)
         {
-            if (attacker == null || target == null) return;
-            if (!GetAttackTargets(attacker).Contains(target)) return;
-            if (actionPoints != null && !actionPoints.TryConsume()) return;
+            if (attacker == null || target == null ||
+                !GetAttackTargets(attacker).Contains(target) ||
+                (actionPoints != null && !actionPoints.TryConsume()))
+            {
+                onComplete?.Invoke();
+                return;
+            }
 
-            StartCoroutine(AttackRoutine(attacker, target));
+            StartCoroutine(AttackRoutine(attacker, target, onComplete));
         }
 
         /// <summary>
         /// 한 번의 공격 행동을 처리한다. 특성에 따라 여러 번 때릴 수 있다.
         /// 행동력은 Attack에서 이미 한 번만 소모했으므로 여기서는 건드리지 않는다.
         /// </summary>
-        private IEnumerator AttackRoutine(LDY_Animal attacker, LDY_Animal target)
+        private IEnumerator AttackRoutine(LDY_Animal attacker, LDY_Animal target, Action onComplete)
         {
             _attackingAnimals.Add(attacker);
             _activeCount++;
             var hoverEffects = attacker.GetComponentsInChildren<LSO_HoverMoveEffect>(true);
             try
             {
-                // 선택 해제의 복귀 트윈도 정리한 뒤 공격 시작 위치를 읽는다.
+                // 자리를 되돌리지 않고 트윈만 멈춘다. 공격은 떠 있는 상태에서 그대로 재생돼야
+                // 하고("공격할때는 떠있는 상태에서 포물선으로"), 내려놓는 건 onComplete를 받는
+                // 쪽(선택 컨트롤러)이 공격이 끝난 뒤에 한다.
                 foreach (var effect in hoverEffects)
-                    if (effect != null) effect.SetSuspended(true);
+                    if (effect != null) effect.SetSuspended(true, restore: false);
 
                 int count = ResolveAttackCount(attacker, target);
 
@@ -128,6 +147,7 @@ namespace _Scripts.LDY
                 _attackingAnimals.Remove(attacker);
                 foreach (var effect in hoverEffects)
                     if (effect != null) effect.SetSuspended(false);
+                onComplete?.Invoke();
             }
         }
 
@@ -151,10 +171,12 @@ namespace _Scripts.LDY
         {
             Transform t = attacker.modelTransform;
             Vector3 startPos = t.position;
+            Quaternion startRot = t.localRotation;
             Vector3 lungePos = Vector3.Lerp(startPos, target.modelTransform.position, lungeRatio);
+            Quaternion lungeRot = startRot * Quaternion.AngleAxis(lungeTiltAngle, LungeTiltAxis(t, startPos, target.modelTransform.position));
             float half = attackDuration * 0.5f;
 
-            yield return LerpPosition(t, startPos, lungePos, half);
+            yield return LungeTo(t, lungePos, lungeRot, half, attacker.gameObject);
 
             // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
             if (target != null)
@@ -179,29 +201,46 @@ namespace _Scripts.LDY
                 }
             }
 
-            if (attacker != null)
-                yield return LerpPosition(t, t.position, startPos, half);
+            if (attacker != null && t != null)
+                yield return LungeTo(t, startPos, startRot, half, attacker.gameObject);
         }
 
-        private static IEnumerator LerpPosition(Transform t, Vector3 from, Vector3 to, float duration)
+        /// <summary>
+        /// 공격자 -> 대상 방향(수평)을 향해 기울어지도록, 그 방향에 수직인 축을 구한다.
+        /// 축이 로컬 회전(t.localRotation) 기준이라야 하므로 부모의 회전을 걷어낸다.
+        /// 방향이 거의 수직(같은 칸을 찌르는 등 수평 성분이 0에 가까움)이면 원래 축(X)으로 대체한다.
+        /// </summary>
+        private static Vector3 LungeTiltAxis(Transform t, Vector3 fromWorldPos, Vector3 toWorldPos)
         {
-            if (t == null)
-                yield break;
+            Vector3 dir = toWorldPos - fromWorldPos;
+            dir.y = 0f;
 
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                // 유언으로 기물 사망시 예외처리
-                if (t == null)
-                    yield break;
+            if (dir.sqrMagnitude < 0.0001f)
+                dir = Vector3.forward;
+            else
+                dir.Normalize();
 
-                elapsed += Time.deltaTime;
-                t.position = Vector3.Lerp(from, to, elapsed / duration);
-                yield return null;
-            }
+            Vector3 axis = Vector3.Cross(Vector3.up, dir);
+            if (t.parent != null)
+                axis = t.parent.InverseTransformDirection(axis);
 
-            if (t != null)
-                t.position = to;
+            return axis.sqrMagnitude > 0.0001f ? axis.normalized : Vector3.right;
+        }
+
+        /// <summary>
+        /// 두트윈으로 toPos까지 포물선(DOJump)을 그리며 이동하는 동시에 toRot까지 기울인다.
+        /// linkTarget이 파괴되면(유언 등으로 기물 사망) 트윈도 같이 끊긴다.
+        /// </summary>
+        private IEnumerator LungeTo(Transform t, Vector3 toPos, Quaternion toRot, float duration, GameObject linkTarget)
+        {
+            if (t == null) yield break;
+
+            Sequence seq = DOTween.Sequence()
+                .Append(t.DOJump(toPos, lungeArcHeight, 1, duration))
+                .Join(t.DOLocalRotateQuaternion(toRot, duration))
+                .SetLink(linkTarget);
+
+            yield return seq.WaitForCompletion();
         }
 
         public void HandleDeath(LDY_Animal target)
