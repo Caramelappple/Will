@@ -138,7 +138,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4209428674623069864}
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &6095595683069475832
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -250,7 +250,7 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 5281586973659791504}
-  restHeight: 0.75
+  restHeight: 1
 --- !u!114 &-4379339614478175788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,6 +337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
   respectInteractable: 1
+  exitGraceSeconds: 0.08
 --- !u!114 &-5606488930538129094
 MonoBehaviour:
   m_ObjectHideFlags: 0

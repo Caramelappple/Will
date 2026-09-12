@@ -865,6 +865,11 @@ public class KTH_HandCardLayout : MonoBehaviour
                 continue;
             }
 
+            card.UpdateOriginalTransform(
+                targetPosition,
+                targetRotation
+            );
+
             if (!card.IsSelected)
             {
                 float delay =
@@ -880,11 +885,16 @@ public class KTH_HandCardLayout : MonoBehaviour
                     moveEase
                 );
             }
-
-            card.UpdateOriginalTransform(
-                targetPosition,
-                targetRotation
-            );
+            else if (!card.IsConfirmed)
+            {
+                // 호버로만 들려있는(확정 전) 카드는 재배치를 건너뛰는데, 그대로 두면
+                // 카드 수가 바뀌어 간격(cardSpacing)이 다시 계산될 때 예전 자리에
+                // 계속 떠 있게 된다. 옆 카드가 새 간격으로 옮겨오면서 그 자리와
+                // 겹치는 게 "손패 카드가 가끔 겹친다"는 증상의 원인이었다.
+                // 방금 갱신한 새 OriginalLocalPosition 기준으로 들림 오프셋만
+                // 다시 적용해서 새 슬롯 위로 옮긴다.
+                card.RefreshSelectedOffset();
+            }
         }
 
         if (selectedCard != null &&
