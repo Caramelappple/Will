@@ -25,6 +25,21 @@ namespace _Scripts.LDY
 
         public bool IsMoving(LDY_Animal animal) => animal != null && _movingAnimals.Contains(animal);
 
+        /// <summary>
+        /// 꺼지면 돌던 코루틴이 죽는다. **그때 finally 는 돌지 않는다.**
+        ///
+        /// 유니티는 코루틴을 중단할 때 반복자를 정리하지 않으므로, MoveVisual 의
+        /// finally 에 있는 _activeCount-- 가 건너뛰어진다. 그러면 IsBusy 가 켜진 채
+        /// 남아 LDY_TurnManager.IsAnimating() 이 영영 true 가 되고, 턴을 넘길 수 없다.
+        ///
+        /// 같은 종류로 LDY_DissolveEffect 에서 실제로 물렸다.
+        /// </summary>
+        private void OnDisable()
+        {
+            _activeCount = 0;
+            _movingAnimals.Clear();
+        }
+
         // 체스 킹처럼 대각선 포함 8방향. y(높이)는 타일 값에 관여하지 않는다.
         private static readonly Vector3Int[] Directions =
         {
