@@ -61,6 +61,18 @@ namespace _Scripts.LDY
 
         public bool IsAttacking(LDY_Animal animal) => animal != null && _attackingAnimals.Contains(animal);
 
+        /// <summary>
+        /// 꺼지면 돌던 코루틴이 죽는다. **그때 finally 는 돌지 않는다.**
+        ///
+        /// AttackRoutine 의 finally 에 있는 _activeCount-- 가 건너뛰어지면
+        /// IsBusy 가 켜진 채 남아 턴을 넘길 수 없게 된다. LDY_MoveSystem 과 같은 이유다.
+        /// </summary>
+        private void OnDisable()
+        {
+            _activeCount = 0;
+            _attackingAnimals.Clear();
+        }
+
         public List<Vector3Int> GetAttackableTiles(LDY_Animal attacker)
         {
             if (attacker == null || IsAttacking(attacker)) return new List<Vector3Int>();

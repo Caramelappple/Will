@@ -16,6 +16,17 @@ namespace _Scripts.LDY
                  "기본은 꺼둔다 — 기획서상 코스트를 다 써도 직접 버튼을 눌러 끝내야 한다.")]
         [SerializeField] private bool autoEndTurn;
 
+        [Header("멈춤 방지")]
+        [Tooltip("적 턴이 끝난 뒤 전투 연출이 끝나기를 기다리는 상한(초).\n" +
+                 "\n" +
+                 "연출 카운트가 새면 이 대기가 영원히 돌아 턴이 플레이어에게 돌아오지 않는다.\n" +
+                 "영영 멈추는 쪽이 연출이 잘리는 쪽보다 나쁘므로 상한을 둔다.")]
+        [SerializeField, Min(0.5f)] private float animationWaitTimeout = 5f;
+
+        [Tooltip("켜면 연출 때문에 턴을 못 넘길 때 누가 붙잡고 있는지 콘솔에 찍는다.\n" +
+                 "\"버튼이 안 먹는다\"를 쫓을 때 켠다.")]
+        [SerializeField] private bool logBlockers;
+
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         public event System.Action<LDY_Team> OnTurnChanged;
@@ -114,7 +125,20 @@ namespace _Scripts.LDY
         /// </summary>
         public void EndPlayerTurn()
         {
-            if (!CanEndPlayerTurn()) return;
+            if (!CanEndPlayerTurn())
+            {
+                // 누를 때만 찍는다. CanEndPlayerTurn 은 버튼을 회색으로 만들려고
+                // 매 프레임 불릴 수 있어서 그쪽에 두면 콘솔이 덮인다.
+                if (logBlockers)
+                {
+                    Debug.Log(
+                        $"[{name}] 턴을 넘기지 않았습니다 — " +
+                        $"처리 중 {_isProcessingTurn}, 지금 턴 {CurrentTurn}, 연출 {DescribeBlockers()}",
+                        this);
+                }
+
+                return;
+            }
 
             _isProcessingTurn = true;
             CurrentTurn = LDY_Team.Enemy;
@@ -125,15 +149,68 @@ namespace _Scripts.LDY
 
         private IEnumerator RunEnemyTurnRoutine()
         {
-            yield return StartCoroutine(enemyAI.RunEnemyTurnCoroutine());
-            
-            while (IsAnimating())
-                yield return null;
+            // try/finally 로 감싼다. 적 AI 가 도중에 터져도 _isProcessingTurn 이 켜진 채
+            // 남으면 턴이 영영 플레이어에게 돌아오지 않는다.
+            try
+            {
+                yield return StartCoroutine(enemyAI.RunEnemyTurnCoroutine());
 
-            CurrentTurn = LDY_Team.Player;
-            actionPoints.ResetPoints();
-            OnTurnChanged?.Invoke(CurrentTurn);
-            _isProcessingTurn = false;
+                yield return WaitForAnimations();
+            }
+            finally
+            {
+                CurrentTurn = LDY_Team.Player;
+                actionPoints.ResetPoints();
+                OnTurnChanged?.Invoke(CurrentTurn);
+                _isProcessingTurn = false;
+            }
+        }
+
+        /// <summary>
+        /// 전투 연출이 끝나기를 기다린다. 상한을 두는 이유는
+        /// **영영 멈추는 쪽이 연출이 잘리는 쪽보다 나쁘기 때문이다.**
+        ///
+        /// 상한에 걸렸다는 것은 어딘가에서 연출 카운트를 놓지 않았다는 뜻이므로,
+        /// 넘어가되 누가 붙잡고 있었는지 반드시 남긴다.
+        /// </summary>
+        private IEnumerator WaitForAnimations()
+        {
+            float deadline = Time.unscaledTime + animationWaitTimeout;
+
+            while (IsAnimating())
+            {
+                if (Time.unscaledTime >= deadline)
+                {
+                    Debug.LogWarning(
+                        $"{name}: 전투 연출이 {animationWaitTimeout:0.#}초 안에 끝나지 않아 " +
+                        $"기다리지 않고 턴을 넘깁니다. 붙잡고 있는 것 — {DescribeBlockers()}", this);
+
+                    yield break;
+                }
+
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// 지금 무엇이 연출 중인지 사람이 읽을 수 있게 적는다.
+        ///
+        /// 셋 중 어느 것이 붙잡고 있는지 밖에서는 알 방법이 없다.
+        /// "턴이 안 넘어간다"만 보이고 원인은 안 보이는 상황을 없애려고 연다.
+        /// </summary>
+        public string DescribeBlockers()
+        {
+            if (!IsAnimating()) return "없음";
+
+            var parts = new System.Collections.Generic.List<string>();
+
+            if (moveSystem != null && moveSystem.IsBusy) parts.Add("이동");
+            if (attackSystem != null && attackSystem.IsBusy) parts.Add("공격");
+
+            if (LDY_DissolveEffect.ActiveCount > 0)
+                parts.Add($"디졸브 {LDY_DissolveEffect.ActiveCount}개");
+
+            return parts.Count > 0 ? string.Join(", ", parts) : "알 수 없음";
         }
     }
 }
