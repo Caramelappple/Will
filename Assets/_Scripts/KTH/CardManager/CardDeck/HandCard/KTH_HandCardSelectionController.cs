@@ -152,6 +152,23 @@ public class KTH_HandCardSelectionController
         KTH_HandCardLayout.Instance?.OnCardSelectionChanged(owner, isSelected);
     }
 
+    /// <summary>
+    /// 이미 호버로 들려(선택) 있는 상태에서, "원래 자리"(OriginalLocalPosition)가
+    /// 손패 재배치로 바뀌었을 때 그 새 자리를 기준으로 들린 오프셋을 다시 적용한다.
+    /// 확정(배치 모드) 카드는 다른 경로(중앙 이동/부채꼴)로 관리되므로 건드리지 않는다.
+    /// </summary>
+    public void RefreshSelectedOffset()
+    {
+        if (!isSelected || isPlacementMode)
+        {
+            return;
+        }
+
+        owner.transform.DOKill();
+
+        PlaySelectAnimation();
+    }
+
     private void PlaySelectAnimation()
     {
         if (isPlacementMode)
