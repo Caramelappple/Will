@@ -5,6 +5,8 @@ using _Scripts.LSO.Boss;
 using _Scripts.LSO.Camera;
 using UnityEngine;
 using _Scripts.LSO.Reward;
+using DevLib.ServiceLocator;
+using DevLib.SoundSystem.Runtime;
 
 namespace _Scripts.LDY.Boss.BullKing
 {
@@ -63,7 +65,7 @@ namespace _Scripts.LDY.Boss.BullKing
             new Keyframe(1f, 1f, 2f, 2f));
 
         [Tooltip("돌진을 시작할 때 낼 소리. 사운드 매니저가 씬에 없으면 조용히 넘어간다.")]
-        [SerializeField] private SfxID chargeSfx = SfxID.BullCharge;
+        [SerializeField] private SoundClipSO chargeSfx;
 
         [Header("연출 — 충돌")]
         [Tooltip("부딪혔을 때 화면을 흔드는 시간.")]
@@ -123,10 +125,9 @@ namespace _Scripts.LDY.Boss.BullKing
         /// <summary>돌진을 시작할 때 우는 소리. 사운드 매니저가 없으면 아무 일도 없다.</summary>
         public void PlayChargeCry()
         {
-            KTH_SoundManager manager = KTH_SoundManager.Instance;
-            if (manager == null) return;
+            if (chargeSfx == null) return;
 
-            manager.PlaySfx(chargeSfx);
+            ServiceLocator.Get<IAudioService>()?.PlaySfx(chargeSfx);
         }
 
         /// <summary>

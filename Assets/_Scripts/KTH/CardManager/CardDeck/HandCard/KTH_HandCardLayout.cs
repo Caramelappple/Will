@@ -46,6 +46,20 @@ public class KTH_HandCardLayout : MonoBehaviour
     [SerializeField] private float arcHeight = 0.4f;
     [SerializeField] private float maxRotation = 12f;
 
+    [Header("Card Depth (겹칠 때 앞뒤)")]
+    [Tooltip("어느 카드가 앞에 올지.\n" +
+             "\n" +
+             "카드가 불투명 메쉬라 sortingOrder가 안 먹는다. 앞뒤는 카메라와의 거리로만\n" +
+             "정해지므로, 앞에 둘 카드를 실제로 카메라 쪽으로 당긴다.")]
+    [SerializeField] private CardLayoutCalculator.DepthOrder depthOrder =
+        CardLayoutCalculator.DepthOrder.LeftFirst;
+
+    [Tooltip("카드 한 장마다 벌릴 깊이. 0이면 전부 같은 깊이에 놓여 앞뒤가 뒤죽박죽이 된다.\n" +
+             "\n" +
+             "**Max Hand Size 를 곱한 값이 카드 프리팹의 KTH_CardSorting.Front Z Offset\n" +
+             "(기본 0.05)보다 작아야 한다.** 넘으면 뒤쪽 손패가 선택된 카드보다 앞으로 나온다.")]
+    [SerializeField, Min(0f)] private float depthStep = 0.005f;
+
     [Header("Hand Tilt (3D 전용)")]
     [Tooltip("손패에서 카드가 X축으로 얼마나 누워있을지. 0이면 완전히 세워짐, 값이 커질수록 뒤로 눕는다.")]
     [SerializeField] private float handTiltAngle = 20f;
@@ -681,8 +695,17 @@ public class KTH_HandCardLayout : MonoBehaviour
                     ? normalized * maxRotation
                     : -normalized * maxRotation;
 
+            // 여기도 부채꼴이라 겹친다. 손패와 같은 규칙으로 앞뒤를 준다 —
+            // 배치 모드에서만 순서가 달라지면 눈에 걸린다.
+            //
+            // i 를 쓴다. relativeIndex 는 가운데를 비운 값이라 음수가 섞여
+            // 깊이가 앞뒤로 튄다.
+            float targetZ =
+                -CardLayoutCalculator.DepthRank(i, otherCount, depthOrder) *
+                depthStep;
+
             Vector3 targetPos =
-                new Vector3(targetX, targetY, 0f);
+                new Vector3(targetX, targetY, targetZ);
 
             Vector3 targetRot =
                 new Vector3(handTiltAngle, 0f, targetRotationZ);
@@ -836,7 +859,9 @@ public class KTH_HandCardLayout : MonoBehaviour
                         minCardSpacing,
                         maxHandWidth,
                         arcHeight,
-                        maxRotation
+                        maxRotation,
+                        depthStep: depthStep,
+                        depthOrder: depthOrder
                     );
 
             Vector3 targetPosition =

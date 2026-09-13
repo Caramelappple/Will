@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
+using _Scripts.LSO.Ability.Catalog;
 using _Scripts.LSO.HealthSystem.Data;
 using _Scripts.LSO.Manager;
 using TMPro;
@@ -245,6 +246,11 @@ namespace _Scripts.LSO.UI.Panel
 
             IReadOnlyList<LSO_AbilityType> types = animal.AbilityTypes;
             if (types == null || types.Count == 0) return "없음";
+
+            // 사전에 우선도를 적어둔 특성이 있으면 그것만. "외 N개"도 붙이지 않는다 —
+            // 감추기로 정한 것을 숫자로 다시 알리면 감춘 뜻이 없다.
+            if (LSO_AbilityText.TryGetFeatured(types, out LSO_AbilityType featured))
+                return LSO_DisplayNames.Of(featured);
 
             int shown = maxAbilityCount > 0
                 ? Mathf.Min(maxAbilityCount, types.Count)
