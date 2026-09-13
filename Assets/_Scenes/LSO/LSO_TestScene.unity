@@ -504,6 +504,26 @@ PrefabInstance:
       propertyPath: turnManager
       value: 
       objectReference: {fileID: 1007328539}
+    - target: {fileID: 4728448557481890843, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728448557481890843, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728448557481890843, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728448557481890843, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.58
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728448557481890843, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.48
+      objectReference: {fileID: 0}
     - target: {fileID: 5651199073239761947, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
       propertyPath: m_LocalPosition.x
       value: 11.65
@@ -1187,6 +1207,7 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 156028759}
+  restHeight: 0
 --- !u!114 &156028761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2630,6 +2651,7 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 534439822}
+  restHeight: 0
 --- !u!114 &534439824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5369,6 +5391,15 @@ MonoBehaviour:
   actionPoints: {fileID: 1007328532}
   attackDuration: 0.3
   lungeRatio: 0.4
+  lungeArcHeight: 0.12
+  lungeTiltAngle: 15
+  turnDuration: 0.08
+  windupLeanAngle: 20
+  windupLeanDuration: 0.1
+  knockbackDistance: 0.15
+  knockbackReturnDuration: 0.22
+  hitShakeDuration: 0.15
+  hitShakeStrength: 0.12
 --- !u!114 &1007328537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5384,6 +5415,13 @@ MonoBehaviour:
   board: {fileID: 1007328538}
   actionPoints: {fileID: 1007328532}
   moveDuration: 0.3
+  turnDuration: 0.15
+  moveAnimation:
+    riseHeight: 0.3
+    riseDuration: 0.15
+    fallDuration: 0.15
+    riseEase: 6
+    fallEase: 5
 --- !u!114 &1007328538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5399,6 +5437,11 @@ MonoBehaviour:
   boardOrigin: {fileID: 963942213}
   cellSize: 1
   heightStep: 1
+  placementAnimation:
+    riseHeight: 0.3
+    duration: 0.25
+    riseEase: 6
+    settleEase: 30
 --- !u!114 &1007328539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5416,6 +5459,8 @@ MonoBehaviour:
   attackSystem: {fileID: 1007328536}
   actionPoints: {fileID: 1007328532}
   autoEndTurn: 0
+  animationWaitTimeout: 5
+  logBlockers: 0
 --- !u!4 &1007328540
 Transform:
   m_ObjectHideFlags: 0
@@ -5620,6 +5665,7 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1100688258}
+  restHeight: 0
 --- !u!114 &1100688260
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6524,6 +6570,7 @@ GameObject:
   - component: {fileID: 1339222918}
   - component: {fileID: 1339222920}
   - component: {fileID: 1339222919}
+  - component: {fileID: 1339222921}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -6789,6 +6836,22 @@ MonoBehaviour:
   onDefeat:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1339222921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339222908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1be196a56a04c84fbf833aa75531ac7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Ability.LSO_AbilityEffectPlayer
+  parent: {fileID: 0}
+  maxActive: 12
+  fallbackLifetime: 2
+  logSteps: 1
 --- !u!4 &1366522000 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5213915199161565039, guid: 551fe2da3cc77ad47b49a540dcc20087, type: 3}
@@ -6852,6 +6915,7 @@ MonoBehaviour:
   baseAtk: 3
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1385833812}
+  restHeight: 0
 --- !u!114 &1385833814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11626,6 +11690,7 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2101640037}
+  restHeight: 0
 --- !u!114 &2101640039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11779,6 +11844,7 @@ MonoBehaviour:
   baseAtk: 4
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 2121754915}
+  restHeight: 0
 --- !u!114 &2121754917
 MonoBehaviour:
   m_ObjectHideFlags: 0

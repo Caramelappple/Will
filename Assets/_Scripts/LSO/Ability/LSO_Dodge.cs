@@ -35,7 +35,8 @@ namespace _Scripts.LSO.Ability
             if (UnityEngine.Random.value >= DodgeChance) return damage;
 
             Dodged?.Invoke(target);
-            LSO_AbilityLog.Log($"<color=cyan>{(target != null ? target.name : "대상")}: 회피 성공! 피해 {damage} 무효</color>", target);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Dodge, target,
+                $"<color=cyan>{(target != null ? target.name : "대상")}: 회피 성공! 피해 {damage} 무효</color>");
 
             return 0;
         }

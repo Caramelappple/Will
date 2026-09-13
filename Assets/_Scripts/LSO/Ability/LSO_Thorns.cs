@@ -44,7 +44,8 @@ namespace _Scripts.LSO.Ability
             attacker.health.GetDamage(
                 DamageData.Create(self.health, ReflectDamage, LSO_DamageSource.Ability));
 
-            LSO_AbilityLog.Log($"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>", self);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Thorns, self,
+                $"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>");
 
             // 반사로 상대가 죽었다면 사망 처리까지 이어줘야 보드에서 사라진다.
             if (attacker.health.IsDestroyed)

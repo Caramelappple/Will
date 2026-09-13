@@ -29,6 +29,17 @@ namespace _Scripts.LSO.Ability.Catalog
         [Tooltip("특성 아이콘. 없으면 비워둔다. 쓰는 쪽이 null을 처리한다.")]
         public Sprite icon;
 
+        [Header("발동 연출")]
+        [Tooltip("발동했을 때 기물 자리에 띄울 프리팹. 비워두면 아무것도 안 뜬다.\n" +
+                 "\n" +
+                 "안에 있는 ParticleSystem 을 전부 재생하고, 제일 오래 사는 것에 맞춰\n" +
+                 "알아서 치운다. 파티클을 더 넣어도 손볼 것이 없다.")]
+        public GameObject effectPrefab;
+
+        [Tooltip("기물 발밑에서 얼마나 띄울지. 가시처럼 몸통에서 나는 것은 올리고,\n" +
+                 "바닥에 퍼지는 것은 0으로 둔다.")]
+        public float effectHeight;
+
         /// <summary>이름이 비어 있으면 enum 이름으로 대신한다.</summary>
         public string ResolvedName =>
             string.IsNullOrWhiteSpace(displayName) ? type.ToString() : displayName;
