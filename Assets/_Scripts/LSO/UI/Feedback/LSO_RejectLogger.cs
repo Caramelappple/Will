@@ -102,9 +102,6 @@ namespace _Scripts.LSO.UI.Feedback
                 case LSO_RejectReason.Locked:
                     return "아직 잠긴 기능입니다.";
 
-                case LSO_RejectReason.NoDrawsLeft:
-                    return "이번 턴에는 더 뽑을 수 없습니다.";
-
                 case LSO_RejectReason.DeckEmpty:
                     return "덱이 비었습니다. 적 턴이 시작되면 버린 더미가 돌아옵니다.";
 

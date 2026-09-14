@@ -166,7 +166,12 @@ namespace DevLib.SoundSystem.Runtime
             _audioSource.loop = false;
             _audioSource.pitch = 1f;
             _audioSource.volume = 1f;
-            _audioSource.timeSamples = 0;
+
+            // timeSamples 는 되돌리지 않는다.
+            //
+            // 클립을 비운 뒤라 건드릴 대상이 없어서 유니티가 경고를 낸다.
+            // 되돌릴 이유도 없다 — PlaySound 가 재생할 때마다 클립을 꽂고
+            // 곧바로 이 값을 다시 잡는다.
         }
     }
 }

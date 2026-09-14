@@ -338,6 +338,70 @@ public class KTH_HandCardLayout : MonoBehaviour
         );
     }
 
+    /// <summary>
+    /// 손패를 통째로 버린다. 스테이지를 깼을 때 부른다.
+    ///
+    /// ClearHand 와 다르다. 이쪽은 **화면에 보이는 버림 연출을 태운다** —
+    /// 카드가 버림 더미로 날아간다. 판이 뒤집히기 전이라 플레이어가 본다.
+    ///
+    /// 목록을 복사해서 도는 이유는 ConsumeAndRearrange 가 안에서 RemoveCard 로
+    /// 원본을 건드리기 때문이다. 돌면서 지우면 중간부터 건너뛴다.
+    /// </summary>
+    public void DiscardHand(KTH_DiscardCardUI discardPile)
+    {
+        selectedCard = null;
+
+        KTH_HandCard.CancelDoubleClick();
+
+        List<KTH_HandCard> snapshot = new List<KTH_HandCard>(handCards);
+
+        foreach (KTH_HandCard card in snapshot)
+        {
+            if (card == null) continue;
+
+            KTH_HandCardDiscardHandler.ConsumeAndRearrange(card, discardPile, null);
+        }
+    }
+
+    /// <summary>
+    /// 손패를 통째로 비운다. 새 판을 세울 때 부른다.
+    ///
+    /// 한 장씩 RemoveCard 로 지우지 않는 이유는, 그때마다 재배치 애니메이션이
+    /// 돌아 남은 카드가 우르르 움직이기 때문이다. 어차피 다 없앨 것이라
+    /// 목록을 먼저 비우고 한 번만 알린다.
+    ///
+    /// 버린 카드 더미로 보내지 않는다. 판이 바뀌면 덱을 처음 상태로 되돌리므로
+    /// 더미에 넣어봐야 곧바로 다시 걷힌다 — 넣었다 빼는 연출만 헛돈다.
+    /// </summary>
+    public void ClearHand()
+    {
+        // 배치 모드나 선택 상태가 남아 있으면 사라진 카드를 계속 가리킨다.
+        selectedCard = null;
+
+        KTH_HandCard.CancelDoubleClick();
+
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard card = handCards[i];
+
+            if (card == null) continue;
+
+            card.OnCardClicked -= HandleCardConfirmClicked;
+
+            card.CancelSelectionState();
+            card.transform.DOKill(true);
+
+            KTH_HandCardDiscardHandler.ReleaseOrDestroy(card);
+        }
+
+        handCards.Clear();
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
+    }
+
     // =========================================================
     // Piece Placement (LDY_CardPlacer 연동)
     // =========================================================

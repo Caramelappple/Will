@@ -25,9 +25,6 @@ namespace _Scripts.LSO.UI.Feedback
         /// <summary>아직 잠긴 기능.</summary>
         Locked,
 
-        /// <summary>이번 턴 드로우 횟수를 다 썼다.</summary>
-        NoDrawsLeft,
-
         /// <summary>덱이 비었다. 버린 더미가 다음 턴에 돌아온다.</summary>
         DeckEmpty,
 
