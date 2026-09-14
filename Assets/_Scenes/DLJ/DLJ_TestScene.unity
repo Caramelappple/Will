@@ -3891,6 +3891,10 @@ PrefabInstance:
       value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 7349083221774568911, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
+      propertyPath: cameraZoomEnabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7349083221774568911, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: cameraZoomInDuration
       value: 1.49
       objectReference: {fileID: 0}
@@ -3901,6 +3905,10 @@ PrefabInstance:
     - target: {fileID: 7349083221774568911, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: cameraZoomReturnDelay
       value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7349083221774568911, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
+      propertyPath: screenFeathersEnabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7349083221774568911, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: wingFeatherBurstDelay
@@ -11201,7 +11209,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2059993140233001472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.9306009
+      value: 2.07
       objectReference: {fileID: 0}
     - target: {fileID: 2059993140233001472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_LocalPosition.y
@@ -11209,7 +11217,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2059993140233001472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -26.029253
+      value: -18.01
       objectReference: {fileID: 0}
     - target: {fileID: 2059993140233001472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -11242,6 +11250,10 @@ PrefabInstance:
     - target: {fileID: 2542950710747121885, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_Name
       value: DLJ_FoxKingLedger
+      objectReference: {fileID: 0}
+    - target: {fileID: 2542950710747121885, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

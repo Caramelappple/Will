@@ -1297,10 +1297,11 @@ MonoBehaviour:
   - {fileID: 8891939605512990567}
   - {fileID: 957191578735096596}
   - {fileID: 8201112654889221169}
-  milestoneChecks:
-  - {fileID: 3117787156377217095}
-  - {fileID: 7272350752571104699}
-  - {fileID: 6707452307685495109}
+  milestoneStrikes:
+  - {fileID: 1491481168315165446}
+  - {fileID: 6397484524546482146}
+  - {fileID: 2298807649118510465}
+  strokeInterval: 0.1
 --- !u!1 &3117787156377217095
 GameObject:
   m_ObjectHideFlags: 0
@@ -1312,13 +1313,14 @@ GameObject:
   - component: {fileID: 3068629465748036383}
   - component: {fileID: 3074119018830926455}
   - component: {fileID: 6310020278213928524}
+  - component: {fileID: 1491481168315165446}
   m_Layer: 0
-  m_Name: MilestoneCheck0
+  m_Name: MilestoneStrike0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3068629465748036383
 Transform:
   m_ObjectHideFlags: 0
@@ -1341,7 +1343,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3117787156377217095}
-  m_Mesh: {fileID: 4300000, guid: 924e22d0a89d5c6418759531976b22b6, type: 2}
+  m_Mesh: {fileID: 0}
 --- !u!23 &6310020278213928524
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1349,7 +1351,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3117787156377217095}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1391,6 +1393,22 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1491481168315165446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3117787156377217095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df548d33f674a7c9af365b8698e2106, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_LedgerStrike
+  row: {fileID: 5997323482795321047}
+  pageSpace: {fileID: 2059993140233001472}
+  drawDuration: 0.22
+  strokeWidth: 0.018
 --- !u!1 &3293703315704429717
 GameObject:
   m_ObjectHideFlags: 0
@@ -3720,13 +3738,14 @@ GameObject:
   - component: {fileID: 7166216075588254630}
   - component: {fileID: 110050995749711424}
   - component: {fileID: 6000606409711289081}
+  - component: {fileID: 2298807649118510465}
   m_Layer: 0
-  m_Name: MilestoneCheck2
+  m_Name: MilestoneStrike2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7166216075588254630
 Transform:
   m_ObjectHideFlags: 0
@@ -3749,7 +3768,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6707452307685495109}
-  m_Mesh: {fileID: 4300000, guid: 19184ecd2a3b17646a9462964033896c, type: 2}
+  m_Mesh: {fileID: 0}
 --- !u!23 &6000606409711289081
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3757,7 +3776,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6707452307685495109}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3799,6 +3818,22 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2298807649118510465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6707452307685495109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df548d33f674a7c9af365b8698e2106, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_LedgerStrike
+  row: {fileID: 4174594346074187503}
+  pageSpace: {fileID: 2059993140233001472}
+  drawDuration: 0.22
+  strokeWidth: 0.018
 --- !u!1 &7272350752571104699
 GameObject:
   m_ObjectHideFlags: 0
@@ -3810,13 +3845,14 @@ GameObject:
   - component: {fileID: 5840671504181209711}
   - component: {fileID: 3474728733130818214}
   - component: {fileID: 6155206554233750447}
+  - component: {fileID: 6397484524546482146}
   m_Layer: 0
-  m_Name: MilestoneCheck1
+  m_Name: MilestoneStrike1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5840671504181209711
 Transform:
   m_ObjectHideFlags: 0
@@ -3839,7 +3875,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7272350752571104699}
-  m_Mesh: {fileID: 4300000, guid: cf581f429d71fa4419325abd72d20f21, type: 2}
+  m_Mesh: {fileID: 0}
 --- !u!23 &6155206554233750447
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3847,7 +3883,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7272350752571104699}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3889,6 +3925,22 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6397484524546482146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7272350752571104699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df548d33f674a7c9af365b8698e2106, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_LedgerStrike
+  row: {fileID: 3257558000467969859}
+  pageSpace: {fileID: 2059993140233001472}
+  drawDuration: 0.22
+  strokeWidth: 0.018
 --- !u!1 &7341706642562759499
 GameObject:
   m_ObjectHideFlags: 0

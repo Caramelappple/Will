@@ -10,10 +10,12 @@ public sealed class DLJ_FoxKingLedger : MonoBehaviour
     [SerializeField] private DLJ_LedgerInkText resources;
     [SerializeField] private DLJ_LedgerInkText greed;
     [SerializeField] private DLJ_LedgerInkText[] milestoneRows = new DLJ_LedgerInkText[0];
-    [SerializeField] private GameObject[] milestoneChecks = new GameObject[0];
+    [SerializeField] private DLJ_LedgerStrike[] milestoneStrikes = new DLJ_LedgerStrike[0];
+    [SerializeField, Min(0)] private float strokeInterval = .10f;
     private DLJ_FoxKingBoss boundBoss;
     private Health boundHealth;
     private float nextSearchTime;
+    private float nextStrokeTime;
     public DLJ_FoxKingBoss BoundBoss => boundBoss;
 
     private void OnEnable()
@@ -77,8 +79,9 @@ public sealed class DLJ_FoxKingLedger : MonoBehaviour
         if (greed != null) greed.SetValue("-");
         foreach (var row in milestoneRows)
             if (row != null) row.SetValue("");
-        foreach (var check in milestoneChecks)
-            if (check != null) check.SetActive(false);
+        foreach (var strike in milestoneStrikes)
+            if (strike != null) strike.SetAchieved(false);
+        nextStrokeTime = 0;
     }
 
     private void SetResources(int value)
@@ -98,13 +101,23 @@ public sealed class DLJ_FoxKingLedger : MonoBehaviour
             var effect = milestone.effect == DLJ_GreedEffectType.Attack ? "공격" : "최대 체력";
             if (milestoneRows[rowIndex] != null)
                 milestoneRows[rowIndex].SetValue($"{milestone.threshold}  {effect} +{milestone.amount}");
-            if (rowIndex < milestoneChecks.Length && milestoneChecks[rowIndex] != null)
-                milestoneChecks[rowIndex].SetActive(value >= milestone.threshold);
+            if (rowIndex < milestoneStrikes.Length && milestoneStrikes[rowIndex] != null)
+            {
+                var strike = milestoneStrikes[rowIndex];
+                bool achieved = value >= milestone.threshold;
+                if (achieved && !strike.IsAchieved)
+                {
+                    float delay = Mathf.Max(0, nextStrokeTime - Time.unscaledTime);
+                    strike.SetAchieved(true, delay);
+                    nextStrokeTime = Time.unscaledTime + delay + strike.DrawDuration + strokeInterval;
+                }
+                else if (!achieved) strike.SetAchieved(false);
+            }
             rowIndex++;
         }
         for (int i = rowIndex; i < milestoneRows.Length; i++)
             if (milestoneRows[i] != null) milestoneRows[i].SetValue("");
-        for (int i = rowIndex; i < milestoneChecks.Length; i++)
-            if (milestoneChecks[i] != null) milestoneChecks[i].SetActive(false);
+        for (int i = rowIndex; i < milestoneStrikes.Length; i++)
+            if (milestoneStrikes[i] != null) milestoneStrikes[i].SetAchieved(false);
     }
 }
