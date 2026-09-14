@@ -25,15 +25,6 @@ public class KTH_DeckManager : MonoBehaviour
     [Tooltip("손패 참조. 손패에 카드가 남아있으면 덱이 0장이어도 리셔플을 보류합니다.")]
     [SerializeField] private KTH_HandCardLayout handLayout;
 
-    [Header("Draw Limit Settings")]
-    [Tooltip("체크하면 턴/횟수 제한 없이 언제든 드로우 가능")]
-    [SerializeField] private bool ignoreDrawLimit = false;
-
-    [Tooltip("턴당 드로우 가능 횟수")]
-    [SerializeField] private int maxDrawsPerTurn = 2;
-
-    private int drawsUsedThisTurn = 0;
-
     // =========================================================
     // 중요
     // =========================================================
@@ -65,32 +56,6 @@ public class KTH_DeckManager : MonoBehaviour
 
     public int RemainingCards =>
         deck.Count;
-
-    public bool IgnoreDrawLimit
-    {
-        get => ignoreDrawLimit;
-        set => ignoreDrawLimit = value;
-    }
-
-    public int MaxDrawsPerTurn
-    {
-        get => maxDrawsPerTurn;
-        set => maxDrawsPerTurn = value;
-    }
-
-    public int DrawsUsedThisTurn =>
-        drawsUsedThisTurn;
-
-    public int DrawsRemainingThisTurn =>
-        ignoreDrawLimit
-            ? int.MaxValue
-            : Mathf.Max(
-                0,
-                maxDrawsPerTurn -
-                drawsUsedThisTurn
-            );
-
-    public event Action OnDrawLimitChanged;
 
     public event Action<int> OnDeckReshuffled;
 
@@ -152,6 +117,27 @@ public class KTH_DeckManager : MonoBehaviour
     // =========================================================
     // Deck 초기화
     // =========================================================
+
+    /// <summary>
+    /// 덱을 처음 상태로 되돌린다. 새 판을 세울 때 부른다.
+    ///
+    /// 보유 카드 전체로 덱을 다시 만들고 섞는다. 버린 카드 더미도 함께 비운다 —
+    /// 어차피 덱을 통째로 다시 만들므로 더미에 남겨두면 그 카드가 두 번 존재하게 된다.
+    ///
+    /// 손패는 여기서 손대지 않는다. 그건 KTH_HandCardLayout 이 안다.
+    /// </summary>
+    public void ResetForNewStage()
+    {
+        if (discardPile != null)
+            discardPile.ClearAndGetList();
+
+        InitDeck();
+
+        Debug.Log(
+            "[KTH_DeckManager] 새 판 — 덱을 처음 상태로 되돌렸습니다."
+        );
+    }
+
 
     private void InitDeck()
     {
@@ -228,17 +214,11 @@ public class KTH_DeckManager : MonoBehaviour
         // 플레이어 턴 시작
         // =====================================================
 
+        // 플레이어 턴에는 할 일이 없다.
+        // 예전에는 턴당 드로우 횟수를 여기서 되돌렸는데, 손으로 뽑는 길이
+        // 없어지면서 그 규칙 자체가 사라졌다(KTH_StartCardSet 이 매 턴 새로 준다).
         if (newTurn == LDY_Team.Player)
         {
-            drawsUsedThisTurn = 0;
-
-            OnDrawLimitChanged?.Invoke();
-
-            Debug.Log(
-                "[KTH_DeckManager] 플레이어 턴 시작 - " +
-                "드로우 횟수 리셋"
-            );
-
             return;
         }
 
@@ -357,44 +337,17 @@ public class KTH_DeckManager : MonoBehaviour
 
 
     // =========================================================
-    // Draw Limit
-    // =========================================================
-
-    public bool CanDraw()
-    {
-        if (ignoreDrawLimit)
-        {
-            return true;
-        }
-
-        return drawsUsedThisTurn <
-               maxDrawsPerTurn;
-    }
-
-
-    // =========================================================
     // Draw
     // =========================================================
 
-    public LSO_CardSO DrawCard(
-        bool bypassTurnLimit = false)
+    /// <summary>
+    /// 덱에서 한 장을 꺼낸다. 못 꺼내면 null.
+    ///
+    /// 턴당 몇 장까지라는 제한은 없다. 손으로 뽑는 길이 없어지면서
+    /// 그 규칙도 같이 사라졌고, 몇 장을 줄지는 KTH_StartCardSet 이 정한다.
+    /// </summary>
+    public LSO_CardSO DrawCard()
     {
-        // =====================================================
-        // 드로우 횟수 제한
-        // =====================================================
-
-        // 더 못 뽑는 것은 규칙대로 돌아간 결과지 잘못이 아니다.
-        // 콘솔 경고 대신 거부 신호로 알린다 — 그래야 화면에서 흔들거나 소리를 낼 수 있고,
-        // 정상 플레이에서 경고가 쌓여 진짜 경고를 덮는 일도 없다.
-        if (!bypassTurnLimit &&
-            !CanDraw())
-        {
-            LSO_RejectSignal.Raise(LSO_RejectReason.NoDrawsLeft);
-
-            return null;
-        }
-
-
         // =====================================================
         // 덱이 비어 있음
         // =====================================================
@@ -419,19 +372,6 @@ public class KTH_DeckManager : MonoBehaviour
             deck[0];
 
         deck.RemoveAt(0);
-
-
-        // =====================================================
-        // 드로우 횟수 증가
-        // =====================================================
-
-        if (!bypassTurnLimit &&
-            !ignoreDrawLimit)
-        {
-            drawsUsedThisTurn++;
-
-            OnDrawLimitChanged?.Invoke();
-        }
 
 
         // =====================================================

@@ -1,5 +1,63 @@
 # KTH SoundManager 코드 리뷰
 
+> ## ⚠ 이 시스템은 지워졌다
+>
+> **아래 내용은 지난 기록이다.** 여기서 다루는 파일은 프로젝트에 더 이상 없다.
+> 무엇을 왜 갈아치웠는지 남겨두려고 문서만 보존한다.
+>
+> ### 무엇으로 바뀌었나
+>
+> ```
+> 전   Assets/_Scripts/KTH/SoundManager/   KTH_SoundManager 싱글톤 + SfxID 열거형
+> 후   Assets/DevLib/                       ServiceLocator + IAudioService + SoundClipSO
+> ```
+>
+> ### 왜 갈아치웠나
+>
+> **소리 하나가 에셋 하나가 됐다.** 옛 구조는 `SfxID` 열거형과 `SoundLibrary`
+> 에셋이 짝을 이뤘다. 소리를 하나 늘리려면 열거형에 값을 넣고, 라이브러리에
+> 줄을 추가하고, 두 곳이 어긋나지 않았는지 확인해야 했다. 지금은 `Clip data`
+> 에셋을 하나 만들어 쓰는 쪽에 꽂으면 끝이다.
+>
+> **한 클립 안에서 구간을 자를 수 있다.** `SoundClipSO` 는 start·end 시간을
+> 들고 있고, 전용 인스펙터가 파형을 그려 손잡이로 끌어 맞출 수 있다.
+> 긴 파일에서 필요한 부분만 쓰는 일이 잦아 이 값어치가 컸다.
+>
+> **없어도 안 죽는다.** `NullAudioService` 가 기본으로 등록돼 있어, 사운드가
+> 없는 씬에서도 호출부가 그대로 돌아간다. 옛 구조는 싱글톤이 없으면
+> 부르는 쪽마다 null 검사를 했다.
+>
+> **피치·볼륨·믹서 그룹이 데이터 쪽에 있다.** 옛 구조는 플레이어 컴포넌트가
+> 들고 있어서 소리마다 다르게 주려면 플레이어를 늘려야 했다.
+>
+> 옛 구조가 나빠서 버린 것이 아니다. 아래 리뷰에 적힌 대로 **설계는 이 프로젝트에서
+> 가장 깔끔한 축이었다.** 다만 소리를 늘리는 일이 잦아지면서 "값을 두 곳에 적는"
+> 구조가 계속 걸렸고, 그것이 갈아탄 이유다.
+>
+> ### 같이 지운 것
+>
+> ```
+> Assets/_Scripts/KTH/So/            BgmData · SfxData · SoundLibrary 에셋
+> Assets/_Prefabs/KTH/AudioSource.prefab
+> Assets/_Prefabs/LSO/System/SoundSystem.prefab
+> Assets/_Scenes/KTH/KTH_SoundManagerScene.unity
+> ```
+>
+> `KTH_DontDestroy.cs` 만 남겼다. 사운드와 무관한 한 줄짜리이고 `DLJ_StageScene` 이 쓴다.
+>
+> ### 옮겨간 호출부
+>
+> ```
+> LSO_ClickSoundEffect · LSO_HoverSoundEffect · LDY_BullKingBoss
+>   KTH_SoundManager.Instance.PlaySfx(SfxID.X)
+>   → ServiceLocator.Get<IAudioService>()?.PlaySfx(clip, channel)
+> ```
+>
+> 아래 리뷰에서 지적한 **씬 전환 싱글톤 버그**와 **사운드가 늘면 터지는 예외**는
+> 새 구조에서 둘 다 해당 사항이 없어졌다.
+
+---
+
 **대상**: `Assets/_Scripts/KTH/SoundManager/` 8개 파일 (약 240줄)
 **작성**: LSO 브랜치 작업 중 구조 점검
 **요약**: 프로젝트 내에서 설계가 가장 깔끔한 모듈입니다. 인터페이스 분리와 책임 분할이 제대로 돼 있습니다. 다만 씬 전환 시 터지는 싱글톤 버그와, 사운드가 늘어나면 시스템 전체를 죽이는 예외 하나가 있어 먼저 처리가 필요합니다.

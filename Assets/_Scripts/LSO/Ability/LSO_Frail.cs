@@ -48,7 +48,8 @@ namespace _Scripts.LSO.Ability
             if (owner.health != null && owner.health.IsDestroyed) return;
             if (Random.value >= DeathChance) return;
 
-            LSO_AbilityLog.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Frail, owner,
+                $"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>");
 
             LSO_AbilityDeath.KillThrough(_context, owner);
         }

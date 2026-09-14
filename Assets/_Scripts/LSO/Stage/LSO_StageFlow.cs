@@ -53,6 +53,15 @@ namespace _Scripts.LSO.Stage
         [Tooltip("보드 회전이 끝나기를 기다리는 상한(초). 멈춤 방지선이다.")]
         [SerializeField, Min(0f)] private float flipWaitTimeout = 6f;
 
+        [Tooltip("판이 다 돌고 나서 보상 상자가 열릴 때까지의 뜸(초).\n" +
+                 "\n" +
+                 "뒷면이 드러난 것을 한 박자 보고 나서 보상으로 넘어간다.\n" +
+                 "\n" +
+                 "LDY_BoardFlipDirector 의 Reveal Hold 와는 다른 값이다.\n" +
+                 "그쪽은 회전이 끝나고 '다 끝났다'를 알리기까지의 뜸이고,\n" +
+                 "이쪽은 그 신호를 받고 상자를 열기까지의 뜸이다. 둘 다 더해진다.")]
+        [SerializeField, Min(0f)] private float beforeRewardDelay = 0.6f;
+
         [Header("반응")]
         [Tooltip("스테이지 하나를 깼을 때. **판이 돌기도 전이다.**\n" +
                  "\n" +
@@ -275,8 +284,48 @@ namespace _Scripts.LSO.Stage
                     "보상을 시작하는 것은 이 흐름의 몫입니다.", this);
             }
 
-            // 몇 챕터 몇 스테이지인지는 상자가 진행에게 직접 묻는다.
-            // 여기서 읽어 넘기면 같은 조회가 두 곳에 생긴다.
+            if (beforeRewardDelay > 0f)
+            {
+                Log($"보상까지 {beforeRewardDelay:0.##}초 쉼");
+
+                StartCoroutine(Co_BeginReward(box));
+                return;
+            }
+
+            StartBox(box);
+        }
+
+        /// <summary>
+        /// 한 박자 쉬었다가 상자를 연다.
+        ///
+        /// 잠금(_rewardStarted)은 쉬기 전에 이미 걸어뒀다. 쉬는 동안 회전 신호가
+        /// 한 번 더 들어와도 두 번 시작되지 않는다.
+        ///
+        /// Realtime 인 이유는 회전과 상자 연출이 모두 timeScale 을 무시하기 때문이다.
+        /// 한쪽만 스케일 시간이면 유언 연출이 시간을 쥐는 구간에서 뜸이 늘어난다.
+        /// </summary>
+        private IEnumerator Co_BeginReward(LSO_RewardBox box)
+        {
+            yield return new WaitForSecondsRealtime(beforeRewardDelay);
+
+            // 쉬는 사이에 상자가 사라졌을 수 있다.
+            if (box == null)
+            {
+                Debug.LogWarning($"{name}: 기다리는 사이 보상 상자가 사라졌습니다.", this);
+                yield break;
+            }
+
+            StartBox(box);
+        }
+
+        /// <summary>
+        /// 상자를 연다.
+        ///
+        /// 몇 챕터 몇 스테이지인지는 상자가 진행에게 직접 묻는다.
+        /// 여기서 읽어 넘기면 같은 조회가 두 곳에 생긴다.
+        /// </summary>
+        private void StartBox(LSO_RewardBox box)
+        {
             Log("보상 시작");
 
             box.Begin();

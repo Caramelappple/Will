@@ -40,7 +40,8 @@ namespace _Scripts.LSO.Ability
 
             Stack++;
             StackChanged?.Invoke(Stack);
-            LSO_AbilityLog.Log($"<color=orange>처치 누적: 공격력 +{Stack} (최대 +{MaxStack})</color>");
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Bloodlust, _context?.Owner,
+                $"<color=orange>처치 누적: 공격력 +{Stack} (최대 +{MaxStack})</color>");
         }
         
         private bool IsEnemyOf(LDY_Animal dead)

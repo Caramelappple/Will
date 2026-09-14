@@ -1,4 +1,5 @@
 using System.Collections;
+using _Scripts.LDY.Stage;
 using _Scripts.LSO.Manager;
 using UnityEngine;
 
@@ -10,6 +11,12 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_MoveSystem moveSystem;
         [SerializeField] private LDY_AttackSystem attackSystem;
         [SerializeField] private LDY_ActionPointManager actionPoints;
+
+        [Tooltip("판이 새로 세워질 때 턴을 처음부터 시작하려고 본다. 비워두면 씬에서 찾는다.\n" +
+                 "\n" +
+                 "이게 없으면 다음 스테이지에서 손패와 코스트가 빈 채로 시작하고,\n" +
+                 "턴을 한 번 넘겨야 그제야 채워진다.")]
+        [SerializeField] private LDY_StageDirector stageDirector;
 
         [Header("자동 턴 종료")]
         [Tooltip("켜면 행동력이 0이 되는 순간 턴이 저절로 넘어간다.\n" +
@@ -39,6 +46,9 @@ namespace _Scripts.LDY
         }
 
         private bool _isProcessingTurn;
+
+        /// <summary>적 턴 코루틴. 판이 새로 세워질 때 끊으려고 들고 있는다.</summary>
+        private Coroutine _enemyRoutine;
         
         private void Awake()
         {
@@ -47,13 +57,76 @@ namespace _Scripts.LDY
 
         private void OnDestroy()
         {
+            if (stageDirector != null)
+                stageDirector.OnStageLoaded -= HandleStageLoaded;
+
             if (GameManager.HasInstance)
                 GameManager.Instance.UnregisterTurnManager(this);
         }
 
         private void Start()
         {
-            actionPoints.ResetPoints();
+            SubscribeStageDirector();
+
+            BeginPlayerTurn();
+        }
+
+        /// <summary>
+        /// 판이 새로 세워지는 것을 듣는다.
+        ///
+        /// 씬을 넘기지 않고 같은 화면에서 다음 스테이지를 세우므로 Start가 다시 돌지 않는다.
+        /// 그래서 아무도 "이제 플레이어 턴이다"를 말해주지 않는다.
+        /// </summary>
+        private void SubscribeStageDirector()
+        {
+            if (stageDirector == null) stageDirector = FindAnyObjectByType<LDY_StageDirector>();
+
+            if (stageDirector == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: LDY_StageDirector를 찾지 못해 다음 스테이지에서 턴을 새로 시작하지 못합니다. " +
+                    "턴을 한 번 넘겨야 덱과 코스트가 채워집니다.", this);
+
+                return;
+            }
+
+            stageDirector.OnStageLoaded -= HandleStageLoaded;
+            stageDirector.OnStageLoaded += HandleStageLoaded;
+        }
+
+        private void HandleStageLoaded(LDY_StageSO stage)
+        {
+            BeginPlayerTurn();
+        }
+
+        /// <summary>
+        /// 플레이어 턴을 처음부터 시작한다. 게임을 켤 때와 판이 새로 세워질 때 부른다.
+        ///
+        /// ── OnTurnChanged 를 반드시 다시 쏘아야 한다 ───────────────
+        /// 덱(KTH_DeckManager)과 코스트(DLJ_CostSystem)는 이 신호를 듣고 채워진다.
+        /// 안 쏘면 판은 세워졌는데 손패도 코스트도 비어 있고, 턴을 한 번 넘겨야
+        /// 그제야 게임이 시작되는 것처럼 보인다.
+        ///
+        /// 값이 이미 Player 라도 쏜다. "바뀌었다"가 아니라 "이제 시작한다"는 뜻이다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 지난 판의 적 턴이 돌던 중일 수도 있으므로 그것부터 끊는다.
+        /// </summary>
+        public void BeginPlayerTurn()
+        {
+            // 지난 판의 적 턴이 아직 돌고 있으면 끊는다. StopAllCoroutines를 쓰지 않는 것은
+            // 나중에 이 오브젝트에 다른 코루틴이 생겼을 때 같이 끊기기 때문이다.
+            if (_enemyRoutine != null)
+            {
+                StopCoroutine(_enemyRoutine);
+                _enemyRoutine = null;
+            }
+
+            _isProcessingTurn = false;
+            CurrentTurn = LDY_Team.Player;
+
+            if (actionPoints != null) actionPoints.ResetPoints();
+
             OnTurnChanged?.Invoke(CurrentTurn);
         }
 
@@ -144,7 +217,7 @@ namespace _Scripts.LDY
             CurrentTurn = LDY_Team.Enemy;
             actionPoints.ResetPoints();
             OnTurnChanged?.Invoke(CurrentTurn);
-            StartCoroutine(RunEnemyTurnRoutine());
+            _enemyRoutine = StartCoroutine(RunEnemyTurnRoutine());
         }
 
         private IEnumerator RunEnemyTurnRoutine()
@@ -159,6 +232,7 @@ namespace _Scripts.LDY
             }
             finally
             {
+                _enemyRoutine = null;
                 CurrentTurn = LDY_Team.Player;
                 actionPoints.ResetPoints();
                 OnTurnChanged?.Invoke(CurrentTurn);

@@ -30,7 +30,8 @@ namespace _Scripts.LSO.Ability
             if (damage <= survivableDamage) return damage;
 
             HasTriggered = true;
-            LSO_AbilityLog.Log($"<color=yellow>{target.name}의 옹골참: 치명타를 버티고 HP 1이 남았습니다</color>", target);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Sturdy, target,
+                $"<color=yellow>{target.name}의 옹골참: 치명타를 버티고 HP 1이 남았습니다</color>");
             Triggered?.Invoke(target);
 
             return survivableDamage;

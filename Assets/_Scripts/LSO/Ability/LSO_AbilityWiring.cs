@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Scripts.LDY;
 using _Scripts.LSO.HealthSystem;
 using _Scripts.LSO.Manager;
 
@@ -18,6 +19,16 @@ namespace _Scripts.LSO.Ability
     /// </summary>
     public static class LSO_AbilityWiring
     {
+        /// <summary>
+        /// 보드는 인자로 받지 않는다.
+        ///
+        /// Bind/Unbind 를 부르는 곳(LDY_Animal)이 보드를 들고 있지 않고,
+        /// 인자를 하나 늘리면 부르는 쪽이 매니저를 알아야 한다.
+        /// LSO_AbilityContext 가 보드를 구하는 방식과 같게 맞춘다.
+        /// </summary>
+        private static LDY_BoardManager Board =>
+            GameManager.HasInstance ? GameManager.Instance.Board : null;
+
         /// <param name="health">특성이 피해 계산에 끼어들 대상. null이면 그 부분만 건너뛴다.</param>
         /// <param name="dispatcher">턴·사망 같은 전역 이벤트 통로. null이면 그 부분만 건너뛴다.</param>
         public static void Bind(
@@ -34,6 +45,9 @@ namespace _Scripts.LSO.Ability
 
                 if (health != null && ability is LSO_IDamageModifier modifier)
                     health.AddDamageModifier(modifier);
+
+                if (ability is LSO_IOnBoardChanged watcher)
+                    Board?.AddBoardWatcher(watcher);
 
                 // 디스패처는 자기가 아는 인터페이스만 걸러 담는다.
                 dispatcher?.Register(ability);
@@ -54,6 +68,9 @@ namespace _Scripts.LSO.Ability
 
                 if (health != null && ability is LSO_IDamageModifier modifier)
                     health.RemoveDamageModifier(modifier);
+
+                if (ability is LSO_IOnBoardChanged watcher)
+                    Board?.RemoveBoardWatcher(watcher);
 
                 dispatcher?.Unregister(ability);
             }

@@ -294,9 +294,19 @@ namespace _Scripts.LSO.Stage
                 Log($"기물 배치 — {target.stageName}");
 
                 if (flipDirector != null)
+                {
                     flipDirector.RunAtHomePose(() => stageDirector.LoadStage(target));
+
+                    // 놓자마자 감춘다. 판이 돌기 시작할 때 다시 켜진다.
+                    //
+                    // 기물은 앞면 좌표로 놓였는데 판은 아직 뒤집혀 있다. 그대로 두면
+                    // 판이 없는 허공에 기물이 떠서, 판이 돌기 시작할 때까지 튀어나와 있는다.
+                    flipDirector.HideArrivingPieces();
+                }
                 else
+                {
                     stageDirector.LoadStage(target);
+                }
 
                 LogPlacedPieces();
             }

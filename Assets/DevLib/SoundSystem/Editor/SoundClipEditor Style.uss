@@ -1,0 +1,30 @@
+.section-title {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    font-size: 16px;
+    background-color: rgb(48, 48, 73);
+    border-radius: 5px;
+    margin-bottom: 4px;
+}
+
+.waveform-slot {
+    margin-top: 10px;
+    height: 80px;
+}
+
+.time-label {
+    width: 120px;
+}
+
+.time-row {
+    flex-direction: row;
+}
+
+.play-btn {
+    width: 100px;
+    height: 24px;
+    background-color: #2c0ca5;
+    color : #fff;
+    -unity-font-style: bold;
+    border-color: #226697;
+}
