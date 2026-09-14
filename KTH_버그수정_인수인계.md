@@ -1,21 +1,20 @@
 # KTH 버그 수정 인수인계
 
-KTH 브랜치. 이 세션에서 고친 버그 3개 + `KTH_HandCardLayout` 분리 1개 + 세션 시작 전부터
-커밋 안 된 채 남아있던 남의 미완성 수정 1개(4번, 내가 만든 거 아님). 전부
-`Assets/_Scripts/KTH/`, `Assets/_Prefabs/KTH/` 안쪽만 건드렸다 — 남의 폴더는 안 건드림.
+KTH 브랜치. 이 세션에서 고친 버그 3개 + 세션 시작 전부터 커밋 안 된 채 남아있던 남의
+미완성 수정 1개(4번, 내가 만든 거 아님) + 한 번 시도했다가 base 머지로 무산된
+`KTH_HandCardLayout` 분리 1개(5번). 전부 `Assets/_Scripts/KTH/`, `Assets/_Prefabs/KTH/`
+안쪽만 건드렸다 — 남의 폴더는 안 건드림.
 
-**지금 상태: 전부 미커밋.** 유니티 콘솔 에러 0 확인하고 커밋할 것.
+**커밋 이력**: 1~4번(과 한 번 시도했던 분리)은 `c85a0be fix / HandCardBug` 커밋에 이미
+들어가 있다. 그 뒤 `base`를 머지(`48fc5c7`)하면서 `KTH_HandCardLayout.cs`가 베이스 버전으로
+덮어써져 분리가 깨졌고, 그래서 안 쓰는 파일 4개를 지금 막 지웠다(아래, 5번 참고) —
+**이 삭제만 아직 미커밋 상태다.** 유니티 콘솔 에러 0 확인하고 커밋할 것.
 
 ```
-M  Assets/_Prefabs/KTH/Cylinder.prefab
-M  Assets/_Scripts/KTH/CardManager/CardDeck/Discardpile/KTH_DiscardCardUI.cs
-D  Assets/_Scripts/KTH/CardManager/CardDeck/CardLayoutCalculator.cs       (+ .meta)
-+  Assets/_Scripts/KTH/CardManager/CardDeck/KTH_CardFanLayoutCalculator.cs
-+  Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardPlacementFlow.cs
-+  Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardGroupMotion.cs
-M  Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardLayout.cs   (975→544줄, 아래 5번 참고)
-M  Assets/_Scripts/KTH/CardManager/CardDeck/KTH_DeckUi.cs            (내가 안 만짐, 아래 4번 참고)
-M  Assets/_Scripts/KTH/Pieces/KTH_PlacementAnimation.cs
+D  Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardPlacementFlow.cs   (+ .meta)
+D  Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardGroupMotion.cs     (+ .meta)
+D  Assets/_Scripts/KTH/CardManager/CardDeck/KTH_CardFanLayoutCalculator.cs          (+ .meta)
+D  Assets/_Scripts/KTH/CardManager/CardDeck/KTH_CardLayoutCalculator.cs             (+ .meta)
 ```
 
 ---
@@ -136,34 +135,30 @@ M  Assets/_Scripts/KTH/Pieces/KTH_PlacementAnimation.cs
 
 ---
 
-## 5. KTH_HandCardLayout 쪼갬 (God Class 방지) — ✅ 완료, 실행은 아직 안 켜봄
+## 5. KTH_HandCardLayout 쪼갬 — ❌ 베이스 머지로 무산, 원상복구함
 
-975줄까지 커진 `KTH_HandCardLayout.cs`에서 두 덩어리를 KTH_HandCard가 자기 동작을
-컨트롤러들(Hover/Selection/DoubleClick/MotionAnimator)에게 위임하는 것과 같은 방식으로
-뽑았다 — MonoBehaviour가 아니라 `KTH_HandCardLayout`을 owner로 들고 있는 순수 C# 클래스다.
+한 번 `KTH_HandCardPlacementFlow.cs`/`KTH_HandCardGroupMotion.cs`로 쪼갰었는데,
+`base` 브랜치를 머지하면서 `KTH_HandCardLayout.cs`가 베이스 쪽 독자 변경(카드 앞뒤
+깊이 정렬 `DepthOrder`/`depthStep`, `DiscardHand`/`ClearHand` 추가)으로 통째로
+덮어써졌다. 그 바람에 쪼개둔 두 파일이 이제 없는 멤버(`internal HandCards`,
+`internal SelectedCard` 등)를 참조하게 돼서 컴파일 에러 8개가 났었다.
 
-**만든 것**
+베이스가 가져온 새 기능(깊이 정렬) 위에 내 분리를 다시 억지로 얹으면 그 기능을
+잘못 건드릴 위험이 있어서, **쪼갠 걸 포기하고 원상복구**했다:
+
+**지운 것**
 - `Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardPlacementFlow.cs`
-  카드 확정 클릭 → 배치 모드 → `LDY_CardPlacer` 연동 → 포커스 카드 주위 부채꼴.
-  (`HandleCardConfirmClicked`, `EnterPlacementMode`, `ExitPlacementMode`,
-  `MoveSelectedCardToCenter`, `ApplyFanAroundFocalCard`, `SpreadCardsAroundCenter`)
 - `Assets/_Scripts/KTH/CardManager/CardDeck/HandCard/KTH_HandCardGroupMotion.cs`
-  손패 컨테이너 통째로 내렸다 올리기, 카드 전체 가운데로 모으기/되돌리기.
-  (`MoveDownForPlacement`, `MoveUpFromPlacement`, `GatherCardsToCenter`, `RestoreCardsFromCenter`)
+- `Assets/_Scripts/KTH/CardManager/CardDeck/KTH_CardFanLayoutCalculator.cs`
+- `Assets/_Scripts/KTH/CardManager/CardDeck/KTH_CardLayoutCalculator.cs`
+  (3번 항목에서 만들었던 중복 사본 — 이번에 베이스의 `CardLayoutCalculator.cs`가
+  깊이 정렬 기능까지 얹혀서 다시 살아 돌아왔고, `KTH_HandCardLayout.cs`는 그걸 쓴다.
+  이제 진짜 죽은 코드라 같이 지움)
 
-**고친 것** — `KTH_HandCardLayout.cs` (975줄 → 544줄)
-- 위 두 클래스를 `Awake()`에서 생성해서 들고 있고, 해당 public 메서드들은 그쪽으로
-  한 줄 위임(delegate)하도록 바꿨다. 외부에서 부르는 시그니처(`KTH_HandCardLayout.Instance.
-  EnterPlacementMode(...)` 등)는 전혀 안 바뀌었다 — 안에서만 바뀜.
-- `handCards` 리스트와 `selectedCard`는 여전히 이 클래스가 유일하게 들고 있다. 두 헬퍼는
-  `internal List<KTH_HandCard> HandCards`, `internal KTH_HandCard SelectedCard { get; set; }`
-  프로퍼티로 읽고 쓴다 — "자리를 정하는 주체는 하나" 원칙 유지.
-- 카드 한 장의 정위치를 계산하는 `UpdateHandLayout`은 두 헬퍼 양쪽에서 다 불리는 공용
-  진입점이라 그대로 `KTH_HandCardLayout`에 남겨뒀다.
-
-**미확인**: 로직을 그대로 옮기기만 했고(동작 변경 없음) 컴파일 에러 없는 것과 교차 참조는
-확인했지만, 유니티에서 실제로 켜서 카드 뽑기 → 확정 클릭 → 배치 → 우클릭 취소 →
-더블클릭까지 한 바퀴 다 돌려보진 않았다. Play 모드에서 한 번 훑어봐 주면 좋겠다.
+지운 4개 전부 다른 어디서도 참조하는 곳이 없는 것 확인하고 지웠다(grep으로 검증).
+**`KTH_HandCardLayout.cs`는 지금 베이스가 가져온 버전 그대로다** — 975줄 넘게
+한 파일에 다 있는 상태로 되돌아갔다. 나중에 다시 쪼개려면 이번엔 깊이 정렬 로직까지
+포함해서 새로 해야 한다.
 
 ---
 
@@ -175,8 +170,9 @@ M  Assets/_Scripts/KTH/Pieces/KTH_PlacementAnimation.cs
 - 3번(카드 겹침)은 코드만 고쳤고 실제로 두 장을 빠르게 연달아 배치해서 안 겹치는지는
   아직 확인 안 됐다.
 - 4번(KTH_DeckUi.cs)은 남의 미완성 수정이라 테스트하고 커밋할지 말지도 본인 판단.
-- 5번(KTH_HandCardLayout 쪼갬)도 로직은 그대로 옮긴 거라 이론상 동작이 같아야 하지만,
-  손패 전체 흐름(뽑기/확정/배치/취소/더블클릭)을 한 바퀴 직접 돌려보진 않았다.
+- 5번(KTH_HandCardLayout 쪼갬)은 무산됐다 — 지금 `KTH_HandCardLayout.cs`는 베이스에서
+  가져온 원본 그대로(975줄+)다. "너무 두껍다"는 불만은 여전히 유효하니, 쪼개려면
+  나중에 다시 시도할 것.
 - 아직 유니티 콘솔 에러 0인지 최종 확인 후 커밋할 것 (`GIT_협업규칙.md` 규칙).
 - 씬(`LSO_TestScene 1.unity`)에 옛 `settleEase` 값이 구워져 있던 것처럼, 다른 씬/프리팹에도
   `KTH_PlacementAnimation`을 쓰는 인스턴스가 있으면 같은 문제가 있을 수 있다 — 인스펙터로
