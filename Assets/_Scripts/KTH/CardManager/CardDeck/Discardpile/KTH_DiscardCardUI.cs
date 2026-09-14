@@ -65,6 +65,16 @@ public class KTH_DiscardCardUI : MonoBehaviour
 
     private KTH_HandCard _topDiscardCard;
 
+    // GetNextStackTarget이 내준 자리 수. _discardCardList.Count와 다른 이유:
+    // 카드를 연달아 배치하면 KTH_DiscardAnimation이 날아가는 동안(도착 전)
+    // 다음 카드도 곧바로 GetNextStackTarget을 부르는데, 그 시점엔 아직
+    // _discardCardList에 첫 카드가 추가되지 않은 상태다(추가는 착지 후
+    // AddExistingCardToDiscardPile에서 일어남). Count를 그대로 읽으면 두 카드가
+    // 같은 층 자리를 받아 정확히 겹쳐서 떨어진다 - "카드 배치를 빨리 연달아
+    // 하면 가끔 겹친다"는 증상의 원인. 실제로 자리를 "내준" 시점에 바로 예약해서
+    // 같은 자리가 두 번 나가지 않게 한다.
+    private int _reservedStackCount;
+
     public Transform DiscardCardTransform =>
         discardCardTransform;
 
@@ -179,8 +189,17 @@ public class KTH_DiscardCardUI : MonoBehaviour
         out Vector3 worldPosition,
         out Quaternion rotation)
     {
+        // _discardCardList.Count가 아니라 예약 카운터를 쓴다 (위 필드 설명 참고).
+        // 혹시 리스트 쪽이 먼저 늘어나 있는 경우(예: AddToDiscardPile 경로)에도
+        // 뒤처지지 않게 둘 중 큰 값을 기준으로 삼는다.
         int stackIndex =
-            _discardCardList.Count;
+            Mathf.Max(
+                _reservedStackCount,
+                _discardCardList.Count
+            );
+
+        _reservedStackCount =
+            stackIndex + 1;
 
         float offsetX =
             Random.Range(
@@ -508,6 +527,8 @@ public class KTH_DiscardCardUI : MonoBehaviour
             );
 
         _discardCardList.Clear();
+
+        _reservedStackCount = 0;
 
         _topDiscardCard = null;
 

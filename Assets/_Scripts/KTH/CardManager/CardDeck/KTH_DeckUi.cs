@@ -133,7 +133,7 @@ public class KTH_DeckUi : MonoBehaviour
 
     private void PlayShowAnimation()
     {
-        // 먼저 전체 덱 오브젝트를 원래 위치로 올림
+        // 전체 덱 오브젝트를 원래 위치로 올림
         currentSequence =
             DOTween.Sequence();
 
@@ -146,17 +146,20 @@ public class KTH_DeckUi : MonoBehaviour
                 .SetEase(showEase)
         );
 
-        // 올라온 후 다시 카드들을 손패 형태로 펼침
+        // 카드들을 손패 형태로 펼침. 예전에는 이걸 위 시퀀스의 AppendCallback으로
+        // "덱이 다 올라온 뒤"에 실행했는데, 그 사이(moveDuration)에 턴이 다시
+        // 바뀌면 HandleTurnChanged가 currentSequence를 통째로 Kill해서 이 콜백이
+        // 영영 실행되지 못하고, 카드가 GatherCardsToCenter가 모아둔 가운데
+        // 자리(Vector3.zero)에 그대로 쌓인 채로 남는 버그가 있었다(빠른 턴 전환에서
+        // 가끔 재현됨). GatherCardsToCenter는 애초에 즉시 실행이라 이 문제가 없으니,
+        // 대칭을 맞춰 여기서도 시퀀스 완료를 기다리지 않고 바로 부른다.
+        // RestoreCardsFromCenter -> UpdateHandLayout은 카드마다 DOKill 후 새
+        // 트윈을 거는 구조라, 직전에 다른 애니메이션이 진행 중이었어도 항상 최신
+        // 호출이 이긴다.
         if (handCardLayout != null)
         {
-            currentSequence.AppendCallback(
-                () =>
-                {
-                    handCardLayout
-                        .RestoreCardsFromCenter(
-                            spreadDuration
-                        );
-                }
+            handCardLayout.RestoreCardsFromCenter(
+                spreadDuration
             );
         }
     }

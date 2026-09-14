@@ -25,6 +25,18 @@ using _Scripts.LSO.Will.Candle;
 // 그래서 KTH_HandCard의 회전 관련 API를 float(Z만) -> Vector3(X+Z)로 바꾸고,
 // 부채꼴로 펼쳐질 때만 X축에 handTiltAngle을 적용한다.
 // 선택/배치 중앙으로 모일 때는 항상 Vector3.zero로 세워진다 (원래 로직 그대로).
+//
+// 책임 분리 (God Class 방지):
+// 이 클래스는 손패 "전체" 상태(handCards 리스트, selectedCard, 카드 수 이벤트)의
+// 유일한 주인이다. 그 상태 위에서 벌어지는 동작 중 두 덩어리는 별도 클래스로 뺐다
+// (KTH_HandCard가 자기 동작을 컨트롤러들에게 위임하는 것과 같은 방식 - MonoBehaviour가
+// 아니라 이 클래스를 owner로 들고 있는 순수 C# 클래스).
+//   - KTH_HandCardPlacementFlow : 카드 확정 클릭 -> 배치 모드 -> LDY_CardPlacer 연동 ->
+//     포커스 카드 주위 부채꼴
+//   - KTH_HandCardGroupMotion   : 손패 컨테이너 통째로 내렸다 올리기, 카드 전체 가운데로
+//     모으기/되돌리기
+// 카드 한 장의 "정위치"를 계산하는 UpdateHandLayout은 위 둘 다에서 불리는 공용 진입점이라
+// 계속 여기 남아있다 - 자리를 정하는 주체를 하나로 유지하기 위해서다.
 public class KTH_HandCardLayout : MonoBehaviour
 {
     public static KTH_HandCardLayout Instance { get; private set; }
@@ -73,12 +85,13 @@ public class KTH_HandCardLayout : MonoBehaviour
     private readonly List<KTH_HandCard> handCards =
         new List<KTH_HandCard>();
 
-    private Vector3 originalContainerLocalPos;
-    private bool isCurrentlyDown;
     private KTH_HandCard selectedCard;
 
     // 카드 프리팹에 LSO_CardWill 이 없다는 경고를 이미 냈는지. SetupCard 참고.
     private bool warnedMissingCardWill;
+
+    private KTH_HandCardPlacementFlow placementFlow;
+    private KTH_HandCardGroupMotion groupMotion;
 
     public int HandCount => handCards.Count;
 
@@ -94,12 +107,43 @@ public class KTH_HandCardLayout : MonoBehaviour
 
     public event Action<int, int> OnHandCountChanged;
 
+    // placementFlow/groupMotion이 handCards/selectedCard를 읽고 쓸 때 쓰는 통로.
+    // 이 클래스가 여전히 "자리를 정하는 주체" 하나이므로 값을 여기서만 바꾼다 -
+    // 두 헬퍼는 이 프로퍼티를 거칠 뿐 자기 필드로 따로 들고 있지 않는다.
+    internal List<KTH_HandCard> HandCards => handCards;
+
+    internal KTH_HandCard SelectedCard
+    {
+        get => selectedCard;
+        set => selectedCard = value;
+    }
+
     private void Awake()
     {
         Instance = this;
 
-        originalContainerLocalPos =
-            transform.localPosition;
+        placementFlow = new KTH_HandCardPlacementFlow(
+            this,
+            cardPlacer,
+            discardPile,
+            handTiltAngle,
+            arcHeight,
+            maxRotation,
+            maxCardSpacing,
+            minCardSpacing,
+            maxHandWidth,
+            placementMoveDuration,
+            placementCenterGap,
+            moveEase
+        );
+
+        groupMotion = new KTH_HandCardGroupMotion(
+            this,
+            transform,
+            enableMoveDown,
+            placementMoveDownDistance,
+            placementMoveDuration
+        );
     }
 
     private void Update()
@@ -280,9 +324,9 @@ public class KTH_HandCardLayout : MonoBehaviour
             handCards.Add(card);
         }
 
-        // 확정 클릭(배치 시작/취소)을 여기서 받아서 LDY_CardPlacer로 연결한다.
-        card.OnCardClicked -= HandleCardConfirmClicked;
-        card.OnCardClicked += HandleCardConfirmClicked;
+        // 확정 클릭(배치 시작/취소)을 여기서 받아서 placementFlow로 연결한다.
+        card.OnCardClicked -= placementFlow.HandleCardConfirmClicked;
+        card.OnCardClicked += placementFlow.HandleCardConfirmClicked;
 
         UpdateHandLayout(card);
 
@@ -299,7 +343,7 @@ public class KTH_HandCardLayout : MonoBehaviour
     {
         if (card != null)
         {
-            card.OnCardClicked -= HandleCardConfirmClicked;
+            card.OnCardClicked -= placementFlow.HandleCardConfirmClicked;
         }
 
         if (selectedCard == card)
@@ -325,102 +369,8 @@ public class KTH_HandCardLayout : MonoBehaviour
     }
 
     // =========================================================
-    // Piece Placement (LDY_CardPlacer 연동)
+    // Piece Placement (LDY_CardPlacer 연동) - KTH_HandCardPlacementFlow에 위임
     // =========================================================
-
-    /// <summary>
-    /// 카드를 클릭했을 때 호출된다. OnCardClicked는 "확정 클릭"과 "취소 클릭" 둘 다에서 불리는데,
-    /// 이 시점에는 KTH_HandCard 내부에서 이미 상태를 바꿔놓은 뒤라 card.IsConfirmed로 구분할 수 있다.
-    ///   - 확정 클릭 (배치 시작): IsConfirmed == true
-    ///   - 취소 클릭 (배치 모드에서 다시 눌러서 취소): IsConfirmed == false
-    /// </summary>
-    private void HandleCardConfirmClicked(KTH_HandCard card)
-    {
-        if (card == null)
-        {
-            return;
-        }
-
-        // 취소 클릭이면 여기서 할 일이 없다. 선택 해제는 KTH_HandCard 쪽에서 이미 처리했다.
-        if (!card.IsConfirmed)
-        {
-            return;
-        }
-
-        if (cardPlacer == null)
-        {
-            Debug.LogWarning(
-                "[KTH_HandCardLayout] LDY_CardPlacer가 연결되지 않아 기물 배치를 시작할 수 없습니다.",
-                this
-            );
-
-            card.CancelSelectionState();
-
-            return;
-        }
-
-        // KTH_HandCard.OnPointerClick은 같은 확정 클릭에서
-        // KTH_InfoPanel.SelectInfoPanl() -> KTH_CardPlacementController.TryBeginPlacement()도
-        // 먼저 호출한다. 그쪽이 이미 cardPlacer.BeginPlacement로 배치를 시작해놓은 상태에서
-        // 여기서 또 BeginPlacement를 부르면, LDY_CardPlacer가 "이미 배치 중이면 취소하고
-        // 새로 시작"하는 구조라 방금 시작된 세션이 조용히 취소되고 콜백이 이 경로 것으로
-        // 바뀌어버린다. 배치 세션을 시작하는 주체가 매 클릭마다 둘로 갈리면서 카드가 보드에
-        // 놓이는 흐름/위치가 꼬이는 원인이 되므로, 이미 배치가 시작돼 있으면 여기서는
-        // 손대지 않는다.
-        if (cardPlacer.IsPlacing)
-        {
-            return;
-        }
-
-        LSO_CardSO cardData =
-            card.CardData;
-
-        if (cardData == null)
-        {
-            card.CancelSelectionState();
-
-            return;
-        }
-
-        // 유언 칸을 통째로 넘긴다. **값을 읽어서 넘기면 안 된다** —
-        // 지금은 아직 양초로 안 붙였을 수 있고, 칸을 고르는 사이에 붙이기 때문이다.
-        // 값은 실제로 놓는 순간 LDY_CardPlacer 가 읽는다.
-        LSO_CardWill cardWill =
-            card.GetComponentInChildren<LSO_CardWill>(true);
-
-        bool started =
-            cardPlacer.BeginPlacement(
-                cardData,
-                LDY_Team.Player,
-                cardWill: cardWill,
-                onPlaced: animal =>
-                {
-                    if (animal != null)
-                    {
-                        // 실제로 보드에 놓였을 때만 손패에서 빼고 버린다.
-                        card.ConsumeAndRearrange(
-                            discardPile
-                        );
-                    }
-                    else
-                    {
-                        // 칸이 막혀있거나 실패한 경우 카드는 손패에 그대로 두고 선택만 푼다.
-                        card.CancelSelectionState();
-                    }
-                },
-                onCancelled: () =>
-                {
-                    // 우클릭 등으로 배치를 취소하면 카드는 손패에 남기고 선택만 푼다.
-                    card.CancelSelectionState();
-                }
-            );
-
-        if (!started)
-        {
-            // 내 턴이 아니거나 코스트가 부족해서 아예 시작을 못 한 경우.
-            card.CancelSelectionState();
-        }
-    }
 
     public void OnCardSelectionChanged(
         KTH_HandCard card,
@@ -451,350 +401,14 @@ public class KTH_HandCardLayout : MonoBehaviour
         }
     }
 
-    public void EnterPlacementMode(
-        KTH_HandCard card)
+    public void EnterPlacementMode(KTH_HandCard card)
     {
-        if (card == null)
-        {
-            return;
-        }
-
-        if (!handCards.Contains(card))
-        {
-            return;
-        }
-
-        // 더블클릭으로 내려가 있는 카드가 있으면 부채꼴 재배치와 자리를 다투게
-        // 되므로, 배치 모드로 들어가기 전에 먼저 정리한다.
-        KTH_HandCard.CancelDoubleClick();
-
-        // 확정된 카드가 아닌데도 호버로 선택된 채 남아있는 다른 카드가 있으면,
-        // 부채꼴로 흩어지는 동안 UpdateHandLayout이 그 카드의 이동만 건너뛴다
-        // (card.IsSelected면 MoveToHandPositionWithDelay가 자리를 옮기지 않음).
-        // 그 상태로 두면 나중에 배치를 취소해도 그 카드만 계속 엉뚱한 자리에 남는다.
-        // 배치 모드에 들어가기 전에 미리 정리해서 그런 카드가 없게 한다.
-        for (int i = 0; i < handCards.Count; i++)
-        {
-            KTH_HandCard other = handCards[i];
-
-            if (other == null || other == card)
-            {
-                continue;
-            }
-
-            if (other.IsSelected && !other.IsConfirmed)
-            {
-                other.CancelSelectionState();
-            }
-        }
-
-        selectedCard = card;
-
-        MoveSelectedCardToCenter();
+        placementFlow.EnterPlacementMode(card);
     }
 
     public void ExitPlacementMode()
     {
-        selectedCard = null;
-
-        UpdateHandLayout(
-            null,
-            placementMoveDuration,
-            false
-        );
-    }
-
-    private void MoveSelectedCardToCenter()
-    {
-        if (selectedCard == null)
-        {
-            return;
-        }
-
-        selectedCard.transform.DOKill();
-        selectedCard.BringToFront();
-
-        Sequence moveToCenterSequence =
-            DOTween.Sequence();
-
-        moveToCenterSequence.SetTarget(
-            selectedCard.transform
-        );
-
-        moveToCenterSequence.Join(
-            selectedCard.transform
-                .DOLocalMove(
-                    Vector3.zero,
-                    placementMoveDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        // 위치는 정중앙이니 부채꼴 Z축 기울기는 0으로 되돌린다.
-        // X축(handTiltAngle, 눕는 각도)은 그대로 유지한다.
-        moveToCenterSequence.Join(
-            selectedCard.transform
-                .DOLocalRotate(
-                    new Vector3(handTiltAngle, 0f, 0f),
-                    placementMoveDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        moveToCenterSequence.Join(
-            selectedCard.transform
-                .DOScale(
-                    selectedCard.BaseScale *
-                    selectedCard.SelectScale,
-                    placementMoveDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        moveToCenterSequence.OnComplete(() =>
-        {
-            if (selectedCard == null)
-            {
-                return;
-            }
-
-            if (!selectedCard.IsPlacementMode)
-            {
-                return;
-            }
-
-            SpreadCardsAroundCenter();
-        });
-    }
-
-    /// <summary>
-    /// focalCard를 뺀 나머지 카드들이 focalCard를 기준으로 좌우 부채꼴로 벌어질 목표
-    /// 위치/회전을 계산해서 애니메이션까지 실행한다.
-    ///
-    /// 배치 모드(포커스 카드가 중앙 Vector3.zero로 이동한 상태, anchorX = 0)와
-    /// 호버(포커스 카드가 자기 자리에 그대로 있는 상태, anchorX = 그 자리의 X)
-    /// 양쪽에서 같이 쓴다.
-    ///
-    /// 나머지 카드는 실제 손패상의 좌/우 순서가 아니라 "항상 절반씩 좌우로 균등 분배"한다.
-    /// (가장자리 카드를 선택해도 나머지가 한쪽으로 쏠리지 않고 중앙 기준으로 고르게 펼쳐짐)
-    /// </summary>
-    private void ApplyFanAroundFocalCard(
-        KTH_HandCard focalCard,
-        float anchorX,
-        float centerGap,
-        float duration)
-    {
-        int count = handCards.Count;
-
-        if (count <= 1 || focalCard == null)
-        {
-            return;
-        }
-
-        List<KTH_HandCard> otherCards =
-            new List<KTH_HandCard>();
-
-        for (int i = 0; i < count; i++)
-        {
-            KTH_HandCard card =
-                handCards[i];
-
-            if (card == null ||
-                card == focalCard)
-            {
-                continue;
-            }
-
-            otherCards.Add(card);
-        }
-
-        int otherCount =
-            otherCards.Count;
-
-        if (otherCount == 0)
-        {
-            return;
-        }
-
-        int leftCount = otherCount / 2;
-        int rightCount = otherCount - leftCount;
-
-        // 나머지가 딱 1장일 때는 위 균등분배 공식이 항상 오른쪽으로 밀어버려서
-        // 원래 왼쪽에 있던 카드를 선택해도 반대편으로 튀어 보인다.
-        // 이 경우만 실제 손패 순서를 보고 원래 있던 쪽으로 보낸다.
-        if (otherCount == 1)
-        {
-            int focalIndex =
-                handCards.IndexOf(focalCard);
-
-            int otherIndex =
-                handCards.IndexOf(otherCards[0]);
-
-            bool otherIsOnLeft =
-                focalIndex >= 0 &&
-                otherIndex >= 0 &&
-                otherIndex < focalIndex;
-
-            leftCount = otherIsOnLeft ? 1 : 0;
-            rightCount = otherIsOnLeft ? 0 : 1;
-        }
-
-        float spacing =
-            CalculatePlacementSpacing(otherCount + 1);
-
-        for (int i = 0; i < otherCount; i++)
-        {
-            KTH_HandCard card =
-                otherCards[i];
-
-            int relativeIndex =
-                i < leftCount
-                    ? i - leftCount
-                    : i - leftCount + 1;
-
-            float targetX =
-                relativeIndex * spacing;
-
-            targetX +=
-                relativeIndex < 0
-                    ? -centerGap
-                    : centerGap;
-
-            targetX += anchorX;
-
-            int sideCount =
-                relativeIndex < 0
-                    ? leftCount
-                    : rightCount;
-
-            float normalized =
-                Mathf.Clamp01(
-                    Mathf.Abs(relativeIndex) /
-                    (float)Mathf.Max(1, sideCount)
-                );
-
-            float targetY =
-                -normalized * normalized * arcHeight;
-
-            float targetRotationZ =
-                relativeIndex < 0
-                    ? normalized * maxRotation
-                    : -normalized * maxRotation;
-
-            Vector3 targetPos =
-                new Vector3(targetX, targetY, 0f);
-
-            Vector3 targetRot =
-                new Vector3(handTiltAngle, 0f, targetRotationZ);
-
-            card.transform.DOKill();
-
-            Sequence sequence =
-                DOTween.Sequence();
-
-            sequence.SetTarget(card.transform);
-
-            sequence.Join(
-                card.transform
-                    .DOLocalMove(targetPos, duration)
-                    .SetEase(moveEase)
-            );
-
-            sequence.Join(
-                card.transform
-                    .DOLocalRotate(targetRot, duration)
-                    .SetEase(moveEase)
-            );
-
-            sequence.Join(
-                card.transform
-                    .DOScale(card.BaseScale, duration)
-                    .SetEase(moveEase)
-            );
-
-            card.UpdateOriginalTransform(targetPos, targetRot);
-
-            // 더블클릭으로 내려가 있는 카드는 "원래 자리"가 방금 새로 계산한
-            // 부채꼴 자리로 갱신됐으니, 그 새 자리를 기준으로 내려간 오프셋을
-            // 다시 적용한다. 그래야 부채꼴로도 벌어지고 내려간 채로도 있는
-            // 두 효과가 같이 보인다.
-            if (card.IsMovedDown)
-            {
-                card.RefreshMoveDownOffset();
-            }
-        }
-    }
-
-    /// <summary>
-    /// 배치 모드: 선택된 카드는 중앙(Vector3.zero)으로, 나머지는 그 주위로 부채꼴 벌어짐.
-    /// </summary>
-    private void SpreadCardsAroundCenter()
-    {
-        if (selectedCard == null)
-        {
-            return;
-        }
-
-        ApplyFanAroundFocalCard(
-            selectedCard,
-            0f,
-            placementCenterGap,
-            placementMoveDuration
-        );
-
-        selectedCard.transform.DOKill();
-
-        Sequence selectedSequence =
-            DOTween.Sequence();
-
-        selectedSequence.SetTarget(selectedCard.transform);
-
-        selectedSequence.Join(
-            selectedCard.transform
-                .DOLocalMove(Vector3.zero, placementMoveDuration)
-                .SetEase(Ease.OutBack)
-        );
-
-        selectedSequence.Join(
-            selectedCard.transform
-                .DOLocalRotate(
-                    new Vector3(handTiltAngle, 0f, 0f),
-                    placementMoveDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        selectedSequence.Join(
-            selectedCard.transform
-                .DOScale(
-                    selectedCard.BaseScale * selectedCard.SelectScale,
-                    placementMoveDuration
-                )
-                .SetEase(Ease.OutBack)
-        );
-
-        selectedCard.BringToFront();
-    }
-
-    private float CalculatePlacementSpacing(
-        int count)
-    {
-        if (count <= 1)
-        {
-            return maxCardSpacing;
-        }
-
-        float spacing =
-            Mathf.Min(
-                maxCardSpacing,
-                maxHandWidth /
-                (count - 1)
-            );
-
-        return Mathf.Max(
-            minCardSpacing,
-            spacing
-        );
+        placementFlow.ExitPlacementMode();
     }
 
     public void UpdateHandLayout(
@@ -828,7 +442,7 @@ public class KTH_HandCardLayout : MonoBehaviour
             }
 
             var transformData =
-                CardLayoutCalculator
+                KTH_CardLayoutCalculator
                     .CalculateCardTransform(
                         i,
                         count,
@@ -904,108 +518,27 @@ public class KTH_HandCardLayout : MonoBehaviour
         }
     }
 
+    // =========================================================
+    // 손패 전체 묶음 동작 - KTH_HandCardGroupMotion에 위임
+    // =========================================================
+
     public void MoveDownForPlacement()
     {
-        if (!enableMoveDown ||
-            isCurrentlyDown)
-        {
-            return;
-        }
-
-        isCurrentlyDown = true;
-
-        AnimateContainerY(
-            originalContainerLocalPos.y -
-            placementMoveDownDistance
-        );
+        groupMotion.MoveDownForPlacement();
     }
 
-    public void GatherCardsToCenter(
-        float duration)
+    public void GatherCardsToCenter(float duration)
     {
-        if (handCards.Count == 0)
-        {
-            return;
-        }
-
-        for (int i = 0; i < handCards.Count; i++)
-        {
-            KTH_HandCard card =
-                handCards[i];
-
-            if (card == null)
-            {
-                continue;
-            }
-
-            card.transform.DOKill();
-
-            Sequence gatherSequence =
-                DOTween.Sequence();
-
-            gatherSequence.Join(
-                card.transform
-                    .DOLocalMove(
-                        Vector3.zero,
-                        duration
-                    )
-                    .SetEase(Ease.InBack)
-            );
-
-            gatherSequence.Join(
-                card.transform
-                    .DOLocalRotate(
-                        Vector3.zero,
-                        duration
-                    )
-                    .SetEase(Ease.InBack)
-            );
-
-            gatherSequence.Join(
-                card.transform
-                    .DOScale(
-                        card.BaseScale,
-                        duration
-                    )
-                    .SetEase(Ease.InBack)
-            );
-        }
+        groupMotion.GatherCardsToCenter(duration);
     }
 
-    public void RestoreCardsFromCenter(
-        float duration)
+    public void RestoreCardsFromCenter(float duration)
     {
-        UpdateHandLayout(
-            null,
-            duration,
-            false
-        );
+        groupMotion.RestoreCardsFromCenter(duration);
     }
 
     public void MoveUpFromPlacement()
     {
-        if (!isCurrentlyDown)
-        {
-            return;
-        }
-
-        isCurrentlyDown = false;
-
-        AnimateContainerY(
-            originalContainerLocalPos.y
-        );
-    }
-
-    private void AnimateContainerY(
-        float targetY)
-    {
-        transform.DOKill();
-
-        transform
-            .DOLocalMoveY(
-                targetY,
-                placementMoveDuration
-            )
-            .SetEase(Ease.OutCubic);
+        groupMotion.MoveUpFromPlacement();
     }
 }
