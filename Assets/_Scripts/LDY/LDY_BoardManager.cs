@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Ability;
 using _Scripts.LSO.Manager;
 using UnityEngine;
 
@@ -65,8 +66,38 @@ namespace _Scripts.LDY
         /// </summary>
         public event Action OnBoardChanged;
 
+        /// <summary>
+        /// 배치가 바뀌는 것을 지켜보는 특성들.
+        ///
+        /// OnBoardChanged 이벤트와 따로 두는 이유는 **해제 때문이다.**
+        /// 특성은 기물이 죽으면 그냥 버려지는 평범한 객체라, 이벤트에 직접 걸어두면
+        /// 보드가 죽은 기물의 특성을 계속 붙잡고 있는다. 목록으로 들고 있으면
+        /// LSO_AbilityWiring.Unbind 가 확실히 빼낼 수 있다.
+        /// </summary>
+        private readonly List<LSO_IOnBoardChanged> _boardWatchers = new();
+
+        /// <summary>돌면서 목록이 바뀌어도 안전하도록 미리 담아두는 자리.</summary>
+        private readonly List<LSO_IOnBoardChanged> _watcherBuffer = new();
+
         // Awake에서 씬의 기물을 한꺼번에 등록할 때 기물 수만큼 신호가 나가는 걸 막는다.
         private bool _suppressChangeNotice;
+
+        /// <summary>배치 변화를 지켜볼 특성을 등록한다. LSO_AbilityWiring 이 부른다.</summary>
+        public void AddBoardWatcher(LSO_IOnBoardChanged watcher)
+        {
+            if (watcher == null) return;
+            if (_boardWatchers.Contains(watcher)) return;
+
+            _boardWatchers.Add(watcher);
+        }
+
+        /// <summary>등록을 뺀다. 기물이 죽거나 특성이 떨어질 때 반드시 불려야 한다.</summary>
+        public void RemoveBoardWatcher(LSO_IOnBoardChanged watcher)
+        {
+            if (watcher == null) return;
+
+            _boardWatchers.Remove(watcher);
+        }
 
         private void Awake()
         {
@@ -90,6 +121,16 @@ namespace _Scripts.LDY
             if (_suppressChangeNotice) return;
 
             OnBoardChanged?.Invoke();
+
+            if (_boardWatchers.Count == 0) return;
+
+            // 알림을 받은 특성이 기물을 죽이거나 옮기면 목록이 도는 도중에 바뀐다.
+            // 먼저 담아두고 돈다.
+            _watcherBuffer.Clear();
+            _watcherBuffer.AddRange(_boardWatchers);
+
+            for (int i = 0; i < _watcherBuffer.Count; i++)
+                _watcherBuffer[i]?.OnBoardChanged();
         }
 
         private void OnDestroy()

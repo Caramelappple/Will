@@ -30,7 +30,6 @@ namespace _Scripts.LSO.Ability.Registry
 
             // ---- 일반 특성 ----
             LSO_AbilityFactory.Register(LSO_AbilityType.Sturdy, () => new LSO_Sturdy());
-            LSO_AbilityFactory.Register(LSO_AbilityType.Dodge, () => new LSO_Dodge());
             LSO_AbilityFactory.Register(LSO_AbilityType.Bloodlust, () => new LSO_Bloodlust());
             LSO_AbilityFactory.Register(LSO_AbilityType.PackTactics, () => new LSO_PackTactics());
             LSO_AbilityFactory.Register(LSO_AbilityType.Thorns, () => new LSO_Thorns());

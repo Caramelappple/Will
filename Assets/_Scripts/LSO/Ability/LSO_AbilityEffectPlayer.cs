@@ -135,9 +135,12 @@ namespace _Scripts.LSO.Ability
         {
             TrimToLimit();
 
-            Vector3 where = at + Vector3.up * info.effectHeight;
+            GameObject instance = Instantiate(info.effectPrefab, parent);
 
-            GameObject instance = Instantiate(info.effectPrefab, where, Quaternion.identity, parent);
+            // 자리·자세·크기를 정하는 곳은 LSO_AbilityEffectPlacement 하나다.
+            // 에디터 미리보기도 같은 것을 쓴다 — 두 곳이 각자 계산하면
+            // 미리보기에서 맞춰놓은 자리가 플레이할 때 달라진다.
+            LSO_AbilityEffectPlacement.Apply(instance.transform, info, at);
 
             float lifetime = ResolveLifetime(instance);
 
@@ -145,7 +148,10 @@ namespace _Scripts.LSO.Ability
             // 그때 이펙트만 멈춰 서 있으면 화면이 어긋난다.
             _live.Add(new Live(instance, Time.unscaledTime + lifetime));
 
-            Log($"{info.type} — {info.effectPrefab.name} ({lifetime:0.##}초)");
+            Log($"{info.type} — {info.effectPrefab.name} ({lifetime:0.##}초)\n" +
+                $"  자리 {instance.transform.position}\n" +
+                $"  회전 {instance.transform.eulerAngles}   (사전 {info.effectRotation})\n" +
+                $"  크기 {instance.transform.localScale}   (사전 {info.effectScale})");
         }
 
         /// <summary>

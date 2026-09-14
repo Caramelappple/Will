@@ -10,7 +10,7 @@ namespace _Scripts.LSO.Ability.Catalog
     /// 이쪽은 "플레이어에게 뭐라고 적어줄 것인가"만 담는다.
     /// </summary>
     [Serializable]
-    public struct LSO_AbilityInfo
+    public class LSO_AbilityInfo
     {
         [Tooltip("어떤 특성에 대한 설명인지.")]
         public LSO_AbilityType type;
@@ -46,9 +46,27 @@ namespace _Scripts.LSO.Ability.Catalog
                  "알아서 치운다. 파티클을 더 넣어도 손볼 것이 없다.")]
         public GameObject effectPrefab;
 
-        [Tooltip("기물 발밑에서 얼마나 띄울지. 가시처럼 몸통에서 나는 것은 올리고,\n" +
-                 "바닥에 퍼지는 것은 0으로 둔다.")]
-        public float effectHeight;
+        [Tooltip("기물 자리에서 얼마나 옮길지. 월드 기준이다.\n" +
+                 "\n" +
+                 "Y 를 올리면 몸통 높이에서 나고, 0이면 발밑에서 난다.\n" +
+                 "카메라가 비스듬히 내려다보므로 Z 도 조금 만져야 맞는 경우가 많다.")]
+        public Vector3 effectOffset;
+
+        [Tooltip("이펙트를 놓을 각도(도). **프리팹에 저장된 회전은 무시하고 이 값으로 놓는다.**\n" +
+                 "\n" +
+                 "0,0,0 이면 안 돌린 상태다. 프리팹이 눕혀서 저장돼 있어도 세워진다.\n" +
+                 "\n" +
+                 "더하는 방식으로 뒀더니 프리팹 값과 상쇄돼 0이 되는 일이 있었다.\n" +
+                 "적은 값이 그대로 들어가는 편이 맞추기 쉽다.")]
+        public Vector3 effectRotation;
+
+        [Tooltip("이펙트 크기. **프리팹 크기를 무시하고 이 값으로 놓는다.**\n" +
+                 "\n" +
+                 "1,1,1 이 기본이다. 0.5,0.5,0.5 로 하면 절반이 된다.\n" +
+                 "자식 파티클도 같이 줄어든다.\n" +
+                 "\n" +
+                 "격자 한 칸이 1이다.")]
+        public Vector3 effectScale = Vector3.one;
 
         /// <summary>이름이 비어 있으면 enum 이름으로 대신한다.</summary>
         public string ResolvedName =>
