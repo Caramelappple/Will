@@ -1,0 +1,18 @@
+{
+    "name": "SoundSystem_Editor_assembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b6a338632b89df2458daeea19d692438"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

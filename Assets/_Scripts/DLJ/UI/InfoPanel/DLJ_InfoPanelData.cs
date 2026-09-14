@@ -227,6 +227,11 @@ public readonly struct DLJ_InfoPanelData
     {
         if (traits == null || traits.Count == 0) return "없음";
 
+        // 사전에 우선도를 적어둔 특성이 있으면 그것만 띄운다.
+        // 보스처럼 특성이 예닐곱 개 붙으면 전부 늘어놔도 읽히지 않는다.
+        if (LSO_AbilityText.TryGetFeatured(traits, out LSO_AbilityType featured))
+            return LSO_DisplayNames.Of(featured);
+
         var builder = new StringBuilder();
         for (int i = 0; i < traits.Count; i++)
         {
@@ -253,6 +258,10 @@ public readonly struct DLJ_InfoPanelData
     private static string DescribeTraitEffects(IReadOnlyList<LSO_AbilityType> traits)
     {
         if (traits == null || traits.Count == 0) return string.Empty;
+
+        // 이름 칸과 같은 것 하나만 설명한다. 이름은 하나인데 설명이 일곱 줄이면 어긋난다.
+        if (LSO_AbilityText.TryGetFeatured(traits, out LSO_AbilityType featured))
+            return LSO_AbilityText.DescriptionOf(featured);
 
         var builder = new StringBuilder();
 

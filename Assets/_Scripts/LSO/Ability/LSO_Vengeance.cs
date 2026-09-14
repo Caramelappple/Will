@@ -38,7 +38,8 @@ namespace _Scripts.LSO.Ability
             killer.health.GetDamage(
                 DamageData.Create(self != null ? self.health : null, RevengeDamage, LSO_DamageSource.Ability));
 
-            LSO_AbilityLog.Log($"<color=magenta>{(self != null ? self.name : "기물")}의 복수: {killer.name}에게 {RevengeDamage} 피해</color>", killer);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Vengeance, self,
+                $"<color=magenta>{(self != null ? self.name : "기물")}의 복수: {killer.name}에게 {RevengeDamage} 피해</color>");
 
             if (killer.health.IsDestroyed)
                 _context?.Deaths?.Kill(killer, self);

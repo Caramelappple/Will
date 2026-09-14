@@ -18,7 +18,10 @@ namespace _Scripts.LSO.Ability
         Test,
 
         Sturdy,
+
+        [Obsolete("폐기됐다. 회피는 쓰지 않기로 했다. 자리만 남긴다 — 지우면 뒤의 값이 밀린다.")]
         Dodge,
+
         Bloodlust,
         PackTactics,
         Thorns,

@@ -74,6 +74,23 @@ namespace _Scripts.LDY
         [Header("3D")]
         [Tooltip("이동/공격 연출 시 실제로 움직일 3D 모델 트랜스폼. 비워두면 자기 자신의 transform을 사용한다.")]
         public Transform modelTransform;
+        [Tooltip("보드에 배치됐을 때 바닥에서 얼마나 띄워서 놓을지 (KTH). 모델 피벗이 바닥에 있지 않은 기물을 " +
+                 "기물별로 보정한다. LDY_BoardManager.GridToWorld의 격자 층 계산과는 별개로 항상 그대로 더해진다.")]
+        public float restHeight = 0f;
+
+        /// <summary>
+        /// 처음 제대로 자리 잡았을 때의 바닥 월드 Y (KTH). 그 뒤로 이동/공격/호버가 "원래 높이로
+        /// 돌아온다"고 할 때는 전부 이 값을 쓴다 — 매번 GridToWorld+restHeight를 다시 계산하지 않고,
+        /// 처음 정해진 값 하나를 계속 재사용한다. 계산식이 여러 곳에 흩어져 있으면 그중 하나만 restHeight를
+        /// 깜빡 빠뜨려도 높이가 어긋나는데, 그런 사고를 원천적으로 막기 위해서다.
+        /// </summary>
+        public float? RestWorldY { get; private set; }
+
+        /// <summary>처음 한 번만 기억한다. 이미 있으면 덮어쓰지 않는다 — 그래야 이동 중간에 다시 불려도 흔들리지 않는다.</summary>
+        public void RememberRestWorldY(float y)
+        {
+            RestWorldY ??= y;
+        }
 
         private readonly List<LSO_IAbility> _abilities = new();
         private bool _abilitiesRegistered;

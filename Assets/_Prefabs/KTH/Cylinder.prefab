@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4209428674623069864
+--- !u!1 &527539779548284621
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,51 +8,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5281586973659791504}
-  - component: {fileID: 8862429946416466429}
-  - component: {fileID: 6095595683069475832}
-  - component: {fileID: 4665774403491819293}
-  - component: {fileID: 4252821230286214157}
-  - component: {fileID: 8308474573611943773}
-  - component: {fileID: -4379339614478175788}
-  - component: {fileID: -8584810884870325977}
+  - component: {fileID: 4620970819943915915}
+  - component: {fileID: 5071631580478149475}
+  - component: {fileID: 362949292097921767}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &5281586973659791504
+--- !u!4 &4620970819943915915
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4209428674623069864}
+  m_GameObject: {fileID: 527539779548284621}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35356, y: 0.24749, z: 0.35356}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 5281586973659791504}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8862429946416466429
+--- !u!33 &5071631580478149475
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4209428674623069864}
+  m_GameObject: {fileID: 527539779548284621}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &6095595683069475832
+--- !u!23 &362949292097921767
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4209428674623069864}
+  m_GameObject: {fileID: 527539779548284621}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -71,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: -1874600823650876969, guid: 5c328aeeed1839e4b89632fb1c8b9973, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -95,6 +90,45 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4209428674623069864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5281586973659791504}
+  - component: {fileID: 4665774403491819293}
+  - component: {fileID: 4252821230286214157}
+  - component: {fileID: 8308474573611943773}
+  - component: {fileID: -4379339614478175788}
+  - component: {fileID: -8584810884870325977}
+  - component: {fileID: 5576064601125798737}
+  - component: {fileID: -5606488930538129094}
+  m_Layer: 0
+  m_Name: Cylinder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5281586973659791504
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209428674623069864}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.35356, y: 5, z: 0.35356}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4620970819943915915}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &4665774403491819293
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -128,11 +162,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.HealthSystem.Health
-  <MaxValue>k__BackingField: 2
+  <MaxValue>k__BackingField: 40
   <MinValue>k__BackingField: 0
-  _value: 2
+  _value: 40
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &8308474573611943773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,7 +179,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
   health: {fileID: 4252821230286214157}
@@ -151,9 +187,11 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 5281586973659791504}
+  restHeight: 1
 --- !u!114 &-4379339614478175788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,7 +202,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
   healthThreshold: 17
 --- !u!114 &-8584810884870325977
@@ -177,7 +215,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2bf41b619a0a17b4ba5e5cac5937fcde, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Boss.BullKing.LDY_BullKingBoss
   phaseOne:
     chargeRange: 4
@@ -193,7 +231,7 @@ MonoBehaviour:
   rageChainRange: 1
   maxRageChainPerCharge: 3
   rageChainHitsBullKing: 1
-  chargeSecondsPerTile: 0.07
+  chargeDuration: 1
   minChargeDuration: 0.15
   chargeEasing:
     serializedVersion: 2
@@ -219,4 +257,45 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  pushDuration: 0.2
+  chargeSfx: 6
+  shakeDuration: 0.25
+  shakeStrength: 0.15
+  riseDuration: 0.3
+  hangDuration: 0.15
+  fallDuration: 0.3
+  pushArcHeight: 0.35
+  slamHopHeight: 0.5
+--- !u!114 &5576064601125798737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209428674623069864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
+  exitGraceSeconds: 0.08
+--- !u!114 &-5606488930538129094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209428674623069864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4262e43e9d077324d891b538aa3ed2d6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverMoveEffect
+  target: {fileID: 4620970819943915915}
+  offset: {x: 0, y: 0.2, z: 0}
+  enterDuration: 0.1
+  exitDuration: 0.16
+  ignoreTimeScale: 1
+  easeEnter: 20
+  easeExit: 21
+  extraAnimation: {fileID: 0}

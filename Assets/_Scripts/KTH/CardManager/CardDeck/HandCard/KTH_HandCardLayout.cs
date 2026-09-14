@@ -46,6 +46,20 @@ public class KTH_HandCardLayout : MonoBehaviour
     [SerializeField] private float arcHeight = 0.4f;
     [SerializeField] private float maxRotation = 12f;
 
+    [Header("Card Depth (겹칠 때 앞뒤)")]
+    [Tooltip("어느 카드가 앞에 올지.\n" +
+             "\n" +
+             "카드가 불투명 메쉬라 sortingOrder가 안 먹는다. 앞뒤는 카메라와의 거리로만\n" +
+             "정해지므로, 앞에 둘 카드를 실제로 카메라 쪽으로 당긴다.")]
+    [SerializeField] private CardLayoutCalculator.DepthOrder depthOrder =
+        CardLayoutCalculator.DepthOrder.LeftFirst;
+
+    [Tooltip("카드 한 장마다 벌릴 깊이. 0이면 전부 같은 깊이에 놓여 앞뒤가 뒤죽박죽이 된다.\n" +
+             "\n" +
+             "**Max Hand Size 를 곱한 값이 카드 프리팹의 KTH_CardSorting.Front Z Offset\n" +
+             "(기본 0.05)보다 작아야 한다.** 넘으면 뒤쪽 손패가 선택된 카드보다 앞으로 나온다.")]
+    [SerializeField, Min(0f)] private float depthStep = 0.005f;
+
     [Header("Hand Tilt (3D 전용)")]
     [Tooltip("손패에서 카드가 X축으로 얼마나 누워있을지. 0이면 완전히 세워짐, 값이 커질수록 뒤로 눕는다.")]
     [SerializeField] private float handTiltAngle = 20f;
@@ -317,6 +331,70 @@ public class KTH_HandCardLayout : MonoBehaviour
             pushDuration,
             false
         );
+
+        OnHandCountChanged?.Invoke(
+            handCards.Count,
+            maxHandSize
+        );
+    }
+
+    /// <summary>
+    /// 손패를 통째로 버린다. 스테이지를 깼을 때 부른다.
+    ///
+    /// ClearHand 와 다르다. 이쪽은 **화면에 보이는 버림 연출을 태운다** —
+    /// 카드가 버림 더미로 날아간다. 판이 뒤집히기 전이라 플레이어가 본다.
+    ///
+    /// 목록을 복사해서 도는 이유는 ConsumeAndRearrange 가 안에서 RemoveCard 로
+    /// 원본을 건드리기 때문이다. 돌면서 지우면 중간부터 건너뛴다.
+    /// </summary>
+    public void DiscardHand(KTH_DiscardCardUI discardPile)
+    {
+        selectedCard = null;
+
+        KTH_HandCard.CancelDoubleClick();
+
+        List<KTH_HandCard> snapshot = new List<KTH_HandCard>(handCards);
+
+        foreach (KTH_HandCard card in snapshot)
+        {
+            if (card == null) continue;
+
+            KTH_HandCardDiscardHandler.ConsumeAndRearrange(card, discardPile, null);
+        }
+    }
+
+    /// <summary>
+    /// 손패를 통째로 비운다. 새 판을 세울 때 부른다.
+    ///
+    /// 한 장씩 RemoveCard 로 지우지 않는 이유는, 그때마다 재배치 애니메이션이
+    /// 돌아 남은 카드가 우르르 움직이기 때문이다. 어차피 다 없앨 것이라
+    /// 목록을 먼저 비우고 한 번만 알린다.
+    ///
+    /// 버린 카드 더미로 보내지 않는다. 판이 바뀌면 덱을 처음 상태로 되돌리므로
+    /// 더미에 넣어봐야 곧바로 다시 걷힌다 — 넣었다 빼는 연출만 헛돈다.
+    /// </summary>
+    public void ClearHand()
+    {
+        // 배치 모드나 선택 상태가 남아 있으면 사라진 카드를 계속 가리킨다.
+        selectedCard = null;
+
+        KTH_HandCard.CancelDoubleClick();
+
+        for (int i = 0; i < handCards.Count; i++)
+        {
+            KTH_HandCard card = handCards[i];
+
+            if (card == null) continue;
+
+            card.OnCardClicked -= HandleCardConfirmClicked;
+
+            card.CancelSelectionState();
+            card.transform.DOKill(true);
+
+            KTH_HandCardDiscardHandler.ReleaseOrDestroy(card);
+        }
+
+        handCards.Clear();
 
         OnHandCountChanged?.Invoke(
             handCards.Count,
@@ -681,8 +759,17 @@ public class KTH_HandCardLayout : MonoBehaviour
                     ? normalized * maxRotation
                     : -normalized * maxRotation;
 
+            // 여기도 부채꼴이라 겹친다. 손패와 같은 규칙으로 앞뒤를 준다 —
+            // 배치 모드에서만 순서가 달라지면 눈에 걸린다.
+            //
+            // i 를 쓴다. relativeIndex 는 가운데를 비운 값이라 음수가 섞여
+            // 깊이가 앞뒤로 튄다.
+            float targetZ =
+                -CardLayoutCalculator.DepthRank(i, otherCount, depthOrder) *
+                depthStep;
+
             Vector3 targetPos =
-                new Vector3(targetX, targetY, 0f);
+                new Vector3(targetX, targetY, targetZ);
 
             Vector3 targetRot =
                 new Vector3(handTiltAngle, 0f, targetRotationZ);
@@ -836,7 +923,9 @@ public class KTH_HandCardLayout : MonoBehaviour
                         minCardSpacing,
                         maxHandWidth,
                         arcHeight,
-                        maxRotation
+                        maxRotation,
+                        depthStep: depthStep,
+                        depthOrder: depthOrder
                     );
 
             Vector3 targetPosition =
@@ -865,6 +954,11 @@ public class KTH_HandCardLayout : MonoBehaviour
                 continue;
             }
 
+            card.UpdateOriginalTransform(
+                targetPosition,
+                targetRotation
+            );
+
             if (!card.IsSelected)
             {
                 float delay =
@@ -880,11 +974,16 @@ public class KTH_HandCardLayout : MonoBehaviour
                     moveEase
                 );
             }
-
-            card.UpdateOriginalTransform(
-                targetPosition,
-                targetRotation
-            );
+            else if (!card.IsConfirmed)
+            {
+                // 호버로만 들려있는(확정 전) 카드는 재배치를 건너뛰는데, 그대로 두면
+                // 카드 수가 바뀌어 간격(cardSpacing)이 다시 계산될 때 예전 자리에
+                // 계속 떠 있게 된다. 옆 카드가 새 간격으로 옮겨오면서 그 자리와
+                // 겹치는 게 "손패 카드가 가끔 겹친다"는 증상의 원인이었다.
+                // 방금 갱신한 새 OriginalLocalPosition 기준으로 들림 오프셋만
+                // 다시 적용해서 새 슬롯 위로 옮긴다.
+                card.RefreshSelectedOffset();
+            }
         }
 
         if (selectedCard != null &&

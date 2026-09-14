@@ -296,6 +296,15 @@ public class KTH_HandCard : MonoBehaviour,
         selectionController.SetSelected(value);
     }
 
+    /// <summary>
+    /// 손패 재배치로 이 카드의 "원래 자리"가 바뀌었을 때, 호버로 들려있는 오프셋을
+    /// 새 자리 기준으로 다시 적용한다. 선택돼 있지 않거나 확정된 카드면 아무 일도 하지 않는다.
+    /// </summary>
+    public void RefreshSelectedOffset()
+    {
+        selectionController.RefreshSelectedOffset();
+    }
+
     public static void DeselectCurrent()
     {
         KTH_HandCardSelectionController.DeselectCurrent();

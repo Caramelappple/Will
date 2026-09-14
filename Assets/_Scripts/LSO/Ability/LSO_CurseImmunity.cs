@@ -27,9 +27,9 @@ namespace _Scripts.LSO.Ability
             if (data.source != LSO_DamageSource.Curse) return damage;
 
             Immuned?.Invoke(target);
-            LSO_AbilityLog.Log(
-                $"<color=violet>{(target != null ? target.name : "대상")}: 저주 면역 — 저주 피해 {damage} 무효</color>",
-                target);
+            LSO_AbilitySignal.Raise(
+                LSO_AbilityType.CurseImmunity, target,
+                $"<color=violet>{(target != null ? target.name : "대상")}: 저주 면역 — 저주 피해 {damage} 무효</color>");
 
             return 0;
         }

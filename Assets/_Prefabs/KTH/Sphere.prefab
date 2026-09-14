@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3319165843695797872}
   - component: {fileID: 1073832606138654211}
   - component: {fileID: 2573001424600928243}
+  - component: {fileID: 5253052010894206215}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -129,6 +130,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 0
   <MinValue>k__BackingField: 0
   _value: 0
+  logDamage: 1
+  logRecover: 1
 --- !u!114 &2573001424600928243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,6 +149,20 @@ MonoBehaviour:
   pos: {x: 0, y: 0, z: 0}
   team: 0
   fallbackRangeType: 0
+  fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 0
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 3842136083555137402}
+--- !u!114 &5253052010894206215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4337957452496197285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8bb7286c53131b4ba5b697fddec61ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KTH_PiecesHoveringAnimation
