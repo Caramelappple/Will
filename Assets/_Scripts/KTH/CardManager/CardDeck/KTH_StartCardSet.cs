@@ -1,15 +1,16 @@
 using System.Collections;
-using _Scripts.LDY;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.Stage;
 using UnityEngine;
 
 /// <summary>
-/// 손패가 언제 채워지고 언제 치워지는지를 아는 곳.
+/// 스테이지 첫 턴의 시작 손패(기본 5장)가 언제 채워지고 언제 치워지는지를 아는 곳.
+///
+/// 기획서(덱 시스템 3-1 카드 드로우) 기준: 시작 손패 5장, 이후 매 내 턴마다 2장씩
+/// 덱(KTH_DrawButton)을 눌러서 뽑는다 — 턴당 몇 장까지인지는 KTH_DeckManager가
+/// 관리하고, 여기는 "전투/스테이지가 시작될 때 5장을 한 번에 준다"만 담당한다.
 ///
 /// 세 순간을 듣는다.
-///   내 턴이 끝날 때    손패를 버린다 (적 턴 동안 손이 비어 있다)
-///   내 턴이 시작될 때  5장을 새로 받는다
 ///   스테이지 클리어    손패를 버린다 — 판이 뒤집히기 전이라 화면에 보인다
 ///   판이 새로 세워질 때 손패를 비우고 덱을 되돌린다 (아직 안 뽑는다)
 ///   판이 다 돌아왔을 때 5장을 받는다
@@ -34,7 +35,7 @@ public class KTH_StartCardSet : MonoBehaviour
     [Header("손패")]
     [SerializeField] private int startingHandCount = 5;
 
-    [Tooltip("초기 카드가 뽑히는 간격(초)")]
+    [Tooltip("카드가 뽑히는 간격(초)")]
     [SerializeField] private float drawInterval = 0.12f;
 
     [Header("연결 (비우면 씬에서 찾는다)")]
@@ -45,11 +46,6 @@ public class KTH_StartCardSet : MonoBehaviour
     [SerializeField] private LDY_StageDirector stageDirector;
 
     [SerializeField] private KTH_DeckManager deckManager;
-
-    [Tooltip("턴이 넘어가는 것을 들을 곳. 비워두면 씬에서 찾는다.\n" +
-             "\n" +
-             "없으면 매 턴 손패를 갈아주지 못한다. 판이 바뀔 때만 새로 받는다.")]
-    [SerializeField] private LDY_TurnManager turnManager;
 
     [Tooltip("클리어했을 때 손패를 날려보낼 더미. 비워두면 씬에서 찾는다.\n" +
              "없으면 연출 없이 그냥 치운다.")]
@@ -76,7 +72,6 @@ public class KTH_StartCardSet : MonoBehaviour
 
         if (deckManager == null) deckManager = FindAnyObjectByType<KTH_DeckManager>();
         if (discardPile == null) discardPile = FindAnyObjectByType<KTH_DiscardCardUI>();
-        if (turnManager == null) turnManager = FindAnyObjectByType<LDY_TurnManager>();
         if (introDirector == null) introDirector = FindAnyObjectByType<LSO_StageIntroDirector>();
     }
 
@@ -84,7 +79,6 @@ public class KTH_StartCardSet : MonoBehaviour
     {
         SubscribeStageDirector();
         SubscribeStageFlow();
-        SubscribeTurnManager();
         SubscribeIntroDirector();
 
         if (spawnCard == null)
@@ -104,9 +98,6 @@ public class KTH_StartCardSet : MonoBehaviour
 
         if (_flow != null)
             _flow.StageCleared -= HandleStageCleared;
-
-        if (turnManager != null)
-            turnManager.OnTurnChanged -= HandleTurnChanged;
 
         if (introDirector != null)
             introDirector.Ready -= HandleStageReady;
@@ -144,62 +135,6 @@ public class KTH_StartCardSet : MonoBehaviour
         _waitingForBoard = false;
 
         Log("판이 다 돌아왔습니다 — 손패를 받습니다.");
-
-        Deal(resetDeck: false);
-    }
-
-    /// <summary>
-    /// 턴이 넘어가는 것을 듣는다.
-    ///
-    /// 적 턴이 시작됐다 = 내 턴이 끝났다. 그때 손패를 버린다.
-    /// 다시 내 턴이 오면 새로 받는다.
-    /// </summary>
-    private void SubscribeTurnManager()
-    {
-        if (turnManager == null) turnManager = FindAnyObjectByType<LDY_TurnManager>();
-
-        if (turnManager == null)
-        {
-            Debug.LogWarning(
-                "[KTH_StartCardSet] LDY_TurnManager를 찾지 못해 매 턴 손패를 갈지 못합니다. " +
-                "판이 바뀔 때만 새로 받습니다.",
-                this);
-
-            return;
-        }
-
-        turnManager.OnTurnChanged -= HandleTurnChanged;
-        turnManager.OnTurnChanged += HandleTurnChanged;
-    }
-
-    private void HandleTurnChanged(LDY_Team team)
-    {
-        if (KTH_HandCardLayout.Instance == null) return;
-
-        if (team == LDY_Team.Enemy)
-        {
-            // 내 턴이 끝났다. 남은 카드는 다음 턴으로 넘어가지 않는다.
-            if (KTH_HandCardLayout.Instance.HandCount == 0) return;
-
-            Log($"턴 종료 — 손패 {KTH_HandCardLayout.Instance.HandCount}장을 버립니다.");
-
-            KTH_HandCardLayout.Instance.DiscardHand(discardPile);
-            return;
-        }
-
-        // 내 턴이 시작됐다. 손이 비어 있을 때만 받는다.
-        //
-        // 판을 세울 때도 이 신호가 한 번 나가는데(LDY_TurnManager.BeginPlayerTurn),
-        // 그때는 HandleStageLoaded 가 이미 나눠주고 있다. 두 곳이 각자 5장씩
-        // 주면 10장이 된다. 아직 나눠주는 중인지(_routine)와 손이 비었는지를
-        // 함께 보고 겹치지 않게 한다.
-        // 판이 아직 돌아오는 중이면 기다린다. HandleStageReady 가 받아준다.
-        if (_waitingForBoard) return;
-
-        if (_routine != null) return;
-        if (KTH_HandCardLayout.Instance.HandCount > 0) return;
-
-        Log("내 턴 — 손패를 새로 받습니다.");
 
         Deal(resetDeck: false);
     }
@@ -271,7 +206,7 @@ public class KTH_StartCardSet : MonoBehaviour
         Refill(resetDeck: true, deal: !waitForBoard);
     }
 
-    /// <summary>손패를 갖춘다. 뽑던 중이면 끊고 새로 한다.</summary>
+    /// <summary>시작 손패를 갖춘다. 뽑던 중이면 끊고 새로 한다.</summary>
     private void Deal(bool resetDeck)
     {
         Refill(resetDeck, deal: true);
@@ -282,7 +217,7 @@ public class KTH_StartCardSet : MonoBehaviour
     /// </summary>
     /// <param name="resetDeck">덱과 버린 더미까지 처음 상태로 되돌릴지.</param>
     /// <param name="deal">
-    /// 지금 카드를 뽑을지. 끄면 치우고 되돌리기만 한다.
+    /// 지금 시작 손패를 뽑을지. 끄면 치우고 되돌리기만 한다.
     ///
     /// 판이 돌아오는 연출을 기다려야 할 때 끈다. 기물은 판이 뒤집힌 동안 놓이는데,
     /// 그때 같이 뽑으면 아직 돌아오지도 않은 판 위로 손패가 먼저 올라온다.
@@ -326,18 +261,18 @@ public class KTH_StartCardSet : MonoBehaviour
 
         for (int i = 0; i < startingHandCount; i++)
         {
-            // 시작 핸드는 턴당 드로우 횟수 제한을 무시하고 지급된다.
-            // 덱에 남은 카드가 startingHandCount보다 적으면 있는 만큼만 받고 자동으로 멈춘다.
-            bool success = spawnCard.SpawnOneCardPublic();
+            // 시작 손패는 턴당 드로우 횟수 제한(KTH_DeckManager.maxDrawsPerTurn)을
+            // 무시하고 지급된다. 덱에 남은 카드가 startingHandCount보다 적으면
+            // 있는 만큼만 받고 자동으로 멈춘다.
+            bool success = spawnCard.SpawnOneCardPublic(bypassDrawLimit: true);
 
-            // 매 턴 5장씩 나가면 덱이 금방 떨어진다.
-            // 떨어졌으면 버린 더미를 섞어 한 번 되살리고 이어서 뽑는다.
+            // 덱이 떨어졌으면 버린 더미를 섞어 한 번 되살리고 이어서 뽑는다.
             if (!success &&
                 deckManager != null &&
                 deckManager.RemainingCards == 0 &&
                 deckManager.ReshuffleFromDiscard())
             {
-                success = spawnCard.SpawnOneCardPublic();
+                success = spawnCard.SpawnOneCardPublic(bypassDrawLimit: true);
             }
 
             if (!success) break;
