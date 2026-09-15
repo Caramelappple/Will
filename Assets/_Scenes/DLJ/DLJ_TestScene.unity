@@ -2780,7 +2780,10 @@ MonoBehaviour:
   moveSystem: {fileID: 579526129}
   attackSystem: {fileID: 579526128}
   actionPoints: {fileID: 579526123}
+  stageDirector: {fileID: 0}
   autoEndTurn: 1
+  animationWaitTimeout: 5
+  logBlockers: 0
 --- !u!114 &579526125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2859,6 +2862,15 @@ MonoBehaviour:
   actionPoints: {fileID: 579526123}
   attackDuration: 0.3
   lungeRatio: 0.4
+  lungeArcHeight: 0.12
+  lungeTiltAngle: 15
+  turnDuration: 0.08
+  windupLeanAngle: 20
+  windupLeanDuration: 0.1
+  knockbackDistance: 0.15
+  knockbackReturnDuration: 0.22
+  hitShakeDuration: 0.15
+  hitShakeStrength: 0.12
 --- !u!114 &579526129
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2874,6 +2886,13 @@ MonoBehaviour:
   board: {fileID: 579526130}
   actionPoints: {fileID: 579526123}
   moveDuration: 0.3
+  turnDuration: 0.15
+  moveAnimation:
+    riseHeight: 0.3
+    riseDuration: 0.15
+    fallDuration: 0.15
+    riseEase: 6
+    fallEase: 5
 --- !u!114 &579526130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2889,6 +2908,12 @@ MonoBehaviour:
   boardOrigin: {fileID: 569145184}
   cellSize: 1
   heightStep: 1
+  placementAnimation:
+    riseHeight: 0.3
+    duration: 0.25
+    riseEase: 6
+    settleEase: 6
+    hoverResumeDelay: 1.5
 --- !u!4 &579526131
 Transform:
   m_ObjectHideFlags: 0
@@ -5088,6 +5113,7 @@ MonoBehaviour:
   baseAtk: 1
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 898224048}
+  restHeight: 0
 --- !u!114 &898224051
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5153,6 +5179,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: -1
   modelTransform: {fileID: 978615065}
+  restHeight: 0
 --- !u!114 &978615062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5235,6 +5262,7 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 1
   modelTransform: {fileID: 1033300774}
+  restHeight: 0
 --- !u!65 &1033300771
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6197,6 +6225,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 1165718498}
+  restHeight: 0
 --- !u!65 &1165718495
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6462,6 +6491,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 1196145414}
+  restHeight: 0
 --- !u!65 &1196145411
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8907,6 +8937,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 1637888694}
+  restHeight: 0
 --- !u!65 &1637888691
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9584,6 +9615,7 @@ MonoBehaviour:
   baseAtk: 2
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 1749388460}
+  restHeight: 0
 --- !u!114 &1749388463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10597,6 +10629,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 1982195021}
+  restHeight: 0
 --- !u!65 &1982195018
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10953,6 +10986,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 1996722154}
+  restHeight: 0
 --- !u!114 &1996722157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11207,6 +11241,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 783603270000000001, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: lineColor.b
+      value: 0.015686275
+      objectReference: {fileID: 0}
+    - target: {fileID: 783603270000000001, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: lineColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 783603270000000001, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: lineColor.r
+      value: 0.41568628
+      objectReference: {fileID: 0}
+    - target: {fileID: 783603270000000001, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: drawDuration
+      value: 1.4
+      objectReference: {fileID: 0}
     - target: {fileID: 2059993140233001472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.07
@@ -11254,6 +11304,22 @@ PrefabInstance:
     - target: {fileID: 2542950710747121885, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5997323482795321047, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.050980393
+      objectReference: {fileID: 0}
+    - target: {fileID: 5997323482795321047, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.09411765
+      objectReference: {fileID: 0}
+    - target: {fileID: 5997323482795321047, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_fontColor.r
+      value: 0.16078432
+      objectReference: {fileID: 0}
+    - target: {fileID: 5997323482795321047, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279048233
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11341,6 +11407,7 @@ MonoBehaviour:
   baseAtk: 0
   <WillType>k__BackingField: 4
   modelTransform: {fileID: 2086254340}
+  restHeight: 0
 --- !u!65 &2086254337
 BoxCollider:
   m_ObjectHideFlags: 0
