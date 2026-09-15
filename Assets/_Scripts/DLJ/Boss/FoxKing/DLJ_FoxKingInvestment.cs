@@ -20,7 +20,6 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
     private const int PhaseTwoHeal = 5;
     private const int PhaseTwoAttack = 3;
     private const int PlunderInterval = 3;
-    private const int FrenzyGreed = 15;
 
     private LDY_Animal owner;
     private Health health;
@@ -39,20 +38,47 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         health = owner != null ? owner.health : null;
         state = owner != null ? owner.GetComponent<DLJ_FoxKingBoss>() : null;
         phase = owner != null ? owner.GetComponent<LSO_BossPhase>()?.CurrentPhase ?? 1 : 1;
-        board = context?.Board;
-        actionPoints = GameManager.HasInstance ? GameManager.Instance.TurnManager?.ActionPoints : null;
 
-        if (actionPoints != null)
+        if (owner == null)
+            return;
+
+        // Animal은 이 초기화 직후 특성을 Dispatcher에 등록한다. HasInstance만 확인하면
+        // 씬의 매니저보다 먼저 깨어난 여우왕은 턴 이벤트 등록을 영구히 놓칠 수 있다.
+        RefreshDependencies(GameManager.Instance);
+    }
+
+    private void RefreshDependencies(GameManager gameManager)
+    {
+        if (gameManager == null)
+            return;
+
+        // 보드와 턴 매니저의 Awake는 특성 초기화보다 늦을 수 있다.
+        LDY_ActionPointManager nextActionPoints = gameManager.TurnManager?.ActionPoints;
+        if (actionPoints != nextActionPoints)
         {
-            cachedPlayerCost = actionPoints.Current;
-            actionPoints.OnActionPointsChanged += TrackPlayerCost;
+            if (actionPoints != null)
+                actionPoints.OnActionPointsChanged -= TrackPlayerCost;
+
+            actionPoints = nextActionPoints;
+            if (actionPoints != null)
+            {
+                cachedPlayerCost = actionPoints.Current;
+                actionPoints.OnActionPointsChanged += TrackPlayerCost;
+            }
         }
+
+        LDY_BoardManager nextBoard = gameManager.Board;
+        if (board == nextBoard)
+            return;
 
         if (board != null)
-        {
+            board.OnBoardChanged -= RefreshTargets;
+
+        board = nextBoard;
+        if (board != null)
             board.OnBoardChanged += RefreshTargets;
-            RefreshTargets();
-        }
+
+        RefreshTargets();
     }
 
     public void OnPhaseChanged(LDY_Animal self, int nextPhase)
@@ -64,6 +90,8 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
     {
         if (owner == null || health == null || health.IsDestroyed || state == null)
             return;
+
+        RefreshDependencies(GameManager.HasInstance ? GameManager.Instance : null);
 
         if (team == LDY_Team.Enemy)
         {
@@ -113,8 +141,8 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
 
     private void Invest()
     {
-        int count = state.Greed >= FrenzyGreed ? 2 : 1;
-        for (int i = 0; i < count && TryInvest(); i++) { }
+        // 매 투자마다 비용을 지불하고, 다음 투자 비용이 부족해질 때까지 반복한다.
+        while (TryInvest()) { }
     }
 
     private bool TryInvest()
@@ -122,7 +150,12 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         int cost = phase >= 2 ? PhaseTwoCost : PhaseOneCost;
         int resourcesBeforeInvestment = state.StolenResources;
         if (!state.TrySpend(cost))
+        {
+            Debug.Log(
+                $"[여우왕] 투자 보류 → 수탈 자원 부족 " +
+                $"(현재 {resourcesBeforeInvestment}, 필요 {cost}, {phase}페이즈)", owner);
             return false;
+        }
 
         Debug.Log(
             $"[여우왕] 투자 비용 지불 → 수탈 자원 -{cost} " +
@@ -131,11 +164,16 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         bool heal = health.Value < health.MaxValue && health.Value * 2 <= health.MaxValue;
         if (heal)
         {
+            int healthBeforeInvestment = health.Value;
             health.Recover(RecoverData.Create(health, phase >= 2 ? PhaseTwoHeal : PhaseOneHeal));
+            Debug.Log(
+                $"[여우왕] 회복 투자 → 체력 {healthBeforeInvestment} → {health.Value}", owner);
             return true;
         }
 
         state.PendingAttackBonus += phase >= 2 ? PhaseTwoAttack : PhaseOneAttack;
+        Debug.Log(
+            $"[여우왕] 공격 투자 → 다음 공격 추가 피해 {state.PendingAttackBonus}", owner);
         return true;
     }
 

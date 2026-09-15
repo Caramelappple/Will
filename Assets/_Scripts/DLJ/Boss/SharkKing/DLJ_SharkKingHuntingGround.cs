@@ -20,12 +20,12 @@ public sealed class DLJ_SharkKingHuntingGround :
 
     private const int PhaseOneSize = 2;
     private const int PhaseOneDelay = 2;
-    private const int PhaseOneDamage = 4;
+    private const int PhaseOneDamage = 999;
     private const int PhaseOneZoneCount = 1;
 
     private const int PhaseTwoSize = 3;
     private const int PhaseTwoDelay = 1;
-    private const int PhaseTwoDamage = 5;
+    private const int PhaseTwoDamage = 999;
     private const int PhaseTwoZoneCount = 2;
 
     private sealed class PendingVolley

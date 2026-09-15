@@ -15,7 +15,7 @@ MonoBehaviour:
   animalName: a
   description: 
   maxHealth: 5
-  damage: 1
+  damage: 3
   cost: 3
   playerHealthPoints: 21
   moveRange: 1

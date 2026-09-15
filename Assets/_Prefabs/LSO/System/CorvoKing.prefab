@@ -19,6 +19,8 @@ GameObject:
   - component: {fileID: -7636761853291911157}
   - component: {fileID: -8885750701138979324}
   - component: {fileID: 2690842137087686527}
+  - component: {fileID: 7349083221774568910}
+  - component: {fileID: 7349083221774568911}
   m_Layer: 0
   m_Name: CorvoKing
   m_TagString: Untagged
@@ -229,3 +231,195 @@ MonoBehaviour:
   spawnPoint: {fileID: 0}
   followSpawnPoint: 1
   loopingLifetime: 5
+--- !u!114 &7349083221774568910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4488470074872201150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d16534977a4d2f9aac9b569c63d170, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CorvoKingEffects
+  bodyMesh: {fileID: 2102834661619605359}
+  effectMaterial: {fileID: 2100000, guid: ce923568741345db98ff7a8bd642af38, type: 2}
+  autoPlaySkills: 1
+  predationDuration: 0.48
+  predationColor: {r: 1.8, g: 0.015, b: 0.055, a: 0.65}
+  predationExpansion: 0.035
+  feedbackDuration: 0.8
+  feedbackColor: {r: 3.2, g: 0.008, b: 0.025, a: 0.85}
+  feedbackExpansion: 0.09
+  eyeCenter: {x: 0.59, y: 0.5, z: 0.83}
+  eyeSeparation: 0.29
+  eyeRadius: {x: 0.055, y: 0.12, z: 0.028}
+  frenzyColor: {r: 4, g: 0.015, b: 0.025, a: 1}
+  eyeFadeDuration: 0.12
+  eyeGlowSize: 0.16
+  eyeGlowIntensity: 0.7
+  eyeGlowLift: 0.04
+--- !u!114 &7349083221774568911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4488470074872201150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41de5087c53a4d9e8db436d66c2f1eaf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CorvoKingPhaseTransition
+  wings: {fileID: 0}
+  wingChildName: Will_CrowKingWing
+  cameraZoomEnabled: 1
+  cameraZoomRatio: 0.88
+  cameraZoomInDuration: 0.4
+  cameraZoomOutDuration: 0.65
+  cameraZoomReturnDelay: 0.15
+  cameraZoomInCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  cameraZoomOutCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  wingUnfoldDuration: 1.2
+  wingFoldAngle: 65
+  wingLowerDistance: 0.08
+  wingUnfoldCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  wingRiseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  duration: 2
+  screenFeathersEnabled: 1
+  wingFeathersEnabled: 1
+  wingFeatherSprite: {fileID: 21300000, guid: 5d2b10bd8d5e4acaa6c3f8c3a1eca6bc, type: 3}
+  wingFeatherCount: 48
+  wingFeatherBurstDelay: 0.4
+  wingFeatherLifetime: 1.5
+  wingFeatherSize: 0.22
+  wingFeatherSpeed: 1.2
+  wingFeatherBurstStrength: 4
+  wingFeatherFlutter: 0.12
+  featherMoveSpeed: 600
+  featherCount: 220
+  featherWindStrength: 120
+  featherFlutterSpeed: 1.5
+  featherTumbleAngle: 75
+  featherFlipAmount: 0.8
+  featherWindCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  featherSprite: {fileID: 21300000, guid: 5d2b10bd8d5e4acaa6c3f8c3a1eca6bc, type: 3}
+  featherImageTint: {r: 1, g: 1, b: 1, a: 1}
+  featherImageRotation: 0
+  sortingOrder: 32000
