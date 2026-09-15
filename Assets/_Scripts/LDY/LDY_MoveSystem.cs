@@ -116,6 +116,7 @@ namespace _Scripts.LDY
             float landY = animal.RestWorldY ?? (board.GridToWorld(animal.pos).y + animal.restHeight);
             Vector3 targetWorldPos = board.GridToWorld(animal.pos);
             targetWorldPos.y = landY;
+            Debug.Log($"[TEMP-DEBUG] MoveTo 시작 {animal.name}: RestWorldY={animal.RestWorldY}, landY={landY}, 현재 modelTransform.position.y={animal.modelTransform.position.y}");
             StartCoroutine(MoveVisual(animal, from, targetWorldPos));
         }
 
@@ -251,6 +252,7 @@ namespace _Scripts.LDY
                     if (effect == null) continue;
                     riseHeight = effect.Offset.y;
                     baseHeight = effect.GroundWorldY();
+                    Debug.Log($"[TEMP-DEBUG] 호버 기준 {animal.name}: riseHeight={riseHeight}, baseHeight(GroundWorldY)={baseHeight}, 현재 t.position.y={t.position.y}");
                     break;
                 }
 
@@ -262,6 +264,8 @@ namespace _Scripts.LDY
 
                 if (t != null)
                     t.position = targetWorldPos;
+
+                Debug.Log($"[TEMP-DEBUG] 이동 완료 {animal.name}: targetWorldPos.y={targetWorldPos.y}, 착지 후 t.position.y={t.position.y}");
             }
             finally
             {
