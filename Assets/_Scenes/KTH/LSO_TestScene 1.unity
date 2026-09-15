@@ -520,6 +520,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6030311709241397393, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+      propertyPath: drawOrigin
+      value: 
+      objectReference: {fileID: 433233646}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2153,6 +2157,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362569461}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &433233646 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8696715095715132216, guid: d6c77afb64e5ec24ebfa934c421da330, type: 3}
+  m_PrefabInstance: {fileID: 54360418}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &434368422
 GameObject:
   m_ObjectHideFlags: 0
@@ -5088,6 +5097,7 @@ MonoBehaviour:
   board: {fileID: 1007328538}
   actionPoints: {fileID: 1007328532}
   moveDuration: 0.3
+  turnDuration: 0.15
   moveAnimation:
     riseHeight: 0.3
     riseDuration: 0.15
@@ -5114,6 +5124,7 @@ MonoBehaviour:
     duration: 0.25
     riseEase: 6
     settleEase: 30
+    hoverResumeDelay: 1.5
 --- !u!114 &1007328539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5130,7 +5141,10 @@ MonoBehaviour:
   moveSystem: {fileID: 1007328537}
   attackSystem: {fileID: 1007328536}
   actionPoints: {fileID: 1007328532}
+  stageDirector: {fileID: 0}
   autoEndTurn: 0
+  animationWaitTimeout: 5
+  logBlockers: 0
 --- !u!4 &1007328540
 Transform:
   m_ObjectHideFlags: 0
@@ -6363,6 +6377,7 @@ MonoBehaviour:
   selectionController: {fileID: 1007328534}
   additionalInputBehaviours: []
   rewardAnchor: {fileID: 999754950}
+  hideArrivingUntilFlip: 1
   hideAnchorUntilFlip: 1
   pivotSource: {fileID: 0}
   pivotOffset: {x: 0, y: -0.05, z: 0}
@@ -6454,6 +6469,7 @@ MonoBehaviour:
   startOnPlay: 1
   restartOnDefeat: 1
   flipWaitTimeout: 6
+  beforeRewardDelay: 0.6
   onStageCleared:
     m_PersistentCalls:
       m_Calls:

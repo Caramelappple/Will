@@ -25,6 +25,15 @@ public class KTH_DeckManager : MonoBehaviour
     [Tooltip("손패 참조. 손패에 카드가 남아있으면 덱이 0장이어도 리셔플을 보류합니다.")]
     [SerializeField] private KTH_HandCardLayout handLayout;
 
+    [Header("Draw Limit Settings")]
+    [Tooltip("체크하면 턴/횟수 제한 없이 언제든 드로우 가능")]
+    [SerializeField] private bool ignoreDrawLimit = false;
+
+    [Tooltip("턴당 드로우 가능 횟수. 기획서 3-1 카드 드로우 기준 기본 2장.")]
+    [SerializeField] private int maxDrawsPerTurn = 2;
+
+    private int drawsUsedThisTurn = 0;
+
     // =========================================================
     // 중요
     // =========================================================
@@ -56,6 +65,32 @@ public class KTH_DeckManager : MonoBehaviour
 
     public int RemainingCards =>
         deck.Count;
+
+    public bool IgnoreDrawLimit
+    {
+        get => ignoreDrawLimit;
+        set => ignoreDrawLimit = value;
+    }
+
+    public int MaxDrawsPerTurn
+    {
+        get => maxDrawsPerTurn;
+        set => maxDrawsPerTurn = value;
+    }
+
+    public int DrawsUsedThisTurn =>
+        drawsUsedThisTurn;
+
+    public int DrawsRemainingThisTurn =>
+        ignoreDrawLimit
+            ? int.MaxValue
+            : Mathf.Max(
+                0,
+                maxDrawsPerTurn -
+                drawsUsedThisTurn
+            );
+
+    public event Action OnDrawLimitChanged;
 
     public event Action<int> OnDeckReshuffled;
 
@@ -214,11 +249,17 @@ public class KTH_DeckManager : MonoBehaviour
         // 플레이어 턴 시작
         // =====================================================
 
-        // 플레이어 턴에는 할 일이 없다.
-        // 예전에는 턴당 드로우 횟수를 여기서 되돌렸는데, 손으로 뽑는 길이
-        // 없어지면서 그 규칙 자체가 사라졌다(KTH_StartCardSet 이 매 턴 새로 준다).
         if (newTurn == LDY_Team.Player)
         {
+            drawsUsedThisTurn = 0;
+
+            OnDrawLimitChanged?.Invoke();
+
+            Debug.Log(
+                "[KTH_DeckManager] 플레이어 턴 시작 - " +
+                "드로우 횟수 리셋"
+            );
+
             return;
         }
 
@@ -337,17 +378,52 @@ public class KTH_DeckManager : MonoBehaviour
 
 
     // =========================================================
+    // Draw Limit
+    // =========================================================
+
+    public bool CanDraw()
+    {
+        if (ignoreDrawLimit)
+        {
+            return true;
+        }
+
+        return drawsUsedThisTurn <
+               maxDrawsPerTurn;
+    }
+
+
+    // =========================================================
     // Draw
     // =========================================================
 
     /// <summary>
     /// 덱에서 한 장을 꺼낸다. 못 꺼내면 null.
     ///
-    /// 턴당 몇 장까지라는 제한은 없다. 손으로 뽑는 길이 없어지면서
-    /// 그 규칙도 같이 사라졌고, 몇 장을 줄지는 KTH_StartCardSet 이 정한다.
+    /// bypassTurnLimit이 true면 턴당 드로우 제한을 무시한다. 시작 손패(전투 시작 5장)를
+    /// 줄 때만 true로 부른다 — KTH_SpawnCard.SpawnStartingHand 참고.
     /// </summary>
-    public LSO_CardSO DrawCard()
+    public LSO_CardSO DrawCard(
+        bool bypassTurnLimit = false)
     {
+        // =====================================================
+        // 드로우 횟수 제한
+        // =====================================================
+
+        // 더 못 뽑는 것은 규칙대로 돌아간 결과지 잘못이 아니다.
+        // 화면/콘솔 알림은 KTH_DrawButton이 클릭 자체를 막아주므로 정상 플레이에서는
+        // 거의 닿지 않는 방어선이다 — 그래도 조용히 삼키지는 않는다.
+        if (!bypassTurnLimit &&
+            !CanDraw())
+        {
+            Debug.Log(
+                "[KTH_DeckManager] 턴당 드로우 횟수를 모두 사용했습니다."
+            );
+
+            return null;
+        }
+
+
         // =====================================================
         // 덱이 비어 있음
         // =====================================================
@@ -372,6 +448,19 @@ public class KTH_DeckManager : MonoBehaviour
             deck[0];
 
         deck.RemoveAt(0);
+
+
+        // =====================================================
+        // 드로우 횟수 증가
+        // =====================================================
+
+        if (!bypassTurnLimit &&
+            !ignoreDrawLimit)
+        {
+            drawsUsedThisTurn++;
+
+            OnDrawLimitChanged?.Invoke();
+        }
 
 
         // =====================================================
