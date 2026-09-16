@@ -42,6 +42,14 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     [Tooltip("공격 모델의 모든 머티리얼 슬롯에 적용. 비워두면 프리팹의 원래 머티리얼 유지")]
     [SerializeField] private Material attackCubeMaterial;
 
+    [Header("Shark Attack Water Splash")]
+    [Tooltip("공격 시 상어가 튀어나오는 지점에 생성할 물방울 머티리얼. 비워두면 런타임 파티클 머티리얼 사용")]
+    [SerializeField] private Material attackWaterMaterial;
+    [SerializeField] private Color attackWaterColor = new(0.35f, 0.8f, 1f, 0.9f);
+    [SerializeField, Range(8, 64)] private int attackWaterParticleCount = 28;
+    [SerializeField, Min(0.1f)] private float attackWaterLifetime = 0.8f;
+    [SerializeField, Range(0f, 1f)] private float attackWaterRadiusRatio = 0.18f;
+
     [Header("Shark Attack Motion")]
     [Tooltip("모델의 로컬 전방 축. 상어가 향하는 축에 맞춰 조절")]
     [SerializeField] private Vector3 attackForwardAxis = Vector3.forward;
@@ -71,6 +79,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     private LDY_TurnManager _turnManager;
     private DLJ_SharkKingHuntingGround _huntingGround;
     private int _lastAttackShakeFrame = -1;
+    private Material _runtimeWaterMaterial;
 
     private void Start()
     {
@@ -306,8 +315,12 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             float holdDuration = Mathf.Max(0f, attackCubeHoldDuration);
             float sinkDuration = Mathf.Max(0.01f, attackCubeSinkDuration);
 
+            GameObject waterSplash = CreateWaterSplash(center, effectSize);
+
             // 경고가 제거된 뒤에도 재생을 마치도록 공격 연출은 별도로 관리한다.
             _attackEffects.Add(motionRoot);
+            if (waterSplash != null)
+                _attackEffects.Add(waterSplash);
             Sequence motion = DOTween.Sequence()
                 .Append(motionRoot.transform.DOMove(peak, riseDuration).SetEase(Ease.OutCubic))
                 .Join(motionRoot.transform.DORotateQuaternion(Quaternion.identity, riseDuration).SetEase(Ease.OutCubic))
@@ -320,6 +333,12 @@ public sealed class DLJ_SharkKing : MonoBehaviour
                 {
                     _attackEffects.Remove(motionRoot);
                     Destroy(motionRoot);
+
+                    if (waterSplash != null)
+                    {
+                        _attackEffects.Remove(waterSplash);
+                        Destroy(waterSplash);
+                    }
                 });
 
             if (!shakeScheduled)
@@ -328,6 +347,92 @@ public sealed class DLJ_SharkKing : MonoBehaviour
                 shakeScheduled = true;
             }
         }
+    }
+
+    private GameObject CreateWaterSplash(Vector3 center, float effectSize)
+    {
+        GameObject splash = new("DLJ_SharkKingWaterSplash");
+        splash.transform.position = center + Vector3.up * attackHighlightHeightOffset;
+
+        ParticleSystem particles = splash.AddComponent<ParticleSystem>();
+        ParticleSystem.MainModule main = particles.main;
+        main.playOnAwake = false;
+        main.loop = false;
+        main.duration = Mathf.Max(0.1f, attackWaterLifetime);
+        main.startLifetime = new ParticleSystem.MinMaxCurve(
+            attackWaterLifetime * 0.55f,
+            attackWaterLifetime);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(
+            effectSize * 1.2f,
+            effectSize * 2.7f);
+        main.startSize = new ParticleSystem.MinMaxCurve(
+            Mathf.Max(0.025f, effectSize * 0.035f),
+            Mathf.Max(0.04f, effectSize * 0.11f));
+        main.startColor = attackWaterColor;
+        main.gravityModifier = 1.1f;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.enabled = true;
+        emission.SetBursts(new[]
+        {
+            new ParticleSystem.Burst(0f, (short)Mathf.Clamp(attackWaterParticleCount, 8, 64))
+        });
+
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 38f;
+        shape.radius = effectSize * Mathf.Clamp01(attackWaterRadiusRatio);
+        shape.radiusThickness = 0.45f;
+
+        ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particles.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        Gradient fade = new();
+        fade.SetKeys(
+            new[]
+            {
+                new GradientColorKey(Color.white, 0f),
+                new GradientColorKey(new Color(0.7f, 0.95f, 1f), 0.45f),
+                new GradientColorKey(Color.white, 1f)
+            },
+            new[]
+            {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0.85f, 0.55f),
+                new GradientAlphaKey(0f, 1f)
+            });
+        colorOverLifetime.color = new ParticleSystem.MinMaxGradient(fade);
+
+        ParticleSystemRenderer renderer = splash.GetComponent<ParticleSystemRenderer>();
+        Mesh dropletMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+        renderer.renderMode = dropletMesh != null
+            ? ParticleSystemRenderMode.Mesh
+            : ParticleSystemRenderMode.Billboard;
+        renderer.mesh = dropletMesh;
+        renderer.material = GetWaterMaterial();
+
+        particles.Play();
+        return splash;
+    }
+
+    private Material GetWaterMaterial()
+    {
+        if (attackWaterMaterial != null) return attackWaterMaterial;
+        if (_runtimeWaterMaterial != null) return _runtimeWaterMaterial;
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+            ?? Shader.Find("Particles/Standard Unlit")
+            ?? Shader.Find("Sprites/Default");
+        if (shader == null) return null;
+
+        _runtimeWaterMaterial = new Material(shader)
+        {
+            name = "DLJ_SharkKingWaterRuntime"
+        };
+        _runtimeWaterMaterial.SetColor("_BaseColor", Color.white);
+        _runtimeWaterMaterial.SetColor("_Color", Color.white);
+        return _runtimeWaterMaterial;
     }
 
     private void ShakeOnAttack()
@@ -434,6 +539,9 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     private void OnDestroy()
     {
         ClearAttackEffects();
+
+        if (_runtimeWaterMaterial != null)
+            Destroy(_runtimeWaterMaterial);
 
         if (GameManager.HasInstance)
             GameManager.Instance.TurnManagerChanged -= BindTurnManager;

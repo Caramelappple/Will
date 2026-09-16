@@ -3903,7 +3903,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4488470074872201150, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6759159158562701642, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: m_LocalScale.x
@@ -6810,7 +6810,7 @@ MonoBehaviour:
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
   baseAtk: 0
-  <WillType>k__BackingField: 4
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 1196145414}
   restHeight: 0
 --- !u!65 &1196145411
@@ -10948,7 +10948,7 @@ MonoBehaviour:
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
   baseAtk: 0
-  <WillType>k__BackingField: 4
+  <WillType>k__BackingField: 1
   modelTransform: {fileID: 1982195021}
   restHeight: 0
 --- !u!65 &1982195018
@@ -12019,7 +12019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3987908019727028490, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7539038748984187631, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: m_LocalPosition.x
