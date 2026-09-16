@@ -15,5 +15,5 @@ MonoBehaviour:
   stageName: Est1
   description: egniwisp
   enemies:
-  - card: {fileID: 11400000, guid: 64a796d6dcc7c9a4eb7e31b2227b1bb4, type: 2}
+  - card: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
     pos: {x: 0, y: 0, z: 0}

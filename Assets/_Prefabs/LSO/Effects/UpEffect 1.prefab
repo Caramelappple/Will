@@ -41,7 +41,7 @@ ParticleSystem:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1351616473762224533}
   serializedVersion: 8
-  lengthInSec: 0.7
+  lengthInSec: 0.5
   simulationSpeed: 1
   stopAction: 0
   cullingMode: 0
@@ -116,7 +116,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.7
+      scalar: 0.5
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -4791,7 +4791,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7e71f4cfef6e6534389bb8b1defac1c2, type: 2}
+  - {fileID: 2100000, guid: 663b79ef510140f4ab5a1702429dea6d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9638,7 +9638,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7e71f4cfef6e6534389bb8b1defac1c2, type: 2}
+  - {fileID: 2100000, guid: 663b79ef510140f4ab5a1702429dea6d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9808,7 +9808,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.3
+      scalar: 0.25
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -10562,7 +10562,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 20
+      scalar: 25
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -13641,7 +13641,7 @@ ParticleSystem:
     lifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.76
+      scalar: 1
       minScalar: 1
       maxCurve:
         serializedVersion: 2

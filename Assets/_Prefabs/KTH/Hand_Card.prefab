@@ -377,7 +377,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.Candle.LSO_WillRevealEffect
   target: {fileID: 2632230749455649732}
-  sootTexture: {fileID: 2800000, guid: 62f7d3d5517e2504b8afc94e091397e1, type: 3}
+  sootSprite: {fileID: 0}
   duration: 0.5
   ease: 9
   noiseScale: 8
@@ -1124,10 +1124,12 @@ MonoBehaviour:
   drawStartScale: 0.3
   drawDipDistance: 0.5
   drawHookDistance: 0.2
+  logClicks: 1
   moveDownAxis: 1
   moveDownAmount: 1
   moveDownDuration: 0.2
   moveDownEase: 9
+  baseScale: {x: 1, y: 1, z: 1}
 --- !u!114 &305657525707530255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1174,8 +1176,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KTH_DiscardAnimation
   discardDuration: 0.18
   arcHeight: 0.5
-  landingDuration: 0.08
-  landingScale: 0.96
+  landingDuration: 0.18
+  landingScale: 0.08
   shadowChildName: Shadow
   shadowBoost: 1.8
   shadowDuration: 0.12

@@ -7,6 +7,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
     public const int CandleCount = 3;
     public const int MaxHealthPerCandle = 100;
 
+
     public static DLJ_PlayerHealth Instance { get; private set; }
 
     [SerializeField]
