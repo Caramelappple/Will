@@ -12,7 +12,7 @@ public sealed class DLJ_CurseWillDataSO : DLJ_WillDataSO
     public int duration;
 
     [Header("Visual")]
-    [Tooltip("저주 영역의 월드 크기 1당 파티클 프리팹 스케일")]
+    [Tooltip("바닥 MeshRenderer가 없는 파티클 전용 프리팹의 월드 크기당 배율. 바닥 메시가 있으면 칸 범위에 자동으로 맞춤.")]
     [Min(0f)]
     public float effectScalePerWorldUnit = 0.03111111f;
 

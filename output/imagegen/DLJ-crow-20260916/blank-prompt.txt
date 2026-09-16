@@ -1,0 +1,5 @@
+Mode: Built-in image_gen
+Final image: DLJ-card-blank.png
+Exterior background: original charcoal, opaque (transparent generation was unsuccessful).
+
+Precise object edit of the supplied image. Keep original dimensions, original solid charcoal exterior background, original opaque parchment card, border, corner shapes, lines, texture, palette, all icons and layout identical. Remove ONLY the large central crow head silhouette, top word CROW, and every numerical digit on the card (top left 1, top right 1, bottom 1, 2, 2). Fill those erased areas with seamless matching parchment. Preserve the empty circular ring upper left, skull upper right, sword bottom left, right arrow bottom center, heart bottom right. Central area now blank. No other change. Output PNG. IMPORTANT: keep the original dark exterior background exactly as the source image; do not add any checkerboard anywhere. No text or digits or bird remains.

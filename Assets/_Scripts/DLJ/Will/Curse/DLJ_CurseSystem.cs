@@ -57,7 +57,6 @@ internal sealed class DLJ_CurseWill : LSO_IWill
         Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
         Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));
         float diameter = data.range * 2f + 1f;
-        float boardWorldScale = board.UniformWorldScale;
 
         DLJ_CurseActivationData activation = new DLJ_CurseActivationData
         {
@@ -67,9 +66,9 @@ internal sealed class DLJ_CurseWill : LSO_IWill
             center = center,
             centerWorld = centerWorld,
             areaSize = new Vector3(
-                Vector3.Distance(centerWorld, verticalWorld) * diameter * boardWorldScale,
+                Vector3.Distance(centerWorld, horizontalWorld) * diameter,
                 0f,
-                Vector3.Distance(centerWorld, horizontalWorld) * diameter * boardWorldScale),
+                Vector3.Distance(centerWorld, verticalWorld) * diameter),
             effectFadeOutTime = data.effectFadeOutTime,
             sourceTeam = owner.team,
             turnManager = turnManager,
