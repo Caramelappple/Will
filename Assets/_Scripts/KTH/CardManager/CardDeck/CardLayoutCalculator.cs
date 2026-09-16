@@ -41,7 +41,8 @@ public static class CardLayoutCalculator
         float pushAmount = 0f,
         float farCardPushMultiplier = 0.5f,
         float depthStep = 0f,
-        DepthOrder depthOrder = DepthOrder.LeftFirst)
+        DepthOrder depthOrder = DepthOrder.LeftFirst,
+        Vector3? depthAxis = null)
     {
         if (totalCount <= 0)
         {
@@ -125,11 +126,23 @@ public static class CardLayoutCalculator
             }
         }
 
-        // 앞에 올 카드일수록 카메라 쪽(-Z)으로 더 당긴다.
-        // depthStep이 0이면 예전처럼 전부 같은 깊이에 놓인다.
-        float posZ =
-            -DepthRank(index, totalCount, depthOrder) *
-            depthStep;
+        // 앞에 올 카드일수록 더 당긴다. depthStep이 0이면 전부 같은 깊이에 놓인다.
+        //
+        // ── 어느 방향으로 당기는가 ────────────────────────────────
+        // 예전에는 언제나 로컬 -Z 였다. 손패가 카메라를 정면으로 볼 때는 그것이
+        // 곧 시선 방향이라 뗀 거리가 화면에 안 드러난다. 그런데 손패를 눕혀 놓으면
+        // 시선과 어긋나서, 뗀 만큼이 그대로 **카드 사이의 틈**으로 보인다.
+        //
+        // 그래서 방향을 밖에서 받는다. 부르는 쪽이 카메라를 보고 정해 넘기면
+        // 깊이는 살아 있고 틈만 사라진다.
+        //
+        // 안 넘기면 예전 그대로다(-Z).
+        // ─────────────────────────────────────────────────────────
+        Vector3 axis = depthAxis ?? Vector3.back;
+
+        Vector3 depthOffset =
+            axis *
+            (DepthRank(index, totalCount, depthOrder) * depthStep);
 
         return new CardTransformData
         {
@@ -137,8 +150,8 @@ public static class CardLayoutCalculator
                 new Vector3(
                     posX,
                     posY,
-                    posZ
-                ),
+                    0f
+                ) + depthOffset,
 
             ZRotation =
                 zRotation

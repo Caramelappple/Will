@@ -46,6 +46,15 @@ public class KTH_HandCard : MonoBehaviour,
     [SerializeField] private float drawDipDistance = 0.5f;
     [SerializeField] private float drawHookDistance = 0.2f;
 
+    [Header("진단")]
+    [Tooltip("켜면 이 카드를 누를 때마다 어디까지 갔는지 콘솔에 찍는다.\n" +
+             "\n" +
+             "카드가 안 눌릴 때 쓴다. 아무것도 안 찍히면 클릭이 이 카드까지\n" +
+             "닿지도 않은 것이다 — 콜라이더나 레이캐스터 쪽 문제다.\n" +
+             "\n" +
+             "카드 프리팹에서 켜면 모든 손패 카드에 적용된다.")]
+    [SerializeField] private bool logClicks;
+
     [Header("Double Click / Move Down Settings")]
     [Tooltip("더블클릭 시 '선택되지 않은' 나머지 카드가 어느 축으로 내려갈지")]
     [SerializeField] private KTH_Axis3D moveDownAxis = KTH_Axis3D.Y;
@@ -186,7 +195,11 @@ public class KTH_HandCard : MonoBehaviour,
     /// </summary>
     public void BringToFront()
     {
-        cardSorting?.BringToFront();
+        // 얼마나 앞으로 뺄지는 손패가 정한다. 부채꼴 전체가 차지하는 깊이보다
+        // 더 나와야 어느 자리의 카드를 골라도 맨 앞에 선다.
+        //
+        // 손패 밖(버림 더미 등)에서 쓰이면 KTH_CardSorting 이 제 인스펙터 값을 쓴다.
+        cardSorting?.BringToFront(KTH_HandCardLayout.Instance?.FrontDepthDistance);
     }
 
     // ============================================================
@@ -203,15 +216,38 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.HandlePointerExit();
     }
 
+    /// <summary>
+    /// 클릭 경로 진단. logClicks 가 꺼져 있으면 아무 일도 하지 않는다.
+    ///
+    /// 컨트롤러들도 이걸 쓴다 — 클릭 하나가 어디까지 갔는지는 한 줄기로 읽혀야
+    /// 쓸모가 있고, 토글이 여러 개면 한쪽만 켜둔 채 헤매게 된다.
+    /// </summary>
+    internal void LogClick(string step)
+    {
+        if (!logClicks) return;
+
+        Debug.Log($"[카드 클릭] {name} — {step}", this);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        LogClick($"눌림 (버튼 {eventData.button}, {eventData.clickCount}회)");
+
         if (eventData.button != PointerEventData.InputButton.Left)
         {
+            LogClick("왼쪽 버튼이 아니라 넘어감");
             return;
         }
 
+        // 유언 창이 답을 기다리는 동안에는 손패를 못 만진다.
+        // 창이 닫히지 않고 남으면 여기서 모든 클릭이 조용히 사라진다.
         if (willPanel != null && willPanel.IsSelecting)
         {
+            Debug.LogWarning(
+                $"{name}: 유언 창이 열려 있어 카드를 고를 수 없습니다. " +
+                "창이 닫혔는데도 이 경고가 계속 나오면 창이 끝난 것을 알리지 않은 것입니다 " +
+                "(LSO_WillPanel.Finish).", this);
+
             return;
         }
 
@@ -330,6 +366,15 @@ public class KTH_HandCard : MonoBehaviour,
     {
         cardSorting?.RestoreSorting();
     }
+
+    /// <summary>
+    /// 지금 앞으로 빼둔 값. 앞이 아니면 0이다.
+    ///
+    /// 선택 연출이 트윈 목표에 이걸 더해야 한다. 안 더하면 연출이 방금 앞으로
+    /// 뺀 것을 도로 끌어내린다.
+    /// </summary>
+    internal Vector3 FrontOffset =>
+        cardSorting != null ? cardSorting.FrontOffset : Vector3.zero;
 
     // ============================================================
     // Spawn / Draw / Rearrange (모션 애니메이터로 위임)

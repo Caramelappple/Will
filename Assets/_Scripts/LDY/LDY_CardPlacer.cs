@@ -51,6 +51,17 @@ namespace _Scripts.LDY
                  "양초로 붙인 것이 기물에 안 들어갈 때 어디서 끊겼는지 보인다.")]
         [SerializeField] private bool logWill;
 
+        [Tooltip("켜면 칸을 누를 때마다 어디까지 갔는지 콘솔에 찍는다.\n" +
+                 "\n" +
+                 "눌러도 기물이 안 놓일 때 쓴다. 어느 칸으로 읽혔는지, 무엇에 맞았는지,\n" +
+                 "왜 거부됐는지가 보인다.\n" +
+                 "\n" +
+                 "보드가 잠긴 채 남은 것만은 이걸 꺼둬도 경고가 나온다.")]
+        [SerializeField] private bool logPlacement;
+
+        /// <summary>이미 콘솔에 낸 실패 이유. 같은 것을 매 클릭마다 내지 않으려고 둔다.</summary>
+        private PickMiss _reportedMiss = PickMiss.None;
+
         private LSO_CardSO _pendingCard;
         private LDY_Team _pendingTeam;
 
@@ -106,11 +117,19 @@ namespace _Scripts.LDY
 
             if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
-            // 보드를 아예 안 맞혔으면 조용히 넘어간다.
+            // 보드를 아예 안 맞혔으면 화면에는 알리지 않는다.
             //
             // 칸을 고르는 도중에도 양초를 눌러 유언을 붙인다(LSO_WillPainter).
             // 보드 밖 클릭까지 거부로 치면 그 정상 조작이 매번 거부로 찍힌다.
-            if (!TryRaycastToGrid(out var pos)) return;
+            //
+            // 다만 **콘솔에는 남긴다.** 예전에는 여기서 그냥 돌아섰는데, 셋 중
+            // 무엇 때문에 막혔는지 알 방법이 없었다 — 마스크가 비었는지, 아무것도
+            // 안 맞았는지, 보드 밖을 눌렀는지. 눌러도 아무 일이 없다는 증상만 남았다.
+            if (!TryRaycastToGrid(out Vector3Int pos, out PickMiss miss))
+            {
+                ReportMiss(miss);
+                return;
+            }
 
             // 보드는 맞혔는데 놓을 수 없는 칸이다. 이건 알려야 한다 —
             // 안 알리면 눌러도 아무 일이 없어서 조작이 씹힌 것처럼 보인다.
@@ -120,6 +139,18 @@ namespace _Scripts.LDY
             // (PlaceCardAtNextAvailable 등) 전용이다.
             if (!IsValidPlacementTile(pos, _pendingTeam))
             {
+                // 어느 칸으로 읽혔고 왜 안 되는지 남긴다. 화면에는 "안 됩니다"만
+                // 뜨는데, 방금 놓은 기물에 레이가 맞아 그 기물의 칸으로 읽히는
+                // 경우처럼 눌러본 칸과 읽힌 칸이 다를 수 있다.
+                if (logPlacement)
+                {
+                    Debug.Log(
+                        $"[{name}] 놓을 수 없는 칸 {pos} — " +
+                        $"안쪽 {board.IsInside(pos)} · 비었나 {board.IsEmpty(pos)} · " +
+                        $"내 진영 {(_pendingTeam == LDY_Team.Player ? pos.z < LDY_BoardManager.Size / 2 : pos.z >= LDY_BoardManager.Size / 2)}",
+                        this);
+                }
+
                 LSO_RejectSignal.Raise(LSO_RejectReason.InvalidTile);
                 return;
             }
@@ -361,6 +392,10 @@ namespace _Scripts.LDY
             _onCancelled = onCancelled;
             IsPlacing = true;
 
+            // 지난 배치에서 낸 경고는 잊는다. 같은 문제가 또 있으면 다시 낸다 —
+            // 한 번 내고 영영 침묵하면 두 번째 카드에서 막힌 것을 못 본다.
+            _reportedMiss = PickMiss.None;
+
             ShowPlacementHighlights(team);
             return true;
         }
@@ -416,16 +451,100 @@ namespace _Scripts.LDY
             return team == LDY_Team.Player ? pos.z < half : pos.z >= half;
         }
 
-        private bool TryRaycastToGrid(out Vector3Int pos)
+        /// <summary>칸을 못 집은 이유. 화면에는 안 띄우고 콘솔에만 남긴다.</summary>
+        private enum PickMiss
+        {
+            None,
+
+            /// <summary>카메라나 보드 참조가 비었다. 배선 문제다.</summary>
+            NoReference,
+
+            /// <summary>보드 레이어 마스크가 비어 있다. 클릭이 아예 닿지 않는다.</summary>
+            MaskEmpty,
+
+            /// <summary>쏜 곳에 아무 콜라이더도 없다. 보통 보드 밖을 누른 것이다.</summary>
+            NothingHit,
+
+            /// <summary>맞긴 맞았는데 보드 칸 범위 밖이다.</summary>
+            OutsideBoard,
+        }
+
+        private bool TryRaycastToGrid(out Vector3Int pos, out PickMiss miss)
         {
             pos = default;
-            if (targetCamera == null || board == null) return false;
+            miss = PickMiss.None;
+
+            if (targetCamera == null || board == null)
+            {
+                miss = PickMiss.NoReference;
+                return false;
+            }
+
+            // 마스크가 비면 Physics.Raycast 는 언제나 빈손으로 돌아온다.
+            // "아무것도 안 맞았다"와 구분해야 한다 — 원인이 전혀 다르다.
+            if (boardLayerMask.value == 0)
+            {
+                miss = PickMiss.MaskEmpty;
+                return false;
+            }
 
             var ray = targetCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (!Physics.Raycast(ray, out var hit, 100f, boardLayerMask)) return false;
+
+            if (!Physics.Raycast(ray, out var hit, 100f, boardLayerMask))
+            {
+                miss = PickMiss.NothingHit;
+                return false;
+            }
 
             pos = board.WorldToGrid(hit.point);
-            return board.IsInside(pos);
+
+            if (!board.IsInside(pos))
+            {
+                miss = PickMiss.OutsideBoard;
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 못 집은 이유를 콘솔에 남긴다.
+        ///
+        /// 마스크가 빈 것만은 진단을 안 켜도 경고한다. 그건 조작 실수가 아니라
+        /// **보드가 잠긴 채 남은 상태**다 — SetBoardActive(false) 를 풀어줄 쪽이
+        /// 안 불렸다는 뜻이고, 이렇게 되면 어떤 칸을 눌러도 영영 안 놓인다.
+        ///
+        /// 같은 배치 동안 한 번만 낸다. Update 에서 부르는 자리라 매 클릭마다
+        /// 내면 콘솔이 덮인다.
+        /// </summary>
+        private void ReportMiss(PickMiss miss)
+        {
+            if (miss == _reportedMiss) return;
+
+            _reportedMiss = miss;
+
+            switch (miss)
+            {
+                case PickMiss.MaskEmpty:
+                    Debug.LogWarning(
+                        $"[{name}] 보드 레이어 마스크가 비어 있어 칸을 누를 수 없습니다. " +
+                        (_boardBlocked
+                            ? "유언 창 같은 것이 보드를 막아둔 뒤 풀지 않았습니다 — " +
+                              "SetBoardActive(true) 가 불리지 않았습니다."
+                            : "인스펙터의 Board Layer Mask 가 비어 있습니다."),
+                        this);
+                    return;
+
+                case PickMiss.NoReference:
+                    Debug.LogWarning(
+                        $"[{name}] 카메라 또는 보드가 연결되지 않아 칸을 누를 수 없습니다.", this);
+                    return;
+
+                default:
+                    if (logPlacement)
+                        Debug.Log($"[{name}] 칸을 집지 못했습니다 — {miss}", this);
+                    return;
+            }
         }
 
         private Vector3Int? FindNextAvailableSlot(LDY_Team team)
