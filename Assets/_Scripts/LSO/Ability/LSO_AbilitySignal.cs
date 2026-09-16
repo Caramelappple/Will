@@ -42,18 +42,44 @@ namespace _Scripts.LSO.Ability
 
         /// <summary>
         /// 발동을 알린다. 특성이 부른다.
+        ///
+        /// 이펙트는 특성을 가진 기물 자리에 뜬다. 다른 곳에 띄워야 하면 아래 겹쳐 쓴 것을 쓴다.
         /// </summary>
         /// <param name="type">어떤 특성인지. 사전에서 이펙트를 찾는 열쇠다.</param>
-        /// <param name="at">어디서 일어났는지. 보통 특성을 가진 기물이다.</param>
+        /// <param name="owner">특성을 가진 기물.</param>
         /// <param name="message">콘솔에 남길 말. 비우면 로그를 남기지 않는다.</param>
-        public static void Raise(LSO_AbilityType type, LDY_Animal at, string message = null)
+        public static void Raise(LSO_AbilityType type, LDY_Animal owner, string message = null)
+        {
+            Raise(type, owner, owner, message);
+        }
+
+        /// <summary>
+        /// 발동을 알리되, **이펙트가 뜰 자리를 따로 준다.**
+        ///
+        /// ── 왜 나눠야 했나 ────────────────────────────────────────
+        /// 가시는 고슴도치가 가진 특성이지만 실제로 일이 일어나는 곳은 **때린 쪽**이다.
+        /// 고슴도치 자리에 가시가 돋으면 "내가 찔렸다"로 보여서, 피해를 받은 것이
+        /// 누구인지 화면과 숫자가 어긋난다.
+        ///
+        /// 그래서 "누구의 특성인가(owner)"와 "어디에 띄우는가(at)"를 나눴다.
+        /// 둘이 같은 보통의 경우는 위의 짧은 쪽이 알아서 넘긴다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 로그는 owner 를 문맥으로 남긴다. 콘솔에서 눌렀을 때 특성을 가진 기물이
+        /// 선택돼야 왜 발동했는지 따라갈 수 있다.
+        /// </summary>
+        /// <param name="type">어떤 특성인지.</param>
+        /// <param name="owner">특성을 가진 기물.</param>
+        /// <param name="at">이펙트가 뜰 자리가 될 기물. null 이면 아무것도 띄우지 않는다.</param>
+        /// <param name="message">콘솔에 남길 말. 비우면 로그를 남기지 않는다.</param>
+        public static void Raise(LSO_AbilityType type, LDY_Animal owner, LDY_Animal at, string message = null)
         {
             if (!string.IsNullOrEmpty(message))
-                LSO_AbilityLog.Log(message, at);
+                LSO_AbilityLog.Log(message, owner);
 
             if (type == LSO_AbilityType.None) return;
 
-            Fired?.Invoke(new LSO_AbilityFired(type, at));
+            Fired?.Invoke(new LSO_AbilityFired(type, owner, at));
         }
 
         /// <summary>
@@ -81,17 +107,16 @@ namespace _Scripts.LSO.Ability
     public readonly struct LSO_AbilityFired
     {
         public LSO_AbilityFired(LSO_AbilityType type, LDY_Animal animal)
+            : this(type, animal, animal) { }
+
+        public LSO_AbilityFired(LSO_AbilityType type, LDY_Animal animal, LDY_Animal at)
         {
             Type = type;
             Animal = animal;
+            At = at;
 
-            Position = animal != null
-                ? (animal.modelTransform != null
-                    ? animal.modelTransform.position
-                    : animal.transform.position)
-                : Vector3.zero;
-
-            HasPosition = animal != null;
+            Position = PositionOf(at);
+            HasPosition = at != null;
         }
 
         /// <summary>어떤 특성인지.</summary>
@@ -100,10 +125,31 @@ namespace _Scripts.LSO.Ability
         /// <summary>특성을 가진 기물. 이미 파괴됐으면 null일 수 있다.</summary>
         public LDY_Animal Animal { get; }
 
-        /// <summary>발동한 자리. 기물이 사라져도 남는다.</summary>
+        /// <summary>
+        /// 이펙트가 뜬 기물. 보통은 Animal 과 같지만, 가시처럼 상대에게 일이 일어나는
+        /// 특성에서는 다르다. 마찬가지로 이미 파괴됐을 수 있다.
+        /// </summary>
+        public LDY_Animal At { get; }
+
+        /// <summary>이펙트가 뜰 자리. 기물이 사라져도 남는다.</summary>
         public Vector3 Position { get; }
 
         /// <summary>자리를 믿어도 되는지. 기물을 몰랐으면 false다.</summary>
         public bool HasPosition { get; }
+
+        /// <summary>
+        /// 기물의 어느 자리에 띄울지.
+        ///
+        /// modelTransform 을 먼저 보는 것은 기물 루트가 타일 바닥에 있고 모델만
+        /// 위로 올라와 있는 구조이기 때문이다. 루트를 쓰면 이펙트가 발밑에 깔린다.
+        /// </summary>
+        private static Vector3 PositionOf(LDY_Animal animal)
+        {
+            if (animal == null) return Vector3.zero;
+
+            return animal.modelTransform != null
+                ? animal.modelTransform.position
+                : animal.transform.position;
+        }
     }
 }
