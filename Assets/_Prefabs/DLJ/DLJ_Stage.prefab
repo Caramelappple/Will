@@ -286,6 +286,19 @@ MonoBehaviour:
     lightTile: {r: 0.48, g: 0.57, b: 0.66, a: 1}
     darkTile: {r: 0.08, g: 0.13, b: 0.22, a: 1}
     environment: {fileID: 0}
+  stageDecorations:
+  - stage: {fileID: 11400000, guid: a9678371df084f04a5aacabb965a2720, type: 2}
+    objects: []
+  - stage: {fileID: 11400000, guid: 967471a3934d4756a1ea32d9251c0eb3, type: 2}
+    objects: []
+  - stage: {fileID: 11400000, guid: 3421ce60d4964efa9461c2e700ac9693, type: 2}
+    objects: []
+  - stage: {fileID: 11400000, guid: d6d71705936c47dbbcc4d207e2b78428, type: 2}
+    objects: []
+  - stage: {fileID: 11400000, guid: 37355f9a79964ef5a2765f7e054aa98e, type: 2}
+    objects: []
+  - stage: {fileID: 11400000, guid: 37b3e1b931034ba18de2a3d80ca58545, type: 2}
+    objects: []
   normalHold: 1.5
   glitchDuration: 0.65
   titleHold: 1.8

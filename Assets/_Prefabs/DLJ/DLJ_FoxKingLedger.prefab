@@ -765,6 +765,7 @@ GameObject:
   - component: {fileID: 7116866834993391558}
   - component: {fileID: 7088550663740214959}
   - component: {fileID: 6888894212033674475}
+  - component: {fileID: 783603270000000001}
   m_Layer: 0
   m_Name: LedgerRule
   m_TagString: Untagged
@@ -820,7 +821,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8895b8a0201a6804186cd2d18b439f50, type: 2}
+  - {fileID: 2100000, guid: 5b5b51200ec747beae72f2a4b5f51d44, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -844,6 +845,21 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &783603270000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1810690418117940445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bb3c0a70df54c73a3b5898f9d94bf53, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_LedgerRule
+  lineColor: {r: 0.105, g: 0.055, b: 0.025, a: 1}
+  drawDuration: 0.55
+  startDelay: 0.1
 --- !u!1 &2168392960653178998
 GameObject:
   m_ObjectHideFlags: 0

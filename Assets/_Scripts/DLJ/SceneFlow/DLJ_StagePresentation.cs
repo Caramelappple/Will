@@ -28,6 +28,15 @@ namespace _Scripts.DLJ.SceneFlow
             public GameObject environment;
         }
 
+        [Serializable]
+        public sealed class StageDecoration
+        {
+            [Tooltip("이 장식을 표시할 스테이지 에셋.")]
+            public LDY_StageSO stage;
+            [Tooltip("해당 스테이지에서만 켤 씬 장식. 여러 장식을 묶은 루트도 지정할 수 있다.")]
+            public GameObject[] objects = Array.Empty<GameObject>();
+        }
+
         [Header("씬 연결")]
         [SerializeField] private LSO_StageIntroDirector intro;
         [SerializeField] private LDY_StageDirector stages;
@@ -38,6 +47,10 @@ namespace _Scripts.DLJ.SceneFlow
         [Tooltip("동적 한글 글꼴 원본. 새 지역명과 공백도 런타임에 생성한다.")]
         [SerializeField] private Font sourceFont;
         [SerializeField] private ChapterLook[] chapterLooks = Array.Empty<ChapterLook>();
+
+        [Header("스테이지별 장식")]
+        [Tooltip("현재 스테이지에 등록된 장식만 켠다. 목록에 없는 오브젝트는 변경하지 않는다.")]
+        [SerializeField] private StageDecoration[] stageDecorations = Array.Empty<StageDecoration>();
 
         [Header("연출 시간 (초)")]
         [SerializeField, Min(0.1f)] private float normalHold = 1.5f;
@@ -84,6 +97,7 @@ namespace _Scripts.DLJ.SceneFlow
             }
             BuildUI();
             EnsureImpulseListeners();
+            ApplyStageDecorations(null);
         }
 
         private void OnEnable()
@@ -157,6 +171,7 @@ namespace _Scripts.DLJ.SceneFlow
                 if (finished)
                 {
                     yield return FadeVeil(Color.black, 0f, 1f);
+                    ApplyStageDecorations(null);
                     SetTitle("여정의 끝", "모든 스테이지 클리어", Color.white);
                     yield return FadeGroup(titleGroup, 0f, 1f);
                     // 마지막 판은 재시작하지 않는다. 씬을 나갈 때 잠금도 정리된다.
@@ -167,6 +182,7 @@ namespace _Scripts.DLJ.SceneFlow
                 {
                     yield return FadeVeil(Color.white, 0f, 1f);
                     ApplyLook(look);
+                    ApplyStageDecorations(stage);
                     string boss = look != null && !string.IsNullOrWhiteSpace(look.bossName)
                         ? look.bossName : stage != null ? stage.stageName : "보스";
                     yield return PlayBossTitle(boss, look != null ? look.bossEpithet : string.Empty);
@@ -179,6 +195,7 @@ namespace _Scripts.DLJ.SceneFlow
                     yield return GlitchToBlack();
                     // 배경과 보드 색은 화면이 완전히 덮인 이 시점에만 바꾼다.
                     ApplyLook(look);
+                    ApplyStageDecorations(stage);
                     yield return new WaitForSecondsRealtime(0.25f);
                     SetTitle(chapter.regionName, $"CHAPTER {progression.ChapterNumber:00}", Color.white);
                     yield return FadeGroup(titleGroup, 0f, 1f);
@@ -189,6 +206,7 @@ namespace _Scripts.DLJ.SceneFlow
                 else
                 {
                     if (lastChapter == null) ApplyLook(look);
+                    ApplyStageDecorations(stage);
                     yield return FadeGroup(badge, 0f, 1f);
                     yield return new WaitForSecondsRealtime(normalHold);
                     yield return FadeGroup(badge, 1f, 0f);
@@ -212,6 +230,32 @@ namespace _Scripts.DLJ.SceneFlow
             foreach (ChapterLook look in chapterLooks)
                 if (look != null && look.chapter == chapter) return look;
             return null;
+        }
+
+        private void ApplyStageDecorations(LDY_StageSO stage)
+        {
+            if (stageDecorations == null) return;
+
+            // 공유 장식은 현재 스테이지의 어느 항목에든 있으면 유지한다.
+            // 먼저 최종 상태를 모아 같은 오브젝트를 껐다 켜지 않도록 한다.
+            var visibility = new Dictionary<GameObject, bool>();
+            foreach (StageDecoration entry in stageDecorations)
+            {
+                if (entry == null || entry.objects == null) continue;
+                bool show = stage != null && entry.stage == stage;
+                foreach (GameObject decoration in entry.objects)
+                {
+                    if (decoration == null) continue;
+                    // 연출 자신이나 상위 루트를 끄면 진행 코루틴까지 중단된다.
+                    if (transform.IsChildOf(decoration.transform)) continue;
+                    visibility.TryGetValue(decoration, out bool alreadyVisible);
+                    visibility[decoration] = alreadyVisible || show;
+                }
+            }
+
+            foreach (KeyValuePair<GameObject, bool> item in visibility)
+                if (item.Key != null && item.Key.activeSelf != item.Value)
+                    item.Key.SetActive(item.Value);
         }
 
         private void ApplyLook(ChapterLook look)

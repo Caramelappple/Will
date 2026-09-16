@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6343bd3f83674af9941dba6d33396421, type: 3}
+  m_Name: DLJ_PieceTeamMaterials
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_PieceTeamMaterialSettingsSO
+  playerMaterial: {fileID: 2100000, guid: 566d970453e23fe41928f84b079ca612, type: 2}
+  enemyMaterial: {fileID: 2100000, guid: 170b8153fc4e67a4086e27a46a63271f, type: 2}
