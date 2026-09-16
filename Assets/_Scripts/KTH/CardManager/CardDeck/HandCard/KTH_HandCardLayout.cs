@@ -189,6 +189,36 @@ public class KTH_HandCardLayout : MonoBehaviour
 
     public int HandCount => handCards.Count;
 
+    /// <summary>
+    /// 손패에서 가장 싼 카드의 코스트. 낼 수 있는 카드가 하나도 없으면 -1.
+    ///
+    /// "코스트를 다 썼다"를 판단하는 쪽이 쓴다. 남은 코스트가 이 값보다 적으면
+    /// 손패를 다 들고 있어도 더 낼 수 있는 것이 없다는 뜻이다.
+    ///
+    /// 손패는 여덟 장이 상한이라 그때그때 세도 값이 싸다. 따로 들고 있으면
+    /// 카드가 오갈 때마다 맞춰야 하고, 한 번 어긋나면 알 방법이 없다.
+    /// </summary>
+    public int MinCardCost
+    {
+        get
+        {
+            int min = -1;
+
+            for (int i = 0; i < handCards.Count; i++)
+            {
+                KTH_HandCard card = handCards[i];
+
+                if (card == null || card.CardData == null || !card.CardData.IsValid) continue;
+
+                int cost = card.CardData.Cost;
+
+                if (min < 0 || cost < min) min = cost;
+            }
+
+            return min;
+        }
+    }
+
     public int MaxHandSize
     {
         get => maxHandSize;

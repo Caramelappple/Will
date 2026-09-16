@@ -5,11 +5,15 @@ using UnityEngine;
 /// <summary>
 /// 덱에서 카드 한 장을 꺼내 손패에 놓는다.
 ///
-/// ── 뽑는 두 가지 경로 ─────────────────────────────────────
-/// 1) 시작 손패: KTH_StartCardSet 이 스테이지 첫 턴에 SpawnStartingHand 로 한 번에 준다.
-///    턴당 드로우 제한(KTH_DeckManager.maxDrawsPerTurn)을 무시한다.
-/// 2) 턴별 추가 드로우: 플레이어가 덱(KTH_DrawButton)을 클릭할 때마다 한 장씩.
-///    턴당 제한이 걸려 있어서, 다 쓰면 버튼 콜라이더 자체가 꺼진다(RefreshDrawButtonState).
+/// ── 손으로 뽑는 길은 없어졌다 ─────────────────────────────
+/// 예전에는 덱을 눌러 뽑는 KTH_DrawButton 이 있었고, 턴당 몇 장까지인지를
+/// KTH_DeckManager 가 세고 있었다.
+///
+/// 판마다·턴마다 손패를 통째로 새로 받는 규칙으로 바뀌면서 그 길이 필요
+/// 없어졌다. 턴당 제한도 셀 것이 없다 — 받는 장수는 KTH_StartCardSet 이 정한다.
+///
+/// 뽑는 것을 정하는 곳은 이제 KTH_StartCardSet 하나다.
+/// 여기는 "뽑아서 놓는다"만 한다.
 /// ─────────────────────────────────────────────────────────
 ///
 /// 덱 오브젝트는 남아 있다. 카드가 **거기서 날아오기** 때문이다(drawOrigin).
@@ -18,7 +22,6 @@ public class KTH_SpawnCard : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private KTH_DeckManager deckManager;
-    [SerializeField] private KTH_DrawButton drawButton;
     [SerializeField] private KTH_HandCard cardPrefab;
     [SerializeField] private KTH_HandCardLayout handLayout;
 
@@ -33,59 +36,18 @@ public class KTH_SpawnCard : MonoBehaviour
     // 콘솔이 덮이니 한 번만 낸다. (SpawnOneCard 참고)
     private bool warnedMissingDrawOrigin;
 
-    private void OnEnable()
-    {
-        if (drawButton != null) drawButton.OnDrawRequested += SpawnNextCard;
-        if (handLayout != null) handLayout.OnHandCountChanged += HandleHandCountChanged;
-        if (deckManager != null) deckManager.OnDrawLimitChanged += HandleDrawLimitChanged;
-    }
-
-    private void OnDisable()
-    {
-        if (drawButton != null) drawButton.OnDrawRequested -= SpawnNextCard;
-        if (handLayout != null) handLayout.OnHandCountChanged -= HandleHandCountChanged;
-        if (deckManager != null) deckManager.OnDrawLimitChanged -= HandleDrawLimitChanged;
-    }
-
-    /// <summary>덱 오브젝트(KTH_DrawButton)를 클릭 가능/불가능으로 갱신한다.</summary>
-    private void RefreshDrawButtonState()
-    {
-        if (drawButton == null) return;
-
-        bool deckHasCards = deckManager == null || deckManager.RemainingCards > 0;
-        bool handHasRoom = handLayout == null || !handLayout.IsFull;
-        bool drawAllowed = deckManager == null || deckManager.CanDraw();
-
-        drawButton.SetInteractable(deckHasCards && handHasRoom && drawAllowed);
-    }
-
-    private void HandleHandCountChanged(int currentCount, int maxCount)
-    {
-        RefreshDrawButtonState();
-    }
-
-    private void HandleDrawLimitChanged()
-    {
-        RefreshDrawButtonState();
-    }
-
-    private void SpawnNextCard()
-    {
-        SpawnOneCard(bypassDrawLimit: false);
-    }
-
     /// <summary>
     /// 카드 한 장을 뽑아 손패에 놓는다.
     ///
     /// 뽑을 수 없으면 false. 이유는 부르는 쪽이 아니라 아래쪽에서 이미 알린다
-    /// (손패 가득 참은 여기서, 덱이 빈 것/턴당 제한은 KTH_DeckManager 가).
+    /// (손패 가득 참은 여기서, 덱이 빈 것은 KTH_DeckManager 가).
     /// </summary>
-    public bool SpawnOneCardPublic(bool bypassDrawLimit = false)
+    public bool SpawnOneCardPublic()
     {
-        return SpawnOneCard(bypassDrawLimit);
+        return SpawnOneCard();
     }
 
-    private bool SpawnOneCard(bool bypassDrawLimit = false)
+    private bool SpawnOneCard()
     {
         if (deckManager == null || cardPrefab == null || handLayout == null)
         {
@@ -97,22 +59,15 @@ public class KTH_SpawnCard : MonoBehaviour
         {
             // 손패가 찬 것도 규칙대로 돌아간 결과다. 콘솔이 아니라 화면으로 알린다.
             LSO_RejectSignal.Raise(LSO_RejectReason.HandFull);
-            RefreshDrawButtonState();
             return false;
         }
 
-        // 왜 못 뽑는지는 KTH_DeckManager 가 이미 알린다(덱이 빈 경우 거부 신호로,
-        // 턴당 제한을 넘긴 경우 로그로). 여기서는 버튼 상태만 되돌린다.
-        if (!bypassDrawLimit && !deckManager.CanDraw())
-        {
-            RefreshDrawButtonState();
-            return false;
-        }
-
-        LSO_CardSO cardData = deckManager.DrawCard(bypassTurnLimit: bypassDrawLimit);
+        // 왜 못 뽑는지는 KTH_DeckManager 가 이미 거부 신호로 알린다.
+        // 여기서 또 알리면 같은 사건이 두 번 나가고, 나중에 문구를 고칠 때
+        // 두 곳을 맞춰야 한다.
+        LSO_CardSO cardData = deckManager.DrawCard();
         if (cardData == null)
         {
-            RefreshDrawButtonState();
             return false;
         }
 
@@ -166,17 +121,15 @@ public class KTH_SpawnCard : MonoBehaviour
 
         Debug.Log($"[KTH_SpawnCard] 카드 생성 완료: {cardData.name} | 남은 덱: {deckManager.RemainingCards} | 손패: {handLayout.HandCount}/{handLayout.MaxHandSize}");
 
-        RefreshDrawButtonState();
-
         return true;
     }
 
-    /// <summary>스테이지 첫 턴의 시작 손패를 한 번에 준다. 턴당 드로우 제한을 무시한다.</summary>
+    /// <summary>손패를 한 번에 count 장까지 채운다.</summary>
     public void SpawnStartingHand(int count)
     {
         for (int i = 0; i < count; i++)
         {
-            if (!SpawnOneCard(bypassDrawLimit: true)) break;
+            if (!SpawnOneCard()) break;
         }
     }
 }
