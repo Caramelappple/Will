@@ -370,10 +370,17 @@ public sealed class DLJ_SharkKingHuntingGround :
             if (victim == null || victim.health == null || victim.health.IsDestroyed) continue;
 
             int before = victim.health.Value;
+
+            // SharkKingZone 은 방어 특성이 비켜서는 출처다(LSO_DamageRules).
+            // Ability 로 두면 흡혈·가시 같은 보통의 특성 피해와 같은 취급을 받아
+            // 옹골참으로 버티거나 허약으로 흘려낼 수 있었다.
+            //
+            // 막을 수 없다는 것이지 반드시 죽는다는 뜻은 아니다 —
+            // 체력이 넉넉한 기물은 여전히 버틴다.
             victim.health.GetDamage(DamageData.Create(
                 _owner.health,
                 volley.Damage,
-                LSO_DamageSource.Ability));
+                LSO_DamageSource.SharkKingZone));
 
             Debug.Log(
                 $"[상어왕] 영역 피해 — {victim.name}: {before} → {victim.health.Value}",

@@ -23,6 +23,10 @@ namespace _Scripts.LSO.Ability
         {
             if (HasTriggered) return damage;
             if (target == null) return damage;
+
+            // 막을 수 없는 피해는 비켜선다. 한 번뿐인 발동을 여기서 써버리지 않도록
+            // HasTriggered 도 건드리지 않는다 — 버티지 못했는데 기회만 날리면 억울하다.
+            if (LSO_DamageRules.IgnoresDefenses(data.source)) return damage;
             
             int survivableDamage = target.Value - 1;
             if (survivableDamage <= 0) return damage;
