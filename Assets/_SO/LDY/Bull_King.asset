@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Bull_King
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: Bull_King
+  animalName: "\uD669\uC18C\uC655"
   description: 
   maxHealth: 40
   damage: 3
