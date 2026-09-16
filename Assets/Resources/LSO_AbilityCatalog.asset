@@ -30,40 +30,29 @@ MonoBehaviour:
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 3325976704513999228, guid: 6707ea2de1d703d4caf98ade806a4d15, type: 3}
-    effectOffset: {x: 0, y: 0, z: 0}
+    effectOffset: {x: 0, y: 0.47, z: 0}
     effectRotation: {x: -90, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectScale: {x: 0.4, y: 0.4, z: 0.25}
   - type: 6
     displayName: "\uC2DC\uCCB4 \uD3EC\uC2DD"
     description: "\uC801 \uAE30\uBB3C\uC774 \uC8FD\uC744 \uB54C\uB9C8\uB2E4 \uACF5\uACA9\uB825\uC774
       1 \uC624\uB978\uB2E4. \uCD5C\uB300 3\uAE4C\uC9C0 \uC313\uC778\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
-    effectOffset: {x: 0, y: 0, z: 0}
-    effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectPrefab: {fileID: 2317223708783992941, guid: d83b8a65ebcefbb44b89f5f7044b0656, type: 3}
+    effectOffset: {x: 0, y: 0.47, z: 0}
+    effectRotation: {x: -90, y: 0, z: 0}
+    effectScale: {x: 0.4, y: 0.4, z: 0.4}
   - type: 8
     displayName: "\uAC00\uC2DC"
     description: "\uADFC\uC811 \uACF5\uACA9\uC744 \uBC1B\uC73C\uBA74 \uACF5\uACA9\uC790\uC5D0\uAC8C
       \uD53C\uD574 1\uC744 \uB3CC\uB824\uC900\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
-    effectOffset: {x: 0, y: 0, z: 0}
-    effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
-  - type: 9
-    displayName: "\uBCF5\uC218"
-    description: "\uC4F0\uB7EC\uC9C8 \uB54C \uC790\uC2E0\uC744 \uCC98\uCE58\uD55C
-      \uC0C1\uB300\uC5D0\uAC8C 1 \uD53C\uD574\uB97C \uC900\uB2E4. \uCC98\uCE58\uC790\uAC00
-      \uC5C6\uB294 \uC8FD\uC74C\uC5D0\uB294 \uBC1C\uB3D9\uD558\uC9C0 \uC54A\uB294\uB2E4."
-    icon: {fileID: 0}
-    priority: 0
-    effectPrefab: {fileID: 0}
-    effectOffset: {x: 0, y: 0, z: 0}
-    effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectPrefab: {fileID: 3893198870986037753, guid: d43960c4ee30885418c0ab26d0729de7, type: 3}
+    effectOffset: {x: 0, y: 0.71, z: 0}
+    effectRotation: {x: -90, y: 0, z: 0}
+    effectScale: {x: 0.3, y: 0.3, z: 0.3}
   - type: 10
     displayName: "\uB3CC\uC5F0\uC0AC"
     description: "\uCCB4\uB825\uC774 \uBB34\uD55C\uC774\uC9C0\uB9CC \uD134\uB9C8\uB2E4
@@ -110,10 +99,10 @@ MonoBehaviour:
       \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uD55C\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
+    effectPrefab: {fileID: 6134397333264359803, guid: 4c77e589e2036904eb3e30b8bece15bb, type: 3}
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectScale: {x: 0.1, y: 0.1, z: 0.1}
   - type: 15
     displayName: "\uCF54\uC2A4\uD2B8 \uC800\uCD95"
     description: "\uC0DD\uC874\uD55C \uD134\uB9C8\uB2E4 \uCF54\uC2A4\uD2B8\uB97C
@@ -135,3 +124,14 @@ MonoBehaviour:
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0, y: 0, z: 0}
+  - type: 30
+    displayName: "\uC9C8\uC8FC"
+    description: "\uD55C \uBC88\uC5D0 \uC5EC\uB7EC \uCE78\uC744 \uB2EC\uB9B0\uB2E4.
+      \uBA87 \uCE78\uAE4C\uC9C0 \uAC00\uB294\uC9C0\uB294 \uAE30\uBB3C\uB9C8\uB2E4
+      \uB2E4\uB974\uB2E4."
+    icon: {fileID: 0}
+    priority: 0
+    effectPrefab: {fileID: 6567199731185231437, guid: 24e72223a3773834e8e8c69160392698, type: 3}
+    effectOffset: {x: 0, y: 0, z: 0}
+    effectRotation: {x: -90, y: 0, z: 0}
+    effectScale: {x: 0.41, y: 0.41, z: 0.4}
