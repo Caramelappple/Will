@@ -24,6 +24,7 @@
 3. `Deposit Slot`에 별도 앵커를 연결하면 그 위치를 사용해. 비우면 모델 경계와 `Slot Height Ratio`, `Slot Offset`으로 계산해. Scene 뷰의 노란 기즈모가 도착 위치야.
 4. `Glow Per Coin`은 저장당 발광 증가량, `Deposit Duration`은 저금 시간, `Burst Duration`은 폭발 시간, `Collection Duration`은 금화 하나의 회수 시간이야.
 5. 사망 환급은 실제 CostRefund 저장량을 사용해. 미리보기 버튼만 누르고 죽이면 미리본 개수가 보상으로 추가되지는 않아.
+6. `Deposit Ease`는 저금 이동, `Collection Ease`는 케이스 회수 이동의 이징 그래프야. 그래프를 눌러 Unity 커브 프리셋을 고르거나 키/접선을 직접 편집할 수 있어. X축은 정규화 시간, Y축은 이동 진행도(0~1)야. 시작은 (0,0), 끝은 (1,1)로 맞춰. 기본값은 각각 기존 가속 낙하와 Ease In Out이고, 사망 직후의 중력 낙하는 이 그래프와 별개야.
 
 `DLJ_PigGold.mat`은 몸체와 연출 전용 금색 머티리얼이야. 몸체에는 개체별 복제본을 만들어 발광을 조절하고, 눈의 머티리얼은 유지해.
 

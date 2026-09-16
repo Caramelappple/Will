@@ -25,6 +25,9 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float slotHeightRatio = 0.76f;
     [SerializeField, Min(0.01f)] private float depositHeight = 1.2f;
     [SerializeField, Min(0.05f)] private float depositDuration = 0.38f;
+    [Tooltip("저금 이동 이징. X는 시간, Y는 이동 진행도(0~1). 시작 (0,0), 끝 (1,1)로 설정")]
+    [SerializeField] private AnimationCurve depositEase = new AnimationCurve(
+        new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 2f, 2f));
 
     [Header("폭발 / 회수")]
     [SerializeField, Min(0.05f)] private float burstDuration = 0.45f;
@@ -32,6 +35,8 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
     [SerializeField, Min(0.01f)] private float scatterRadius = 0.6f;
     [SerializeField, Min(0.05f)] private float collectionDuration = 0.65f;
     [SerializeField, Min(0f)] private float collectionInterval = 0.12f;
+    [Tooltip("코스트 케이스로 회수할 때의 이징. X는 시간, Y는 이동 진행도(0~1). 그래프를 눌러 프리셋 선택/직접 편집")]
+    [SerializeField] private AnimationCurve collectionEase = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     private LDY_Animal _animal;
     private Transform _model;
@@ -122,8 +127,9 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / Mathf.Max(0.05f, depositDuration));
             Vector3 slot = SlotPosition;
-            // 출발 대기와 도착 감속 없이 가속 낙하. 구멍 앞에서 떠 있는 인상을 없앰.
-            float descend = t * t;
+            // 기본 그래프는 기존 가속 낙하(t²). 커브가 비어 있어도 동일한 동작을 유지.
+            float descend = t >= 1f ? 1f : depositEase != null && depositEase.length > 0
+                ? Mathf.Clamp01(depositEase.Evaluate(t)) : t * t;
             coin.position = slot + _model.up * (depositHeight * (1f - descend));
             coin.rotation = _model.rotation * upright * Quaternion.Euler(12f * (1f - t), 18f * (1f - t), 0f);
             float appear = Mathf.Clamp01(t / 0.08f);
@@ -186,7 +192,7 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
         root.AddComponent<DLJ_PigCoinPayout>().Initialize(
             count, turns, points,
             coinMesh, goldMaterial, coinDiameter, scatterRadius, burstDuration,
-            collectionDuration, collectionInterval, ground, previewOnly);
+            collectionDuration, collectionInterval, ground, previewOnly, collectionEase);
         return root;
     }
 

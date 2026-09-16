@@ -19,6 +19,7 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
     private bool _cancelled;
     private float _flightDuration;
     private float _interval;
+    private AnimationCurve _collectionEase;
     private float _coinRadius;
     private float _coinHalfThickness;
     private float _fallbackGround;
@@ -48,13 +49,15 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
 
     public void Initialize(int amount, LDY_TurnManager turns, LDY_ActionPointManager points,
         Mesh mesh, Material material, float diameter, float radius, float burstDuration,
-        float flightDuration, float interval, float fallbackGround = float.NaN, bool previewOnly = false)
+        float flightDuration, float interval, float fallbackGround = float.NaN, bool previewOnly = false,
+        AnimationCurve collectionEase = null)
     {
         _previewOnly = previewOnly;
         _turns = turns;
         _points = points;
         _flightDuration = Mathf.Max(0.05f, flightDuration);
         _interval = Mathf.Max(0f, interval);
+        _collectionEase = collectionEase;
         _coinRadius = Mathf.Max(0.005f, diameter * 0.5f);
         _coinHalfThickness = diameter * 0.08f;
         if (mesh != null)
@@ -285,9 +288,10 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / _flightDuration);
-                float eased = Mathf.SmoothStep(0f, 1f, t);
+                float eased = t >= 1f ? 1f : _collectionEase != null && _collectionEase.length > 0
+                    ? Mathf.Clamp01(_collectionEase.Evaluate(t)) : Mathf.SmoothStep(0f, 1f, t);
                 Vector3 end = coin.Slot.GetRestWorldPosition();
-                coin.Visual.position = Vector3.Lerp(start, end, eased) + Vector3.up * (Mathf.Sin(Mathf.PI * t) * _coinRadius);
+                coin.Visual.position = Vector3.Lerp(start, end, eased) + Vector3.up * (Mathf.Sin(Mathf.PI * eased) * _coinRadius);
                 Quaternion targetRotation = coin.Slot.HomeParent != null
                     ? coin.Slot.HomeParent.rotation * coin.Slot.RestLocalRotation : coin.Slot.RestLocalRotation;
                 coin.Visual.rotation = Quaternion.Slerp(rotation, targetRotation, eased);
