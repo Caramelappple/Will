@@ -209,15 +209,21 @@ namespace _Scripts.LDY
             // 이동 방향을 바라보도록 돌려놓는다. 공격 쪽(LDY_AttackSystem)과 마찬가지로
             // 방향을 다시 되돌리지 않는다 — 다음 행동이 있기 전까지 마지막으로 향한 쪽을 계속 본다.
             // 두트윈으로 부드럽게 돈다(KTH) — 이동 자체와 동시에 재생되도록 완료를 기다리지 않는다.
+            //
+            // 대부분의 기물 모델이 기본 자세부터 x가 -90도 등으로 눕혀져 있어서, LookRotation으로
+            // 회전을 통째로 새로 만들면 그 x/z 기울기가 날아가 버린다. y(좌우로 도는 값)만 바꾸고
+            // x/z는 지금 값을 그대로 들고 간다.
             Vector3 moveDir = targetWorldPos - t.position;
             moveDir.y = 0f;
             if (moveDir.sqrMagnitude > 0.0001f)
             {
-                Quaternion faceMoveDir = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
+                float yawAngle = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
+                Vector3 currentEuler = t.eulerAngles;
+                Vector3 faceEuler = new Vector3(currentEuler.x, yawAngle, currentEuler.z);
                 if (turnDuration <= 0f)
-                    t.rotation = faceMoveDir;
+                    t.eulerAngles = faceEuler;
                 else
-                    t.DORotateQuaternion(faceMoveDir, turnDuration).SetLink(animal.gameObject);
+                    t.DORotate(faceEuler, turnDuration).SetLink(animal.gameObject);
             }
 
             // 이동 애니메이션과 호버 연출(LSO_HoverMoveEffect)이 같은 모델 트랜스폼을 함께
