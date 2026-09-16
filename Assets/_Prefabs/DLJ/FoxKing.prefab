@@ -16,6 +16,11 @@ GameObject:
   - component: {fileID: 6032674564862840952}
   - component: {fileID: 6237392432024336255}
   - component: {fileID: 4197429308759750743}
+  - component: {fileID: 5677722131608072807}
+  - component: {fileID: 87622938954683074}
+  - component: {fileID: 5935536364988358278}
+  - component: {fileID: 8206544554177612790}
+  - component: {fileID: 1246466242372654512}
   m_Layer: 10
   m_Name: FoxKing
   m_TagString: Enemy
@@ -33,7 +38,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.08, y: 6.2, z: -20.86}
-  m_LocalScale: {x: 0.64, y: 0.64, z: 0.64}
+  m_LocalScale: {x: 45, y: 45, z: 45}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -45,7 +50,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2469521785137200648}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -4342678175668746738, guid: 7b3de79b597838f4aadf9102ddffe154, type: 3}
 --- !u!23 &3116633127864117729
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -71,7 +76,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 860e5c0bdd08242478c4838e074ea3b8, type: 2}
+  - {fileID: 3130947693966425812, guid: 7b3de79b597838f4aadf9102ddffe154, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -130,13 +135,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: 188e4120f440f3c4496eb6ae18c44b56, type: 2}
   health: {fileID: 6032674564862840952}
-  pos: {x: 1, y: 0, z: 3}
-  team: 1
+  pos: {x: 1, y: -1, z: 3}
+  team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 1
   <WillType>k__BackingField: 2
   modelTransform: {fileID: 5341040291356438945}
+  restHeight: 0
 --- !u!114 &6032674564862840952
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -189,3 +196,125 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
   healthThreshold: 12
+--- !u!114 &5677722131608072807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2469521785137200648}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04106389b5584846acbd927c7a3324cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.UI.WorldUI.DLJ_WorldHealthUIBinder
+  health: {fileID: 6032674564862840952}
+  worldUI: {fileID: 0}
+  slotId: 10
+  icon: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  fillTint: {r: 0.85, g: 0.18, b: 0.18, a: 1}
+  labelFormat: '{0}/{1}'
+  hideWhenFull: 0
+--- !u!114 &87622938954683074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2469521785137200648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5fc2cf4b59c4a738a32e8e3e14853da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.UI.WorldUI.DLJ_FoxKingWorldUIBinder
+  foxKing: {fileID: 6237392432024336255}
+  feedback: {fileID: 5935536364988358278}
+  resourceIcon: {fileID: 21300000, guid: 572f0f59386aba343b921ba68d478301, type: 3}
+  resourceTint: {r: 1, g: 1, b: 1, a: 1}
+  spendTint: {r: 1, g: 0.55, b: 0.25, a: 1}
+  spendFeedbackDuration: 0.8
+  showGreedMilestones: 1
+  greedIcon: {fileID: 21300000, guid: 572f0f59386aba343b921ba68d478301, type: 3}
+  achievedTint: {r: 1, g: 0.85, b: 0.25, a: 1}
+--- !u!114 &5935536364988358278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2469521785137200648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c95db5e7323d4f93b19ecbd4d53f8f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.DLJ.UI.WorldUI.DLJ_PieceFeedback
+  effects:
+  - id: heal
+    icon: {fileID: 0}
+    fallbackLabel: HP
+    color: {r: 0.4, g: 1, b: 0.5, a: 1}
+    duration: 1.1
+  - id: attack
+    icon: {fileID: 0}
+    fallbackLabel: ATK
+    color: {r: 1, g: 0.8, b: 0.3, a: 1}
+    duration: 1.1
+  - id: defense
+    icon: {fileID: 0}
+    fallbackLabel: DEF
+    color: {r: 0.5, g: 0.8, b: 1, a: 1}
+    duration: 1.1
+  - id: resource
+    icon: {fileID: 21300000, guid: 572f0f59386aba343b921ba68d478301, type: 3}
+    fallbackLabel: RES
+    color: {r: 1, g: 1, b: 1, a: 1}
+    duration: 1.1
+  showRecovery: 1
+  health: {fileID: 6032674564862840952}
+  targetCamera: {fileID: 0}
+  cameraOffset: {x: 0.65, y: 0.65, z: -0.1}
+  worldScale: 1
+  iconSize: 0.24
+  font: {fileID: 0}
+  fontSize: 24
+  sortingOrder: 120
+  maxVisible: 3
+  maxQueued: 32
+  lineSpacing: 0.42
+  riseDistance: 0.12
+  useUnscaledTime: 1
+--- !u!114 &8206544554177612790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2469521785137200648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
+  exitGraceSeconds: 0.08
+--- !u!114 &1246466242372654512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2469521785137200648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4262e43e9d077324d891b538aa3ed2d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverMoveEffect
+  target: {fileID: 0}
+  offset: {x: 0, y: 0.1, z: 0}
+  enterDuration: 0.1
+  exitDuration: 0.16
+  ignoreTimeScale: 1
+  easeEnter: 6
+  easeExit: 6
+  extraAnimation: {fileID: 0}

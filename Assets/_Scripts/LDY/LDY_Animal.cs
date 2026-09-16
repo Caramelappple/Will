@@ -139,6 +139,7 @@ namespace _Scripts.LDY
         private void Awake()
         {
 CacheComponents();
+            DLJ_PieceTeamMaterial.Install(this);
 Init();
         }
 
