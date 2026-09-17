@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
+using _Scripts.LSO.Boss;
 using TMPro;
 using UnityEngine;
 
@@ -31,6 +32,8 @@ public sealed class DLJ_PieceTeamMaterial : MonoBehaviour
     private void OnEnable()
     {
         _animal = GetComponent<LDY_Animal>();
+        if (IsBoss) return;
+
         if (settings == null)
             settings = Resources.Load<DLJ_PieceTeamMaterialSettingsSO>(
                 DLJ_PieceTeamMaterialSettingsSO.ResourcePath);
@@ -46,6 +49,8 @@ public sealed class DLJ_PieceTeamMaterial : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (IsBoss) return;
+
         // team은 public 필드라 직접 대입하는 테스트/팀 변경도 감지해야 함.
         Material selected = settings != null ? settings.GetMaterial(_animal.team) : null;
         if (!_hasApplied || _appliedTeam != _animal.team || _appliedMaterial != selected)
@@ -85,7 +90,7 @@ public sealed class DLJ_PieceTeamMaterial : MonoBehaviour
     [ContextMenu("Refresh Team Material (Play Mode)")]
     public void Refresh()
     {
-        if (!Application.isPlaying || !isActiveAndEnabled || _animal == null) return;
+        if (!Application.isPlaying || !isActiveAndEnabled || _animal == null || IsBoss) return;
         Material selected = settings != null ? settings.GetMaterial(_animal.team) : null;
         // 같은 팀에서는 사망/페이드 연출이 교체한 머티리얼을 다시 덮지 않음.
         if (_hasApplied && _appliedTeam == _animal.team && _appliedMaterial == selected) return;
@@ -105,6 +110,8 @@ public sealed class DLJ_PieceTeamMaterial : MonoBehaviour
         _appliedMaterial = selected;
         _hasApplied = true;
     }
+
+    private bool IsBoss => _animal != null && _animal.GetComponent<LSO_BossPhase>() != null;
 
     private void Restore()
     {

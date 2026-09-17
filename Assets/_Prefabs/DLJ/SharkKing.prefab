@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.9, y: 6.2, z: -19.89}
-  m_LocalScale: {x: 0.64, y: 0.64, z: 0.64}
+  m_LocalScale: {x: 214.62, y: 214.62, z: 214.62}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -45,7 +45,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3987908019727028490}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -5495902117074765545, guid: c81d0da726be5074aae2623f27583977, type: 3}
 --- !u!23 &1420861234320950712
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -134,9 +134,11 @@ MonoBehaviour:
   team: 1
   fallbackRangeType: 0
   fallbackMoveRange: 1
+  fallbackPlayerHealthPoints: 0
   baseAtk: 1
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 7539038748984187631}
+  restHeight: 0
 --- !u!114 &4638628412176976321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,3 +183,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SharkKing
   attackHighlightPrefab: {fileID: 8543462503013108171, guid: 913dad7399cae0e499158e8f4f0f49ca, type: 3}
   attackHighlightHeightOffset: 0.05
+  sharkTeethPrefab: {fileID: 0}
+  sharkTeethHeightOffset: 0
+  attackSharkPrefab: {fileID: 919132149155446097, guid: 1df21d0bcfb4f6041b3ab71add2ce4a7, type: 3}
+  attackCubeSizeRatio: 0.653
+  attackCubeRiseHeight: 1
+  attackCubeRiseDuration: 0.2
+  attackCubeHoldDuration: 0.15
+  attackCubeSinkDuration: 0.35
+  attackCubeMaterial: {fileID: 0}
+  attackWaterMaterial: {fileID: 0}
+  attackWaterColor: {r: 0.14, g: 0.78, b: 0.88, a: 0.85}
+  attackWaterParticleCount: 12
+  attackWaterLifetime: 0.8
+  attackWaterRadiusRatio: 0.18
+  attackWaterScale: 1.35
+  attackForwardAxis: {x: 0, y: 0, z: 1}
+  attackTravelRatio: 0.35
+  attackLaunchAngle: -30
+  attackBiteAngle: 12
+  attackDiveAngle: 55
+  attackRollAngle: 8
+  attackShakeDuration: 0.18
+  attackShakeStrength: 0.08
+  predationMarkPrefab: {fileID: 0}
+  predationMarkLocalOffset: {x: 0, y: 1, z: 0}
+  predationMarkScale: {x: 0.35, y: 0.35, z: 0.35}
+  fallbackPredationMarkColor: {r: 0.65, g: 0.05, b: 0.05, a: 1}
