@@ -40,7 +40,7 @@ Material:
     - _RotSpeedB: 0
     - _TopFade: 1.42
     m_Colors:
-    - _BaseColor: {r: 1.1161896, g: 0.31099474, b: 2.2, a: 2.2}
+    - _BaseColor: {r: 0.42577517, g: 0, b: 0.9975303, a: 2.2}
     - _NoiseTiling: {r: 1, g: 1, b: 2, a: 3}
     - _RimColor: {r: 5.3473043, g: 0, b: 0, a: 3}
     - _RotationPivot: {r: 0.5, g: 0.5, b: 0, a: 0}
