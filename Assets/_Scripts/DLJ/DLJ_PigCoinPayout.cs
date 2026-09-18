@@ -4,7 +4,7 @@ using _Scripts.LDY;
 using _Scripts.LDY.Stage;
 using UnityEngine;
 
-/// <summary>사망한 돼지와 독립적으로 금화를 보관하고 다음 플레이어 턴에 한 번 지급.</summary>
+/// <summary>사망한 기물과 독립적으로 금화를 보관하고 다음 플레이어 턴에 케이스로 회수한다.</summary>
 public sealed class DLJ_PigCoinPayout : MonoBehaviour
 {
     // 보드의 월드 스케일에 맞춘 연출 중력. 짧고 빠른 낙하와 낮은 반발을 사용.
