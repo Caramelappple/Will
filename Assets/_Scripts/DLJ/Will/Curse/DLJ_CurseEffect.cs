@@ -16,7 +16,7 @@ public sealed class DLJ_CurseEffect : DLJ_IWillEffect
         }
 
         Transform effectTransform = effectObject.transform;
-        effectTransform.position = context.origin;
+        effectTransform.position = context.origin + Vector3.up * data.effectHeightOffset;
 
         // The floor mesh defines the footprint; animated smoke bounds do not.
         MeshRenderer floor = effectObject.GetComponent<MeshRenderer>();
@@ -59,6 +59,8 @@ public sealed class DLJ_CurseEffect : DLJ_IWillEffect
             particleSystem.Play(false);
         }
 
-        onComplete?.Invoke();
+        DLJ_CurseFade fade = effectObject.GetComponent<DLJ_CurseFade>();
+        if (fade == null) fade = effectObject.AddComponent<DLJ_CurseFade>();
+        fade.FadeIn(data.effectFadeInTime, onComplete);
     }
 }

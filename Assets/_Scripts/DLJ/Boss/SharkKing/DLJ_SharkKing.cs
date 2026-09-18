@@ -42,6 +42,25 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     [Tooltip("공격 모델의 모든 머티리얼 슬롯에 적용. 비워두면 프리팹의 원래 머티리얼 유지")]
     [SerializeField] private Material attackCubeMaterial;
 
+    [Header("Shark Attack Water Splash")]
+    [Tooltip("공격 시 상어가 튀어나오는 지점에 생성할 물방울 머티리얼. 비워두면 런타임 파티클 머티리얼 사용")]
+    [SerializeField] private Material attackWaterMaterial;
+    [SerializeField] private Color attackWaterColor = new(0.14f, 0.78f, 0.88f, 0.85f);
+    [Tooltip("상어 주변에서 솟는 물막 높이. 물보라 크기에 대한 비율")]
+    [SerializeField, Range(0.1f, 1.5f), InspectorName("물막 높이")] private float attackWaterCrownHeight = 0.65f;
+    [Tooltip("청록색 수면의 반지름. 물보라 크기에 대한 비율")]
+    [SerializeField, Range(0.4f, 1.5f), InspectorName("수면 반지름")] private float attackWaterPoolRadius = 0.9f;
+    [Tooltip("첫 분출의 물방울 개수. 설정한 개수 그대로 생성하며 0이면 물방울 끄기")]
+    [SerializeField, Range(0, 128), InspectorName("물방울 개수")] private int attackWaterParticleCount = 12;
+    [Tooltip("첫 분출의 굵은 물줄기 개수. 0이면 물줄기 끄기")]
+    [SerializeField, Range(0, 64), InspectorName("물줄기 개수")] private int attackWaterJetCount = 6;
+    [Tooltip("0.08초 뒤 추가 분출할 비율. 0이면 추가 분출 없음, 1이면 같은 개수 한 번 더 분출")]
+    [SerializeField, Range(0f, 1f), InspectorName("추가 분출 비율")] private float attackWaterExtraBurstRatio = 0f;
+    [SerializeField, Min(0.1f)] private float attackWaterLifetime = 0.8f;
+    [SerializeField, Range(0f, 1f)] private float attackWaterRadiusRatio = 0.18f;
+    [Tooltip("물보라 전체 크기 배율. 기존 씬에서도 적용")]
+    [SerializeField, Range(0.5f, 3f)] private float attackWaterScale = 1.35f;
+
     [Header("Shark Attack Motion")]
     [Tooltip("모델의 로컬 전방 축. 상어가 향하는 축에 맞춰 조절")]
     [SerializeField] private Vector3 attackForwardAxis = Vector3.forward;
@@ -68,9 +87,12 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     private readonly Dictionary<object, List<GameObject>> _warnings = new();
     private readonly HashSet<GameObject> _attackEffects = new();
+    private readonly HashSet<GameObject> _previewEffects = new();
     private LDY_TurnManager _turnManager;
     private DLJ_SharkKingHuntingGround _huntingGround;
     private int _lastAttackShakeFrame = -1;
+    private Material _runtimeWaterMaterial;
+    private Material _runtimeSurfaceMaterial;
 
     private void Start()
     {
@@ -227,12 +249,56 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         int areaSize,
         LDY_BoardManager board)
     {
-        if (!isActiveAndEnabled || origins == null || areaSize <= 0 || board == null) return;
+        PlayAttackEffects(origins, areaSize, board, _attackEffects, true);
+    }
 
+    public bool IsPreviewingAttack => _previewEffects.Count > 0;
+
+    // 미리보기는 실제 공격과 같은 연출만 호출. 턴, 피해, AP, 포식 표식은 건드리지 않음.
+    public void PreviewAttack(LDY_BoardManager board, Vector2Int origin, int areaSize, bool waterOnly)
+    {
+        if (!Application.isPlaying || !isActiveAndEnabled || board == null) return;
+
+        StopAttackPreview();
+        areaSize = Mathf.Clamp(areaSize, 1, LDY_BoardManager.Size);
+        Vector3Int first = new(
+            Mathf.Clamp(origin.x, 0, LDY_BoardManager.Size - areaSize), 0,
+            Mathf.Clamp(origin.y, 0, LDY_BoardManager.Size - areaSize));
+        if (waterOnly)
+        {
+            Vector3Int last = first + new Vector3Int(areaSize - 1, 0, areaSize - 1);
+            Vector3 center = (board.GridToWorld(first) + board.GridToWorld(last)) * 0.5f;
+            CreateWaterSplash(center, GetAttackEffectSize(board, areaSize), _previewEffects);
+        }
+        else
+        {
+            PlayAttackEffects(new[] { first }, areaSize, board, _previewEffects, false);
+        }
+    }
+
+    public void StopAttackPreview()
+    {
+        ClearEffects(_previewEffects);
+    }
+
+    private float GetAttackEffectSize(LDY_BoardManager board, int areaSize)
+    {
         float cellWidth = Vector3.Distance(board.GridToWorld(Vector3Int.zero), board.GridToWorld(Vector3Int.right));
         float cellDepth = Vector3.Distance(board.GridToWorld(Vector3Int.zero), board.GridToWorld(new Vector3Int(0, 0, 1)));
-        float effectSize = Mathf.Max(0.01f,
+        return Mathf.Max(0.01f,
             Mathf.Min(cellWidth, cellDepth) * areaSize * Mathf.Clamp(attackCubeSizeRatio, 0.1f, 1f));
+    }
+
+    private void PlayAttackEffects(
+        IEnumerable<Vector3Int> origins,
+        int areaSize,
+        LDY_BoardManager board,
+        HashSet<GameObject> effects,
+        bool shakeEnabled)
+    {
+        if (!isActiveAndEnabled || origins == null || areaSize <= 0 || board == null) return;
+
+        float effectSize = GetAttackEffectSize(board, areaSize);
         bool shakeScheduled = false;
 
         HashSet<Vector3Int> uniqueOrigins = new();
@@ -307,7 +373,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             float sinkDuration = Mathf.Max(0.01f, attackCubeSinkDuration);
 
             // 경고가 제거된 뒤에도 재생을 마치도록 공격 연출은 별도로 관리한다.
-            _attackEffects.Add(motionRoot);
+            effects.Add(motionRoot);
             Sequence motion = DOTween.Sequence()
                 .Append(motionRoot.transform.DOMove(peak, riseDuration).SetEase(Ease.OutCubic))
                 .Join(motionRoot.transform.DORotateQuaternion(Quaternion.identity, riseDuration).SetEase(Ease.OutCubic))
@@ -318,16 +384,168 @@ public sealed class DLJ_SharkKing : MonoBehaviour
                 .SetLink(motionRoot)
                 .OnComplete(() =>
                 {
-                    _attackEffects.Remove(motionRoot);
+                    effects.Remove(motionRoot);
                     Destroy(motionRoot);
                 });
 
-            if (!shakeScheduled)
+            // 먼저 수면이 열리고 상승 중 물막이 솟도록 상어와 동시에 시작.
+            CreateWaterSplash(center - forward * travel * 0.25f, effectSize, effects);
+
+            if (shakeEnabled && !shakeScheduled)
             {
                 motion.InsertCallback(riseDuration * 0.2f, ShakeOnAttack);
                 shakeScheduled = true;
             }
         }
+    }
+
+    private void CreateWaterSplash(Vector3 center, float effectSize, HashSet<GameObject> effects)
+    {
+        Material waterMaterial = GetWaterMaterial();
+        if (waterMaterial == null) return;
+
+        float size = Mathf.Max(0.4f, effectSize) * Mathf.Clamp(attackWaterScale, 0.5f, 3f);
+        float lifetime = Mathf.Max(1.15f, attackWaterLifetime);
+        int count = Mathf.Clamp(attackWaterParticleCount, 0, 128);
+        int jetCount = Mathf.Clamp(attackWaterJetCount, 0, 64);
+        float extraBurstRatio = Mathf.Clamp01(attackWaterExtraBurstRatio);
+        float radius = size * Mathf.Clamp(attackWaterRadiusRatio * 2f, 0.28f, 0.65f);
+        Color waterColor = attackWaterColor;
+
+        GameObject splash = new("DLJ_SharkKingWaterSplash");
+        splash.transform.position = center + Vector3.up * Mathf.Max(0.12f, attackHighlightHeightOffset);
+        effects.Add(splash);
+
+        CreateSplashParticles(splash.transform, "WaterJets", waterMaterial,
+            size, radius, jetCount, 0.45f, 32f, 3.1f, 0.055f, 0.1f, waterColor, true,
+            Mathf.RoundToInt(jetCount * extraBurstRatio));
+        CreateSplashParticles(splash.transform, "BrightDroplets", waterMaterial,
+            size, radius, count, lifetime * 0.7f, 48f, 3.4f, 0.035f, 0.065f,
+            Color.Lerp(waterColor, new Color(0.75f, 1f, 0.97f, waterColor.a), 0.5f), true,
+            Mathf.RoundToInt(count * extraBurstRatio));
+
+        Material surfaceMaterial = GetSurfaceMaterial();
+        if (surfaceMaterial != null)
+            splash.AddComponent<DLJ_SharkWaterCrown>().Initialize(surfaceMaterial, size,
+                lifetime, attackWaterCrownHeight, attackWaterPoolRadius, waterColor);
+
+        // 마지막 분출의 입자까지 사라진 뒤에 정리.
+        foreach (ParticleSystem system in splash.GetComponentsInChildren<ParticleSystem>())
+            system.Play(false);
+        DOVirtual.DelayedCall(lifetime + 0.2f, () =>
+            {
+                effects.Remove(splash);
+                Destroy(splash);
+            }, false)
+            .SetTarget(splash.transform)
+            .SetLink(splash);
+    }
+
+    private ParticleSystem CreateSplashParticles(
+        Transform parent, string name, Material material, float size, float radius,
+        int count, float lifetime, float angle, float speed, float minSize, float maxSize,
+        Color color, bool stretch, int extraCount = 0)
+    {
+        if (count <= 0) return null;
+        extraCount = Mathf.Clamp(extraCount, 0, count);
+        GameObject emitter = new(name);
+        emitter.transform.SetParent(parent, false);
+        // Cone은 로컬 +Z 방향으로 분출하므로 월드 +Y로 회전.
+        emitter.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+        ParticleSystem particles = emitter.AddComponent<ParticleSystem>();
+        particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        ParticleSystem.MainModule main = particles.main;
+        main.playOnAwake = false;
+        main.loop = false;
+        main.duration = lifetime;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(lifetime * 0.75f, lifetime);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(size * speed * 0.7f, size * speed);
+        main.startSize = new ParticleSystem.MinMaxCurve(size * minSize, size * maxSize);
+        main.startColor = color;
+        main.gravityModifier = size * 0.85f;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.maxParticles = count + extraCount;
+        main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.enabled = true;
+        emission.rateOverTime = 0f;
+        emission.rateOverDistance = 0f;
+        emission.SetBursts(extraCount > 0
+            ? new[]
+            {
+                new ParticleSystem.Burst(0f, (short)count),
+                new ParticleSystem.Burst(0.08f, (short)extraCount)
+            }
+            : new[] { new ParticleSystem.Burst(0f, (short)count) });
+
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = angle;
+        shape.radius = radius;
+        shape.radiusThickness = 0.2f;
+
+        ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particles.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        Gradient fade = new();
+        fade.SetKeys(
+            new[]
+            {
+                new GradientColorKey(Color.white, 0f),
+                new GradientColorKey(new Color(0.7f, 0.95f, 1f), 0.45f),
+                new GradientColorKey(Color.white, 1f)
+            },
+            new[]
+            {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0.85f, 0.55f),
+                new GradientAlphaKey(0f, 1f)
+            });
+        colorOverLifetime.color = new ParticleSystem.MinMaxGradient(fade);
+
+        var sizeOverLifetime = particles.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f,
+            new AnimationCurve(new Keyframe(0f, 0.7f), new Keyframe(0.15f, 1f), new Keyframe(1f, 0.25f)));
+
+        ParticleSystemRenderer renderer = emitter.GetComponent<ParticleSystemRenderer>();
+        renderer.renderMode = stretch
+            ? ParticleSystemRenderMode.Stretch
+            : ParticleSystemRenderMode.Billboard;
+        renderer.lengthScale = 1.8f;
+        renderer.velocityScale = 0.015f;
+        renderer.maxParticleSize = 0.5f;
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        renderer.sharedMaterial = material;
+
+        return particles;
+    }
+
+    private Material GetWaterMaterial()
+    {
+        if (attackWaterMaterial != null) return attackWaterMaterial;
+        if (_runtimeWaterMaterial != null) return _runtimeWaterMaterial;
+
+        Shader shader = Resources.Load<Shader>("DLJ/DLJ_SharkWaterSplash");
+        if (shader == null) return null;
+
+        _runtimeWaterMaterial = new Material(shader)
+        {
+            name = "DLJ_SharkKingWaterRuntime"
+        };
+        return _runtimeWaterMaterial;
+    }
+
+    private Material GetSurfaceMaterial()
+    {
+        if (_runtimeSurfaceMaterial != null) return _runtimeSurfaceMaterial;
+        Shader shader = Resources.Load<Shader>("DLJ/DLJ_SharkWaterSplash");
+        if (shader == null) return null;
+        _runtimeSurfaceMaterial = new Material(shader) { name = "DLJ_SharkKingSurfaceRuntime" };
+        return _runtimeSurfaceMaterial;
     }
 
     private void ShakeOnAttack()
@@ -340,14 +558,20 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     private void ClearAttackEffects()
     {
-        foreach (GameObject effect in _attackEffects)
+        ClearEffects(_attackEffects);
+        StopAttackPreview();
+    }
+
+    private static void ClearEffects(HashSet<GameObject> effects)
+    {
+        foreach (GameObject effect in effects)
         {
             if (effect == null) continue;
             effect.transform.DOKill();
             Destroy(effect);
         }
 
-        _attackEffects.Clear();
+        effects.Clear();
     }
 
     private void OnDisable()
@@ -434,6 +658,11 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     private void OnDestroy()
     {
         ClearAttackEffects();
+
+        if (_runtimeWaterMaterial != null)
+            Destroy(_runtimeWaterMaterial);
+        if (_runtimeSurfaceMaterial != null)
+            Destroy(_runtimeSurfaceMaterial);
 
         if (GameManager.HasInstance)
             GameManager.Instance.TurnManagerChanged -= BindTurnManager;

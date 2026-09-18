@@ -179,54 +179,9 @@ public class DLJ_CurseZone : MonoBehaviour
         GameObject fadingEffect = effectInstance;
         effectInstance = null;
 
-        if (effectFadeOutTime <= 0f)
-        {
-            Destroy(fadingEffect);
-            return;
-        }
-
-        ParticleSystem[] particleSystems =
-            fadingEffect.GetComponentsInChildren<ParticleSystem>(true);
-
-        foreach (ParticleSystem particleSystem in particleSystems)
-        {
-            ParticleSystem.MainModule main = particleSystem.main;
-            main.loop = false;
-
-            particleSystem.Stop(
-                false,
-                ParticleSystemStopBehavior.StopEmitting);
-
-            int particleCount = particleSystem.particleCount;
-            if (particleCount == 0)
-                continue;
-
-            ParticleSystem.Particle[] particles =
-                new ParticleSystem.Particle[particleCount];
-            int aliveCount = particleSystem.GetParticles(particles);
-
-            for (int i = 0; i < aliveCount; i++)
-            {
-                float elapsedLifetime =
-                    particles[i].startLifetime - particles[i].remainingLifetime;
-                float remainingLifetime = Mathf.Min(
-                    particles[i].remainingLifetime,
-                    effectFadeOutTime);
-
-                particles[i].startLifetime = elapsedLifetime + remainingLifetime;
-                particles[i].remainingLifetime = remainingLifetime;
-            }
-
-            particleSystem.SetParticles(particles, aliveCount);
-        }
-
-        if (particleSystems.Length == 0)
-        {
-            Destroy(fadingEffect);
-            return;
-        }
-
-        Destroy(fadingEffect, effectFadeOutTime + 0.1f);
+        DLJ_CurseFade fade = fadingEffect.GetComponent<DLJ_CurseFade>();
+        if (fade == null) fade = fadingEffect.AddComponent<DLJ_CurseFade>();
+        fade.FadeOut(effectFadeOutTime);
     }
 
     private void Unsubscribe()

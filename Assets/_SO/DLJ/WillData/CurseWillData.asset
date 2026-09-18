@@ -25,4 +25,6 @@ MonoBehaviour:
   range: 1
   duration: 2
   effectScalePerWorldUnit: 0.03111111
+  effectHeightOffset: 0.05
+  effectFadeInTime: 0.6
   effectFadeOutTime: 0.75
