@@ -54,6 +54,8 @@ public readonly struct DLJ_InfoPanelData
     public readonly string MoveRange;
     public readonly string Cost;
     public readonly string PlayerHealthPoints;
+    public readonly bool HasCost;
+    public readonly bool HasPlayerHealthPoints;
 
     private DLJ_InfoPanelData(
         LSO_AnimalSO animal,
@@ -81,8 +83,12 @@ public readonly struct DLJ_InfoPanelData
         WillDescription = willData != null ? willData.description ?? string.Empty : string.Empty;
         AttackRange = FormatAttackRange(animal.range);
         MoveRange = animal.MoveRange.ToString();
-        Cost = animal.cost.ToString();
-        PlayerHealthPoints = animal.playerHealthPoints.ToString();
+        HasCost = animal.cost > 0;
+        HasPlayerHealthPoints = animal.playerHealthPoints > 0;
+        Cost = HasCost ? animal.cost.ToString() : "X";
+        PlayerHealthPoints = HasPlayerHealthPoints
+            ? animal.playerHealthPoints.ToString()
+            : "";
     }
 
     /// <param name="willOverride">

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3987908019727028490
+--- !u!1 &6304906199209021946
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,51 +8,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7539038748984187631}
-  - component: {fileID: 9074110202279715600}
-  - component: {fileID: 1420861234320950712}
-  - component: {fileID: 3032612790018727666}
-  - component: {fileID: 8505696107162614263}
-  - component: {fileID: 4638628412176976321}
-  - component: {fileID: 4942038982785804577}
-  - component: {fileID: 7982987346592010603}
-  m_Layer: 10
-  m_Name: SharkKing
-  m_TagString: Enemy
+  - component: {fileID: 2369653158673188677}
+  - component: {fileID: 34776694101757964}
+  - component: {fileID: 2856942410286857570}
+  - component: {fileID: 1777561255028096034}
+  m_Layer: 0
+  m_Name: SharkKingModel
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7539038748984187631
+--- !u!4 &2369653158673188677
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 6304906199209021946}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.9, y: 6.2, z: -19.89}
-  m_LocalScale: {x: 214.62, y: 214.62, z: 214.62}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 225, y: 225, z: 225}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &9074110202279715600
+  m_Father: {fileID: 321468523532543876}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+--- !u!33 &34776694101757964
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 6304906199209021946}
   m_Mesh: {fileID: -5495902117074765545, guid: c81d0da726be5074aae2623f27583977, type: 3}
---- !u!23 &1420861234320950712
+--- !u!23 &2856942410286857570
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 6304906199209021946}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -95,13 +91,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &3032612790018727666
+--- !u!65 &1777561255028096034
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 6304906199209021946}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -116,20 +112,78 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8505696107162614263
+--- !u!1 &8678755304481251753
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 321468523532543876}
+  - component: {fileID: 5633870222949457499}
+  - component: {fileID: 8169532250795333539}
+  - component: {fileID: 9179952815893878915}
+  - component: {fileID: 2823917958580286689}
+  - component: {fileID: 4486307871956394486}
+  m_Layer: 10
+  m_Name: SharkKing
+  m_TagString: Enemy
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &321468523532543876
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8678755304481251753}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.9, y: 6.267, z: -19.89}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 2369653158673188677}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &5633870222949457499
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8678755304481251753}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8169532250795333539
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 8678755304481251753}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
   data: {fileID: 11400000, guid: 1d9e8c97bd2fb7c4985b41ff11da4d32, type: 2}
-  health: {fileID: 4638628412176976321}
+  health: {fileID: 9179952815893878915}
   pos: {x: 3, y: 0, z: 4}
   team: 1
   fallbackRangeType: 0
@@ -137,15 +191,15 @@ MonoBehaviour:
   fallbackPlayerHealthPoints: 0
   baseAtk: 1
   <WillType>k__BackingField: 0
-  modelTransform: {fileID: 7539038748984187631}
+  modelTransform: {fileID: 321468523532543876}
   restHeight: 0
---- !u!114 &4638628412176976321
+--- !u!114 &9179952815893878915
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 8678755304481251753}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8e8df4056084c78afb56d61aa4bd488, type: 3}
@@ -156,26 +210,26 @@ MonoBehaviour:
   _value: 1
   logDamage: 1
   logRecover: 1
---- !u!114 &4942038982785804577
+--- !u!114 &2823917958580286689
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 8678755304481251753}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ece4daa57ec340c28b401967db50240e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.LSO_BossPhase
   healthThreshold: 20
---- !u!114 &7982987346592010603
+--- !u!114 &4486307871956394486
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3987908019727028490}
+  m_GameObject: {fileID: 8678755304481251753}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 74c4b54bbd314ae8b9b83917aab4ead8, type: 3}
@@ -183,23 +237,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SharkKing
   attackHighlightPrefab: {fileID: 8543462503013108171, guid: 913dad7399cae0e499158e8f4f0f49ca, type: 3}
   attackHighlightHeightOffset: 0.05
-  sharkTeethPrefab: {fileID: 0}
+  sharkTeethPrefab: {fileID: 919132149155446097, guid: 6ea784aa38be2c840bb4ce4e9d7d7c67, type: 3}
   sharkTeethHeightOffset: 0
   attackSharkPrefab: {fileID: 919132149155446097, guid: 1df21d0bcfb4f6041b3ab71add2ce4a7, type: 3}
   attackCubeSizeRatio: 0.653
-  attackCubeRiseHeight: 1
-  attackCubeRiseDuration: 0.75
-  attackCubeHoldDuration: 0.22
-  attackCubeSinkDuration: 0.45
+  attackCubeRiseHeight: 0.75
+  attackCubeRiseDuration: 0.65
+  attackCubeHoldDuration: 0
+  attackCubeSinkDuration: 1.2
   attackCubeMaterial: {fileID: 0}
   attackWaterMaterial: {fileID: 0}
   attackWaterColor: {r: 0.14, g: 0.78, b: 0.88, a: 0.85}
-  attackWaterParticleCount: 12
+  attackWaterCrownHeight: 0.65
+  attackWaterPoolRadius: 0.9
+  attackWaterParticleCount: 8
+  attackWaterJetCount: 0
+  attackWaterExtraBurstRatio: 0
   attackWaterLifetime: 0.8
-  attackWaterRadiusRatio: 0.18
-  attackWaterScale: 1.35
-  attackForwardAxis: {x: 0, y: 0, z: 1}
-  attackLaunchAngle: -78
+  attackWaterRadiusRatio: 0.103
+  attackWaterScale: 1.11
+  attackWaterFallScale: 1.3
+  attackForwardAxis: {x: 0, y: 90, z: 0}
+  attackLaunchAngle: -90
   predationMarkPrefab: {fileID: 0}
   predationMarkLocalOffset: {x: 0, y: 1, z: 0}
   predationMarkScale: {x: 0.35, y: 0.35, z: 0.35}

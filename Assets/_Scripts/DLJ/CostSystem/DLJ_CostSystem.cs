@@ -40,6 +40,10 @@ public class DLJ_CostSystem : MonoBehaviour
     private Vector3 _firstCaseLocalPosition;
     private bool _initialized;
 
+    public bool HasActionPoints => _subscribedActionPoints != null;
+    public int VisibleCost => IsPlayerTurn && HasActionPoints ? _subscribedActionPoints.Current : 0;
+    public int MaxCost => HasActionPoints ? _subscribedActionPoints.Max : 0;
+
     private sealed class CaseInstance
     {
         public readonly GameObject Root;
