@@ -210,6 +210,9 @@ MonoBehaviour:
   pieceDoubleClickInterval: 0.35
   content: {fileID: 0}
   panelAnimation: {fileID: 2921028847654167105}
+  inkMaterial: {fileID: 2100000, guid: 37d4fda3216263d4d946390e6d7871c6, type: 2}
+  inkDisappearDuration: 0.18
+  inkAppearDuration: 0.35
   portraitRenderer: {fileID: 3319763758514922136}
   attackPortraitRenderer: {fileID: 2167810865908689163}
   healthPortraitRenderer: {fileID: 5624201076734747362}
