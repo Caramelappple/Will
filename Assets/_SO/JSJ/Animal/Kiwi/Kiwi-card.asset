@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Kiwi-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 5decf58a16dc487fa7e7616f4d18e705, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 3760a7f8754479e41be1ca8bb328a990, type: 3}

@@ -20,7 +20,8 @@ MonoBehaviour:
     \uACC4\uC2B9\uC740 \uB04A\uAE40. (\uACC4\uC2B9\uBC1B\uC740 \uAE30\uBB3C\uC774
     \uAE30\uC5B5\uC744 \uC720\uC5B8\uC73C\uB85C \uC120\uD0DD\uD558\uACE0 \uC8FD\uC740\uB2E4\uBA74
     \uADF8 \uB2A5\uB825\uCE58\uB97C \uB2E4\uC2DC \uC774\uC5B4\uAC00\uAE30 \uAC00\uB2A5)"
-  icon: {fileID: 21300000, guid: c4a5f32d32d809b4d9252730a90307b1, type: 3}
+  icon: {fileID: 21300000, guid: f55e53c4f37d97e4085100bd9e579b73, type: 3}
+  flameColor: {r: 1, g: 1, b: 1, a: 1}
   effectPrefab: {fileID: 8113247536879051834, guid: aa8e862f5175d8f4cbbdd189e6f0a60f, type: 3}
   cameraHoldDuration: 1.8
   moveDuration: 0.8
