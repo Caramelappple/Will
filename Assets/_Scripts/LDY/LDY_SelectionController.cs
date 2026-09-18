@@ -33,6 +33,15 @@ namespace _Scripts.LDY
         private bool _refreshHighlightsAfterAction;
 
         /// <summary>
+        /// 밖에 "골랐다"고 알려둔 상태인지.
+        ///
+        /// Selected 로 갈음할 수 없다. 기물이 파괴되면 유니티는 그 참조를 null 로 읽어,
+        /// 골라뒀던 사실까지 함께 사라진다. 그러면 해제를 아무에게도 못 알리고
+        /// 정보창은 죽은 기물을 계속 띄운 채로 남는다.
+        /// </summary>
+        private bool _hasSelection;
+
+        /// <summary>
         /// 내 기물 선택이 바뀔 때마다 발생한다. 선택되면 그 기물이, 해제되면 null이 넘어온다.
         /// 아군 정보창이 구독하면 된다(적 정보창은 OnEnemyInspectedChanged를 쓴다).
         /// </summary>
@@ -89,8 +98,10 @@ namespace _Scripts.LDY
 
         private void Update()
         {
-            // 클릭을 보기 전에 한다. 입력이 없어도 연출은 끝나야 하고,
-            // 아래 조기 반환들에 걸려 영영 안 돌면 칸 표시가 사라진 채로 남는다.
+            // 클릭을 보기 전에 한다. 입력이 없어도 기물은 죽고 연출은 끝난다.
+            // 아래 조기 반환들에 걸려 영영 안 돌면, 죽은 기물이 골라진 채로 남거나
+            // 칸 표시가 사라진 채로 남는다.
+            DropSelectionIfGone();
             SyncSelectionWithAction();
 
             if (Mouse.current == null) return;
@@ -244,6 +255,7 @@ namespace _Scripts.LDY
             Selected = animal;
             SetSelectedHover(Selected, true);
 
+            _hasSelection = true;
             _refreshHighlightsAfterAction = false;
 
             ShowHighlightsFor(animal);
@@ -283,28 +295,50 @@ namespace _Scripts.LDY
         }
 
         /// <summary>
-        /// 행동이 끝났으면 칸 표시를 다시 그린다. 그 사이에 죽었으면 선택을 푼다.
+        /// 고른 기물이 판에서 사라졌으면 선택을 푼다.
+        ///
+        /// ── 행동과 묶지 않는 이유 ─────────────────────────────────
+        /// 처음에는 행동이 끝났는지 볼 때 같이 봤다. 그런데 기물이 죽는 시점은
+        /// 그 기물의 행동과 아무 상관이 없다 — **유언은 남이 죽을 때 터지고**,
+        /// 내 기물이 가만히 서 있는 동안에도 그 불똥에 맞는다.
+        ///
+        /// 그래서 행동 여부와 관계없이 매 프레임 본다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
+        private void DropSelectionIfGone()
+        {
+            if (!_hasSelection) return;
+            if (IsAlive(Selected)) return;
+
+            Deselect();
+        }
+
+        /// <summary>
+        /// 아직 판에 남아 있는지.
+        ///
+        /// 파괴만 보면 놓친다. 죽어도 디졸브가 끝날 때까지 오브젝트가 남아 있어서,
+        /// 그 사이에는 살아 있는 것처럼 읽힌다. 체력 쪽도 같이 본다.
+        /// </summary>
+        private static bool IsAlive(LDY_Animal animal)
+        {
+            if (animal == null) return false;
+
+            return animal.health == null || !animal.health.IsDestroyed;
+        }
+
+        /// <summary>
+        /// 행동이 끝났으면 칸 표시를 다시 그린다.
         ///
         /// 연출이 끝나는 것을 알려주는 신호가 없어 매 프레임 물어본다. 두 시스템에
         /// 완료 콜백을 새로 내는 것보다, 이미 있는 IsActing 하나만 보는 편이 낫다 —
         /// 끝났는지 판단하는 곳이 늘지 않는다.
+        ///
+        /// 죽은 경우는 여기까지 오지 않는다. DropSelectionIfGone 이 먼저 선택을 푼다.
         /// </summary>
         private void SyncSelectionWithAction()
         {
             if (!_refreshHighlightsAfterAction) return;
-
-            // 반격이나 가시에 맞아 죽으면 오브젝트가 파괴된다. 유니티에서는 null로 읽힌다.
-            // Deselect는 이 경우 "원래 없었다"로 보고 아무에게도 안 알리므로 여기서 직접 알린다.
-            if (Selected == null)
-            {
-                _refreshHighlightsAfterAction = false;
-
-                if (highlighter != null) highlighter.ClearHighlights(this);
-
-                OnSelectionChanged?.Invoke(null);
-                return;
-            }
-
+            if (Selected == null) return;
             if (IsActing(Selected)) return;
 
             _refreshHighlightsAfterAction = false;
@@ -321,8 +355,10 @@ namespace _Scripts.LDY
         /// </summary>
         private void Deselect()
         {
-            bool hadSelection = Selected != null;
+            // 파괴된 기물은 Selected 가 null 로 읽히므로 그것으로는 셀 수 없다.
+            bool hadSelection = _hasSelection;
 
+            _hasSelection = false;
             _refreshHighlightsAfterAction = false;
 
             SetSelectedHover(Selected, false);

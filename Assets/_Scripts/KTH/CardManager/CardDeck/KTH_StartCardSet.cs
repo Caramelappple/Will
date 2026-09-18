@@ -152,9 +152,11 @@ public class KTH_StartCardSet : MonoBehaviour
             // 배치까지 간 카드는 LDY_CardPlacer 가 물리면서 내려가지만, 골라서
             // 올라와 있기만 한 카드는 아무도 안 내려놓는다. 그대로 버리면
             // 올라온 자리에서 곧장 버림 더미로 날아가 움직임이 튄다.
-
-            // 오류 때문에 일시적으로 주석처리
-            //KTH_HandCardLayout.Instance.DeselectAll();
+            //
+            // 베이스 머지로 손패가 partial 로 쪼개지면서 DeselectAll 이 빠져
+            // 컴파일이 깨졌고, 그래서 이 줄이 주석 처리돼 있었다.
+            // 메서드를 KTH_HandCardLayout.Placement.cs 에 되살렸다.
+            KTH_HandCardLayout.Instance.DeselectAll();
 
             Log($"내 턴 종료 — 손패 {KTH_HandCardLayout.Instance.HandCount}장을 버립니다.");
 
