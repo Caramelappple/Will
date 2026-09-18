@@ -33,9 +33,42 @@ public sealed class DLJ_CostCase : MonoBehaviour
     private IDLJ_CostCoinSpendEffect _spendEffect;
     private bool _initialized;
     private bool _started;
+    private Renderer _tooltipRenderer;
+    private readonly List<Renderer> _tooltipRenderers = new List<Renderer>();
 
     public int Capacity => _initialized ? _slots.Count : coins.Count;
     public int FilledCount { get; private set; }
+
+    // 비어 있는 케이스도 가리킬 수 있도록 코인이 아닌 케이스 본체의 영역을 사용한다.
+    public bool TryGetTooltipBounds(out Bounds bounds)
+    {
+        bounds = default;
+        if (!isActiveAndEnabled) return false;
+
+        _tooltipRenderers.Clear();
+        GetComponentsInChildren(true, _tooltipRenderers);
+        if (_tooltipRenderer == null)
+        {
+            foreach (Renderer candidate in _tooltipRenderers)
+            {
+                if (candidate.transform.parent != transform) continue;
+                _tooltipRenderer = candidate;
+                break;
+            }
+        }
+        if (_tooltipRenderer == null || !_tooltipRenderer.enabled ||
+            !_tooltipRenderer.gameObject.activeInHierarchy) return false;
+
+        bounds = _tooltipRenderer.bounds;
+        foreach (Renderer candidate in _tooltipRenderers)
+        {
+            if (candidate == null || candidate == _tooltipRenderer || !candidate.enabled ||
+                !candidate.gameObject.activeInHierarchy) continue;
+            bounds.Encapsulate(candidate.bounds);
+        }
+        bounds.Expand(.12f);
+        return true;
+    }
 
     private Transform SearchRoot => coinRoot != null ? coinRoot : transform;
 

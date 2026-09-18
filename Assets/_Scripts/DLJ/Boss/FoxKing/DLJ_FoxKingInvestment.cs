@@ -42,6 +42,9 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         if (owner == null)
             return;
 
+        if (state != null && owner.GetComponent<DLJ_FoxKingInvestmentGlow>() == null)
+            owner.gameObject.AddComponent<DLJ_FoxKingInvestmentGlow>();
+
         // Animal은 이 초기화 직후 특성을 Dispatcher에 등록한다. HasInstance만 확인하면
         // 씬의 매니저보다 먼저 깨어난 여우왕은 턴 이벤트 등록을 영구히 놓칠 수 있다.
         RefreshDependencies(GameManager.Instance);
@@ -91,6 +94,7 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         if (owner == null || health == null || health.IsDestroyed || state == null)
             return;
 
+        state.AdvanceInvestmentTurn();
         RefreshDependencies(GameManager.HasInstance ? GameManager.Instance : null);
 
         if (team == LDY_Team.Enemy)
@@ -166,12 +170,18 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
         {
             int healthBeforeInvestment = health.Value;
             health.Recover(RecoverData.Create(health, phase >= 2 ? PhaseTwoHeal : PhaseOneHeal));
+            state.ReportInvestment(
+                cost,
+                DLJ_InvestmentEffectType.Heal,
+                health.Value - healthBeforeInvestment);
             Debug.Log(
                 $"[여우왕] 회복 투자 → 체력 {healthBeforeInvestment} → {health.Value}", owner);
             return true;
         }
 
-        state.PendingAttackBonus += phase >= 2 ? PhaseTwoAttack : PhaseOneAttack;
+        int attackBonus = phase >= 2 ? PhaseTwoAttack : PhaseOneAttack;
+        state.PendingAttackBonus += attackBonus;
+        state.ReportInvestment(cost, DLJ_InvestmentEffectType.Attack, attackBonus);
         Debug.Log(
             $"[여우왕] 공격 투자 → 다음 공격 추가 피해 {state.PendingAttackBonus}", owner);
         return true;
@@ -221,8 +231,7 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
             if (!investment.IsOwnerAttack(data) || investment.state.PendingAttackBonus <= 0)
                 return damage;
 
-            int bonus = investment.state.PendingAttackBonus;
-            investment.state.PendingAttackBonus = 0;
+            int bonus = investment.state.ConsumePendingAttackBonus();
             return damage + bonus;
         }
     }

@@ -94,6 +94,8 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     private LDY_Animal _currentUnit;
     private LDY_Animal _lastClickedUnit;
     private float _lastPieceClickTime = float.NegativeInfinity;
+    private FontStyles _costFontStyle;
+    private FontStyles _playerHealthPointsFontStyle;
 
     private DLJ_InfoPanelPortraits CommonPortraits =>
         new DLJ_InfoPanelPortraits(
@@ -120,6 +122,11 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
         if (panelAnimation == null)
             panelAnimation = GetComponentInChildren<DLJ_InfoPanelAnimation>(true);
+
+        if (cost != null)
+            _costFontStyle = cost.fontStyle;
+        if (playerHealthPoints != null)
+            _playerHealthPointsFontStyle = playerHealthPoints.fontStyle;
 
         if (selection != null)
             selection.OnAnimalClicked += HandleAnimalClicked;
@@ -227,6 +234,8 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         SetText(moveRange, data.MoveRange);
         SetText(cost, data.Cost);
         SetText(playerHealthPoints, data.PlayerHealthPoints);
+        SetFontStyle(cost, data.HasCost, _costFontStyle);
+        SetFontStyle(playerHealthPoints, data.HasPlayerHealthPoints, _playerHealthPointsFontStyle);
 
         SetVisible(true);
     }
@@ -247,6 +256,7 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         if (isDoubleClick)
         {
             ResetPieceClick();
+            Show(unit);
             DLJ_InfoPanelEvents.RaisePieceDoubleClicked(unit);
             return;
         }
@@ -341,6 +351,12 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     {
         if (target != null)
             target.text = value ?? string.Empty;
+    }
+
+    private static void SetFontStyle(TMP_Text target, bool hasValue, FontStyles originalStyle)
+    {
+        if (target != null)
+            target.fontStyle = hasValue ? originalStyle : originalStyle & ~FontStyles.Bold;
     }
 
     private static Sprite GetSprite(SpriteRenderer target) =>

@@ -4940,6 +4940,10 @@ MonoBehaviour:
   candleBody: {fileID: 2220063239293036993}
   flame: {fileID: 4757963940740766047}
   flameRenderer: {fileID: 2835606474818936517}
+  meltedWaxPrefab: {fileID: 4411300738888215382, guid: 078b69ee9a5e6864290122dfa5970467, type: 3}
+  meltedWaxScale: 1
+  meltedWaxSurface: {fileID: 4975034816086431051}
+  meltedWaxSurfaceLocalHeight: -0.10242
   resizeDuration: 2
 --- !u!1 &2589665952547292166
 GameObject:
@@ -4991,6 +4995,10 @@ MonoBehaviour:
   candleBody: {fileID: 1350344720667406758}
   flame: {fileID: 7378596452565504963}
   flameRenderer: {fileID: 1672184292896903727}
+  meltedWaxPrefab: {fileID: 4411300738888215382, guid: 078b69ee9a5e6864290122dfa5970467, type: 3}
+  meltedWaxScale: 1
+  meltedWaxSurface: {fileID: 4975034816086431051}
+  meltedWaxSurfaceLocalHeight: -0.10242
   resizeDuration: 2
 --- !u!1 &4089683382228272026
 GameObject:
@@ -5042,6 +5050,10 @@ MonoBehaviour:
   candleBody: {fileID: 6862577479149778251}
   flame: {fileID: 799112536227162809}
   flameRenderer: {fileID: 3004860962774923981}
+  meltedWaxPrefab: {fileID: 4411300738888215382, guid: 078b69ee9a5e6864290122dfa5970467, type: 3}
+  meltedWaxScale: 1
+  meltedWaxSurface: {fileID: 4975034816086431051}
+  meltedWaxSurfaceLocalHeight: -0.10242
   resizeDuration: 2
 --- !u!1 &7102450959437193415
 GameObject:
