@@ -27,9 +27,18 @@ namespace _Scripts.LSO.Ability
             if (data.source != LSO_DamageSource.Curse) return damage;
 
             Immuned?.Invoke(target);
+
+            // 누가 얼마를 주려 했는지까지 적는다.
+            //
+            // "무효" 한 줄만 있으면 막은 것이 맞는지 확인하려고 체력을 따로 봐야 한다.
+            // 준 쪽까지 있으면 저주 장판이 여러 겹일 때 몇 번 막았는지도 그대로 읽힌다.
+            string who = target != null ? target.name : "대상";
+            string giver = data.giver != null ? data.giver.name : "알 수 없는 저주";
+
             LSO_AbilitySignal.Raise(
                 LSO_AbilityType.CurseImmunity, target,
-                $"<color=violet>{(target != null ? target.name : "대상")}: 저주 면역 — 저주 피해 {damage} 무효</color>");
+                $"<color=violet>[비타민] {who}: {giver} 의 저주 피해 {damage} 무효 " +
+                $"(남은 체력 {(target != null ? target.Value.ToString() : "?")})</color>");
 
             return 0;
         }

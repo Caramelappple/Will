@@ -1,4 +1,5 @@
 using _Scripts.LSO.Deck.Data;
+using _Scripts.LSO.Will;
 using UnityEngine;
 
 namespace _Scripts.LDY.Stage
@@ -15,5 +16,15 @@ namespace _Scripts.LDY.Stage
 
         [Tooltip("배치할 격자 좌표. x/z는 0~7, y는 모델 표시용 높이값.")]
         public Vector3Int pos;
+
+        [Tooltip("카드가 정한 기본 유언 대신 다른 것을 새길지.\n" +
+                 "\n" +
+                 "끄면 카드(동물 SO)의 Default Will 을 그대로 쓴다.")]
+        public bool overrideWill;
+
+        [Tooltip("새길 유언. 위를 켰을 때만 쓰인다.\n" +
+                 "\n" +
+                 "None 도 값이다 — '유언 없음'으로 새긴다는 뜻이다.")]
+        public LSO_WillType will;
     }
 }

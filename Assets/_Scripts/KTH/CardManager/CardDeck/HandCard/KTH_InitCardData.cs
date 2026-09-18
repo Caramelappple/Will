@@ -1,23 +1,43 @@
-using System.Collections.Generic;
-using _Scripts.LSO.Ability;
-using _Scripts.LSO.Ability.Catalog;
 using _Scripts.LSO.Deck.Data;
-using GLTFast.Schema;
+using _Scripts.LSO.UI.Text;
 using TMPro;
 using UnityEngine;
 
-// KTH_HandCard에서 옮겨온 카드 비주얼(아웃라인/코스트 텍스트) 설정 담당.
+/// <summary>
+/// 손패 카드 앞면을 채운다.
+///
+/// ── 보상 카드와 같은 것을 보여준다 ────────────────────────
+/// 두 카드가 서로 다른 값을 보여주면, 상자에서 고를 때 본 것과 손에 들고 볼
+/// 때 본 것이 달라진다. 같은 기물인데 판단 근거가 갈린다.
+///
+///   이름 · 그림 · 공격력 · 체력 · 코스트 · 점수 · 사거리 · 특성
+///
+/// 다른 점은 하나뿐이다 — 손패 카드에는 **유언 아이콘**이 있다.
+/// 다만 그 아이콘은 여기서 안 건드린다. LSO_WillRevealEffect 가 제 것으로
+/// 들고 있고, 붙는 순간의 연출까지 그쪽이 맡는다. 여기서 또 쥐면 같은
+/// 스프라이트를 두 곳이 정하게 되고, 어긋났을 때 어느 쪽이 맞는지 알 수 없다.
+/// ─────────────────────────────────────────────────────────
+///
+/// 칸을 하나 더 그리게 되면 LSO_RewardPieceCard 에도 같이 넣을 것.
+/// </summary>
 public class KTH_InitCardData : MonoBehaviour
 {
     [Header("Card Visual")]
-    [SerializeField]private TextMeshPro cardName;
+    [Tooltip("비워두면 그 칸은 건너뛴다.")]
+    [SerializeField] private TextMeshPro cardName;
 
     [SerializeField] private SpriteRenderer cardImage;
     [SerializeField] private TextMeshPro atkText;
-    [SerializeField]private TextMeshPro hpText;
-    [SerializeField]private TextMeshPro abillityText;
-    [SerializeField] private SpriteRenderer outlineImage;
+    [SerializeField] private TextMeshPro hpText;
     [SerializeField] private TextMeshPro cost;
+    [SerializeField] private TextMeshPro pointText;
+    [SerializeField] private TextMeshPro rangeText;
+
+    [Tooltip("이 기물이 가진 특성 이름들. 쉼표로 이어 적는다.\n" +
+             "\n" +
+             "손패에만 있다. 들고 있는 동안 무엇을 할 기물인지 알아야\n" +
+             "낼 자리를 정할 수 있다.")]
+    [SerializeField] private TextMeshPro abillityText;
 
     public void SettingUi(LSO_CardSO cardData)
     {
@@ -62,85 +82,27 @@ public class KTH_InitCardData : MonoBehaviour
 
         // 이름은 동물 쪽 한글 이름을 쓴다. 비어 있으면 에셋 이름으로 버틴다 —
         // 아직 이름을 안 채운 기물이 있어서, 빈 칸보다는 무엇인지 보이는 편이 낫다.
-        if (cardName)
-            cardName.text = string.IsNullOrEmpty(cardData.AnimalName)
-                ? cardData.name
-                : cardData.AnimalName;
+        SetText(cardName, string.IsNullOrEmpty(cardData.AnimalName)
+            ? cardData.name
+            : cardData.AnimalName);
 
         if (cardImage)
             cardImage.sprite = cardData.Image;
 
-        if (abillityText)
-            abillityText.text = DescribeAbilities(cardData);
+        SetText(atkText, $"{cardData.Damage}");
+        SetText(hpText, $"{cardData.MaxHealth}");
+        SetText(cost, $"{cardData.Cost}");
+        SetText(pointText, $"{cardData.Point}");
 
-        if (atkText)
-            atkText.text = $"{cardData.Damage}";
+        // 한글로 바꾸는 곳은 LSO_DisplayNames 하나다. enum 을 그대로 문자열로
+        // 만들면 "Melee" 가 찍히고, 사거리 문구를 고쳐도 이 카드만 영문으로 남는다.
+        SetText(rangeText, LSO_DisplayNames.Of(cardData.Range));
 
-        if (hpText)
-            hpText.text = $"{cardData.MaxHealth}";
-
-        if (cost)
-            cost.text = $"{cardData.Cost}";
-
-        if (outlineImage)
-            outlineImage.gameObject.SetActive(false);
+        SetText(abillityText, LSO_DisplayNames.Of(cardData.AbilityTypes));
     }
 
-    /// <summary>
-    /// 특성 칸에 적을 말.
-    ///
-    /// 예전에는 string.Join(",", cardData) 였다. 카드 SO 는 목록이 아니라서
-    /// 이 호출은 에셋 파일 이름 하나를 그대로 내놓았다 — 카드에 "Wolf-card" 라고
-    /// 적혀 있던 것이 그것이다.
-    ///
-    /// 이름을 정하는 곳은 LSO_AbilityText 하나다. 여기서 enum 이름을 그대로 쓰면
-    /// 사전에서 한글 이름을 고쳐도 카드만 영문으로 남는다.
-    /// </summary>
-    private static string DescribeAbilities(LSO_CardSO cardData)
+    private static void SetText(TextMeshPro label, string value)
     {
-        IReadOnlyList<LSO_AbilityType> types = cardData.AbilityTypes;
-
-        if (types == null || types.Count == 0) return string.Empty;
-
-        var names = new List<string>(types.Count);
-
-        for (int i = 0; i < types.Count; i++)
-        {
-            if (types[i] == LSO_AbilityType.None) continue;
-
-            names.Add(LSO_AbilityText.NameOf(types[i]));
-        }
-
-        return string.Join(", ", names);
-    }
-
-    public void SetOutlineVisible(bool visible)
-    {
-        if (outlineImage != null)
-        {
-            outlineImage.gameObject.SetActive(visible);
-        }
-    }
-
-    public void ResetForPool()
-    {
-        if (outlineImage != null)
-        {
-            outlineImage.gameObject.SetActive(false);
-        }
-
-        ResetRendererAlpha(outlineImage);
-    }
-
-    private static void ResetRendererAlpha(SpriteRenderer renderer)
-    {
-        if (renderer == null)
-        {
-            return;
-        }
-
-        Color color = renderer.color;
-        color.a = 1f;
-        renderer.color = color;
+        if (label != null) label.text = value;
     }
 }

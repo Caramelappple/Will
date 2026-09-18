@@ -118,14 +118,28 @@ namespace _Scripts.LSO.Ability
 
             if (!_catalog.TryGet(fired.Type, out LSO_AbilityInfo info))
             {
-                Log($"{fired.Type} — 사전에 없습니다.");
+                WarnOnce(fired.Type, $"{fired.Type} 가 특성 사전에 없습니다. 사전에 줄을 추가해주세요.");
                 return;
             }
 
             if (info.effectPrefab == null)
             {
-                Log($"{fired.Type} — 사전에 이펙트 프리팹이 없습니다.");
+                // 특성은 발동했는데 띄울 것이 없다. 진단을 안 켜도 알려야 한다 —
+                // 안 그러면 "이펙트가 안 뜬다"가 특성이 안 도는 것인지 프리팹이
+                // 빠진 것인지 구별되지 않는다.
+                WarnOnce(fired.Type,
+                    $"{fired.Type} 가 발동했지만 사전에 이펙트 프리팹이 없어 아무것도 안 뜹니다. " +
+                    $"Resources/{LSO_AbilityCatalogSO.ResourcePath} 의 해당 줄에 꽂아주세요.");
                 return;
+            }
+
+            // 크기가 0이면 꽂아도 안 보인다. 아직 안 채운 줄의 기본값이 그 값이라
+            // 프리팹만 꽂고 끝낸 경우에 꼭 걸린다.
+            if (info.effectScale == Vector3.zero)
+            {
+                WarnOnce(fired.Type,
+                    $"{fired.Type} 의 이펙트 크기가 0 이라 화면에 안 보입니다. " +
+                    "사전에서 1, 1, 1 로 바꿔주세요.");
             }
 
             Spawn(info, fired.Position);
@@ -211,6 +225,22 @@ namespace _Scripts.LSO.Ability
         private void Log(string message)
         {
             if (logSteps) Debug.Log($"[{name}] {message}", this);
+        }
+
+        /// <summary>이미 알린 배선 문제. 같은 특성으로 두 번 내지 않는다.</summary>
+        private readonly HashSet<LSO_AbilityType> _warned = new();
+
+        /// <summary>
+        /// 배선이 빠졌다고 알린다. 특성 하나당 한 번만이다.
+        ///
+        /// 특성은 한 판에 수십 번 발동한다. 매번 내면 콘솔이 덮여서 정작 다른
+        /// 경고를 못 본다. 고치면 어차피 다시 안 나온다.
+        /// </summary>
+        private void WarnOnce(LSO_AbilityType type, string message)
+        {
+            if (!_warned.Add(type)) return;
+
+            Debug.LogWarning($"[{name}] {message} (이 경고는 한 번만 나옵니다)", this);
         }
     }
 }

@@ -9,10 +9,17 @@ namespace _Scripts.LSO.Reward
     [RequireComponent(typeof(LSO_ButtonClickHandler))]
     public abstract class LSO_RewardCard : MonoBehaviour, LSO_IClickEffect, LSO_IPoolable
     {
+        // ── 설명 칸은 여기 없다 ───────────────────────────────────
+        // 기물 카드는 설명을 쓰지 않기로 했다. 쓰는 것은 유언 메모장뿐이라
+        // 그쪽(LSO_WillNote)이 제 칸으로 들고 있는다.
+        //
+        // 공통에 두면 기물 카드 프리팹마다 안 쓰는 칸이 하나씩 비어 있게 되고,
+        // 비어 있는 것이 "아직 안 꽂은 것"인지 "원래 안 쓰는 것"인지 알 수 없다.
+        // ─────────────────────────────────────────────────────────
+
         [Header("공통")]
         [SerializeField] private SpriteRenderer iconImage;
         [SerializeField] private TMP_Text nameText;
-        [SerializeField] private TMP_Text descriptionText;
 
         private LSO_RewardOption _option;
         private Action<LSO_RewardCard> _onClick;
@@ -72,8 +79,6 @@ namespace _Scripts.LSO.Reward
 
         protected void SetName(string value) => SetText(nameText, value);
 
-        protected void SetDescription(string value) => SetText(descriptionText, value);
-
         protected static void SetText(TMP_Text label, string value)
         {
             if (label != null) label.text = value;
@@ -89,11 +94,14 @@ namespace _Scripts.LSO.Reward
             iconImage.enabled = sprite != null;
         }
 
-        /// <summary>공통 칸을 비운다. 하위 클래스의 Clear가 먼저 불러 쓰면 된다.</summary>
+        /// <summary>
+        /// 공통 칸을 비운다. 하위 클래스의 Clear가 먼저 불러 쓰면 된다.
+        ///
+        /// 자기만 가진 칸은 여기서 안 비운다 — 부르는 쪽이 이어서 비울 것.
+        /// </summary>
         protected void ClearCommon()
         {
             SetName(string.Empty);
-            SetDescription(string.Empty);
             SetIcon(null);
         }
 

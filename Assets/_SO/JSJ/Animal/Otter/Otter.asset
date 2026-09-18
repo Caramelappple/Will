@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
+  m_Name: Otter
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
+  animalName: "\uD574\uB2EC"
+  description: "\uC870\uAC1C\uB97C \uAE68 \uBA39\uB294 \uD574\uB2EC\uC785\uB2C8\uB2E4. \uACF5\uACA9\uD560 \uB54C\uB9C8\uB2E4 \uB0AE\uC740 \uD655\uB960\uB85C \uC0B4\uC544 \uC788\uB294 \uC544\uAD70 \uC804\uCCB4\uC758 \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uC2DC\uD0B5\uB2C8\uB2E4."
+  maxHealth: 3
+  damage: 2
+  cost: 2
+  playerHealthPoints: 0
+  moveRange: 1
+  range: 2
+  abilities: 0d000000
+  defaultWill: 0
+  unitPrefab: {fileID: 0}

@@ -51,7 +51,18 @@ namespace _Scripts.LDY.Stage
                     continue;
                 }
 
-                if (_spawner.Spawn(entry.card, LDY_Team.Enemy, entry.pos) != null) placed++;
+                LDY_Animal spawned = _spawner.Spawn(entry.card, LDY_Team.Enemy, entry.pos);
+
+                if (spawned == null) continue;
+
+                placed++;
+
+                // 같은 기물을 다른 유언으로 세우는 판이 있다 — 염소(기억)와 염소(저주)처럼.
+                //
+                // 유언은 원래 카드가 정하지만(LSO_CardSO.DefaultWill), 그러면 유언마다
+                // 카드를 따로 만들어야 하고 덱에도 그 사본들이 섞인다.
+                // 스테이지 배치에서만 덮어쓰게 해서 카드는 하나로 둔다.
+                if (entry.overrideWill) spawned.SetWill(entry.will);
             }
 
             if (placed == 0)

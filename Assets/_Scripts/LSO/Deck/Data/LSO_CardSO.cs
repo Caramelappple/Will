@@ -12,7 +12,7 @@ namespace _Scripts.LSO.Deck.Data
     public class LSO_CardSO : ScriptableObject
     {
         public string ID { get; private set; }
-        
+
         [Tooltip("이 카드가 소환하는 동물 데이터.")]
         [SerializeField] private LSO_AnimalSO animal;
 
@@ -31,7 +31,7 @@ namespace _Scripts.LSO.Deck.Data
 
         public LSO_AnimalSO Animal => animal;
         public Sprite Image => image;
-        
+
         //public LSO_WillType will => willType;
 
         /// <summary>동물 데이터가 연결되어 있는지. 사용하는 쪽은 항상 이걸 먼저 확인할 것.</summary>
@@ -43,6 +43,7 @@ namespace _Scripts.LSO.Deck.Data
         public string Description => IsValid ? animal.description : string.Empty;
         public int Cost => IsValid ? animal.cost : 0;
         public int Damage => IsValid ? animal.damage : 0;
+        public int Point => IsValid ? animal.playerHealthPoints : 0;
         public int MaxHealth => IsValid ? animal.maxHealth : 0;
 
         // 카드에는 이동 칸 수를 표시하지 않기로 했다.
