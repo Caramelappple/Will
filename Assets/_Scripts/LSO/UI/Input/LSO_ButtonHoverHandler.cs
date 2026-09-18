@@ -25,8 +25,56 @@ namespace _Scripts.LSO.UI.Input
         private Selectable _selectable;
         private Coroutine _pendingExit;
 
-        /// <summary>지금 커서가 올라가 있는지. 밖에서 상태를 볼 때 쓴다.</summary>
+        /// <summary>지금 연출이 떠 있는지. 밖에서 상태를 볼 때 쓴다.</summary>
         public bool IsHovered { get; private set; }
+
+        /// <summary>
+        /// 커서가 실제로 이 물건 위에 있는지. 문이 닫혀 있어도 계속 따라간다.
+        ///
+        /// IsHovered 와 다르다 — 그쪽은 "연출이 떠 있는가"다.
+        /// </summary>
+        private bool _pointerInside;
+
+        /// <summary>
+        /// 호버를 받을 문이 열려 있는지.
+        ///
+        /// ── 왜 컴포넌트를 끄지 않는가 ─────────────────────────────
+        /// 예전에는 LSO_TeamHoverGate 가 이 컴포넌트를 껐다 켰다. 끄면 이탈이
+        /// 나가지만, 다시 켤 때 **유니티가 진입을 다시 보내주지 않는다.**
+        /// 그래서 턴이 바뀐 뒤 커서를 그 자리에 둔 채 있으면 호버가 죽은 채로
+        /// 남고, 커서를 뺐다 넣어야 살아났다.
+        ///
+        /// 지금은 컴포넌트를 켜둔 채 문만 닫는다. 커서 위치는 계속 따라가므로
+        /// 문이 다시 열릴 때 그 자리에서 곧바로 떠오른다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
+        private bool _gateOpen = true;
+
+        /// <summary>
+        /// 호버를 받을지 정한다. 팀·턴처럼 밖에서 정하는 조건이 쓴다.
+        /// </summary>
+        public void SetGateOpen(bool open)
+        {
+            if (_gateOpen == open) return;
+
+            _gateOpen = open;
+
+            if (!open)
+            {
+                CancelPendingExit();
+                SendExit();
+                return;
+            }
+
+            // 문이 열렸는데 커서가 이미 위에 있으면 지금 올린다.
+            if (_pointerInside && CanPlay() && !IsHovered)
+            {
+                IsHovered = true;
+
+                foreach (var effect in _effects)
+                    effect.OnHoverEnter();
+            }
+        }
 
         private void Awake()
         {
@@ -52,6 +100,9 @@ namespace _Scripts.LSO.UI.Input
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            // 커서 위치는 문이 닫혀 있어도 따라간다. 열릴 때 쓸 값이다.
+            _pointerInside = true;
+
             if (!CanPlay()) return;
 
             // 유예 중이던 이탈이 있으면 취소한다 — 실제로는 계속 커서 안에 있었던 것이다.
@@ -71,6 +122,8 @@ namespace _Scripts.LSO.UI.Input
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            _pointerInside = false;
+
             if (!CanPlay()) return;
 
             if (exitGraceSeconds <= 0f)
@@ -83,9 +136,21 @@ namespace _Scripts.LSO.UI.Input
             _pendingExit = StartCoroutine(ExitAfterGrace());
         }
 
+        /// <summary>
+        /// 유예 시간을 **실제 시간**으로 센다.
+        ///
+        /// ── 왜 WaitForSeconds 가 아닌가 ───────────────────────────
+        /// 그쪽은 Time.timeScale 을 따른다. 유언 선택이나 보상 연출처럼 시간을
+        /// 멈추는 구간이 있는데, 그 사이에 커서를 빼면 이 대기가 영영 안 끝난다.
+        /// 이탈이 전달되지 않아 기물이 **들린 채로 굳는다.**
+        ///
+        /// 연출을 내는 쪽(LSO_HoverMoveEffect)은 ignoreTimeScale 이 기본이라
+        /// 실제 시간으로 돈다. 이탈을 보내는 여기만 다른 시간을 보고 있었다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
         private IEnumerator ExitAfterGrace()
         {
-            yield return new WaitForSeconds(exitGraceSeconds);
+            yield return new WaitForSecondsRealtime(exitGraceSeconds);
 
             _pendingExit = null;
             SendExit();
@@ -100,13 +165,21 @@ namespace _Scripts.LSO.UI.Input
         /// </summary>
         private void OnDisable()
         {
-            if (_pendingExit != null)
-            {
-                StopCoroutine(_pendingExit);
-                _pendingExit = null;
-            }
+            CancelPendingExit();
+
+            // 꺼진 사이에 커서가 어디로 갔는지 알 수 없다. 다시 켜질 때
+            // 없는 커서로 떠오르지 않도록 지운다.
+            _pointerInside = false;
 
             SendExit();
+        }
+
+        private void CancelPendingExit()
+        {
+            if (_pendingExit == null) return;
+
+            StopCoroutine(_pendingExit);
+            _pendingExit = null;
         }
 
         private void SendExit()
@@ -123,6 +196,7 @@ namespace _Scripts.LSO.UI.Input
 
         private bool CanPlay()
         {
+            if (!_gateOpen) return false;
             if (_effects == null || _effects.Length == 0) return false;
             if (respectInteractable && _selectable != null && !_selectable.interactable) return false;
 

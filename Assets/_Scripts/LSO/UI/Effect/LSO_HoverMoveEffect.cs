@@ -212,16 +212,46 @@ namespace _Scripts.LSO.UI.Effect
             {
                 if (++_suspendCount == 1)
                 {
-                    if (restore) RestoreImmediate();
-                    else KillTween();
+                    if (restore)
+                    {
+                        RestoreImmediate();
+                    }
+                    else
+                    {
+                        KillTween();
+
+                        // 자리를 안 되돌리고 멈췄다. 쉬는 동안 밖에서 대상을 다른
+                        // 칸으로 옮길 수 있으므로, 기억해둔 원래 자리는 더 못 믿는다.
+                        _baseStale = true;
+                    }
                 }
                 return;
             }
 
             if (_suspendCount == 0) return;
             _suspendCount--;
-            if (_suspendCount == 0) RefreshLift();
+            if (_suspendCount != 0) return;
+
+            // ── 왜 여기서 지우나 ──────────────────────────────────────
+            // 예전에는 부르는 쪽이 재개 전에 ClearOffset()을 불러줘야 했다.
+            // 이동과 공격 한 경로는 불렀고, 배치 애니메이션과 공격의 다른 경로는
+            // 잊었다. 잊으면 기물이 재개하는 순간 **옛 칸으로 끌려간다** —
+            // 남아 있던 _originalPosition 이 거기를 가리키기 때문이다.
+            //
+            // 기억을 못 믿게 된 것은 여기가 아는 사실이므로 여기서 지운다.
+            // 부르는 쪽의 ClearOffset() 은 그대로 둬도 된다 — 두 번 지워도 같다.
+            // ─────────────────────────────────────────────────────────
+            if (_baseStale)
+            {
+                _baseStale = false;
+                ClearOffset();
+            }
+
+            RefreshLift();
         }
+
+        /// <summary>기억해둔 "원래 자리"를 더 믿을 수 없는지. 위 주석 참고.</summary>
+        private bool _baseStale;
 
         private void MoveTo(Vector3 position, float duration, Ease ease)
         {
@@ -256,6 +286,10 @@ namespace _Scripts.LSO.UI.Effect
         {
             _pointerInside = false;
             _selected = false;
+
+            // 꺼진 사이에 밖에서 대상을 옮길 수 있다. 다시 켜질 때 옛 자리를
+            // 기준으로 삼지 않도록 기억을 버린다.
+            _baseStale = true;
             // 커서가 올라간 채로 창이 닫히면 OnHoverExit이 오지 않아 옮겨진 자리에서 굳는다.
             RestoreImmediate();
         }
