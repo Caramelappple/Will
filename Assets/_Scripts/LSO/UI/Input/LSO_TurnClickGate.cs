@@ -10,7 +10,10 @@ namespace _Scripts.LSO.UI.Input
     /// 정해둔 상황에서는 클릭을 받지 않는다. 여닫는 것 외의 책임은 갖지 않는다.
     ///
     /// 적 턴에 물건을 눌러 무언가가 일어나면 화면과 진행이 어긋난다.
-    /// 기물을 고른 채로 다른 것을 누르는 것도 마찬가지다.
+    ///
+    /// 반대로 **기물을 골랐거나 카드를 들고 있는 것은 막을 이유가 아니다.**
+    /// 그 상태에서 누르는 것은 대개 고른 것을 바꾸려는 것이다. 그래서 그 둘은
+    /// 조건에서 뺐다 — 자세한 것은 LSO_ClickBlockCondition 에 적어뒀다.
     ///
     /// 각 클릭 대상이 저마다 "지금 눌러도 되나"를 확인하게 두면 그 검사가 흩어지고
     /// 하나만 빠뜨려도 그것만 눌린다. 그래서 문 하나로 모아 막는다.
@@ -35,13 +38,6 @@ namespace _Scripts.LSO.UI.Input
 
         [Tooltip("Not My Turn 이 어느 턴을 뜻하는지. 이 턴이 아니면 막는다.")]
         [SerializeField] private LDY_Team allowedTurn = LDY_Team.Player;
-
-        [Header("연결 (비우면 씬에서 찾는다)")]
-        [Tooltip("Piece Selected 를 쓸 때만 필요하다.")]
-        [SerializeField] private LDY_SelectionController selection;
-
-        [Tooltip("Card Placing 을 쓸 때만 필요하다.")]
-        [SerializeField] private LDY_CardPlacer cardPlacer;
 
         [Header("기타")]
         [Tooltip("켜면 콜라이더까지 끈다. 그러면 뒤에 있는 것이 대신 눌린다.\n" +
@@ -89,27 +85,9 @@ namespace _Scripts.LSO.UI.Input
 
         private void Start()
         {
-            // Awake가 아니라 Start다. 찾을 대상들이 자기 Awake를 마친 뒤여야 한다.
-            // 쓰지 않는 조건까지 씬을 뒤지지는 않는다.
-            if (selection == null && Uses(LSO_ClickBlockCondition.PieceSelected))
-                selection = FindAnyObjectByType<LDY_SelectionController>();
-
-            if (cardPlacer == null && Uses(LSO_ClickBlockCondition.CardPlacing))
-                cardPlacer = FindAnyObjectByType<LDY_CardPlacer>();
-
+            // 남은 조건은 모두 턴 매니저나 정적 상태에게 묻는다.
+            // 따로 찾아둘 대상이 없어졌다.
             Refresh();
-        }
-
-        /// <summary>
-        /// 이 조건을 실제로 보게 되는지. All이 들어 있으면 전부 보게 된다.
-        ///
-        /// 배선을 찾을지 정할 때 쓴다. All만 넣어두고 Selection을 비워두면
-        /// 기물 선택 검사가 조용히 빠져버리므로 여기서 같이 챙긴다.
-        /// </summary>
-        private bool Uses(LSO_ClickBlockCondition condition)
-        {
-            return blockWhen.Contains(condition)
-                   || blockWhen.Contains(LSO_ClickBlockCondition.All);
         }
 
         private void OnEnable()
@@ -196,12 +174,6 @@ namespace _Scripts.LSO.UI.Input
 
                 case LSO_ClickBlockCondition.Animating:
                     return _turnManager != null && _turnManager.IsAnimating();
-
-                case LSO_ClickBlockCondition.PieceSelected:
-                    return selection != null && selection.Selected != null;
-
-                case LSO_ClickBlockCondition.CardPlacing:
-                    return cardPlacer != null && cardPlacer.IsPlacing;
 
                 case LSO_ClickBlockCondition.WillSelecting:
                     return LSO_WillSelection.IsSelecting;

@@ -24,7 +24,25 @@ public class KTH_GameEndManager : MonoBehaviour
     private readonly List<LDY_Animal> _enemies = new();
     private readonly List<LDY_Animal> _allies = new();
 
-    private bool _isGameEnded;
+    /// <summary>
+    /// 이 전투가 끝났는지.
+    ///
+    /// 정적인 이유는 **판이 끝났다는 사실을 밖에서도 물어야 하기 때문이다.**
+    /// 손패를 뽑는 쪽(KTH_StartCardSet)이 그렇다 — 적이 마지막 아군을 잡으면서
+    /// 같이 죽으면 적 턴이 끝나며 내 턴이 오고, 그 신호만 보고 카드를 뽑는다.
+    /// 판은 이미 끝났는데 손패가 한 번 더 채워진다.
+    ///
+    /// 값을 들고 있는 곳은 여기 하나다. 보는 쪽은 복사해두지 말고 그때그때 물을 것.
+    /// 전투 씬에 이 관리자는 하나뿐이라 정적으로 두어도 주체가 갈리지 않는다.
+    /// </summary>
+    public static bool IsBattleOver { get; private set; }
+
+    private bool _isGameEnded
+    {
+        get => IsBattleOver;
+        set => IsBattleOver = value;
+    }
+
     private Coroutine _enemyClearCheckCoroutine;
     private Coroutine _allyDefeatCheckCoroutine;
 
@@ -59,6 +77,11 @@ public class KTH_GameEndManager : MonoBehaviour
 
     private void Start()
     {
+        // 정적 값이라 씬을 다시 열어도 지난 판의 "끝났다"가 남아 있을 수 있다.
+        // (Enter Play Mode Options 로 도메인 재로드를 끄면 특히 그렇다)
+        // 여기서 한 번 지워야 새 판이 끝난 판으로 시작하지 않는다.
+        _isGameEnded = false;
+
         SubscribeStageDirector();
 
         RegisterEnemies();
@@ -440,9 +463,30 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
         }
 
-        // 아군이 전멸했는지는 보지 않는다. 기물을 다 잃어도 양초가 남아 있으면
-        // 아직 진 것이 아니다 — 패배는 양초가 다 닳을 때다(CheckGameOver).
+        // ── 양초가 다 닳았으면 이긴 것이 아니다 ───────────────────
+        // 아군이 몇 기 남았는지는 보지 않는다. 기물을 다 잃어도 양초가 남아
+        // 있으면 아직 진 것이 아니다.
         //
+        // 다만 그 반대는 봐야 한다. 적이 마지막 아군을 잡으면서 같이 죽으면
+        // 양초가 그 자리에서 깎이는데(LDY_DeathHandler.DamagePlayerFor),
+        // 적 전멸은 죽는 즉시 검사하고 양초 쪽은 연출을 기다렸다 검사한다.
+        // 그래서 클리어가 먼저 달려 _isGameEnded 를 세우고, 다 닳은 양초를
+        // 눈앞에 두고 보상 카드가 나갔다.
+        //
+        // 이기고 지는 것이 한 순간에 겹치면 지는 쪽이 이긴다.
+        // ─────────────────────────────────────────────────────────
+        DLJ_PlayerHealth playerHealth = DLJ_PlayerHealth.Instance;
+
+        if (playerHealth != null && playerHealth.IsDead)
+        {
+            Debug.Log(
+                "[KTH_GameEndManager] 적은 전멸했지만 양초가 다 닳았습니다 → 패배로 칩니다."
+            );
+
+            FailStage();
+            return;
+        }
+
         // 모든 적이 죽음
         Debug.Log(
             "[KTH_GameEndManager] ★ 모든 Enemy 사망 확인 → 즉시 클리어"
