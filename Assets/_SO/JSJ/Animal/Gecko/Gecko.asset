@@ -22,4 +22,4 @@ MonoBehaviour:
   range: 1
   abilities: 04000000
   defaultWill: 0
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 2636801945534564809, guid: e25f01967c45b5a4bb29c18d974485d4, type: 3}
