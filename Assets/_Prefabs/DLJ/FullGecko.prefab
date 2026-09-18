@@ -108,7 +108,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7bba58a852f4f9eaaeb14ce6ef0a521, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_GeckoSturdyEffect
   tail: {fileID: 6538946613005193539}
   riseDuration: 0.8
@@ -153,7 +153,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32fa66d2ae3be5f4698833ef3906bf2b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.408
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32fa66d2ae3be5f4698833ef3906bf2b, type: 3}
       propertyPath: m_LocalPosition.z
@@ -211,11 +211,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 123de74ee8bda1941a5a093874ca2e75, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.13599968
+      value: -0.1345
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 123de74ee8bda1941a5a093874ca2e75, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.13499999
+      value: 0.273
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 123de74ee8bda1941a5a093874ca2e75, type: 3}
       propertyPath: m_LocalPosition.z

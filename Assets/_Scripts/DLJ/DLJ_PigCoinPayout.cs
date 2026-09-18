@@ -25,6 +25,10 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
     private float _fallbackGround;
     private bool _burstFinished;
     private bool _previewOnly;
+    private bool _externalPayout;
+    private bool _collectionPending;
+    private int _collectionStart;
+    private int _collectionCount;
     private float _previewRestTime;
     private readonly List<Coin> _coins = new();
 
@@ -50,9 +54,10 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
     public void Initialize(int amount, LDY_TurnManager turns, LDY_ActionPointManager points,
         Mesh mesh, Material material, float diameter, float radius, float burstDuration,
         float flightDuration, float interval, float fallbackGround = float.NaN, bool previewOnly = false,
-        AnimationCurve collectionEase = null)
+        AnimationCurve collectionEase = null, bool externalPayout = false)
     {
         _previewOnly = previewOnly;
+        _externalPayout = externalPayout;
         _turns = turns;
         _points = points;
         _flightDuration = Mathf.Max(0.05f, flightDuration);
@@ -71,7 +76,7 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
         {
             _stage = FindFirstObjectByType<LDY_StageDirector>();
             if (_stage != null) _stage.OnStageLoaded += CancelStage;
-            if (_turns != null) _turns.OnTurnChanged += OnTurnChanged;
+            if (_turns != null && !_externalPayout) _turns.OnTurnChanged += OnTurnChanged;
         }
         // 게임의 UnityEngine.Random 상태를 바꾸지 않는 연출 전용 난수.
         var random = new System.Random(GetInstanceID());
@@ -98,7 +103,19 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
                 RestYaw = (float)random.NextDouble() * 360f
             });
         }
-        StartCoroutine(Burst(material, radius, Mathf.Max(0.05f, burstDuration)));
+        if (_externalPayout)
+            _burstFinished = true;
+        else
+            StartCoroutine(Burst(material, radius, Mathf.Max(0.05f, burstDuration)));
+    }
+
+    /// <summary>계약 환급이 실제로 지급한 코인만 케이스로 회수한다.</summary>
+    public void OnRefundPaid(int firstSlot, int gained)
+    {
+        if (_cancelled || _paid || !_externalPayout) return;
+        _collectionStart = firstSlot;
+        _collectionCount = Mathf.Clamp(gained, 0, _coins.Count);
+        _collectionPending = true;
     }
 
     private IEnumerator Burst(Material material, float radius, float duration)
@@ -164,6 +181,12 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
         }
         if (_points == null || _turns == null) { Cancel(); return; }
         if (!_paid && !_settled) SimulateCoins(Time.deltaTime);
+        if (_externalPayout)
+        {
+            if (_collectionPending && _settled)
+                BeginCollection(_collectionStart, _collectionCount);
+            return;
+        }
         // Update에서 처리해 같은 턴 이벤트의 AP 리셋/계약 환급 및 스테이지 교체가 끝난 뒤 계산.
         if (!_paid && _settled && _eligible && _turns.CurrentTurn == LDY_Team.Player)
             Pay();
@@ -250,10 +273,16 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
 
     private void Pay()
     {
-        _paid = true;
         int firstSlot = _points.Current;
         int requested = Mathf.Min(_coins.Count, Mathf.Max(0, 10 - firstSlot));
         int gained = _points.AddActionPoints(requested);
+        BeginCollection(firstSlot, gained);
+    }
+
+    private void BeginCollection(int firstSlot, int gained)
+    {
+        _paid = true;
+        _collectionPending = false;
         DLJ_CostSystem costSystem = FindFirstObjectByType<DLJ_CostSystem>();
         for (int i = 0; i < gained; i++)
         {
