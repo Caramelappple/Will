@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.UI.Effect;
+using _Scripts.DLJ.Boss;
+using _Scripts.LDY.Boss.BullKing;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -12,10 +15,38 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_ActionPointManager actionPoints;
         [Tooltip("한 칸을 지나는 데 걸리는 연출 시간. 여러 칸을 움직이면 칸 수에 비례해 늘어난다.")]
         [SerializeField] private float moveDuration = 0.3f;
+        [Tooltip("이동 방향을 바라보게 돌아가는 데 걸리는 시간 (KTH). 두트윈으로 부드럽게 돈다.")]
+        [SerializeField] private float turnDuration = 0.15f;
+        [Tooltip("미끄러지듯 가는 대신 떠오르고-이동하고-내려놓는 연출 (KTH).")]
+        [SerializeField] private KTH_MoveAnimation moveAnimation = new KTH_MoveAnimation();
 
         // 이동 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         public bool IsBusy => _activeCount > 0;
         private int _activeCount;
+        private readonly HashSet<LDY_Animal> _movingAnimals = new();
+
+        public bool IsMoving(LDY_Animal animal) => animal != null && _movingAnimals.Contains(animal);
+
+        /// <summary>
+        /// 꺼지면 돌던 코루틴이 죽는다. **그때 finally 는 돌지 않는다.**
+        ///
+        /// 유니티는 코루틴을 중단할 때 반복자를 정리하지 않으므로, MoveVisual 의
+        /// finally 에 있는 _activeCount-- 가 건너뛰어진다. 그러면 IsBusy 가 켜진 채
+        /// 남아 LDY_TurnManager.IsAnimating() 이 영영 true 가 되고, 턴을 넘길 수 없다.
+        ///
+        /// 같은 종류로 LDY_DissolveEffect 에서 실제로 물렸다.
+        /// </summary>
+        private void OnDisable()
+        {
+            foreach (var animal in _movingAnimals)
+            {
+                if (animal == null) continue;
+                var bull = animal.GetComponent<LDY_BullKingBoss>();
+                if (bull != null) bull.StopChargeShake();
+            }
+            _activeCount = 0;
+            _movingAnimals.Clear();
+        }
 
         // 체스 킹처럼 대각선 포함 8방향. y(높이)는 타일 값에 관여하지 않는다.
         private static readonly Vector3Int[] Directions =
@@ -37,7 +68,7 @@ namespace _Scripts.LDY
         public List<Vector3Int> GetMovableTiles(LDY_Animal animal, int? range = null)
         {
             var result = new List<Vector3Int>();
-            if (animal == null) return result;
+            if (animal == null || IsMoving(animal)) return result;
             if (actionPoints != null && !actionPoints.HasActionPoints) return result;
 
             int steps = Mathf.Max(1, range ?? animal.MoveRange);
@@ -87,7 +118,13 @@ namespace _Scripts.LDY
                 animal.Abilities, a => a.OnMoveStarted(animal, from, animal.pos));
 
             // board.Move가 높이(y)를 유지한 채 animal.pos를 갱신하므로, 연출도 그 최종 위치를 따라간다.
-            StartCoroutine(MoveVisual(animal, from, board.GridToWorld(animal.pos)));
+            // 높이(y)는 RestWorldY(KTH)를 쓴다 — 처음 배치될 때 기억해둔 값을 그대로 재사용해서, 여기서
+            // 다시 계산하다 restHeight를 빠뜨리는 사고를 막는다. 아직 한 번도 배치를 안 거친 기물이면
+            // (있을 수 없는 경우지만) GridToWorld+restHeight로 즉석에서 계산해 대비한다.
+            float landY = animal.RestWorldY ?? (board.GridToWorld(animal.pos).y + animal.restHeight);
+            Vector3 targetWorldPos = board.GridToWorld(animal.pos);
+            targetWorldPos.y = landY;
+            StartCoroutine(MoveVisual(animal, from, targetWorldPos));
         }
 
         /// <summary>
@@ -140,13 +177,27 @@ namespace _Scripts.LDY
 
         private IEnumerator MoveVisual(LDY_Animal animal, Vector3Int from, Vector3 targetWorldPos)
         {
+            _movingAnimals.Add(animal);
             _activeCount++;
+            var bull = animal.GetComponent<LDY_BullKingBoss>();
             try
             {
                 int distance = Mathf.Max(
                     Mathf.Abs(animal.pos.x - from.x), Mathf.Abs(animal.pos.z - from.z));
 
-                yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance), ResolveEasing(animal));
+                LDY_Animal contactTarget = null;
+                Vector3Int chargeDirection = default;
+                if (bull != null && bull.isActiveAndEnabled &&
+                    LDY_ChargePath.TryIdentify(board, from, animal.pos, bull.Rule.chargeRange, out var charge))
+                {
+                    contactTarget = charge.Blocker;
+                    chargeDirection = charge.Direction;
+                }
+
+                if (bull != null) bull.ShakeOnChargeStart();
+                yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance),
+                    ResolveEasing(animal), moveAnimation, turnDuration, board, contactTarget, chargeDirection);
+                if (bull != null) bull.StopChargeShake();
 
                 // 도착한 뒤에 알린다. 돌진처럼 이동이 방아쇠인 특성은 부딪히는 순간에 맞춰
                 // 밀어내기를 일으켜야 하는데, 출발할 때 알리면 황소왕이 아직 오는 중인데
@@ -158,20 +209,48 @@ namespace _Scripts.LDY
                 {
                     LSO_AbilityNotify.Notify<LDY_IOnMoved>(
                         animal.Abilities, a => a.OnMoved(animal, from, animal.pos));
+
+                    // DLJ: 접촉/연쇄 넉백/사망까지 하나의 이동 행동으로 기다린다.
+                    while (bull != null && bull.IsResolvingCollision)
+                        yield return null;
                 }
             }
             finally
             {
+                if (bull != null) bull.StopChargeShake();
                 // 중간에 빠져나가도 IsBusy가 켜진 채 남지 않도록 finally에서 되돌린다.
                 _activeCount--;
+                _movingAnimals.Remove(animal);
             }
         }
 
         private static IEnumerator Travel(
-            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing)
+            LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing,
+            KTH_MoveAnimation moveAnimation, float turnDuration, LDY_BoardManager board,
+            LDY_Animal contactTarget, Vector3Int chargeDirection)
         {
             Transform t = animal != null ? animal.modelTransform : null;
             if (t == null) yield break;
+
+            // 이동 방향을 바라보도록 돌려놓는다. 공격 쪽(LDY_AttackSystem)과 마찬가지로
+            // 방향을 다시 되돌리지 않는다 — 다음 행동이 있기 전까지 마지막으로 향한 쪽을 계속 본다.
+            // 두트윈으로 부드럽게 돈다(KTH) — 이동 자체와 동시에 재생되도록 완료를 기다리지 않는다.
+            //
+            // 대부분의 기물 모델이 기본 자세부터 x가 -90도 등으로 눕혀져 있어서, LookRotation으로
+            // 회전을 통째로 새로 만들면 그 x/z 기울기가 날아가 버린다. y(좌우로 도는 값)만 바꾸고
+            // x/z는 지금 값을 그대로 들고 간다.
+            Vector3 moveDir = targetWorldPos - t.position;
+            moveDir.y = 0f;
+            if (moveDir.sqrMagnitude > 0.0001f)
+            {
+                float yawAngle = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
+                Vector3 currentEuler = t.eulerAngles;
+                Vector3 faceEuler = new Vector3(currentEuler.x, yawAngle, currentEuler.z);
+                if (turnDuration <= 0f)
+                    t.eulerAngles = faceEuler;
+                else
+                    t.DORotate(faceEuler, turnDuration).SetLink(animal.gameObject);
+            }
 
             // 이동 애니메이션과 호버 연출(LSO_HoverMoveEffect)이 같은 모델 트랜스폼을 함께
             // 움직인다. 이동 중에 커서가 기물 위를 지나가면, 호버가 "아직 도착하지 않은"
@@ -181,45 +260,60 @@ namespace _Scripts.LDY
             // LSO_ButtonHoverHandler.enabled를 껐다 켜는 방식은 쓰지 않는다. 유니티 이벤트
             // 시스템의 호버 상태 추적과 어긋나서, 다시 켰을 때 커서가 그대로 머물러 있어도
             // 또 OnHoverEnter가 걸려 기물이 칸과 칸 사이 같은 애매한 위치로 들뜨는 문제가 있었다.
-            LSO_HoverMoveEffect hoverEffect = animal.GetComponentInChildren<LSO_HoverMoveEffect>();
-            hoverEffect?.SetSuspended(true);
+            //
+            // restore: false로 끈다 — 선택 해제(Deselect)로 내려오던 중이어도 그 중간 높이를
+            // 바닥으로 스냅하지 않고 그대로 둔다. 이동 자체가 KTH_MoveAnimation의 뜨는 동작을
+            // 갖고 있어서, 지금 있는 자리에서 그대로 이어받아 뜨면 된다 — 바닥까지 내려오길
+            // 기다렸다가 다시 뜨면 "내려갔다 올라오는" 낭비 동작이 됐었다.
+            var hoverEffects = animal.GetComponentsInChildren<LSO_HoverMoveEffect>(true);
+            foreach (var effect in hoverEffects)
+                if (effect != null) effect.SetSuspended(true, restore: false);
 
             try
             {
-                if (duration <= 0f)
+                if (contactTarget != null)
                 {
-                    t.position = targetWorldPos;
+                    // DLJ: 칸 중앙 도착/착지/추가 전진으로 끊지 않고 출발점에서 접촉면까지 달린다.
+                    yield return DLJ_BullImpactMotion.ChargeToContact(animal, contactTarget, board,
+                        chargeDirection, targetWorldPos, duration, easing);
                     yield break;
                 }
 
-                Vector3 startPos = t.position;
-                float elapsed = 0f;
-
-                while (elapsed < duration)
+                // 뜨는 높이는 따로 정하지 않고 호버 때 뜨는 높이(LSO_HoverMoveEffect.Offset.y)를
+                // 그대로 따라간다 — 얼마나 뜨는지를 정하는 주체를 하나로 유지하기 위해서다.
+                // 바닥 높이도 지금 화면 위치가 아니라 GroundWorldY()로 구한다 — 위에서 트윈을
+                // 스냅 없이 끊었을 뿐이라(restore: false), 이 시점의 실제 위치가 아직 뜬 높이일
+                // 수 있다. 둘 다 호버 연출이 없는 기물이면 KTH_MoveAnimation 자체 기본값을 쓴다.
+                float? riseHeight = null;
+                float? baseHeight = null;
+                foreach (var effect in hoverEffects)
                 {
-                    // 연출이 도는 동안 유언·계승이 이 기물을 파괴할 수 있다.
-                    // 확인하지 않으면 파괴된 Transform에 값을 써서 예외가 나고 연출이 중간에 죽는다.
-                    // (LDY_AttackSystem.LerpPosition이 같은 이유로 같은 검사를 한다.)
-                    if (t == null) yield break;
-
-                    elapsed += Time.deltaTime;
-
-                    float progress = Mathf.Clamp01(elapsed / duration);
-                    float eased = easing != null ? easing.Evaluate(progress) : progress;
-
-                    // 곡선이 1을 넘겨 목적지를 지나쳤다 돌아오는 연출도 그대로 살리려고 Unclamped를 쓴다.
-                    t.position = Vector3.LerpUnclamped(startPos, targetWorldPos, eased);
-                    yield return null;
+                    if (effect == null) continue;
+                    riseHeight = effect.Offset.y;
+                    baseHeight = effect.GroundWorldY();
+                    break;
                 }
+
+                // 미끄러지지 않고 떠오르고-이동하고-내려놓는다 (KTH_MoveAnimation).
+                // duration/easing은 칸 수·특성에 따라 달라지는 값을 그대로 "이동하는 구간"에 쓴다.
+                Sequence sequence = moveAnimation.Play(
+                    t, targetWorldPos, duration, easing, animal.gameObject, riseHeight, baseHeight);
+                yield return sequence.WaitForCompletion();
 
                 if (t != null)
                     t.position = targetWorldPos;
             }
             finally
             {
-                // 이동 도중 기물이 파괴됐으면(위 유언·계승 케이스) hoverEffect도 이미
-                // 파괴된 상태라 Unity의 == 오버로드가 이걸 null로 취급해 건너뛴다.
-                hoverEffect?.SetSuspended(false);
+                // Unity의 null 비교로 이동 중 파괴된 컴포넌트를 건너뛴다.
+                // ClearOffset을 먼저 불러서, 재개될 때 옛 칸의 자리로 끌려가지 않고
+                // 방금 도착한 새 칸을 기준으로 삼게 한다.
+                foreach (var effect in hoverEffects)
+                {
+                    if (effect == null) continue;
+                    effect.ClearOffset();
+                    effect.SetSuspended(false);
+                }
             }
         }
     }

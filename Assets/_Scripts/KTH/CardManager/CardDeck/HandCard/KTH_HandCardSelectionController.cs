@@ -27,6 +27,18 @@ public class KTH_HandCardSelectionController
     public static bool HasConfirmedSelection =>
         currentConfirmed != null && currentConfirmed.isConfirmed;
 
+    /// <summary>
+    /// 지금 확정된 카드. 없으면 null.
+    ///
+    /// 이미 currentConfirmed로 "한 장만 확정된다"를 지키고 있으므로 그 값을 그대로 열어준다.
+    /// 밖에서 손패를 훑어 IsSelected를 하나씩 물어보면 같은 사실을 두 곳에서 세게 되고,
+    /// 손패 구조가 바뀔 때마다 그 훑는 코드가 같이 깨진다.
+    ///
+    /// 쓰는 곳: LSO_WillPainter — 양초를 누르면 이 카드에 유언을 붙인다.
+    /// </summary>
+    public static KTH_HandCard ConfirmedCard =>
+        HasConfirmedSelection ? currentConfirmed.owner : null;
+
     public KTH_HandCardSelectionController(
         KTH_HandCard owner,
         KTH_Axis3D selectMoveAxis,
@@ -69,8 +81,17 @@ public class KTH_HandCardSelectionController
     {
         if (isConfirmed)
         {
+            // 이미 고른 카드를 또 누른 것이다. 설계대로이지만, 화면에서 선택이
+            // 안 보이는 채로 여기에 걸리면 "눌러도 반응이 없다"가 된다 —
+            // 상태와 화면이 어긋났다는 뜻이므로 진단에서 보여야 한다.
+            owner.LogClick("이미 확정된 카드라 넘어감");
             return;
         }
+
+        owner.LogClick(
+            currentConfirmed == null
+                ? "확정 시작 (앞서 고른 카드 없음)"
+                : "확정 시작 (앞 카드를 먼저 물림)");
 
         if (currentConfirmed != null && currentConfirmed != this)
         {
@@ -109,7 +130,10 @@ public class KTH_HandCardSelectionController
 
         if (wasPlacementMode)
         {
-            KTH_HandCardLayout.Instance?.ExitPlacementMode();
+            // 누가 빠져나가는지 넘긴다. 손패가 "이 카드가 시작한 배치인가"를
+            // 보고 정해야 하기 때문이다 — 그냥 "배치를 물려라"라고만 하면
+            // 남이 시작한 세션까지 같이 죽는다.
+            KTH_HandCardLayout.Instance?.ExitPlacementMode(owner);
         }
     }
 
@@ -124,20 +148,46 @@ public class KTH_HandCardSelectionController
 
         owner.transform.DOKill();
 
-        owner.SetOutlineVisible(isSelected);
+        // 테두리는 없앴다. 고른 카드는 앞으로 나오고 커지는 것으로 드러난다.
 
         if (isSelected)
         {
+            // 앞으로 빼는 것이 먼저다. 연출이 그 값을 목표에 더해 쓴다.
             owner.BringToFront();
             PlaySelectAnimation();
         }
         else
         {
-            PlayDeselectAnimation();
+            // 되돌리는 것이 **먼저다.**
+            //
+            // 예전에는 연출을 먼저 걸고 되돌렸다. 그러면 카드가 앞에 나온 채로
+            // 0.12초에 걸쳐 제 깊이까지 미끄러져 내려온다. 그동안 새로 고른 카드가
+            // 이 카드 밑에 깔린다 — 바꾸는 순간이 부자연스러워 보이던 것이 그것이다.
+            //
+            // 깊이만 먼저 제자리로 보내면 그 순간부터 새 카드가 위다.
+            // 자리와 크기는 그대로 부드럽게 돌아온다.
             owner.RestoreSorting();
+            PlayDeselectAnimation();
         }
 
         KTH_HandCardLayout.Instance?.OnCardSelectionChanged(owner, isSelected);
+    }
+
+    /// <summary>
+    /// 이미 호버로 들려(선택) 있는 상태에서, "원래 자리"(OriginalLocalPosition)가
+    /// 손패 재배치로 바뀌었을 때 그 새 자리를 기준으로 들린 오프셋을 다시 적용한다.
+    /// 확정(배치 모드) 카드는 다른 경로(중앙 이동/부채꼴)로 관리되므로 건드리지 않는다.
+    /// </summary>
+    public void RefreshSelectedOffset()
+    {
+        if (!isSelected || isPlacementMode)
+        {
+            return;
+        }
+
+        owner.transform.DOKill();
+
+        PlaySelectAnimation();
     }
 
     private void PlaySelectAnimation()
@@ -147,7 +197,11 @@ public class KTH_HandCardSelectionController
             return;
         }
 
-        Vector3 targetPos = owner.OriginalLocalPosition;
+        // 앞으로 빼둔 값을 목표에 더한다.
+        //
+        // 안 더하면 트윈이 "원래 자리"로 데려가면서 방금 앞으로 뺀 것을 도로
+        // 끌어내린다. 카드가 튀어나왔다가 이웃 밑으로 가라앉는 모양이 됐다.
+        Vector3 targetPos = owner.OriginalLocalPosition + owner.FrontOffset;
 
         switch (selectMoveAxis)
         {

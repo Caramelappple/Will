@@ -220,6 +220,25 @@ public class DLJ_CostSystem : MonoBehaviour
         Refresh(current, DLJ_CostVisualTransition.Spend);
     }
 
+    /// <summary>이미 지급된 코스트의 표시를 월드 금화 도착까지 보류한다.</summary>
+    public bool TryReserveWorldArrival(int index, out DLJ_CostCase view,
+        out DLJ_CostCoinSlot slot, out DLJ_CostAnimation entrance)
+    {
+        view = null;
+        slot = null;
+        entrance = null;
+        if (!IsPlayerTurn || _subscribedActionPoints == null || index < 0 ||
+            index >= _subscribedActionPoints.Current) return false;
+        Refresh(_subscribedActionPoints.Current);
+        int caseIndex = index / coinsPerCase;
+        if (caseIndex >= _cases.Count) return false;
+        CaseInstance instance = _cases[caseIndex];
+        view = instance.View;
+        slot = view.ReserveWorldArrival(index % coinsPerCase);
+        entrance = instance.Root.GetComponentInChildren<DLJ_CostAnimation>(true);
+        return slot != null;
+    }
+
     private void Refresh(int current, DLJ_CostVisualTransition transition)
     {
         InitializeCases();

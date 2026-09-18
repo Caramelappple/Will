@@ -44,7 +44,12 @@ namespace _Scripts.LSO.Ability
             attacker.health.GetDamage(
                 DamageData.Create(self.health, ReflectDamage, LSO_DamageSource.Ability));
 
-            LSO_AbilityLog.Log($"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>", self);
+            // 이펙트는 **때린 쪽**에 뜬다. 찔린 것은 공격자이므로 가시가 고슴도치 자리에
+            // 돋으면 누가 피해를 입었는지 화면과 숫자가 어긋난다.
+            //
+            // 자리는 이 순간에 잡힌다. 바로 아래에서 공격자가 죽어 사라져도 남는다.
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Thorns, self, attacker,
+                $"<color=green>{self.name}의 가시: {attacker.name}에게 {ReflectDamage} 반사</color>");
 
             // 반사로 상대가 죽었다면 사망 처리까지 이어줘야 보드에서 사라진다.
             if (attacker.health.IsDestroyed)

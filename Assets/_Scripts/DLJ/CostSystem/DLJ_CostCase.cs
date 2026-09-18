@@ -28,6 +28,7 @@ public sealed class DLJ_CostCase : MonoBehaviour
 
     private readonly List<Transform> _found = new List<Transform>();
     private readonly List<DLJ_CostCoinSlot> _slots = new List<DLJ_CostCoinSlot>();
+    private readonly HashSet<DLJ_CostCoinSlot> _worldArrivals = new();
     private IDLJ_CostCoinEntranceEffect _entranceEffect;
     private IDLJ_CostCoinSpendEffect _spendEffect;
     private bool _initialized;
@@ -56,6 +57,8 @@ public sealed class DLJ_CostCase : MonoBehaviour
     {
         _started = true;
         _entranceEffect?.PlayInitial(FilledCount);
+        foreach (DLJ_CostCoinSlot slot in _worldArrivals)
+            HideWorldArrival(slot);
     }
 
     private void PrepareInitialCoins()
@@ -120,7 +123,14 @@ public sealed class DLJ_CostCase : MonoBehaviour
 
             if (i >= count)
             {
+                _worldArrivals.Remove(slot);
                 HideSlot(slot, transition == DLJ_CostVisualTransition.Spend && _started && i < previousCount);
+                continue;
+            }
+
+            if (_worldArrivals.Contains(slot))
+            {
+                HideWorldArrival(slot);
                 continue;
             }
 
@@ -149,7 +159,47 @@ public sealed class DLJ_CostCase : MonoBehaviour
             return;
         }
 
-        _entranceEffect.PlayRange(previousCount, count);
+        // 월드에서 날아오는 슬롯은 기본 화면 밖 등장 연출에서 제외.
+        int rangeStart = previousCount;
+        for (int i = previousCount; i <= count; i++)
+        {
+            if (i < count && !_worldArrivals.Contains(_slots[i])) continue;
+            if (rangeStart < i) _entranceEffect.PlayRange(rangeStart, i);
+            rangeStart = i + 1;
+        }
+    }
+
+    public DLJ_CostCoinSlot ReserveWorldArrival(int index)
+    {
+        Initialize();
+        if (index < 0 || index >= FilledCount || index >= _slots.Count) return null;
+        DLJ_CostCoinSlot slot = _slots[index];
+        if (!slot.IsValid || !_worldArrivals.Add(slot)) return null;
+        HideWorldArrival(slot);
+        return slot;
+    }
+
+    public bool HasWorldArrival(DLJ_CostCoinSlot slot) =>
+        slot != null && slot.IsValid && _worldArrivals.Contains(slot);
+
+    public void CompleteWorldArrival(DLJ_CostCoinSlot slot)
+    {
+        if (slot == null || !_worldArrivals.Remove(slot)) return;
+        slot.Restore(_slots.IndexOf(slot) < FilledCount);
+    }
+
+    private void HideWorldArrival(DLJ_CostCoinSlot slot)
+    {
+        _entranceEffect?.Stop(slot);
+        _spendEffect?.StopAndReset(slot.Coin);
+        slot.Restore(false);
+    }
+
+    private void OnDisable()
+    {
+        foreach (DLJ_CostCoinSlot slot in _worldArrivals)
+            slot.Restore(_slots.IndexOf(slot) < FilledCount);
+        _worldArrivals.Clear();
     }
 
     private void HideSlot(DLJ_CostCoinSlot slot, bool playSpendEffect)
@@ -176,6 +226,7 @@ public sealed class DLJ_CostCase : MonoBehaviour
             DLJ_CostCoinSlot slot = _slots[i];
             if (slot == null || !slot.IsValid) continue;
 
+            if (_worldArrivals.Contains(slot)) continue;
             _entranceEffect?.Stop(slot);
             _spendEffect?.StopAndReset(slot.Coin);
             slot.Restore(true);

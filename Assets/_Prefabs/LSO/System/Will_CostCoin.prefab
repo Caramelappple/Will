@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &2227155238269054803
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -6485194804514954509, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_Name
+      value: Will_CostCoin
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.57
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.67
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.76
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6485194804514954509, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9029770846807983316}
+  m_SourcePrefab: {fileID: -4161369568681901532, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+--- !u!1 &4258017438228024736 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6485194804514954509, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+  m_PrefabInstance: {fileID: 2227155238269054803}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9029770846807983316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4258017438228024736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 349b1ad60c8b43bb9cc3000c4df7f51b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Cost.LSO_CostCoin
+  visual: {fileID: 5023723208418295066}
+  filledScale: 1
+  spentScale: 0
+  fillDuration: 0.22
+  spendDuration: 0.12
+  fillEase: 27
+  spendEase: 5
+  ignoreTimeScale: 0
+--- !u!4 &5023723208418295066 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2639205831521529271, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+  m_PrefabInstance: {fileID: 2227155238269054803}
+  m_PrefabAsset: {fileID: 0}

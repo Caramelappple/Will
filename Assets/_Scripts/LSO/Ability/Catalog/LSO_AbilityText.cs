@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability.Catalog
@@ -64,6 +65,56 @@ namespace _Scripts.LSO.Ability.Catalog
             string description = DescriptionOf(type);
 
             return string.IsNullOrWhiteSpace(description) ? name : name + separator + description;
+        }
+
+        /// <summary>
+        /// 표시 우선도. 사전에 없거나 안 적어뒀으면 0이다.
+        /// </summary>
+        public static int PriorityOf(LSO_AbilityType type)
+        {
+            if (type == LSO_AbilityType.None) return 0;
+
+            return TryGet(type, out LSO_AbilityInfo info) ? info.priority : 0;
+        }
+
+        /// <summary>
+        /// 이 목록에서 **혼자 뜰 특성**이 있는지.
+        ///
+        /// ── 왜 필요한가 ───────────────────────────────────────────
+        /// 보스는 특성이 예닐곱 개씩 붙는다. 전부 늘어놓으면 한 줄이 길어지기만 하고
+        /// 무엇이 중요한지 안 보인다. 사전에 우선도를 적어둔 특성이 하나라도 있으면
+        /// 그것만 띄우고 나머지는 감춘다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 고르는 규칙을 여기 하나에 둔다. 정보창이 둘(DLJ·LSO)이라
+        /// 각자 고르면 같은 기물에 서로 다른 특성이 뜬다.
+        /// </summary>
+        /// <returns>우선도를 가진 특성이 하나도 없으면 false. 그때는 전부 표시하면 된다.</returns>
+        public static bool TryGetFeatured(
+            IReadOnlyList<LSO_AbilityType> types, out LSO_AbilityType featured)
+        {
+            featured = LSO_AbilityType.None;
+
+            if (types == null) return false;
+
+            int best = 0;
+
+            for (int i = 0; i < types.Count; i++)
+            {
+                LSO_AbilityType type = types[i];
+
+                if (type == LSO_AbilityType.None) continue;
+
+                int priority = PriorityOf(type);
+
+                // 같은 값이면 앞선 것이 이긴다. 순서가 흔들리면 화면이 깜빡인다.
+                if (priority <= best) continue;
+
+                best = priority;
+                featured = type;
+            }
+
+            return best > 0;
         }
 
         /// <summary>적어둔 것이 있는지 확인하고 꺼낸다.</summary>

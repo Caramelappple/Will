@@ -48,7 +48,8 @@ namespace _Scripts.LSO.Ability
             if (owner.health != null && owner.health.IsDestroyed) return;
             if (Random.value >= DeathChance) return;
 
-            LSO_AbilityLog.Log($"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>", owner);
+            LSO_AbilitySignal.Raise(LSO_AbilityType.Frail, owner,
+                $"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>");
 
             LSO_AbilityDeath.KillThrough(_context, owner);
         }
@@ -60,9 +61,17 @@ namespace _Scripts.LSO.Ability
         /// </summary>
         public int Priority => LSO_DamagePriority.Normal;
 
-        /// <summary>피해를 전부 무시한다. 허약은 맞아서 죽지 않고 턴 판정으로만 쓰러진다.</summary>
+        /// <summary>
+        /// 피해를 전부 무시한다. 허약은 맞아서 죽지 않고 턴 판정으로만 쓰러진다.
+        ///
+        /// 다만 **막을 수 없는 피해는 그대로 통과시킨다.** 상어왕 영역처럼 특성을
+        /// 뚫도록 정해진 공격이 그것이다. 무엇이 뚫는지는 LSO_DamageRules 가 정한다 —
+        /// 여기서 출처를 직접 나열하면 같은 목록이 방어 특성마다 한 벌씩 생긴다.
+        /// </summary>
         public int ModifyIncomingDamage(DamageableResources target, DamageData data, int damage)
         {
+            if (LSO_DamageRules.IgnoresDefenses(data.source)) return damage;
+
             return 0;
         }
     }

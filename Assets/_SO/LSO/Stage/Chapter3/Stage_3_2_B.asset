@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3102cc7d511b7f84fad6a24225e364be, type: 3}
+  m_Name: Stage_3_2_B
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
+  stageName: "3-2 \uAD6C\uC131 2"
+  description: "\uB3C4\uB9C8\uBC40(b2) \uB3C4\uB9C8\uBC40(d2) \uB3C4\uB9C8\uBC40(f2) \uB3C4\uB9C8\uBC40(h2) \uD558\uC774\uC5D0\uB098(e3)"
+  enemies:
+  - card: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+    pos: {x: 1, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+    pos: {x: 3, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+    pos: {x: 5, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+    pos: {x: 7, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: 9384bc8dc4ce4c67af902efd5d57a315, type: 2}
+    pos: {x: 4, y: 0, z: 5}
+    overrideWill: 0
+    will: 0

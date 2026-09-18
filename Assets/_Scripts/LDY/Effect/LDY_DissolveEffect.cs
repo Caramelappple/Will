@@ -68,19 +68,50 @@ public class LDY_DissolveEffect : MonoBehaviour
     private readonly List<Material> _materials = new List<Material>();
     private Coroutine _routine;
 
+    /// <summary>
+    /// 꺼지면 코루틴이 죽는다. 파괴가 아니라서 OnDestroy도 오지 않는다.
+    ///
+    /// 여기서 놓지 않으면 ActiveCount가 1 남고, 그 판 내내
+    /// LDY_TurnManager.IsAnimating()이 true라 **턴을 넘길 수 없게 된다.**
+    ///
+    /// 실제로 이 길로 물렸다 — LSO_BoardRiders.Settle(hide) 가 판을 뒤집은 뒤
+    /// 지난 판 기물을 끄는데, 회전 대기가 상한(3초)에 걸리면 아직 녹는 중인 기물이
+    /// 그대로 꺼진다.
+    /// </summary>
+    private void OnDisable()
+    {
+        Release();
+    }
+
     private void OnDestroy()
     {
-        if (IsPlaying)
-        {
-            IsPlaying = false;
-            ActiveCount = Mathf.Max(0, ActiveCount - 1);
-        }
+        Release();
 
         foreach (Material m in _materials)
         {
             if (m != null) Destroy(m);
         }
         _materials.Clear();
+    }
+
+    /// <summary>
+    /// 붙잡고 있던 카운트를 놓는다. 두 번 불려도 한 번만 놓는다.
+    ///
+    /// 코루틴도 끊는다. 안 끊으면 다시 켜졌을 때 옛 코루틴이 살아 돌아와
+    /// 카운트를 한 번 더 깎는다.
+    /// </summary>
+    private void Release()
+    {
+        if (_routine != null)
+        {
+            StopCoroutine(_routine);
+            _routine = null;
+        }
+
+        if (!IsPlaying) return;
+
+        IsPlaying = false;
+        ActiveCount = Mathf.Max(0, ActiveCount - 1);
     }
 
     /// <summary>디졸브를 시작한다. onComplete 는 연출이 끝난 뒤(오브젝트 파괴 전) 호출된다.</summary>

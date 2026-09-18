@@ -1,3 +1,4 @@
+using System;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
@@ -34,6 +35,13 @@ namespace _Scripts.LSO.Boss.CrowKing
         private int _lastChargedStep;
 
         private bool _charged;
+
+        /// <summary>실제 충전/소비 시 표시 계층에 알림.</summary>
+        public event Action<bool> ChargeChanged;
+
+        /// <summary>다음 공격의 폭주 준비 여부. 조회만 하며 충전 구간이나 횟수를 변경하지 않음.</summary>
+        public bool IsReady(LDY_Animal self) => _unlocked &&
+            (_charged || (self != null && self.GetAtk() / FrenzyStep > _lastChargedStep));
 
         /// <summary>
         /// 여기서 하는 일은 진단뿐이다. 실제 동작에 필요한 self는 훅이 매번 넘겨준다.
@@ -98,7 +106,9 @@ namespace _Scripts.LSO.Boss.CrowKing
         /// </summary>
         public void OnAttack(LSO_AnimalSO animal)
         {
+            bool wasCharged = _charged;
             _charged = false;
+            if (wasCharged) ChargeChanged?.Invoke(false);
         }
 
         /// <summary>
@@ -115,7 +125,9 @@ namespace _Scripts.LSO.Boss.CrowKing
             if (step <= _lastChargedStep) return;
 
             _lastChargedStep = step;
+            bool wasCharged = _charged;
             _charged = true;
+            if (!wasCharged) ChargeChanged?.Invoke(true);
         }
     }
 }

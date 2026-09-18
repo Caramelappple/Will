@@ -1,0 +1,26 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/DevLib/SoundSystem/Editor/SoundClipEditor%20Style.uss?fileID=7433441132597879392&amp;guid=52229ce2d1ffa224389d0fa244b228fc&amp;type=3#SoundClipEditor Style"/>
+    <ui:VisualElement name="container">
+        <uie:PropertyField binding-path="audioType" label="audio Type" name="audio-type-field"/>
+        <uie:PropertyField name="clip-field" binding-path="clip" label="Audio Clip"/>
+        <uie:PropertyField name="is-loop-field" binding-path="isLoop"/>
+        <uie:PropertyField name="random-pitch-field" binding-path="randomizePitch" label="Random pitch"/>
+        <uie:PropertyField name="pitch-modifier-field" binding-path="randomPitchModifier" label="Pitch modifier"/>
+        <uie:PropertyField name="volume-field" binding-path="volume" label="Volume"/>
+        <uie:PropertyField name="pitch-field" binding-path="pitch" label="Pitch"/>
+        <uie:PropertyField name="start-time-field" binding-path="startTime" label="Start"/>
+        <uie:PropertyField name="end-time-field" binding-path="endTime" label="End"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="control-container" style="flex-grow: 1;">
+        <ui:Label text="Clip info Visualizer" name="title-label" class="section-title"/>
+        <ui:VisualElement name="waveform-slot" class="waveform-slot"/>
+        <ui:VisualElement name="time-row" class="time-row">
+            <ui:Label text="Start : 0.000s" name="start-label" double-click-selects-word="true" class="time-label"/>
+            <ui:VisualElement style="flex-grow: 1;"/>
+            <ui:Label text="End : 0.000s" name="end-label" class="time-label" style="-unity-text-align: upper-right;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="button-row" style="align-items: stretch; justify-content: center; flex-direction: row;">
+            <ui:Button text="▷Play" name="play-btn" emoji-fallback-support="true" class="play-btn" style="justify-content: flex-end; align-self: flex-start;"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

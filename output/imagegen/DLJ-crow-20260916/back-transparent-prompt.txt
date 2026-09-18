@@ -1,0 +1,5 @@
+Mode: Built-in image_gen with PNG alpha finishing.
+Prompt:
+Use case: background-extraction. Input image is the edit target. Remove ONLY the charcoal background outside the tan playing card silhouette and replace it with genuine alpha transparency in PNG. Preserve the entire foreground card, its gently rounded corners, parchment texture, double black rectangular frames, central circular seal and both black crow silhouettes completely unchanged. Exact original dimensions, placement, colors and proportions. Smooth antialiased cutout edges. The parchment is the foreground and MUST remain opaque. Do not redraw any card elements. No new text, no cropping card, no shadow, no checkerboard painted into pixels, no white or gray background. Real RGBA PNG.
+
+Finishing: Restored source card RGB to preserve foreground. Refined outer silhouette to a smooth rounded rectangle matching measured source bounds, using GDI+ antialiasing and a source-image texture brush. Original dimensions retained; exterior pixels are transparent and interior opaque. Trimmed approximately one boundary pixel to prevent dark fringe. Interior sample comparison verified unchanged pixels.

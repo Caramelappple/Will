@@ -20,9 +20,9 @@ MonoBehaviour:
   maxHealth: 4
   damage: 2
   cost: 3
-  playerHealthPoints: 0
+  playerHealthPoints: 6
   moveRange: 1
   range: 0
   abilities: 07000000
-  defaultWill: 0
+  defaultWill: 1
   unitPrefab: {fileID: 7589544201177052326, guid: 2c6d65d6b94561640a673249402257dc, type: 3}

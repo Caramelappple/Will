@@ -67,7 +67,10 @@ internal sealed class DLJ_ContractWill : LSO_IWill
             ? owner.transform.position
             : Vector3.zero;
         GameObject effectObject = data.effectPrefab != null
-            ? Object.Instantiate(data.effectPrefab, effectPosition, Quaternion.identity)
+            ? Object.Instantiate(
+                data.effectPrefab,
+                effectPosition,
+                data.effectPrefab.transform.rotation)
             : null;
         effect.Play(
             effectObject,

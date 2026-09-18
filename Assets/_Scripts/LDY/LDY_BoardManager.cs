@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using _Scripts.LSO.Ability;
 using _Scripts.LSO.Manager;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ namespace _Scripts.LDY
         [SerializeField] private Transform boardOrigin;
         [SerializeField] private float cellSize = 0.75f;
         [SerializeField] private float heightStep = 1f;
+        [Tooltip("기물을 배치할 때 지정한 높이만큼 아래에서 솟아오르는 연출 (KTH).")]
+        [SerializeField] private KTH_PlacementAnimation placementAnimation = new KTH_PlacementAnimation();
 
         /// <summary>정사각형 보드 루트에 적용된 실제 월드 스케일.</summary>
         public float UniformWorldScale
@@ -63,8 +66,38 @@ namespace _Scripts.LDY
         /// </summary>
         public event Action OnBoardChanged;
 
+        /// <summary>
+        /// 배치가 바뀌는 것을 지켜보는 특성들.
+        ///
+        /// OnBoardChanged 이벤트와 따로 두는 이유는 **해제 때문이다.**
+        /// 특성은 기물이 죽으면 그냥 버려지는 평범한 객체라, 이벤트에 직접 걸어두면
+        /// 보드가 죽은 기물의 특성을 계속 붙잡고 있는다. 목록으로 들고 있으면
+        /// LSO_AbilityWiring.Unbind 가 확실히 빼낼 수 있다.
+        /// </summary>
+        private readonly List<LSO_IOnBoardChanged> _boardWatchers = new();
+
+        /// <summary>돌면서 목록이 바뀌어도 안전하도록 미리 담아두는 자리.</summary>
+        private readonly List<LSO_IOnBoardChanged> _watcherBuffer = new();
+
         // Awake에서 씬의 기물을 한꺼번에 등록할 때 기물 수만큼 신호가 나가는 걸 막는다.
         private bool _suppressChangeNotice;
+
+        /// <summary>배치 변화를 지켜볼 특성을 등록한다. LSO_AbilityWiring 이 부른다.</summary>
+        public void AddBoardWatcher(LSO_IOnBoardChanged watcher)
+        {
+            if (watcher == null) return;
+            if (_boardWatchers.Contains(watcher)) return;
+
+            _boardWatchers.Add(watcher);
+        }
+
+        /// <summary>등록을 뺀다. 기물이 죽거나 특성이 떨어질 때 반드시 불려야 한다.</summary>
+        public void RemoveBoardWatcher(LSO_IOnBoardChanged watcher)
+        {
+            if (watcher == null) return;
+
+            _boardWatchers.Remove(watcher);
+        }
 
         private void Awake()
         {
@@ -88,6 +121,16 @@ namespace _Scripts.LDY
             if (_suppressChangeNotice) return;
 
             OnBoardChanged?.Invoke();
+
+            if (_boardWatchers.Count == 0) return;
+
+            // 알림을 받은 특성이 기물을 죽이거나 옮기면 목록이 도는 도중에 바뀐다.
+            // 먼저 담아두고 돈다.
+            _watcherBuffer.Clear();
+            _watcherBuffer.AddRange(_boardWatchers);
+
+            for (int i = 0; i < _watcherBuffer.Count; i++)
+                _watcherBuffer[i]?.OnBoardChanged();
         }
 
         private void OnDestroy()
@@ -138,7 +181,17 @@ namespace _Scripts.LDY
 
             _grid[p.x, p.z] = animal;
             animal.pos = p;
-            animal.modelTransform.position = GridToWorld(p);
+
+            // 격자 위치(GridToWorld)와 기물 자신의 바닥 보정치(restHeight)는 서로 다른 주체가 정하는
+            // 값이라 여기서만 합친다 — GridToWorld 자체에 기물별 높이를 넣으면 다른 호출부(공격/효과 연출 등)의
+            // 좌표까지 특정 기물 사정에 맞춰 어긋난다.
+            //
+            // 처음 배치될 때 딱 한 번 이 높이를 RestWorldY로 기억해둔다(KTH). 그 뒤로 이동·공격·호버가
+            // "원래 높이로 돌아온다"고 할 때는 이 값을 그대로 재사용한다 — 매번 다시 계산하지 않는다.
+            Vector3 gridWorldPos = GridToWorld(p);
+            animal.RememberRestWorldY(gridWorldPos.y + animal.restHeight);
+            Vector3 finalWorldPos = new Vector3(gridWorldPos.x, animal.RestWorldY.Value, gridWorldPos.z);
+            placementAnimation.Play(animal.modelTransform, finalWorldPos, animal.gameObject);
 
             RaiseBoardChanged();
         }

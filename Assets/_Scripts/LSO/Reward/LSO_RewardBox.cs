@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Scripts.LSO.Stage;
 using _Scripts.LSO.Will;
 using DG.Tweening;
 using UnityEngine;
@@ -219,6 +220,18 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         public event System.Action<LSO_RewardOption> OnFinished;
 
+        /// <summary>
+        /// 보상이 이미 시작된 뒤인지.
+        ///
+        /// 시작시키는 곳이 둘이 되는 실수를 잡으려고 열어둔다.
+        /// 흐름(LSO_StageFlow)이 시작시키기 전에 이미 켜져 있으면,
+        /// 인스펙터에서도 Begin을 부르고 있다는 뜻이다.
+        ///
+        /// 그러면 판이 다 돌기 전에 보상 카메라가 들어와 회전을 가린다.
+        /// 정리가 끝나면 다시 꺼진다.
+        /// </summary>
+        public bool HasBegun => _phase != Phase.Idle;
+
         /// <summary>클릭을 받지 않는 구간인지. 밖에서 커서 모양을 바꿀 때 본다.</summary>
         public bool IsBusy =>
             _phase == Phase.Opening
@@ -324,6 +337,32 @@ namespace _Scripts.LSO.Reward
             // 자기가 Instance일 때만 지운다. 중복 상자가 사라질 때 지우면
             // 살아 있는 쪽까지 날아간다.
             if (Instance == this) Instance = null;
+        }
+
+        /// <summary>
+        /// 보상을 시작한다. **인스펙터에서 걸 수 있는 진입점이다.**
+        ///
+        /// 몇 챕터 몇 스테이지인지는 LSO_StageProgression 에게 묻는다.
+        /// UnityEvent 는 인자를 하나까지만 넘길 수 있어서 Begin(int, int) 를 걸 수 없다.
+        ///
+        /// 진행을 모르면 1-1 로 친다. 보상이 아예 안 나오는 것보다는 낫고,
+        /// 경고가 남으므로 배선이 빠진 것을 알아챌 수 있다.
+        /// </summary>
+        public void Begin()
+        {
+            LSO_StageProgression progression =
+                LSO_StageProgression.HasInstance ? LSO_StageProgression.Instance : null;
+
+            if (progression == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: LSO_StageProgression이 없어 1-1 보상으로 시작합니다.", this);
+
+                Begin(1, 1);
+                return;
+            }
+
+            Begin(progression.ChapterNumber, progression.StageNumber);
         }
 
         /// <summary>

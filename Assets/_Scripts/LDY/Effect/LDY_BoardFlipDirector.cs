@@ -69,20 +69,45 @@ namespace _Scripts.LDY.Effect
                  "로컬 +X가 화면 오른쪽, +Y가 화면 위, +Z가 화면 안쪽이 된다.")]
         [SerializeField] private Transform rewardAnchor;
 
+        [Tooltip("켜면 다음 판 기물을 놓은 직후 꺼뒀다가, 판이 돌기 시작할 때 켠다.\n" +
+                 "\n" +
+                 "기물은 앞면 좌표로 놓이는데 그때 판은 아직 뒤집혀 있다.\n" +
+                 "끄면 보상이 끝날 때까지 기물이 허공에 떠 있는 것이 보인다.")]
+        [SerializeField] private bool hideArrivingUntilFlip = true;
+
         [Tooltip("켜면 전투 중에는 앵커를 꺼둔다. 보상 quad가 판 위에 떠 있는 것을 막는다.\n" +
                  "\n" +
                  "회전이 시작될 때 켜진다. 판 뒷면에서 같이 돌아 올라오므로,\n" +
                  "회전이 끝난 뒤가 아니라 시작할 때 켜야 들어오는 것이 보인다.")]
         [SerializeField] private bool hideAnchorUntilFlip = true;
 
-        [Header("회전")]
-        [Tooltip("보드 중심에서 위아래로 얼마나 떨어진 곳을 축이 지나갈지.\n" +
-                 "타일 중심 높이(-0.05)에 두면 보드가 제자리에서 앞뒤 면만 맞바뀐다.")]
-        [SerializeField] private float pivotHeightOffset = -0.05f;
+        [Header("회전축")]
+        [Tooltip("축이 지나갈 자리를 잡아줄 오브젝트. **비워두면 보드 중심을 쓴다.**\n" +
+                 "\n" +
+                 "눈으로 보면서 맞추고 싶을 때 빈 오브젝트를 하나 만들어 끌어다 놓는다.\n" +
+                 "그 오브젝트를 씬에서 옮기면 도는 축이 따라 옮겨진다.\n" +
+                 "\n" +
+                 "보드 루트의 자식으로 두면 안 된다. 판과 같이 돌아버려서\n" +
+                 "되돌릴 때 축이 딴 데로 간다. 넣으면 검사해서 경고한다.")]
+        [SerializeField] private Transform pivotSource;
 
-        [Tooltip("월드 기준 회전축. X축이면 카메라 쪽으로 앞뒤로 넘어간다.")]
+        [Tooltip("그 자리에서 얼마나 옮길지. 월드 기준이다.\n" +
+                 "\n" +
+                 "Y = -0.05 는 타일 중심 높이다. 여기 두면 보드가 제자리에서\n" +
+                 "앞뒤 면만 맞바뀐다.\n" +
+                 "\n" +
+                 "Z 를 앞으로 빼면 판이 카메라 쪽으로 넘어오면서 돌고,\n" +
+                 "뒤로 밀면 저 안쪽에서 넘어간다. X 는 좌우로 치우친 축이 된다.")]
+        [SerializeField] private Vector3 pivotOffset = new Vector3(0f, -0.05f, 0f);
+
+        [Tooltip("월드 기준 축 방향. X축이면 카메라 쪽으로 앞뒤로 넘어간다.")]
         [SerializeField] private Vector3 flipAxis = Vector3.right;
 
+        [Tooltip("켜면 씬 화면에 축이 지나가는 선을 그린다. 플레이 중이 아니어도 보인다.\n" +
+                 "축을 옮겨보며 맞출 때 켜둘 것.")]
+        [SerializeField] private bool drawPivotGizmo = true;
+
+        [Header("회전")]
         [Tooltip("180 = 완전히 뒤집어 같은 자리에 뒷면을 놓는다.\n" +
                  "145 = 뒷면이 카메라를 정면으로 마주 본다(90 + 카메라 피치 55).")]
         [SerializeField] private float flipAngle = 180f;
@@ -168,6 +193,9 @@ namespace _Scripts.LDY.Effect
         /// 그 점을 축으로 돌면 보드가 엉뚱한 데로 휘둘린다.
         /// </summary>
         private Vector3 _flipPivot;
+
+        /// <summary>놓자마자 꺼둔 다음 판 기물. 되돌리기가 시작될 때 다시 켠다.</summary>
+        private readonly List<LDY_Animal> _arriving = new();
 
         /// <summary>
         /// 뒤집기 전 보드 루트의 자세. 격자 계산을 하려면 이 자세여야 한다.
@@ -367,6 +395,64 @@ namespace _Scripts.LDY.Effect
         ///
         /// 뒤집힌 적이 없으면 그냥 부른다. 그때는 지금 자세가 곧 앞면이다.
         /// </summary>
+        /// <summary>
+        /// 되돌릴 때 돌 각도.
+        ///
+        /// 되짚으면 왔던 길을 거꾸로, 이어 돌면 같은 방향으로 한 바퀴를 채운다.
+        /// 어느 쪽이든 도착하는 자세는 같다.
+        ///
+        /// **뒷면 자리를 계산할 때도 같은 값을 써야 한다.** 두 곳에서 따로 구하면
+        /// reverseRetraces 를 껐을 때 한쪽만 바뀌어 기물이 엉뚱한 데서 올라온다.
+        /// </summary>
+        private float ReverseAngle => reverseRetraces ? -flipAngle : flipAngle;
+
+        /// <summary>
+        /// 방금 놓인 다음 판 기물을 **꺼둔다.** 되돌리기가 시작될 때 다시 켜진다.
+        ///
+        /// ── 왜 감추나 ─────────────────────────────────────────────
+        /// 기물은 앞면 좌표로 놓인다(RunAtHomePose). 그런데 판은 아직 뒤집힌 채라
+        /// 놓인 자리에 판이 없다. 그대로 두면 보상이 끝나고 판이 돌기 시작할 때까지
+        /// 기물이 허공에 떠 있다.
+        ///
+        /// 뒷면 자리로 옮겨 판에 가리는 방법을 먼저 썼는데, 카메라가 보상 쪽으로
+        /// 내려와 있으면 판 밑이 그대로 보였다. 가려지는지는 카메라에 달렸으므로
+        /// 믿을 수 없다. **끄는 것은 카메라와 상관없다.**
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 뒤집힌 적이 없으면 아무 일도 하지 않는다 — 감출 이유가 없다.
+        /// </summary>
+        public void HideArrivingPieces()
+        {
+            if (!hideArrivingUntilFlip) return;
+            if (board == null || !IsFlipped) return;
+
+            _arriving.Clear();
+
+            foreach (LDY_Animal piece in CollectSurvivingPieces())
+            {
+                if (piece == null) continue;
+                if (!piece.gameObject.activeSelf) continue;
+
+                _arriving.Add(piece);
+                piece.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// 감춰둔 기물을 다시 켠다. 되돌리기가 시작될 때 부른다.
+        ///
+        /// 태우기(AttachForArrival)는 꺼진 기물을 건너뛰므로 **태우기 전에** 켜야 한다.
+        /// </summary>
+        private void ShowArrivingPieces()
+        {
+            foreach (LDY_Animal piece in _arriving)
+            {
+                if (piece != null) piece.gameObject.SetActive(true);
+            }
+
+            _arriving.Clear();
+        }
+
         public void RunAtHomePose(System.Action action)
         {
             if (action == null) return;
@@ -421,14 +507,14 @@ namespace _Scripts.LDY.Effect
             // 갈 때 쓴 축 지점을 그대로 쓴다. 다시 계산하면 다른 점이 나온다(_flipPivot 주석 참고).
             Vector3 pivot = _flipPivot;
 
-            // 되짚으면 왔던 길을 거꾸로, 이어 돌면 같은 방향으로 한 바퀴를 채운다.
-            // 어느 쪽이든 도착하는 자세는 같다.
-            float angle = reverseRetraces ? -flipAngle : flipAngle;
+            float angle = ReverseAngle;
 
-            // 판 위에 놓인 기물을 태운다. 다음 스테이지 기물을 미리 놓아둔 경우,
-            // 놓인 자리를 도착점으로 삼아 뒷면에서 함께 실려 올라온다.
-            //
-            // 놓여 있지 않으면 아무 일도 하지 않으므로, 빈 판만 돌아오는 경우도 그대로 된다.
+            // 감춰둔 기물을 먼저 켠다. 태우기가 꺼진 기물을 건너뛰기 때문이다.
+            // 이 순간부터 보이지만, 곧바로 뒷면으로 내려가므로 화면에는 안 나온다.
+            ShowArrivingPieces();
+
+            // 판 위에 놓인 기물을 태운다. 놓인 자리를 도착점으로 삼아
+            // 뒷면에서 함께 실려 올라온다.
             _riders.AttachForArrival(CollectSurvivingPieces(), boardRoot, pivot, flipAxis, angle);
 
             yield return _motion.Rotate(
@@ -447,6 +533,9 @@ namespace _Scripts.LDY.Effect
             // 제자리로 돌아왔다. 되돌릴 것이 없다고 표시해야 다음 Play가
             // "아직 뒤집혀 있다"고 보고 엉뚱한 기준점으로 튀지 않는다.
             _motion.MarkRestored();
+
+            // 같은 씬에서 다음 전투를 시작하므로 회전 중 닫았던 입력도 되돌린다.
+            _gate?.Open();
 
             onReversed?.Invoke();
         }
@@ -474,6 +563,10 @@ namespace _Scripts.LDY.Effect
         /// </summary>
         private void ResetToStart()
         {
+            // 감춰둔 다음 판 기물이 있으면 켠다. 안 켜면 되돌리기가 취소됐을 때
+            // 기물이 영영 꺼진 채로 남아 빈 판이 된다.
+            ShowArrivingPieces();
+
             _motion.Restore();
             _riders.Restore();
 
@@ -513,7 +606,7 @@ namespace _Scripts.LDY.Effect
             //    축이 지나간 지점과 뒤집기 전 자세를 남겨둔다.
             //    되돌릴 때 같은 점을 써야 왔던 길로 돌아오고,
             //    뒤집힌 동안 격자 계산을 하려면 앞면 자세를 되짚어야 한다.
-            _flipPivot = board.BoardCenter + Vector3.up * pivotHeightOffset;
+            _flipPivot = ResolvePivot();
 
             boardRoot.GetPositionAndRotation(out _homePosition, out _homeRotation);
 
@@ -589,6 +682,95 @@ namespace _Scripts.LDY.Effect
             survivors.AddRange(board.GetAllByTeam(LDY_Team.Enemy));
             return survivors;
         }
+
+        // =========================================================
+        // 회전축
+        // =========================================================
+
+        /// <summary>
+        /// 이번에 돌 때 축이 지나갈 지점.
+        ///
+        /// 자리를 정하는 것은 여기 하나다. Pivot Source 가 있으면 그 오브젝트의 위치,
+        /// 없으면 보드 중심을 기준으로 삼고, 거기에 Pivot Offset 을 더한다.
+        ///
+        /// 한 번 정한 값은 _flipPivot 에 남겨 되돌릴 때 그대로 쓴다.
+        /// 다시 계산하면 안 되는 이유는 _flipPivot 주석에 적어뒀다.
+        /// </summary>
+        private Vector3 ResolvePivot()
+        {
+            if (pivotSource == null)
+            {
+                if (board != null) return board.BoardCenter + pivotOffset;
+
+                Debug.LogWarning(
+                    $"{name}: LDY_BoardManager가 없어 축을 이 오브젝트 자리에서 잡습니다. " +
+                    "판이 엉뚱한 데로 휘둘리면 Board 를 연결하거나 Pivot Source 를 넣으세요.", this);
+
+                return transform.position + pivotOffset;
+            }
+
+            WarnIfPivotRidesBoard();
+
+            return pivotSource.position + pivotOffset;
+        }
+
+        /// <summary>
+        /// 축 오브젝트가 판에 실려 같이 도는지 본다.
+        ///
+        /// 그러면 갈 때와 돌아올 때의 축이 달라진다 — 보드 원점(boardOrigin)으로 좌표를
+        /// 계산했다가 두 번 물렸던 것과 같은 종류다. 근본은 하나다.
+        /// **도는 것을 기준으로 도는 자리를 정하면 안 된다.**
+        /// </summary>
+        private void WarnIfPivotRidesBoard()
+        {
+            if (board == null) return;
+
+            Transform boardRoot = board.BoardRoot;
+
+            if (boardRoot == null) return;
+            if (!pivotSource.IsChildOf(boardRoot)) return;
+
+            Debug.LogWarning(
+                $"{name}: 회전축 오브젝트 '{pivotSource.name}' 가 보드 루트의 자식입니다. " +
+                "판과 같이 돌아서 되돌릴 때 축이 딴 데로 갑니다. 보드 밖으로 빼세요.", this);
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 축이 지나가는 선을 씬 화면에 그린다. 옮겨보며 맞추라고 있는 것이다.
+        ///
+        /// 도는 중에는 이번에 실제로 쓰는 축(_flipPivot)을 그린다.
+        /// 멈춰 있을 때는 지금 설정대로면 어디가 될지를 그린다.
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (!drawPivotGizmo) return;
+
+            Vector3 pivot = IsPlaying ? _flipPivot : PreviewPivot();
+
+            if (flipAxis.sqrMagnitude <= Mathf.Epsilon) return;
+
+            Vector3 half = flipAxis.normalized * 5f;
+
+            Gizmos.color = new Color(1f, 0.6f, 0.1f, 0.9f);
+            Gizmos.DrawLine(pivot - half, pivot + half);
+            Gizmos.DrawSphere(pivot, 0.12f);
+        }
+
+        /// <summary>
+        /// 멈춰 있을 때 보여줄 축 자리. 경고를 내지 않는 조용한 판이다.
+        ///
+        /// ResolvePivot 을 그대로 쓰면 화면을 다시 그릴 때마다 경고가 쏟아진다.
+        /// 실제 경고는 돌기 시작할 때 한 번만 나가면 된다.
+        /// </summary>
+        private Vector3 PreviewPivot()
+        {
+            if (pivotSource != null) return pivotSource.position + pivotOffset;
+            if (board != null) return board.BoardCenter + pivotOffset;
+
+            return transform.position + pivotOffset;
+        }
+#endif
 
         // =========================================================
         // 디버그 (에디터 전용)

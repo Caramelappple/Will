@@ -74,9 +74,30 @@ namespace _Scripts.LDY
         [Header("3D")]
         [Tooltip("이동/공격 연출 시 실제로 움직일 3D 모델 트랜스폼. 비워두면 자기 자신의 transform을 사용한다.")]
         public Transform modelTransform;
+        [Tooltip("보드에 배치됐을 때 바닥에서 얼마나 띄워서 놓을지 (KTH). 모델 피벗이 바닥에 있지 않은 기물을 " +
+                 "기물별로 보정한다. LDY_BoardManager.GridToWorld의 격자 층 계산과는 별개로 항상 그대로 더해진다.")]
+        public float restHeight = 0f;
+
+        /// <summary>
+        /// 처음 제대로 자리 잡았을 때의 바닥 월드 Y (KTH). 그 뒤로 이동/공격/호버가 "원래 높이로
+        /// 돌아온다"고 할 때는 전부 이 값을 쓴다 — 매번 GridToWorld+restHeight를 다시 계산하지 않고,
+        /// 처음 정해진 값 하나를 계속 재사용한다. 계산식이 여러 곳에 흩어져 있으면 그중 하나만 restHeight를
+        /// 깜빡 빠뜨려도 높이가 어긋나는데, 그런 사고를 원천적으로 막기 위해서다.
+        /// </summary>
+        public float? RestWorldY { get; private set; }
+
+        /// <summary>처음 한 번만 기억한다. 이미 있으면 덮어쓰지 않는다 — 그래야 이동 중간에 다시 불려도 흔들리지 않는다.</summary>
+        public void RememberRestWorldY(float y)
+        {
+            RestWorldY ??= y;
+        }
 
         private readonly List<LSO_IAbility> _abilities = new();
         private bool _abilitiesRegistered;
+        private GameEventDispatcher _abilityDispatcher;
+
+        /// <summary>실제 턴/사망 이벤트 통로까지 등록됐는지 표시 계층에서 확인한다.</summary>
+        public bool AreAbilityEventsRegistered => _abilitiesRegistered && _abilityDispatcher != null;
 
         // AddAbility가 특성 하나만 연결할 때 쓰는 버퍼.
         // LSO_AbilityWiring.Bind가 목록을 받으므로 매번 리스트를 새로 만들지 않으려고 재사용한다.
@@ -118,6 +139,7 @@ namespace _Scripts.LDY
         private void Awake()
         {
 CacheComponents();
+            DLJ_PieceTeamMaterial.Install(this);
 Init();
         }
 
@@ -284,7 +306,7 @@ else
             if (_abilitiesRegistered)
             {
                 _bindBuffer[0] = created;
-                LSO_AbilityWiring.Bind(_bindBuffer, health, Dispatcher);
+                LSO_AbilityWiring.Bind(_bindBuffer, health, _abilityDispatcher);
                 _bindBuffer[0] = null; // 파괴된 특성을 계속 붙들고 있지 않도록 비운다.
             }
 
@@ -321,7 +343,14 @@ else
         {
             if (_abilitiesRegistered || health == null) return;
 
-            LSO_AbilityWiring.Bind(_abilities, health, Dispatcher);
+            // 기물 Awake가 GameManager Awake보다 먼저일 수 있다.
+            // HasInstance만 보고 null로 Bind하면 턴 특성이 영구적으로 빠진 채 등록 완료가 된다.
+            GameManager manager = GameManager.Instance;
+            if (manager == null) return;
+            _abilityDispatcher = manager.EventDispatcher;
+            if (_abilityDispatcher == null) return;
+
+            LSO_AbilityWiring.Bind(_abilities, health, _abilityDispatcher);
 
             // 특성 유무와 무관하게 항상 연결해둔다.
             // 조건부로 걸면 나중에 특성이 바뀌었을 때 해제 조건과 어긋나 구독이 남는다.
@@ -332,20 +361,16 @@ else
 
         private void UnregisterAbilities()
         {
-            if (!_abilitiesRegistered || health == null) return;
+            if (!_abilitiesRegistered) return;
 
-            LSO_AbilityWiring.Unbind(_abilities, health, Dispatcher);
+            // 해제는 등록할 때 쓴 인스턴스로 수행. 종료 중 새 매니저를 만들지 않는다.
+            LSO_AbilityWiring.Unbind(_abilities, health, _abilityDispatcher);
 
-            health.OnHit -= HandleHit;
+            if (health != null) health.OnHit -= HandleHit;
 
             _abilitiesRegistered = false;
+            _abilityDispatcher = null;
         }
-
-        /// <summary>
-        /// 전역 이벤트 통로. 종료 시점에는 매니저가 이미 사라졌을 수 있으므로 새로 만들지 않는다.
-        /// </summary>
-        private static GameEventDispatcher Dispatcher =>
-            GameManager.HasInstance ? GameManager.Instance.EventDispatcher : null;
 
         #if UNITY_EDITOR
         /// <summary>동물SO 없이 테스트 기물을 배치하는 에디터 도구 전용 진입점.</summary>

@@ -18,6 +18,8 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
     private int storedCost;
     private bool hasQueuedRefund;
 
+    public int StoredCost => storedCost;
+
     public void Initialize(LSO_AbilityContext abilityContext)
     {
         context = abilityContext;
@@ -45,6 +47,8 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
 
         storedCost++;
 
+        owner.GetComponent<DLJ_PiggyBankEffect>()?.PlayDeposit(storedCost);
+
         Debug.Log(
             $"<color=yellow>{owner.name}: Cost Refund stored {storedCost}/{MaxStoredCost}.</color>",
             owner);
@@ -64,11 +68,21 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
 
     private void QueueRefund(LDY_Animal owner)
     {
-        if (hasQueuedRefund || storedCost <= 0)
+        if (hasQueuedRefund)
             return;
 
-        if (owner == null || owner.team != LDY_Team.Player)
+        if (owner == null)
             return;
+
+        // 금화는 본체와 분리된 연출이 보관한다. 원래 환급 큐와 중복 지급하지 않는다.
+        DLJ_PiggyBankEffect effect = owner.GetComponent<DLJ_PiggyBankEffect>();
+        if (effect != null && effect.TryPlayDeath(storedCost))
+        {
+            hasQueuedRefund = true;
+            return;
+        }
+
+        if (owner.team != LDY_Team.Player || storedCost <= 0) return;
 
         if (refundService == null)
             refundService = CreateRefundService();

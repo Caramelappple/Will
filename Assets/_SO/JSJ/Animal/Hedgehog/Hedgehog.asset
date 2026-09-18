@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Hedgehog
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: Hedgehog
-  description: "\uAC00\uC2DC\uAC00 \uB0A0\uCE74\uB85C\uC6B0\uB2C8\uAE4C \uAC74\uB4E4\uC9C0
-    \uB9C8\uC138\uC694. \uADFC\uC811 \uACF5\uACA9 \uAE30\uBB3C\uC5D0\uAC8C \uD53C\uD574\uB97C
-    \uC785\uC73C\uBA74 \uBC18\uC0AC \uB370\uBBF8\uC9C0 1\uC744 \uC90D\uB2C8\uB2E4."
+  animalName: "\uACE0\uC2B4\uB3C4\uCE58"
+  description: "\uC628\uBAB8\uC5D0 \uAC00\uC2DC\uAC00 \uB3CB\uC740 \uACE0\uC2B4\uB3C4\uCE58\uC785\uB2C8\uB2E4.
+    \uADFC\uC811 \uACF5\uACA9\uC744 \uBC1B\uC73C\uBA74 \uB54C\uB9B0 \uC0C1\uB300\uC5D0\uAC8C
+    1 \uD53C\uD574\uB97C \uB418\uB3CC\uB824\uC90D\uB2C8\uB2E4. \uC6D0\uAC70\uB9AC
+    \uACF5\uACA9\uACFC \uC800\uC8FC\uC5D0\uB294 \uBC18\uC751\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
   maxHealth: 3
   damage: 1
   cost: 1
-  playerHealthPoints: 0
+  playerHealthPoints: 2
   moveRange: 1
   range: 0
   abilities: 08000000
   defaultWill: 0
-  unitPrefab: {fileID: 4817961536119795357, guid: f5c56c3aa39b4754bb76edc0cb4bac15, type: 3}
+  unitPrefab: {fileID: 9175276536822866426, guid: 97a09247c3d15f540a717c70e96770ff, type: 3}

@@ -18,7 +18,10 @@ namespace _Scripts.LSO.Ability
         Test,
 
         Sturdy,
+
+        [Obsolete("폐기됐다. 회피는 쓰지 않기로 했다. 자리만 남긴다 — 지우면 뒤의 값이 밀린다.")]
         Dodge,
+
         Bloodlust,
         PackTactics,
         Thorns,
@@ -45,6 +48,15 @@ namespace _Scripts.LSO.Ability
         DLJ_SharkKingHuntingGround,
         DLJ_SharkKingPredation,
         BullCharge,
-        BullRageChain
+        BullRageChain,
+
+        /// <summary>
+        /// 질주. 말처럼 멀리 달리는 기물이 출발할 때 연출을 낸다.
+        ///
+        /// 몇 칸을 가는지는 이 특성이 정하지 않는다. 그것은 동물 SO 의 moveRange 가
+        /// 정하고, 이동 시스템도 거기만 본다. 두 곳이 같은 값을 쥐면 어긋났을 때
+        /// 어느 쪽이 맞는지 정할 방법이 없다.
+        /// </summary>
+        Swift
     }
 }

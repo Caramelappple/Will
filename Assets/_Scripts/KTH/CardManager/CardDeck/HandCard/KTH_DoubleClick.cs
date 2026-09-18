@@ -1,3 +1,5 @@
+using _Scripts.LSO.Will;
+using _Scripts.LSO.Will.Candle;
 using UnityEngine;
 
 // DLJ_InfoPanel(Assets/_Scripts/DLJ/UI/InfoPanel)이 인포 패널의 데이터 채우기 +
@@ -31,7 +33,14 @@ public class KTH_DoubleClick : MonoBehaviour
             return;
         }
 
-        DLJ_InfoPanel.Instance.Show(card.CardData);
+        // 양초로 붙여둔 유언이 있으면 그것을 보여준다.
+        // CardData 는 카드 SO 라 동물의 기본 유언만 알고 있어서, 붙인 것과 다른 값이 뜬다.
+        LSO_CardWill cardWill = card.GetComponentInChildren<LSO_CardWill>(true);
+
+        LSO_WillType? paintedWill =
+            cardWill != null && cardWill.HasWill ? cardWill.Will : null;
+
+        DLJ_InfoPanel.Instance.Show(card.CardData, paintedWill);
     }
 
     private void InfoPanelDeactivated(KTH_HandCard card)

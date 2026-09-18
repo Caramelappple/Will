@@ -85,11 +85,18 @@ public readonly struct DLJ_InfoPanelData
         PlayerHealthPoints = animal.playerHealthPoints.ToString();
     }
 
+    /// <param name="willOverride">
+    /// 손패에서 이 카드에 붙여둔 유언. 넘기면 그것을 보여준다.
+    ///
+    /// 카드 SO 만으로는 알 수 없다 — 같은 카드를 여러 장 들고 있어도
+    /// 유언은 손패의 한 장마다 따로 붙기 때문이다(LSO_CardWill).
+    /// </param>
     public static bool TryFromCard(
         LSO_CardSO card,
         DLJ_InfoPanelPortraits portraits,
         DLJ_WillDatabaseSO willDatabase,
-        out DLJ_InfoPanelData result)
+        out DLJ_InfoPanelData result,
+        LSO_WillType? willOverride = null)
     {
         if (card == null || !card.IsValid)
         {
@@ -98,7 +105,10 @@ public readonly struct DLJ_InfoPanelData
         }
 
         LSO_AnimalSO animal = card.Animal;
-        LSO_WillType willType = card.DefaultWill;
+
+        // 양초로 붙여둔 유언이 있으면 그게 이 카드의 유언이다.
+        // card.DefaultWill 은 동물 데이터의 기본값이라, 붙인 것과 다른 값을 보여준다.
+        LSO_WillType willType = willOverride ?? card.DefaultWill;
 
         result = new DLJ_InfoPanelData(
             animal,
@@ -217,6 +227,11 @@ public readonly struct DLJ_InfoPanelData
     {
         if (traits == null || traits.Count == 0) return "없음";
 
+        // 사전에 우선도를 적어둔 특성이 있으면 그것만 띄운다.
+        // 보스처럼 특성이 예닐곱 개 붙으면 전부 늘어놔도 읽히지 않는다.
+        if (LSO_AbilityText.TryGetFeatured(traits, out LSO_AbilityType featured))
+            return LSO_DisplayNames.Of(featured);
+
         var builder = new StringBuilder();
         for (int i = 0; i < traits.Count; i++)
         {
@@ -243,6 +258,10 @@ public readonly struct DLJ_InfoPanelData
     private static string DescribeTraitEffects(IReadOnlyList<LSO_AbilityType> traits)
     {
         if (traits == null || traits.Count == 0) return string.Empty;
+
+        // 이름 칸과 같은 것 하나만 설명한다. 이름은 하나인데 설명이 일곱 줄이면 어긋난다.
+        if (LSO_AbilityText.TryGetFeatured(traits, out LSO_AbilityType featured))
+            return LSO_AbilityText.DescriptionOf(featured);
 
         var builder = new StringBuilder();
 

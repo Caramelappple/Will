@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73ca3c8f4db53fe429469ca8d6a5e900, type: 3}
+  m_Name: DLJ_Chapter_2
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
+  chapter: 2
+  regionName: "여우왕의 금고"
+  stages:
+  - {fileID: 11400000, guid: d6d71705936c47dbbcc4d207e2b78428, type: 2}
+  - {fileID: 11400000, guid: 37355f9a79964ef5a2765f7e054aa98e, type: 2}
+  - {fileID: 11400000, guid: 37b3e1b931034ba18de2a3d80ca58545, type: 2}

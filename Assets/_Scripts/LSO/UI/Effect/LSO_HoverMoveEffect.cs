@@ -5,13 +5,14 @@ using _Scripts.LSO.UI.Input;
 namespace _Scripts.LSO.UI.Effect
 {
     /// <summary>
-    /// 커서가 올라가 있는 동안 자리를 옮기고, 벗어나면 원래 자리로 돌아온다.
+    /// 커서가 올라가 있거나 선택된 동안 자리를 옮기고, 둘 다 해제되면 돌아온다.
     ///
     /// 클릭 연출과 달리 "한 번 재생"이 아니라 상태다.
     /// 커서가 머무는 내내 옮긴 자리에 있어야 하므로 되돌아오는 트윈을 붙이지 않는다.
     ///
     /// 옮기는 것은 localPosition이다. 부모가 돌아가 있어도 방향이 함께 따라간다.
-    /// "원래 자리"는 호버가 실제로 들어오는 순간(OnHoverEnter)의 위치를 그때그때 다시 읽는다.
+    /// "원래 자리"는 완전히 복귀한 뒤 다시 떠오르기 시작할 때 읽는다.
+    /// 복귀 중 재진입은 기존 기준을 유지해 높이가 쌓이지 않게 한다.
     /// Awake/Configure 시점에 미리 캐싱해두지 않는 이유는, 이 컴포넌트가 런타임에 붙는
     /// 대상(예: 보드 기물)이 그 이후에 다른 곳(격자 배치 등)에 의해 최종 위치로
     /// 옮겨질 수 있기 때문이다. 자리를 "정하는" 주체는 여전히 하나(그 다른 곳)이고,
@@ -43,15 +44,48 @@ namespace _Scripts.LSO.UI.Effect
         [SerializeField] private Ease easeEnter = Ease.OutQuad;
         [SerializeField] private Ease easeExit = Ease.OutQuad;
 
+        [Header("추가 애니메이션 (선택)")]
+        [Tooltip("비워두면 아무 일도 안 한다. 기물에서 뜨는 동작과 같이 재생할 " +
+                 "추가 연출(KTH)이 있을 때만 연결한다.")]
+        [SerializeField] private KTH_PiecesHoveringAnimation extraAnimation;
+
+        /// <summary>호버로 떠오를 때 옮기는 오프셋. 다른 연출(예: 이동 시 뜨는 높이)이 같은
+        /// 값을 따라가고 싶을 때 읽는 용도 — 값을 정하는 주체는 여전히 이 컴포넌트 하나다.</summary>
+        public Vector3 Offset => offset;
+
+        /// <summary>
+        /// 지금 화면에 보이는 위치가 아니라, 뜨기 전 "진짜 바닥"의 월드 y를 돌려준다.
+        ///
+        /// 떠 있는 중(트윈이 아직 한 프레임도 안 돌았을 수도 있음)에 target.position.y를 그대로
+        /// 읽으면 뜬 높이를 바닥으로 착각할 수 있다. 여기서는 대신 캐싱해둔 _originalPosition
+        /// (뜨기 직전 로컬 좌표)을 쓴다 — 떠 있는 적이 없으면 지금 위치가 곧 바닥이다.
+        /// </summary>
+        public float GroundWorldY()
+        {
+            if (_target == null) return 0f;
+            if (!_isOffset) return _target.position.y;
+
+            Vector3 groundWorld = _target.parent != null
+                ? _target.parent.TransformPoint(_originalPosition)
+                : _originalPosition;
+            return groundWorld.y;
+        }
+
         private Transform _target;
         private Vector3 _originalPosition;
         private bool _isOffset;
-        private bool _suspended;
+        private bool _pointerInside;
+        private bool _selected;
+        private bool _liftRequested;
+        private int _suspendCount;
         private Tween _tween;
 
         private void Awake()
         {
             _target = target != null ? target : transform;
+
+            // 인스펙터에서 안 걸어뒀으면 같은 오브젝트에서 자동으로 찾는다.
+            if (extraAnimation == null) extraAnimation = GetComponent<KTH_PiecesHoveringAnimation>();
         }
 
         /// <summary>
@@ -60,8 +94,8 @@ namespace _Scripts.LSO.UI.Effect
         /// "원래 자리"는 여기서 캐싱하지 않는다. Install 순서상 이 호출은
         /// (예: LSO_AnimalFactory -> LDY_BoardManager.Place처럼) 대상이 최종 위치로
         /// 옮겨지기 "전"에 일어날 수 있어서, 여기서 잡아두면 아직 자리 잡기 전의
-        /// 좌표가 원래 자리로 굳어버린다. 대신 OnHoverEnter가 실제로 호버가 들어오는
-        /// 그 순간의 위치를 매번 새로 읽어서 기준으로 삼는다 (아래 OnHoverEnter 참고).
+        /// 좌표가 원래 자리로 굳어버린다. 대신 RefreshLift에서 처음 떠오를 때 읽고,
+        /// 완전히 복귀할 때까지 같은 기준을 유지한다.
         ///
         /// 인스펙터로 이미 맞춰둔 것을 덮어쓰게 되므로, 부르는 쪽이
         /// "아직 안 붙어 있을 때만" 부르는 것을 전제로 한다.
@@ -74,6 +108,7 @@ namespace _Scripts.LSO.UI.Effect
             if (_isOffset && _target != null) _target.localPosition = _originalPosition;
 
             _isOffset = false;
+            _liftRequested = false;
             target = newTarget;
             _target = newTarget != null ? newTarget : transform;
 
@@ -87,27 +122,49 @@ namespace _Scripts.LSO.UI.Effect
 
         public void OnHoverEnter()
         {
-            // 쉬는 중(SetSuspended(true))에는 아예 반응하지 않는다.
-            // 자세한 이유는 SetSuspended 주석 참고.
-            if (_suspended) return;
-
-            // 지금 이 순간의 실제 위치를 "원래 자리"로 삼는다. Awake/Configure 시점이
-            // 아니라 호버가 들어오는 시점 기준이라, 그 사이에 다른 곳(격자 배치 등)이
-            // 자리를 옮겨놔도 그 최신 위치를 기준으로 삼게 된다.
-            _originalPosition = _target.localPosition;
-            _isOffset = true;
-
-            MoveTo(_originalPosition + offset, enterDuration, easeEnter);
+            _pointerInside = true;
+            RefreshLift();
         }
 
         public void OnHoverExit()
         {
-            if (_suspended) return;
-            if (!_isOffset) return;
+            _pointerInside = false;
+            RefreshLift();
+        }
 
-            _isOffset = false;
+        /// <summary>선택 상태는 포인터와 별도로 유지한다. 선택 컨트롤러가 갱신한다.</summary>
+        public void SetSelected(bool selected)
+        {
+            _selected = selected;
+            RefreshLift();
+        }
 
-            MoveTo(_originalPosition, exitDuration, easeExit);
+        private void RefreshLift()
+        {
+            if (_suspendCount > 0 || !isActiveAndEnabled || _target == null) return;
+
+            bool lift = _pointerInside || _selected;
+            if (_liftRequested == lift) return;
+            _liftRequested = lift;
+
+            if (lift)
+            {
+                // 내려가는 중 다시 호버되면 기존 기준을 유지해야 높이가 누적되지 않는다.
+                if (!_isOffset) _originalPosition = _target.localPosition;
+                _isOffset = true;
+                MoveTo(_originalPosition + offset, enterDuration, easeEnter);
+                extraAnimation?.PlayHoverEnter();
+            }
+            else if (_isOffset)
+            {
+                MoveTo(_originalPosition, exitDuration, easeExit);
+                // 실제 복귀가 끝나기 전에는 기준 위치를 버리지 않는다.
+                if (_tween != null)
+                    _tween.OnComplete(() => { _isOffset = false; _tween = null; });
+                else
+                    _isOffset = false;
+                extraAnimation?.PlayHoverExit();
+            }
         }
 
         /// <summary>
@@ -119,20 +176,82 @@ namespace _Scripts.LSO.UI.Effect
         /// 시스템의 호버 상태 추적과 어긋나서 커서가 그대로 머물러 있어도 다시
         /// OnHoverEnter가 걸리는 등 예측하기 어려운 위치로 튄다.
         ///
-        /// 대신 핸들러는 평소대로 그대로 두고, 이 연출만 "쉬는 동안 들어온 호출은
-        /// 무시한다"로 처리한다. 쉬기 시작할 때 오프셋이 걸려 있었으면 트윈 없이
+        /// 대신 핸들러는 그대로 두고, 쉬는 동안 포인터/선택 상태만 기록한다.
+        /// 쉬기 시작할 때 오프셋이 걸려 있었으면 트윈 없이
         /// 즉시 제자리로 돌려놓는다(트윈을 걸면 외부 이동과 자리를 다툰다).
-        /// 쉬는 걸 풀 때 커서가 이미 올라가 있어도 새로 OnHoverEnter가 오지는
-        /// 않는다 — 커서가 한 번 벗어났다 다시 들어와야 다음 호버가 걸린다.
+        /// true/false 호출을 쌍으로 세어 마지막 연출이 끝난 뒤에만 호버를 재개한다.
+        /// 커서가 남아 있거나 선택된 상태면 도착한 위치를 기준으로 다시 떠오른다.
         /// </summary>
         public void SetSuspended(bool suspended)
         {
-            if (_suspended == suspended) return;
-
-            _suspended = suspended;
-
-            if (suspended) RestoreImmediate();
+            SetSuspended(suspended, restore: true);
         }
+
+        /// <summary>
+        /// 지금 있는 자리를 새 "원래 자리"로 받아들인다. 위치는 건드리지 않고 오프셋 상태만 지운다.
+        ///
+        /// restore: false로 쉬는 동안 외부(이동 등)가 대상을 아예 다른 칸으로 옮겨놓았을 때 필요하다.
+        /// 그 상태로 그냥 SetSuspended(false)만 부르면, 옛 칸에서 기억해둔 _originalPosition이
+        /// 여전히 남아있어서 복귀 트윈이 새로 도착한 칸에서 옛 칸으로 끌고 가버린다.
+        /// 이동이 끝나 자리를 완전히 새로 잡은 뒤, 재개하기 전에 불러서 그 기억을 지운다.
+        /// </summary>
+        public void ClearOffset()
+        {
+            _isOffset = false;
+            _liftRequested = false;
+        }
+
+        /// <summary>
+        /// restore를 false로 주면 쉬기 시작할 때 원래 자리로 되돌리지 않고 트윈만 멈춘다.
+        /// 뜬 자리에서 그대로 재생해야 하는 외부 연출(예: 공격 포물선)이 있을 때 쓴다.
+        /// 이 경우 자리를 되돌리는 책임은 호출한 쪽이 이후에 SetSelected(false) 등으로 진다.
+        /// </summary>
+        public void SetSuspended(bool suspended, bool restore)
+        {
+            if (suspended)
+            {
+                if (++_suspendCount == 1)
+                {
+                    if (restore)
+                    {
+                        RestoreImmediate();
+                    }
+                    else
+                    {
+                        KillTween();
+
+                        // 자리를 안 되돌리고 멈췄다. 쉬는 동안 밖에서 대상을 다른
+                        // 칸으로 옮길 수 있으므로, 기억해둔 원래 자리는 더 못 믿는다.
+                        _baseStale = true;
+                    }
+                }
+                return;
+            }
+
+            if (_suspendCount == 0) return;
+            _suspendCount--;
+            if (_suspendCount != 0) return;
+
+            // ── 왜 여기서 지우나 ──────────────────────────────────────
+            // 예전에는 부르는 쪽이 재개 전에 ClearOffset()을 불러줘야 했다.
+            // 이동과 공격 한 경로는 불렀고, 배치 애니메이션과 공격의 다른 경로는
+            // 잊었다. 잊으면 기물이 재개하는 순간 **옛 칸으로 끌려간다** —
+            // 남아 있던 _originalPosition 이 거기를 가리키기 때문이다.
+            //
+            // 기억을 못 믿게 된 것은 여기가 아는 사실이므로 여기서 지운다.
+            // 부르는 쪽의 ClearOffset() 은 그대로 둬도 된다 — 두 번 지워도 같다.
+            // ─────────────────────────────────────────────────────────
+            if (_baseStale)
+            {
+                _baseStale = false;
+                ClearOffset();
+            }
+
+            RefreshLift();
+        }
+
+        /// <summary>기억해둔 "원래 자리"를 더 믿을 수 없는지. 위 주석 참고.</summary>
+        private bool _baseStale;
 
         private void MoveTo(Vector3 position, float duration, Ease ease)
         {
@@ -165,6 +284,12 @@ namespace _Scripts.LSO.UI.Effect
 
         private void OnDisable()
         {
+            _pointerInside = false;
+            _selected = false;
+
+            // 꺼진 사이에 밖에서 대상을 옮길 수 있다. 다시 켜질 때 옛 자리를
+            // 기준으로 삼지 않도록 기억을 버린다.
+            _baseStale = true;
             // 커서가 올라간 채로 창이 닫히면 OnHoverExit이 오지 않아 옮겨진 자리에서 굳는다.
             RestoreImmediate();
         }
@@ -172,6 +297,7 @@ namespace _Scripts.LSO.UI.Effect
         private void RestoreImmediate()
         {
             KillTween();
+            _liftRequested = false;
 
             // 실제로 호버 오프셋이 적용된 상태였을 때만 되돌린다.
             // 한 번도 호버되지 않은 상태에서 무조건 되돌리면, _originalPosition이

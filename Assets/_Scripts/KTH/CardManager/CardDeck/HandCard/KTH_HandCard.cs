@@ -46,6 +46,15 @@ public class KTH_HandCard : MonoBehaviour,
     [SerializeField] private float drawDipDistance = 0.5f;
     [SerializeField] private float drawHookDistance = 0.2f;
 
+    [Header("진단")]
+    [Tooltip("켜면 이 카드를 누를 때마다 어디까지 갔는지 콘솔에 찍는다.\n" +
+             "\n" +
+             "카드가 안 눌릴 때 쓴다. 아무것도 안 찍히면 클릭이 이 카드까지\n" +
+             "닿지도 않은 것이다 — 콜라이더나 레이캐스터 쪽 문제다.\n" +
+             "\n" +
+             "카드 프리팹에서 켜면 모든 손패 카드에 적용된다.")]
+    [SerializeField] private bool logClicks;
+
     [Header("Double Click / Move Down Settings")]
     [Tooltip("더블클릭 시 '선택되지 않은' 나머지 카드가 어느 축으로 내려갈지")]
     [SerializeField] private KTH_Axis3D moveDownAxis = KTH_Axis3D.Y;
@@ -63,7 +72,11 @@ public class KTH_HandCard : MonoBehaviour,
     private KTH_CardSorting cardSorting;
     private Collider cardCollider;
     private KTH_InitCardData initCardData;
-    private Transform visualAnchor;
+    [Tooltip("카드가 정지 상태일 때의 크기. 모든 애니메이션이 이 값으로 돌아온다.\n" +
+             "\n" +
+             "프리팹의 Transform Scale 과는 다르다 — 그쪽은 연출 도중에 계속 바뀌므로\n" +
+             "돌아올 자리를 따로 적어둔다.")]
+    [SerializeField] private Vector3 baseScale = Vector3.one;
 
     private KTH_HandCardHoverController hoverController;
     private KTH_HandCardSelectionController selectionController;
@@ -72,25 +85,13 @@ public class KTH_HandCard : MonoBehaviour,
 
     public LSO_CardSO CardData => cardData;
 
-    // Anchor(자식 오브젝트)의 크기가 카드가 '정지 상태'일 때 기준 크기다.
-    // 자리·상태를 정하는 주체를 Anchor 하나로 유지한다 - KTH_HandCardScaleSetting은 더 이상 쓰지 않는다.
-    public Vector3 BaseScale
-    {
-        get
-        {
-            if (visualAnchor == null)
-            {
-                Debug.LogWarning(
-                    "[KTH_HandCard] Anchor 자식을 찾지 못해 BaseScale을 Vector3.one으로 대체합니다.",
-                    this
-                );
-
-                return Vector3.one;
-            }
-
-            return visualAnchor.localScale;
-        }
-    }
+    // 카드가 '정지 상태'일 때의 기준 크기.
+    // 뽑기·선택·재정렬 애니메이션이 원래대로 돌아올 때 전부 이 값을 기준으로 삼는다.
+    //
+    // 예전에는 'Anchor'라는 자식의 크기를 읽었다. 그 자식이 없는 프리팹에서는
+    // 조용히 (1,1,1)로 떨어졌고, 어느 카드가 그런지 알 방법도 없었다.
+    // 이제 카드 자신이 값을 들고 있다 — 없는 자식을 찾을 일이 없다.
+    public Vector3 BaseScale => baseScale;
     public bool IsSelected => selectionController.IsSelected;
     public bool IsConfirmed => selectionController.IsConfirmed;
     public bool IsPlacementMode => selectionController.IsPlacementMode;
@@ -103,6 +104,14 @@ public class KTH_HandCard : MonoBehaviour,
     internal LSO_WillPanel WillPanel => willPanel;
 
     public static bool HasConfirmedSelection => KTH_HandCardSelectionController.HasConfirmedSelection;
+
+    /// <summary>
+    /// 지금 확정된(배치 모드인) 카드. 없으면 null.
+    ///
+    /// 손패 밖에서 "지금 고른 카드"가 필요할 때 쓴다.
+    /// 쓰는 곳: LSO_WillPainter — 양초를 누르면 이 카드에 유언을 붙인다.
+    /// </summary>
+    public static KTH_HandCard ConfirmedCard => KTH_HandCardSelectionController.ConfirmedCard;
 
     public event Action<KTH_HandCard> OnCardClicked;
 
@@ -143,7 +152,6 @@ public class KTH_HandCard : MonoBehaviour,
         cardSorting = GetComponent<KTH_CardSorting>();
         cardCollider = GetComponent<Collider>();
         initCardData = GetComponent<KTH_InitCardData>();
-        visualAnchor = transform.Find("Anchor");
 
         hoverController = new KTH_HandCardHoverController(
             this, hoverEnterDelay, hoverExitDelay, infoPanelHoverDelay);
@@ -187,7 +195,11 @@ public class KTH_HandCard : MonoBehaviour,
     /// </summary>
     public void BringToFront()
     {
-        cardSorting?.BringToFront();
+        // 얼마나 앞으로 뺄지는 손패가 정한다. 부채꼴 전체가 차지하는 깊이보다
+        // 더 나와야 어느 자리의 카드를 골라도 맨 앞에 선다.
+        //
+        // 손패 밖(버림 더미 등)에서 쓰이면 KTH_CardSorting 이 제 인스펙터 값을 쓴다.
+        cardSorting?.BringToFront(KTH_HandCardLayout.Instance?.FrontDepthDistance);
     }
 
     // ============================================================
@@ -204,15 +216,38 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.HandlePointerExit();
     }
 
+    /// <summary>
+    /// 클릭 경로 진단. logClicks 가 꺼져 있으면 아무 일도 하지 않는다.
+    ///
+    /// 컨트롤러들도 이걸 쓴다 — 클릭 하나가 어디까지 갔는지는 한 줄기로 읽혀야
+    /// 쓸모가 있고, 토글이 여러 개면 한쪽만 켜둔 채 헤매게 된다.
+    /// </summary>
+    internal void LogClick(string step)
+    {
+        if (!logClicks) return;
+
+        Debug.Log($"[카드 클릭] {name} — {step}", this);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        LogClick($"눌림 (버튼 {eventData.button}, {eventData.clickCount}회)");
+
         if (eventData.button != PointerEventData.InputButton.Left)
         {
+            LogClick("왼쪽 버튼이 아니라 넘어감");
             return;
         }
 
+        // 유언 창이 답을 기다리는 동안에는 손패를 못 만진다.
+        // 창이 닫히지 않고 남으면 여기서 모든 클릭이 조용히 사라진다.
         if (willPanel != null && willPanel.IsSelecting)
         {
+            Debug.LogWarning(
+                $"{name}: 유언 창이 열려 있어 카드를 고를 수 없습니다. " +
+                "창이 닫혔는데도 이 경고가 계속 나오면 창이 끝난 것을 알리지 않은 것입니다 " +
+                "(LSO_WillPanel.Finish).", this);
+
             return;
         }
 
@@ -297,6 +332,15 @@ public class KTH_HandCard : MonoBehaviour,
         selectionController.SetSelected(value);
     }
 
+    /// <summary>
+    /// 손패 재배치로 이 카드의 "원래 자리"가 바뀌었을 때, 호버로 들려있는 오프셋을
+    /// 새 자리 기준으로 다시 적용한다. 선택돼 있지 않거나 확정된 카드면 아무 일도 하지 않는다.
+    /// </summary>
+    public void RefreshSelectedOffset()
+    {
+        selectionController.RefreshSelectedOffset();
+    }
+
     public static void DeselectCurrent()
     {
         KTH_HandCardSelectionController.DeselectCurrent();
@@ -313,15 +357,19 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.KillAll();
     }
 
-    internal void SetOutlineVisible(bool visible)
-    {
-        initCardData.SetOutlineVisible(visible);
-    }
-
     internal void RestoreSorting()
     {
         cardSorting?.RestoreSorting();
     }
+
+    /// <summary>
+    /// 지금 앞으로 빼둔 값. 앞이 아니면 0이다.
+    ///
+    /// 선택 연출이 트윈 목표에 이걸 더해야 한다. 안 더하면 연출이 방금 앞으로
+    /// 뺀 것을 도로 끌어내린다.
+    /// </summary>
+    internal Vector3 FrontOffset =>
+        cardSorting != null ? cardSorting.FrontOffset : Vector3.zero;
 
     // ============================================================
     // Spawn / Draw / Rearrange (모션 애니메이터로 위임)
@@ -393,7 +441,10 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.ResetForPool();
         selectionController.ResetForPool();
         doubleClickController.ResetForPool();
-        initCardData.ResetForPool();
+
+        // KTH_InitCardData 는 되돌릴 것이 없다. 테두리를 껐다 켜던 때만
+        // 풀 복구가 필요했고, 지금은 값을 채우기만 한다 — 다음 SetupCard 가
+        // 어차피 전부 새로 쓴다.
 
         enabled = true;
 
@@ -415,11 +466,6 @@ public class KTH_HandCard : MonoBehaviour,
         if (cardCollider != null)
         {
             cardCollider.enabled = true;
-        }
-
-        if (visualAnchor == null)
-        {
-            visualAnchor = transform.Find("Anchor");
         }
 
         transform.localScale = BaseScale;

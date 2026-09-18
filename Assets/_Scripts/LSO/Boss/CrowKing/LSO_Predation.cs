@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
@@ -25,6 +26,12 @@ namespace _Scripts.LSO.Boss.CrowKing
         private LSO_CrowKingMemory _memory;
         private LSO_PreyTracker _tracker;
 
+        /// <summary>포식 적용 완료 알림. true면 이미 먹은 종류를 다시 처치.</summary>
+        public event Action<bool> Devoured;
+
+        public int KillAttempts { get; private set; }
+        public string LastDevourResult { get; private set; } = "처치 알림 대기";
+
         public void Initialize(LSO_AbilityContext context)
         {
             LDY_Animal owner = context?.Owner;
@@ -40,19 +47,37 @@ namespace _Scripts.LSO.Boss.CrowKing
         
         public void OnKill(LDY_Animal self, LDY_Animal victim)
         {
-            if (_memory == null || _tracker == null || self == null) return;
+            KillAttempts++;
+            if (_memory == null || _tracker == null || self == null)
+            {
+                LastDevourResult = "포식 중단: Memory / Tracker / 소유자 누락";
+                return;
+            }
             
-            if (victim == null || victim.data == null) return;
+            if (victim == null || victim.data == null)
+            {
+                LastDevourResult = "포식 중단: 처치 대상 또는 동물 데이터 누락";
+                return;
+            }
             
-            if (_tracker.Prey != victim) return;
+            if (_tracker.Prey != victim)
+            {
+                LastDevourResult = _tracker.Prey == null
+                    ? "포식 중단: 지정된 사냥감 없음"
+                    : "포식 중단: 사냥감 이외의 기물 처치";
+                return;
+            }
 
             // 처음 먹는 종류면 true. 이미 먹어봤으면 false = 되먹임 조건 성립.
             bool firstTime = _memory.TryAddDevour(victim.data);
-
             Devour(self, victim);
 
             if (!firstTime)
                 StealAbilities(self, victim);
+
+            // 되먹임 표시는 특성 보관 성공 여부가 아니라 같은 종류를 다시 먹었는지가 기준이다.
+            LastDevourResult = firstTime ? "포식 완료" : "되먹임 완료";
+            Devoured?.Invoke(!firstTime);
         }
         
         private void Devour(LDY_Animal self, LDY_Animal victim)

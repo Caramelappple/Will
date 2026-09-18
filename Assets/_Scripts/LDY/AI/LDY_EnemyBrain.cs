@@ -35,7 +35,11 @@ namespace _Scripts.LDY.AI
 
         public LDY_EnemyAction Decide(LDY_Animal self, LDY_BoardManager board)
         {
-            if (self == null || board == null) return LDY_EnemyAction.Wait();
+            if (self == null && board == null) return LDY_EnemyAction.Wait();
+            if (self == null)
+            {
+                DLJ_PlayerHealth.Instance.TakeDamage(5);
+            }
 
             CollectCandidates(self);
 

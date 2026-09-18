@@ -4,6 +4,7 @@ using _Scripts.LSO.Animal;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.UI.Feedback;
 using _Scripts.LSO.Will;
+using _Scripts.LSO.Will.Candle;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -45,12 +46,31 @@ namespace _Scripts.LDY
 
         public event Action<int, int> OnCostChanged;
 
+        [Header("진단")]
+        [Tooltip("켜면 소환할 때 어떤 유언으로 갔는지 콘솔에 찍는다.\n" +
+                 "양초로 붙인 것이 기물에 안 들어갈 때 어디서 끊겼는지 보인다.")]
+        [SerializeField] private bool logWill;
+
+        [Tooltip("켜면 칸을 누를 때마다 어디까지 갔는지 콘솔에 찍는다.\n" +
+                 "\n" +
+                 "눌러도 기물이 안 놓일 때 쓴다. 어느 칸으로 읽혔는지, 무엇에 맞았는지,\n" +
+                 "왜 거부됐는지가 보인다.\n" +
+                 "\n" +
+                 "보드가 잠긴 채 남은 것만은 이걸 꺼둬도 경고가 나온다.")]
+        [SerializeField] private bool logPlacement;
+
+        /// <summary>이미 콘솔에 낸 실패 이유. 같은 것을 매 클릭마다 내지 않으려고 둔다.</summary>
+        private PickMiss _reportedMiss = PickMiss.None;
+
         private LSO_CardSO _pendingCard;
         private LDY_Team _pendingTeam;
 
-        // 카드에 미리 붙여둔 유언. 칸을 고르는 동안 들고 있다가 소환할 때 쓴다.
-        // 값이 없으면(null) 예전처럼 소환 뒤에 고르는 창이 뜬다.
-        private LSO_WillType? _pendingWill;
+        // 놓으려는 손패 카드의 유언 칸. **값이 아니라 그 카드를 들고 있는다.**
+        //
+        // 값으로 붙잡아두면 안 된다. 배치를 시작하는 시점(카드를 고른 순간)에는
+        // 아직 양초로 안 붙였을 수 있고, 그 뒤에 붙여도 반영되지 않는다.
+        // 실제로 그렇게 짰다가 "붙였는데 기본값으로 소환되는" 일이 있었다.
+        private LSO_CardWill _pendingCardWill;
 
         private Action<LDY_Animal> _onPlaced;
         private Action _onCancelled;
@@ -96,18 +116,59 @@ namespace _Scripts.LDY
             }
 
             if (!Mouse.current.leftButton.wasPressedThisFrame) return;
-            if (!TryRaycastToGrid(out var pos)) return;
-            if (!IsValidPlacementTile(pos, _pendingTeam)) return;
+
+            // 보드를 아예 안 맞혔으면 화면에는 알리지 않는다.
+            //
+            // 칸을 고르는 도중에도 양초를 눌러 유언을 붙인다(LSO_WillPainter).
+            // 보드 밖 클릭까지 거부로 치면 그 정상 조작이 매번 거부로 찍힌다.
+            //
+            // 다만 **콘솔에는 남긴다.** 예전에는 여기서 그냥 돌아섰는데, 셋 중
+            // 무엇 때문에 막혔는지 알 방법이 없었다 — 마스크가 비었는지, 아무것도
+            // 안 맞았는지, 보드 밖을 눌렀는지. 눌러도 아무 일이 없다는 증상만 남았다.
+            if (!TryRaycastToGrid(out Vector3Int pos, out PickMiss miss))
+            {
+                ReportMiss(miss);
+                return;
+            }
+
+            // 보드는 맞혔는데 놓을 수 없는 칸이다. 이건 알려야 한다 —
+            // 안 알리면 눌러도 아무 일이 없어서 조작이 씹힌 것처럼 보인다.
+            //
+            // PlaceCard 안에도 같은 검사가 있지만 이 경로에서는 거기까지 못 간다.
+            // 여기를 통과한 칸만 내려가므로 그쪽 InvalidTile 은 자동 배치
+            // (PlaceCardAtNextAvailable 등) 전용이다.
+            if (!IsValidPlacementTile(pos, _pendingTeam))
+            {
+                // 어느 칸으로 읽혔고 왜 안 되는지 남긴다. 화면에는 "안 됩니다"만
+                // 뜨는데, 방금 놓은 기물에 레이가 맞아 그 기물의 칸으로 읽히는
+                // 경우처럼 눌러본 칸과 읽힌 칸이 다를 수 있다.
+                if (logPlacement)
+                {
+                    Debug.Log(
+                        $"[{name}] 놓을 수 없는 칸 {pos} — " +
+                        $"안쪽 {board.IsInside(pos)} · 비었나 {board.IsEmpty(pos)} · " +
+                        $"내 진영 {(_pendingTeam == LDY_Team.Player ? pos.z < LDY_BoardManager.Size / 2 : pos.z >= LDY_BoardManager.Size / 2)}",
+                        this);
+                }
+
+                LSO_RejectSignal.Raise(LSO_RejectReason.InvalidTile);
+                return;
+            }
 
             LSO_CardSO card = _pendingCard;
             LDY_Team team = _pendingTeam;
-            LSO_WillType? will = _pendingWill;
             Action<LDY_Animal> onPlaced = _onPlaced;
+
+            // 지금 읽는다. 칸을 고르는 사이에 양초로 붙였을 수 있다.
+            LSO_WillType? will =
+                _pendingCardWill != null && _pendingCardWill.HasWill
+                    ? _pendingCardWill.Will
+                    : null;
 
             IsPlacing = false;
             ClearPlacementHighlights();
             _pendingCard = null;
-            _pendingWill = null;
+            _pendingCardWill = null;
             _onCancelled = null;
             _onPlaced = null;
 
@@ -184,11 +245,29 @@ namespace _Scripts.LDY
             ActionPoints?.TryConsume(card.Cost);
 
             // 카드에 이미 유언이 붙어 있으면 그걸로 끝이다. 고르는 창을 띄우지 않는다.
-            // 촛대에서 놓기 전에 정하는 것이 지금 기획이고, 여기서 또 물으면 두 번 고르게 된다.
+            // 양초에서 놓기 전에 정하는 것이 지금 기획이고, 여기서 또 물으면 두 번 고르게 된다.
             if (will.HasValue)
+            {
+                if (logWill)
+                {
+                    Debug.Log(
+                        $"[{name}] 카드에 붙어 있던 유언으로 소환 — {will.Value} " +
+                        $"(None이면 '유언 없음'을 고른 것이다)", animal);
+                }
+
                 Apply(animal, will.Value);
+            }
             else
+            {
+                if (logWill)
+                {
+                    Debug.Log(
+                        $"[{name}] 카드에 붙은 유언이 없어 고르는 창을 띄운다 — " +
+                        "양초로 안 붙였거나 LSO_CardWill 이 카드에 없다", animal);
+                }
+
                 RequestWill(card, animal);
+            }
 
             return animal;
         }
@@ -277,16 +356,20 @@ namespace _Scripts.LDY
         // onPlaced는 실제로 칸을 클릭해 소환이 끝난 뒤(성공/실패 모두) 호출되고,
         // onCancelled는 우클릭으로 취소했을 때만 호출된다.
         //
-        // will 은 촛대에서 카드에 미리 붙여둔 유언이다. 손패 쪽에서 이렇게 넘긴다.
+        // cardWill 은 놓으려는 손패 카드의 유언 칸이다. 손패 쪽에서 이렇게 넘긴다.
         //     cardPlacer.BeginPlacement(cardData, LDY_Team.Player, onPlaced, onCancelled,
-        //         will: card.GetComponent<LSO_CardWill>()?.Will);
+        //         cardWill: card.GetComponentInChildren<LSO_CardWill>(true));
+        //
+        // 값이 아니라 컴포넌트를 받는 이유는, 칸을 고르는 사이에 양초로 유언을 붙일 수 있어서다.
+        // 값으로 받으면 여기서 붙잡힌 시점의 것이 그대로 굳는다.
+        //
         // 안 넘기면 예전처럼 소환 뒤에 고르는 창이 뜬다.
         public bool BeginPlacement(
             LSO_CardSO card,
             LDY_Team team,
             Action<LDY_Animal> onPlaced,
             Action onCancelled = null,
-            LSO_WillType? will = null)
+            LSO_CardWill cardWill = null)
         {
             if (!IsPlayerTurn)
             {
@@ -304,10 +387,14 @@ namespace _Scripts.LDY
 
             _pendingCard = card;
             _pendingTeam = team;
-            _pendingWill = will;
+            _pendingCardWill = cardWill;
             _onPlaced = onPlaced;
             _onCancelled = onCancelled;
             IsPlacing = true;
+
+            // 지난 배치에서 낸 경고는 잊는다. 같은 문제가 또 있으면 다시 낸다 —
+            // 한 번 내고 영영 침묵하면 두 번째 카드에서 막힌 것을 못 본다.
+            _reportedMiss = PickMiss.None;
 
             ShowPlacementHighlights(team);
             return true;
@@ -321,8 +408,8 @@ namespace _Scripts.LDY
             ClearPlacementHighlights();
             _pendingCard = null;
 
-            // 유언도 같이 놓는다. 안 비우면 다음 배치가 지난 카드의 유언을 물고 간다.
-            _pendingWill = null;
+            // 유언 칸도 같이 놓는다. 안 비우면 다음 배치가 지난 카드의 유언을 물고 간다.
+            _pendingCardWill = null;
 
             Action cancelled = _onCancelled;
             _onCancelled = null;
@@ -364,16 +451,100 @@ namespace _Scripts.LDY
             return team == LDY_Team.Player ? pos.z < half : pos.z >= half;
         }
 
-        private bool TryRaycastToGrid(out Vector3Int pos)
+        /// <summary>칸을 못 집은 이유. 화면에는 안 띄우고 콘솔에만 남긴다.</summary>
+        private enum PickMiss
+        {
+            None,
+
+            /// <summary>카메라나 보드 참조가 비었다. 배선 문제다.</summary>
+            NoReference,
+
+            /// <summary>보드 레이어 마스크가 비어 있다. 클릭이 아예 닿지 않는다.</summary>
+            MaskEmpty,
+
+            /// <summary>쏜 곳에 아무 콜라이더도 없다. 보통 보드 밖을 누른 것이다.</summary>
+            NothingHit,
+
+            /// <summary>맞긴 맞았는데 보드 칸 범위 밖이다.</summary>
+            OutsideBoard,
+        }
+
+        private bool TryRaycastToGrid(out Vector3Int pos, out PickMiss miss)
         {
             pos = default;
-            if (targetCamera == null || board == null) return false;
+            miss = PickMiss.None;
+
+            if (targetCamera == null || board == null)
+            {
+                miss = PickMiss.NoReference;
+                return false;
+            }
+
+            // 마스크가 비면 Physics.Raycast 는 언제나 빈손으로 돌아온다.
+            // "아무것도 안 맞았다"와 구분해야 한다 — 원인이 전혀 다르다.
+            if (boardLayerMask.value == 0)
+            {
+                miss = PickMiss.MaskEmpty;
+                return false;
+            }
 
             var ray = targetCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (!Physics.Raycast(ray, out var hit, 100f, boardLayerMask)) return false;
+
+            if (!Physics.Raycast(ray, out var hit, 100f, boardLayerMask))
+            {
+                miss = PickMiss.NothingHit;
+                return false;
+            }
 
             pos = board.WorldToGrid(hit.point);
-            return board.IsInside(pos);
+
+            if (!board.IsInside(pos))
+            {
+                miss = PickMiss.OutsideBoard;
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 못 집은 이유를 콘솔에 남긴다.
+        ///
+        /// 마스크가 빈 것만은 진단을 안 켜도 경고한다. 그건 조작 실수가 아니라
+        /// **보드가 잠긴 채 남은 상태**다 — SetBoardActive(false) 를 풀어줄 쪽이
+        /// 안 불렸다는 뜻이고, 이렇게 되면 어떤 칸을 눌러도 영영 안 놓인다.
+        ///
+        /// 같은 배치 동안 한 번만 낸다. Update 에서 부르는 자리라 매 클릭마다
+        /// 내면 콘솔이 덮인다.
+        /// </summary>
+        private void ReportMiss(PickMiss miss)
+        {
+            if (miss == _reportedMiss) return;
+
+            _reportedMiss = miss;
+
+            switch (miss)
+            {
+                case PickMiss.MaskEmpty:
+                    Debug.LogWarning(
+                        $"[{name}] 보드 레이어 마스크가 비어 있어 칸을 누를 수 없습니다. " +
+                        (_boardBlocked
+                            ? "유언 창 같은 것이 보드를 막아둔 뒤 풀지 않았습니다 — " +
+                              "SetBoardActive(true) 가 불리지 않았습니다."
+                            : "인스펙터의 Board Layer Mask 가 비어 있습니다."),
+                        this);
+                    return;
+
+                case PickMiss.NoReference:
+                    Debug.LogWarning(
+                        $"[{name}] 카메라 또는 보드가 연결되지 않아 칸을 누를 수 없습니다.", this);
+                    return;
+
+                default:
+                    if (logPlacement)
+                        Debug.Log($"[{name}] 칸을 집지 못했습니다 — {miss}", this);
+                    return;
+            }
         }
 
         private Vector3Int? FindNextAvailableSlot(LDY_Team team)

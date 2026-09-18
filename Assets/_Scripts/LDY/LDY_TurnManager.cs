@@ -1,4 +1,5 @@
 using System.Collections;
+using _Scripts.LDY.Stage;
 using _Scripts.LSO.Manager;
 using UnityEngine;
 
@@ -11,10 +12,27 @@ namespace _Scripts.LDY
         [SerializeField] private LDY_AttackSystem attackSystem;
         [SerializeField] private LDY_ActionPointManager actionPoints;
 
+        [Tooltip("판이 새로 세워질 때 턴을 처음부터 시작하려고 본다. 비워두면 씬에서 찾는다.\n" +
+                 "\n" +
+                 "이게 없으면 다음 스테이지에서 손패와 코스트가 빈 채로 시작하고,\n" +
+                 "턴을 한 번 넘겨야 그제야 채워진다.")]
+        [SerializeField] private LDY_StageDirector stageDirector;
+
         [Header("자동 턴 종료")]
         [Tooltip("켜면 행동력이 0이 되는 순간 턴이 저절로 넘어간다.\n" +
                  "기본은 꺼둔다 — 기획서상 코스트를 다 써도 직접 버튼을 눌러 끝내야 한다.")]
         [SerializeField] private bool autoEndTurn;
+
+        [Header("멈춤 방지")]
+        [Tooltip("적 턴이 끝난 뒤 전투 연출이 끝나기를 기다리는 상한(초).\n" +
+                 "\n" +
+                 "연출 카운트가 새면 이 대기가 영원히 돌아 턴이 플레이어에게 돌아오지 않는다.\n" +
+                 "영영 멈추는 쪽이 연출이 잘리는 쪽보다 나쁘므로 상한을 둔다.")]
+        [SerializeField, Min(0.5f)] private float animationWaitTimeout = 5f;
+
+        [Tooltip("켜면 연출 때문에 턴을 못 넘길 때 누가 붙잡고 있는지 콘솔에 찍는다.\n" +
+                 "\"버튼이 안 먹는다\"를 쫓을 때 켠다.")]
+        [SerializeField] private bool logBlockers;
 
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
@@ -28,6 +46,9 @@ namespace _Scripts.LDY
         }
 
         private bool _isProcessingTurn;
+
+        /// <summary>적 턴 코루틴. 판이 새로 세워질 때 끊으려고 들고 있는다.</summary>
+        private Coroutine _enemyRoutine;
         
         private void Awake()
         {
@@ -36,13 +57,122 @@ namespace _Scripts.LDY
 
         private void OnDestroy()
         {
+            if (stageDirector != null)
+                stageDirector.OnStageLoaded -= HandleStageLoaded;
+
             if (GameManager.HasInstance)
                 GameManager.Instance.UnregisterTurnManager(this);
         }
 
         private void Start()
         {
-            actionPoints.ResetPoints();
+            BeginPlayerTurn();
+        }
+
+        /// <summary>
+        /// 판이 새로 세워지는 것을 듣는다.
+        ///
+        /// 씬을 넘기지 않고 같은 화면에서 다음 스테이지를 세우므로 Start가 다시 돌지 않는다.
+        /// 그래서 아무도 "이제 플레이어 턴이다"를 말해주지 않는다.
+        ///
+        /// ── 왜 한 번만 찾으면 안 되나 ─────────────────────────────
+        /// 예전에는 Start에서 한 번 FindAnyObjectByType으로 찾고 끝이었다.
+        ///
+        /// Start는 오브젝트마다 순서가 정해져 있지 않고, 그 함수는 **꺼져 있는
+        /// 오브젝트를 못 찾는다.** 그래서 씬을 다시 켜거나 로딩 순서가 조금
+        /// 달라지면 잡히기도 하고 안 잡히기도 했다 — 다음 판에서 턴이 시작되지
+        /// 않는 일이 간헐적으로 나던 것이 이것이다.
+        ///
+        /// 지금은 못 찾으면 계속 다시 찾는다. 인스펙터에 꽂혀 있으면 첫 판에
+        /// 바로 붙고 그 뒤로는 아무 일도 하지 않는다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
+        private void OnEnable()
+        {
+            TrySubscribeStageDirector();
+        }
+
+        private void OnDisable()
+        {
+            if (stageDirector != null)
+                stageDirector.OnStageLoaded -= HandleStageLoaded;
+
+            _subscribedToDirector = false;
+        }
+
+        /// <summary>이미 붙었는지. 붙은 뒤로는 찾지 않는다.</summary>
+        private bool _subscribedToDirector;
+
+        /// <summary>못 찾았다고 이미 알렸는지. 매 프레임 내면 콘솔이 덮인다.</summary>
+        private bool _warnedMissingDirector;
+
+        /// <summary>찾기를 시작한 때. 한참 못 찾으면 그때 한 번 알린다.</summary>
+        private float _searchStartedAt = -1f;
+
+        private void TrySubscribeStageDirector()
+        {
+            if (_subscribedToDirector) return;
+
+            if (stageDirector == null) stageDirector = FindAnyObjectByType<LDY_StageDirector>();
+
+            if (stageDirector == null)
+            {
+                if (_searchStartedAt < 0f) _searchStartedAt = Time.unscaledTime;
+
+                // 몇 초가 지나도 없으면 배선이 빠진 것이다. 그때 한 번만 알린다.
+                // 곧바로 알리면 아직 켜지지 않았을 뿐인 경우에도 경고가 나간다.
+                if (!_warnedMissingDirector && Time.unscaledTime - _searchStartedAt > 3f)
+                {
+                    _warnedMissingDirector = true;
+
+                    Debug.LogWarning(
+                        $"{name}: LDY_StageDirector를 찾지 못해 다음 스테이지에서 턴을 새로 시작하지 못합니다. " +
+                        "턴을 한 번 넘겨야 덱과 코스트가 채워집니다. " +
+                        "인스펙터의 Stage Director 칸에 직접 꽂아주세요.", this);
+                }
+
+                return;
+            }
+
+            stageDirector.OnStageLoaded -= HandleStageLoaded;
+            stageDirector.OnStageLoaded += HandleStageLoaded;
+
+            _subscribedToDirector = true;
+        }
+
+        private void HandleStageLoaded(LDY_StageSO stage)
+        {
+            BeginPlayerTurn();
+        }
+
+        /// <summary>
+        /// 플레이어 턴을 처음부터 시작한다. 게임을 켤 때와 판이 새로 세워질 때 부른다.
+        ///
+        /// ── OnTurnChanged 를 반드시 다시 쏘아야 한다 ───────────────
+        /// 덱(KTH_DeckManager)과 코스트(DLJ_CostSystem)는 이 신호를 듣고 채워진다.
+        /// 안 쏘면 판은 세워졌는데 손패도 코스트도 비어 있고, 턴을 한 번 넘겨야
+        /// 그제야 게임이 시작되는 것처럼 보인다.
+        ///
+        /// 값이 이미 Player 라도 쏜다. "바뀌었다"가 아니라 "이제 시작한다"는 뜻이다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 지난 판의 적 턴이 돌던 중일 수도 있으므로 그것부터 끊는다.
+        /// </summary>
+        public void BeginPlayerTurn()
+        {
+            // 지난 판의 적 턴이 아직 돌고 있으면 끊는다. StopAllCoroutines를 쓰지 않는 것은
+            // 나중에 이 오브젝트에 다른 코루틴이 생겼을 때 같이 끊기기 때문이다.
+            if (_enemyRoutine != null)
+            {
+                StopCoroutine(_enemyRoutine);
+                _enemyRoutine = null;
+            }
+
+            _isProcessingTurn = false;
+            CurrentTurn = LDY_Team.Player;
+
+            if (actionPoints != null) actionPoints.ResetPoints();
+
             OnTurnChanged?.Invoke(CurrentTurn);
         }
 
@@ -60,6 +190,9 @@ namespace _Scripts.LDY
         /// </summary>
         private void Update()
         {
+            // 아직 못 붙었으면 계속 찾는다. 붙은 뒤로는 첫 줄에서 곧바로 돌아선다.
+            TrySubscribeStageDirector();
+
             if (!autoEndTurn) return;
             if (actionPoints == null || actionPoints.HasActionPoints) return;
             if (!CanEndPlayerTurn()) return;
@@ -114,26 +247,93 @@ namespace _Scripts.LDY
         /// </summary>
         public void EndPlayerTurn()
         {
-            if (!CanEndPlayerTurn()) return;
+            if (!CanEndPlayerTurn())
+            {
+                // 누를 때만 찍는다. CanEndPlayerTurn 은 버튼을 회색으로 만들려고
+                // 매 프레임 불릴 수 있어서 그쪽에 두면 콘솔이 덮인다.
+                if (logBlockers)
+                {
+                    Debug.Log(
+                        $"[{name}] 턴을 넘기지 않았습니다 — " +
+                        $"처리 중 {_isProcessingTurn}, 지금 턴 {CurrentTurn}, 연출 {DescribeBlockers()}",
+                        this);
+                }
+
+                return;
+            }
 
             _isProcessingTurn = true;
             CurrentTurn = LDY_Team.Enemy;
             actionPoints.ResetPoints();
             OnTurnChanged?.Invoke(CurrentTurn);
-            StartCoroutine(RunEnemyTurnRoutine());
+            _enemyRoutine = StartCoroutine(RunEnemyTurnRoutine());
         }
 
         private IEnumerator RunEnemyTurnRoutine()
         {
-            yield return StartCoroutine(enemyAI.RunEnemyTurnCoroutine());
-            
-            while (IsAnimating())
-                yield return null;
+            // try/finally 로 감싼다. 적 AI 가 도중에 터져도 _isProcessingTurn 이 켜진 채
+            // 남으면 턴이 영영 플레이어에게 돌아오지 않는다.
+            try
+            {
+                yield return StartCoroutine(enemyAI.RunEnemyTurnCoroutine());
 
-            CurrentTurn = LDY_Team.Player;
-            actionPoints.ResetPoints();
-            OnTurnChanged?.Invoke(CurrentTurn);
-            _isProcessingTurn = false;
+                yield return WaitForAnimations();
+            }
+            finally
+            {
+                _enemyRoutine = null;
+                CurrentTurn = LDY_Team.Player;
+                actionPoints.ResetPoints();
+                OnTurnChanged?.Invoke(CurrentTurn);
+                _isProcessingTurn = false;
+            }
+        }
+
+        /// <summary>
+        /// 전투 연출이 끝나기를 기다린다. 상한을 두는 이유는
+        /// **영영 멈추는 쪽이 연출이 잘리는 쪽보다 나쁘기 때문이다.**
+        ///
+        /// 상한에 걸렸다는 것은 어딘가에서 연출 카운트를 놓지 않았다는 뜻이므로,
+        /// 넘어가되 누가 붙잡고 있었는지 반드시 남긴다.
+        /// </summary>
+        private IEnumerator WaitForAnimations()
+        {
+            float deadline = Time.unscaledTime + animationWaitTimeout;
+
+            while (IsAnimating())
+            {
+                if (Time.unscaledTime >= deadline)
+                {
+                    Debug.LogWarning(
+                        $"{name}: 전투 연출이 {animationWaitTimeout:0.#}초 안에 끝나지 않아 " +
+                        $"기다리지 않고 턴을 넘깁니다. 붙잡고 있는 것 — {DescribeBlockers()}", this);
+
+                    yield break;
+                }
+
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// 지금 무엇이 연출 중인지 사람이 읽을 수 있게 적는다.
+        ///
+        /// 셋 중 어느 것이 붙잡고 있는지 밖에서는 알 방법이 없다.
+        /// "턴이 안 넘어간다"만 보이고 원인은 안 보이는 상황을 없애려고 연다.
+        /// </summary>
+        public string DescribeBlockers()
+        {
+            if (!IsAnimating()) return "없음";
+
+            var parts = new System.Collections.Generic.List<string>();
+
+            if (moveSystem != null && moveSystem.IsBusy) parts.Add("이동");
+            if (attackSystem != null && attackSystem.IsBusy) parts.Add("공격");
+
+            if (LDY_DissolveEffect.ActiveCount > 0)
+                parts.Add($"디졸브 {LDY_DissolveEffect.ActiveCount}개");
+
+            return parts.Count > 0 ? string.Join(", ", parts) : "알 수 없음";
         }
     }
 }

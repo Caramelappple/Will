@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Snake
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: Snake
-  description: "\uC804\uC7A5\uC744 \uAE30\uC5B4 \uB2E4\uB2C8\uBA70 \uBA39\uC787\uAC10\uC744
-    \uB178\uB9AC\uB294 \uBC40\uC785\uB2C8\uB2E4."
+  animalName: "\uBC40"
+  description: "\uC870\uC6A9\uD788 \uBAB8\uC744 \uAC10\uACE0 \uAE30\uB2E4\uB9AC\uB294 \uBC40\uC785\uB2C8\uB2E4. \uD2B9\uBCC4\uD55C \uC7AC\uC8FC\uB294 \uC5C6\uC9C0\uB9CC \uAC12\uC5D0 \uBE44\uD574 \uB2E8\uB2E8\uD569\uB2C8\uB2E4."
   maxHealth: 3
   damage: 2
   cost: 2
-  playerHealthPoints: 0
+  playerHealthPoints: 4
   moveRange: 1
   range: 0
   abilities: 

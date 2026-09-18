@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73ca3c8f4db53fe429469ca8d6a5e900, type: 3}
+  m_Name: LSO_Chapter4
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
+  chapter: 4
+  regionName: "\uAE4C\uB9C8\uADC0\uC655\uC758 \uD3D0\uD5C8"
+  stages:
+  - {fileID: 11400000, guid: 93c75df3d3f3477ea0300d0b5290e44c, type: 2}
+  - {fileID: 11400000, guid: 0750b554815c45fdbf86bdadc6342280, type: 2}
+  - {fileID: 11400000, guid: 87012e442edb49559fb561dfcc20f9f1, type: 2}
+  - {fileID: 11400000, guid: 54518dab90de417c8a823ead355a763a, type: 2}
+  - {fileID: 11400000, guid: 44c612f94a8645e5a77015fbc88ced91, type: 2}
+  - {fileID: 11400000, guid: 462f47f99269482a956d2d5547384263, type: 2}
