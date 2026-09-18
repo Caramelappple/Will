@@ -104,9 +104,17 @@ namespace _Scripts.LSO.UI.Input
             bool turnOk = !alsoRequireTurn || turnManager == null || turnManager.CurrentTurn == allowedTeam;
             bool open = teamOk && turnOk;
 
-            // 값이 그대로면 건드리지 않는다. 매 프레임 껐다 켜면
-            // 호버 핸들러의 OnDisable이 돌아 다른 것들이 함께 반응한다.
-            if (_handler.enabled != open) _handler.enabled = open;
+            // ── 컴포넌트를 끄지 않고 문만 닫는다 ─────────────────────
+            // 예전에는 _handler.enabled 를 껐다 켰다. 끄면 이탈이 나가지만,
+            // 다시 켤 때 **유니티가 진입을 다시 보내주지 않는다.**
+            //
+            // 그래서 턴이 바뀐 뒤 커서를 기물 위에 둔 채로 있으면 호버가 죽은
+            // 채로 남고, 커서를 뺐다 넣어야 살아났다.
+            //
+            // 문만 닫으면 핸들러가 커서 위치를 계속 따라가므로, 다시 열릴 때
+            // 그 자리에서 곧바로 떠오른다. 값이 그대로면 아무 일도 하지 않는다.
+            // ─────────────────────────────────────────────────────────
+            _handler.SetGateOpen(open);
         }
     }
 }

@@ -130,9 +130,10 @@ namespace _Scripts.LDY
 
         /// <summary>
         /// onComplete는 공격 연출이 완전히 끝난 뒤(성공하든 검증에 막히든) 반드시 호출된다.
-        /// 호출자가 공격 전에 호버를 뜬 채로 남겨뒀다면(Deselect의 lowerHover: false 등),
-        /// 그 자리를 내려놓는 책임은 이 콜백을 받는 쪽에 있다 — 여기서 실패해도 안 부르면
-        /// 기물이 영영 뜬 채로 남는다.
+        /// 뒤처리를 여기에 맡기는 쪽이 있으므로, 실패했다고 안 부르면 그 뒤처리가 영영 안 돈다.
+        ///
+        /// 지금 부르는 곳들은 콜백을 쓰지 않는다. 선택도 호버도 공격 뒤까지 유지되므로
+        /// 내려놓을 것이 없다(LDY_SelectionController).
         /// </summary>
         public void Attack(LDY_Animal attacker, LDY_Animal target, Action onComplete = null)
         {

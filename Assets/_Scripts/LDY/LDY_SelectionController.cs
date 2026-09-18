@@ -10,7 +10,8 @@ namespace _Scripts.LDY
     // boardLayerMask에는 타일(바닥) 콜라이더가 속한 레이어를 지정할 것.
     // targetCamera를 비워두면 Camera.main을 사용한다.
     // 프로젝트의 Active Input Handling이 New Input System 전용이므로 UnityEngine.InputSystem을 사용한다.
-    // 조작: 좌클릭 = 내 기물 선택/공격, 우클릭 = 선택된 기물 이동.
+    // 조작: 좌클릭 = 내 기물 선택/공격, 우클릭 = 갈 수 있는 칸이면 이동 · 그 밖이면 선택 해제.
+    //       이동하거나 공격해도 선택은 유지된다. 행동력이 남아 있으면 이어서 또 시킬 수 있다.
     public class LDY_SelectionController : MonoBehaviour
     {
         [SerializeField] private LDY_BoardManager board;
@@ -24,6 +25,12 @@ namespace _Scripts.LDY
 
         /// <summary>지금 선택된 기물. 선택된 것이 없으면 null.</summary>
         public LDY_Animal Selected { get; private set; }
+
+        /// <summary>
+        /// 고른 기물이 행동 중이라 칸 표시를 내려둔 상태인지.
+        /// 연출이 끝나면 다시 그려야 한다는 뜻이다.
+        /// </summary>
+        private bool _refreshHighlightsAfterAction;
 
         /// <summary>
         /// 내 기물 선택이 바뀔 때마다 발생한다. 선택되면 그 기물이, 해제되면 null이 넘어온다.
@@ -82,6 +89,10 @@ namespace _Scripts.LDY
 
         private void Update()
         {
+            // 클릭을 보기 전에 한다. 입력이 없어도 연출은 끝나야 하고,
+            // 아래 조기 반환들에 걸려 영영 안 돌면 칸 표시가 사라진 채로 남는다.
+            SyncSelectionWithAction();
+
             if (Mouse.current == null) return;
 
             // 계승 대기 중에는 좌클릭이 계승 대상 선택으로만 쓰이고, 그 외 조작은 전부 막힌다.
@@ -106,13 +117,16 @@ namespace _Scripts.LDY
             bool leftClicked = Mouse.current.leftButton.wasPressedThisFrame;
             bool rightClicked = Mouse.current.rightButton.wasPressedThisFrame;
             if (!leftClicked && !rightClicked) return;
-            if (!TryRaycastToGrid(out var gridPos)) return;
 
+            // 우클릭은 판 밖에서도 받는다. 아래 레이캐스트에 막히면 판을 벗어나 누른 것이
+            // 아무 일도 안 하게 되는데, 선택을 푸는 데는 그곳이 가장 자연스러운 자리다.
             if (rightClicked)
             {
-                HandleMoveClick(gridPos);
+                HandleRightClick();
                 return;
             }
+
+            if (!TryRaycastToGrid(out var gridPos)) return;
 
             LDY_Animal clickedAnimal = board.Get(gridPos);
             OnAnimalClicked?.Invoke(clickedAnimal);
@@ -128,14 +142,35 @@ namespace _Scripts.LDY
             DLJ_SuccessionSystem.TrySelectSuccessionTarget(board.Get(gridPos));
         }
 
-        private void HandleMoveClick(Vector3Int gridPos)
+        /// <summary>
+        /// 우클릭 하나가 두 가지를 한다.
+        ///
+        ///     갈 수 있는 칸을 눌렀다   → 그리로 간다
+        ///     그 밖의 아무 데나 눌렀다 → 선택을 푼다
+        ///
+        /// 판 밖도 "그 밖"이다. 무르는 동작을 따로 외우지 않아도 되도록,
+        /// 이동이 아닌 우클릭은 전부 무르기로 읽는다.
+        ///
+        /// 연출 중에는 둘 다 하지 않는다. 논리 좌표가 이미 목적지로 바뀌어 있어서
+        /// 지금 자리를 기준으로 판단하면 엉뚱한 칸을 고르게 된다.
+        /// </summary>
+        private void HandleRightClick()
         {
-            if (Selected == null || IsActing(Selected)) return;
-            if (!moveSystem.GetMovableTiles(Selected).Contains(gridPos)) return;
+            if (Selected == null) return;
+            if (IsActing(Selected)) return;
 
-            LDY_Animal movingAnimal = Selected;
+            if (TryRaycastToGrid(out Vector3Int gridPos) &&
+                moveSystem.GetMovableTiles(Selected).Contains(gridPos))
+            {
+                LDY_Animal movingAnimal = Selected;
+
+                BeginAction();
+
+                moveSystem.MoveTo(movingAnimal, gridPos);
+                return;
+            }
+
             Deselect();
-            moveSystem.MoveTo(movingAnimal, gridPos);
         }
 
         private void HandleSelectOrAttackClick(LDY_Animal occupant)
@@ -169,10 +204,12 @@ namespace _Scripts.LDY
             if (occupant != null && attackSystem.GetAttackTargets(Selected).Contains(occupant))
             {
                 LDY_Animal attacker = Selected;
-                // 공격은 뜬 상태에서 그대로 재생돼야 하므로("공격할때는 떠있는 상태에서 포물선으로"),
-                // 선택은 지금 풀되 호버는 내리지 않는다. 내리는 건 공격 연출이 끝난 뒤 콜백에서 한다.
-                Deselect(lowerHover: false);
-                attackSystem.Attack(attacker, occupant, () => SetSelectedHover(attacker, false));
+
+                // 공격은 뜬 상태에서 그대로 재생된다. 선택이 유지되므로 호버도 뜬 채로
+                // 남고, 따로 내려놓을 콜백이 필요 없다 — 내리는 것은 선택을 풀 때다.
+                BeginAction();
+
+                attackSystem.Attack(attacker, occupant);
                 return;
             }
 
@@ -206,22 +243,89 @@ namespace _Scripts.LDY
             SetSelectedHover(Selected, false);
             Selected = animal;
             SetSelectedHover(Selected, true);
-            highlighter.ClearHighlights(this);
-            highlighter.ShowMoveHighlights(this, moveSystem.GetMovableTiles(animal));
-            highlighter.ShowAttackHighlights(this, attackSystem.GetAttackableTiles(animal));
+
+            _refreshHighlightsAfterAction = false;
+
+            ShowHighlightsFor(animal);
+
             OnSelectionChanged?.Invoke(animal);
         }
 
         /// <summary>
-        /// lowerHover를 false로 주면 선택은 풀되 호버는 뜬 채로 남겨둔다.
-        /// 공격처럼 뜬 상태에서 이어서 연출을 재생해야 할 때 쓴다 — 그 경우 호출한 쪽이
-        /// 연출이 끝난 뒤 SetSelectedHover(animal, false)로 직접 내려놓아야 한다.
+        /// 이 기물이 갈 수 있는 칸과 때릴 수 있는 칸을 그린다.
+        ///
+        /// 고를 때와 행동이 끝났을 때 둘 다 여기를 지난다. 두 곳에서 따로 그리면
+        /// 한쪽만 고쳤을 때 "고르면 보이는데 움직이고 나면 안 보이는" 식으로 갈린다.
         /// </summary>
-        private void Deselect(bool lowerHover = true)
+        private void ShowHighlightsFor(LDY_Animal animal)
+        {
+            if (highlighter == null || animal == null) return;
+
+            highlighter.ClearHighlights(this);
+            highlighter.ShowMoveHighlights(this, moveSystem.GetMovableTiles(animal));
+            highlighter.ShowAttackHighlights(this, attackSystem.GetAttackableTiles(animal));
+        }
+
+        /// <summary>
+        /// 고른 기물이 움직이거나 때리기 시작했다.
+        ///
+        /// **선택은 풀지 않는다.** 행동력이 남아 있으면 이어서 또 시킬 수 있어야 하는데,
+        /// 매번 다시 고르게 하면 한 기물을 두 번 쓰는 것이 두 배로 번거롭다.
+        ///
+        /// 대신 칸 표시는 지금 지운다. 자리가 곧 바뀌므로 지금 그려진 칸은 곧 거짓말이 된다.
+        /// 다시 그리는 것은 연출이 끝난 뒤다(SyncSelectionWithAction).
+        /// </summary>
+        private void BeginAction()
+        {
+            _refreshHighlightsAfterAction = true;
+
+            if (highlighter != null) highlighter.ClearHighlights(this);
+        }
+
+        /// <summary>
+        /// 행동이 끝났으면 칸 표시를 다시 그린다. 그 사이에 죽었으면 선택을 푼다.
+        ///
+        /// 연출이 끝나는 것을 알려주는 신호가 없어 매 프레임 물어본다. 두 시스템에
+        /// 완료 콜백을 새로 내는 것보다, 이미 있는 IsActing 하나만 보는 편이 낫다 —
+        /// 끝났는지 판단하는 곳이 늘지 않는다.
+        /// </summary>
+        private void SyncSelectionWithAction()
+        {
+            if (!_refreshHighlightsAfterAction) return;
+
+            // 반격이나 가시에 맞아 죽으면 오브젝트가 파괴된다. 유니티에서는 null로 읽힌다.
+            // Deselect는 이 경우 "원래 없었다"로 보고 아무에게도 안 알리므로 여기서 직접 알린다.
+            if (Selected == null)
+            {
+                _refreshHighlightsAfterAction = false;
+
+                if (highlighter != null) highlighter.ClearHighlights(this);
+
+                OnSelectionChanged?.Invoke(null);
+                return;
+            }
+
+            if (IsActing(Selected)) return;
+
+            _refreshHighlightsAfterAction = false;
+
+            ShowHighlightsFor(Selected);
+        }
+
+        /// <summary>
+        /// 선택을 푼다. 호버도 같이 내린다.
+        ///
+        /// 예전에는 호버를 남겨두는 길이 따로 있었다. 공격할 때 선택을 먼저 풀면서도
+        /// 기물은 뜬 채로 연출해야 했기 때문이다. 이제 공격해도 선택이 유지되므로
+        /// 그 길은 쓰이지 않아 없앴다 — 내리는 시점은 여기 하나다.
+        /// </summary>
+        private void Deselect()
         {
             bool hadSelection = Selected != null;
 
-            if (lowerHover) SetSelectedHover(Selected, false);
+            _refreshHighlightsAfterAction = false;
+
+            SetSelectedHover(Selected, false);
             Selected = null;
             if (highlighter != null) highlighter.ClearHighlights(this);
 

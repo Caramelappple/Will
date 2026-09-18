@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Hedgehog-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 6542625bdd8444fc8558a878c2767c78, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 57f8df277fdefe7418a3996a284ffa30, type: 3}

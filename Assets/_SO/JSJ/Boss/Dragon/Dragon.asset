@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Dragon
   m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
-  animalName: Dragon
+  animalName: "\uB4DC\uB798\uACE4"
   description: 
   maxHealth: 7
   damage: 3
   cost: 3
-  playerHealthPoints: 0
+  playerHealthPoints: 7
   moveRange: 1
   range: 1
   abilities: 0c000000

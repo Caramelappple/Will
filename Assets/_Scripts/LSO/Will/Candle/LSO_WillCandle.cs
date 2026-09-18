@@ -46,6 +46,20 @@ namespace _Scripts.LSO.Will.Candle
                  "'유언 없음'이 마지막 번호다.")]
         [SerializeField] private bool useNumberKeys = true;
 
+        [Tooltip("켜면 마우스 휠로도 넘길 수 있다. 끝에서는 반대쪽 끝으로 돌아온다.\n" +
+                 "\n" +
+                 "숫자키와 같은 목록을 같은 순서로 넘긴다 — 고르는 방법만 둘이다.")]
+        [SerializeField] private bool useScrollWheel = true;
+
+        [Tooltip("휠을 올렸을 때 앞으로 갈지. 끄면 반대로 간다.")]
+        [SerializeField] private bool scrollUpGoesBack = true;
+
+        [Tooltip("이만큼 넘게 굴려야 한 칸 넘어간다.\n" +
+                 "\n" +
+                 "휠은 한 칸에 보통 120 을 낸다. 터치패드는 작은 값을 잘게 흘리므로\n" +
+                 "0 에 가깝게 두면 한 번 쓸어도 여러 칸이 넘어간다.")]
+        [SerializeField, Min(1f)] private float scrollThreshold = 10f;
+
         // 양초를 누르는 것은 "색 넘기기"가 아니라 "고른 카드에 불을 대기"다.
         // 그쪽은 LSO_WillPainter 가 맡는다 — 같은 오브젝트에 붙여두면 된다.
         // 색은 숫자키 전담이다.
@@ -234,12 +248,40 @@ namespace _Scripts.LSO.Will.Candle
         /// <summary>다음 색으로 넘긴다. 끝에서는 처음으로 돌아온다.</summary>
         public void Next()
         {
+            Step(1);
+        }
+
+        /// <summary>앞 색으로 돌아간다. 처음에서는 끝으로 돌아온다.</summary>
+        public void Previous()
+        {
+            Step(-1);
+        }
+
+        /// <summary>
+        /// 목록을 한 칸 옮긴다. 양쪽 끝에서 돌아온다.
+        ///
+        /// 돌리는 계산은 여기 하나다. Next 와 Previous 가 각자 나머지 연산을 쓰면
+        /// 음수 쪽을 한 번 빠뜨렸을 때 -1 이 되어 Current 가 조용히 None 을 낸다.
+        /// </summary>
+        private void Step(int delta)
+        {
             if (_wills.Count == 0) return;
 
-            SelectAt((_index + 1) % _wills.Count);
+            int count = _wills.Count;
+            int next = ((_index + delta) % count + count) % count;
+
+            SelectAt(next);
         }
 
         private void Update()
+        {
+            // 고르는 방법이 둘이지만 고르는 목록은 하나다.
+            // 둘 다 SelectAt · Step 을 거치므로 자리를 정하는 곳은 여전히 한 곳이다.
+            ReadNumberKeys();
+            ReadScrollWheel();
+        }
+
+        private void ReadNumberKeys()
         {
             if (!useNumberKeys || Keyboard.current == null) return;
 
@@ -258,6 +300,29 @@ namespace _Scripts.LSO.Will.Candle
                 SelectAt(i);
                 return;
             }
+        }
+
+        /// <summary>
+        /// 휠을 굴린 만큼 목록을 넘긴다.
+        ///
+        /// 한 프레임의 값만 보고 한 칸만 넘긴다. 쌓아두었다가 몰아서 넘기면
+        /// 빠르게 굴렸을 때 손을 멈춘 뒤에도 색이 계속 바뀐다.
+        /// </summary>
+        private void ReadScrollWheel()
+        {
+            if (!useScrollWheel || Mouse.current == null) return;
+
+            float scroll = Mouse.current.scroll.ReadValue().y;
+
+            if (Mathf.Abs(scroll) < scrollThreshold) return;
+
+            bool up = scroll > 0f;
+            int delta = up == scrollUpGoesBack ? -1 : 1;
+
+            Step(delta);
+
+            if (logSteps)
+                Debug.Log($"[{name}] 휠 {(up ? "위" : "아래")} → {Current}", this);
         }
 
         /// <summary>지금 자리를 화면과 바깥에 반영한다.</summary>

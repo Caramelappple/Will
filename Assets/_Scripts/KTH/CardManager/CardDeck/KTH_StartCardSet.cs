@@ -147,9 +147,34 @@ public class KTH_StartCardSet : MonoBehaviour
             // 내 턴이 끝났다. 남은 카드를 버린다.
             if (KTH_HandCardLayout.Instance == null) return;
 
+            // 고른 카드를 먼저 내려놓는다.
+            //
+            // 배치까지 간 카드는 LDY_CardPlacer 가 물리면서 내려가지만, 골라서
+            // 올라와 있기만 한 카드는 아무도 안 내려놓는다. 그대로 버리면
+            // 올라온 자리에서 곧장 버림 더미로 날아가 움직임이 튄다.
+            KTH_HandCardLayout.Instance.DeselectAll();
+
             Log($"내 턴 종료 — 손패 {KTH_HandCardLayout.Instance.HandCount}장을 버립니다.");
 
             KTH_HandCardLayout.Instance.DiscardHand(discardPile);
+            return;
+        }
+
+        // ── 판이 이미 끝났으면 뽑지 않는다 ────────────────────────
+        // 일반적인 클리어는 내 턴에 일어난다. 마지막 적을 내가 잡으니 턴이
+        // 바뀌지 않고, 그래서 여기가 불리지도 않았다.
+        //
+        // 그런데 적이 마지막 아군을 잡으면서 같이 죽는 판은 다르다.
+        // 적 턴이 끝나며 내 턴 신호가 오고, 클리어 연출(판 회전·보상)은 아직
+        // 돌고 있다. 그 사이에 여기가 카드를 한 벌 뽑아 덱을 축낸다 —
+        // 보상을 받기도 전에 카드가 나가는 것처럼 보이던 것이 이것이다.
+        //
+        // 끝났는지는 KTH_GameEndManager 에게만 묻는다. 여기서 적 수를 세거나
+        // 양초를 보면 판정하는 곳이 둘이 되어 언젠가 서로 다른 말을 한다.
+        // ─────────────────────────────────────────────────────────
+        if (KTH_GameEndManager.IsBattleOver)
+        {
+            Log("전투가 이미 끝나 뽑지 않습니다.");
             return;
         }
 

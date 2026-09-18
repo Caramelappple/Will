@@ -207,6 +207,22 @@ namespace _Scripts.LSO.Will.Candle
                 return false;
             }
 
+            // ── 빈 초를 들고 있으면 아무 일도 하지 않는다 ─────────────
+            // '유언 없음'은 고를 수 있는 값이지만 **붙이는 값은 아니다.**
+            //
+            // 예전에는 그대로 붙어서 카드가 "유언 없음을 새긴 상태"가 됐다.
+            // 그러면 oncePerCardPerBattle 이 한 번을 써버려 이번 전투에는
+            // 진짜 유언을 못 붙인다 — 실수로 한 번 누른 것이 판을 망친다.
+            //
+            // 지우는 길도 아니다. 이미 붙은 것을 빼려면 따로 만들어야 한다.
+            // 여기서는 누른 적이 없는 것처럼 조용히 돌아선다.
+            // ─────────────────────────────────────────────────────────
+            if (candle.Current == LSO_WillType.None)
+            {
+                Log("빈 초다 — 붙일 것이 없어 넘어간다");
+                return false;
+            }
+
             GameObject card = Target != null ? Target : FindSelectedCard();
 
             if (card == null)
