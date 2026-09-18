@@ -18,7 +18,7 @@ MonoBehaviour:
   maxHealth: 2
   damage: 1
   cost: 1
-  playerHealthPoints: 20
+  playerHealthPoints: 2
   moveRange: 1
   range: 1
   abilities: 
