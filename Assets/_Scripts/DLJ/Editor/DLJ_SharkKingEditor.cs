@@ -16,6 +16,7 @@ public sealed class DLJ_SharkKingEditor : Editor
         EditorGUILayout.LabelField("물보라 모양 · 양 조절", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterCrownHeight"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterPoolRadius"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterFallScale"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterParticleCount"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterJetCount"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterExtraBurstRatio"));
@@ -28,7 +29,7 @@ public sealed class DLJ_SharkKingEditor : Editor
         EditorGUILayout.LabelField("상어왕 이펙트 미리보기", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
             "Play 모드에서 아래 버튼을 누르면 지정한 보드 칸에 즉시 재생해. 다시 누르면 처음부터 재생해. " +
-            "실제 피해·턴·AP에는 영향이 없고 카메라 흔들림은 생략해.", MessageType.Info);
+            "실제 피해·턴·AP에는 영향이 없어. 머리부터 수직으로 솟은 뒤 꼬리부터 잠기는 모션이고, 카메라 흔들림은 없어.", MessageType.Info);
 
         if (previewBoard == null && Application.isPlaying)
             previewBoard = FindFirstObjectByType<LDY_BoardManager>();
@@ -57,7 +58,7 @@ public sealed class DLJ_SharkKingEditor : Editor
         EditorGUILayout.Space(12f);
         DrawPropertiesExcluding(serializedObject, "m_Script",
             "attackWaterParticleCount", "attackWaterJetCount", "attackWaterExtraBurstRatio",
-            "attackWaterCrownHeight", "attackWaterPoolRadius");
+            "attackWaterCrownHeight", "attackWaterPoolRadius", "attackWaterFallScale");
         serializedObject.ApplyModifiedProperties();
     }
 

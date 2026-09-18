@@ -84,7 +84,7 @@ namespace _Scripts.LDY.Boss.BullKing
             // 앞이 비어 있거나 판 끝이면 그냥 달린 것이다. 충돌해야 밀어내기가 생긴다.
             if (!line.Collides) return;
 
-            _collision.Resolve(_owner, board, line, rule, _context.Deaths, _boss);
+            _boss.RunCollision(_collision.Resolve(_owner, board, line, rule, _context.Deaths, _boss));
         }
     }
 }

@@ -188,9 +188,9 @@ MonoBehaviour:
   attackSharkPrefab: {fileID: 919132149155446097, guid: 1df21d0bcfb4f6041b3ab71add2ce4a7, type: 3}
   attackCubeSizeRatio: 0.653
   attackCubeRiseHeight: 1
-  attackCubeRiseDuration: 0.2
-  attackCubeHoldDuration: 0.15
-  attackCubeSinkDuration: 0.35
+  attackCubeRiseDuration: 0.75
+  attackCubeHoldDuration: 0.22
+  attackCubeSinkDuration: 0.45
   attackCubeMaterial: {fileID: 0}
   attackWaterMaterial: {fileID: 0}
   attackWaterColor: {r: 0.14, g: 0.78, b: 0.88, a: 0.85}
@@ -199,13 +199,7 @@ MonoBehaviour:
   attackWaterRadiusRatio: 0.18
   attackWaterScale: 1.35
   attackForwardAxis: {x: 0, y: 0, z: 1}
-  attackTravelRatio: 0.35
-  attackLaunchAngle: -30
-  attackBiteAngle: 12
-  attackDiveAngle: 55
-  attackRollAngle: 8
-  attackShakeDuration: 0.18
-  attackShakeStrength: 0.08
+  attackLaunchAngle: -78
   predationMarkPrefab: {fileID: 0}
   predationMarkLocalOffset: {x: 0, y: 1, z: 0}
   predationMarkScale: {x: 0.35, y: 0.35, z: 0.35}

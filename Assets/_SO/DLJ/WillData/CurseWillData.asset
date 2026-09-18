@@ -19,12 +19,12 @@ MonoBehaviour:
     \uBD80\uC5EC\uD568(\uB9E4\uD134 \uD53C\uD574 1)"
   icon: {fileID: -400850087, guid: 27ea174e56072f84097c03da43843b5f, type: 3}
   flameColor: {r: 1, g: 1, b: 1, a: 1}
-  effectPrefab: {fileID: 1407269119762588238, guid: e7ff1679542b8cb488183c3fb772c3c7, type: 3}
+  effectPrefab: {fileID: 6815130443842550441, guid: 51ac3ea255fd01b4ba90edceb35a6453, type: 3}
   cameraHoldDuration: 1.8
   damage: 1
   range: 1
   duration: 2
-  effectScalePerWorldUnit: 0.03111111
   effectHeightOffset: 0.05
   effectFadeInTime: 0.6
+  effectScalePerWorldUnit: 0.03111111
   effectFadeOutTime: 0.75
