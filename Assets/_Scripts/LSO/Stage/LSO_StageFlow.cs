@@ -91,6 +91,9 @@ namespace _Scripts.LSO.Stage
         /// <summary>스테이지를 깼을 때. 인자는 방금 깬 스테이지다.</summary>
         public event Action<LDY_StageSO> StageCleared;
 
+        /// <summary>승리 또는 패배로 현재 전투가 끝났을 때.</summary>
+        public event Action StageEnded;
+
         protected override void Awake()
         {
             base.Awake();
@@ -202,6 +205,7 @@ namespace _Scripts.LSO.Stage
             Log("패배");
 
             _clearing = false;
+            StageEnded?.Invoke();
 
             if (restartOnDefeat && Progression != null)
                 Progression.Restart();
@@ -228,6 +232,7 @@ namespace _Scripts.LSO.Stage
 
             Log($"클리어 — {(cleared != null ? cleared.stageName : "알 수 없음")}");
 
+            StageEnded?.Invoke();
             onStageCleared?.Invoke();
             StageCleared?.Invoke(cleared);
 

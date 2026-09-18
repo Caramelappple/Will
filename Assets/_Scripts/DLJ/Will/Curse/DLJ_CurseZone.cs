@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
+using _Scripts.LDY.Stage;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Stage;
 using UnityEngine;
 
 public class DLJ_CurseZone : MonoBehaviour
@@ -8,12 +10,15 @@ public class DLJ_CurseZone : MonoBehaviour
     private int damage;
     private int range;
     private LDY_TurnManager turnManager;
+    private LDY_StageDirector stageDirector;
+    private LSO_StageFlow stageFlow;
     private LDY_BoardManager board;
     private LDY_AttackSystem attackSystem;
     private LDY_Team sourceTeam;
     private Vector3Int center;
     private GameObject effectInstance;
     private float effectFadeOutTime;
+    private bool expired;
     private readonly HashSet<LDY_Animal> animalsInside = new();
     private readonly HashSet<LDY_Animal> currentAnimalsInside = new();
 
@@ -44,9 +49,19 @@ public class DLJ_CurseZone : MonoBehaviour
         effectInstance = visualInstance;
         effectFadeOutTime = Mathf.Max(0f, data.effectFadeOutTime);
 
+        stageDirector = FindAnyObjectByType<LDY_StageDirector>();
+        if (stageDirector != null)
+            stageDirector.OnStageLoaded += HandleStageLoaded;
+
+        if (LSO_StageFlow.HasInstance)
+        {
+            stageFlow = LSO_StageFlow.Instance;
+            stageFlow.StageEnded += HandleStageEnded;
+        }
+
         turnManager.OnTurnChanged += HandleTurnChanged;
         DamageAnimalsInArea();
-        RecordCurrentOccupants();
+        if (!expired) RecordCurrentOccupants();
     }
 
     private void Update()
@@ -54,19 +69,25 @@ public class DLJ_CurseZone : MonoBehaviour
         // Initialize를 못 받은 저주 지역은 board가 null이라 그대로 두면 매 프레임 터진다.
         // 위쪽 early return이 Destroy를 부르지만 실제 파괴는 프레임 끝으로 미뤄지므로,
         // 그 사이에 Update가 최소 한 번 돈다. 컴포넌트가 코드 밖에서 붙는 경우도 여기서 막힌다.
-        if (board == null) return;
+        if (board == null || expired) return;
 
         DamageNewEntrants();
     }
 
     private void HandleTurnChanged(LDY_Team team)
     {
+        if (expired) return;
         DamageAnimalsInArea();
+        if (expired) return;
         RemainingTurn--;
 
         if (RemainingTurn <= 0)
             Expire();
     }
+
+    private void HandleStageEnded() => Expire(false);
+
+    private void HandleStageLoaded(LDY_StageSO stage) => Expire(false);
 
     private void DamageAnimalsInArea()
     {
@@ -88,6 +109,7 @@ public class DLJ_CurseZone : MonoBehaviour
                     continue;
 
                 DamageAnimal(target);
+                if (expired) return;
             }
         }
     }
@@ -111,7 +133,10 @@ public class DLJ_CurseZone : MonoBehaviour
                 currentAnimalsInside.Add(target);
 
                 if (!animalsInside.Contains(target))
+                {
                     DamageAnimal(target);
+                    if (expired) return;
+                }
             }
         }
 
@@ -164,10 +189,20 @@ public class DLJ_CurseZone : MonoBehaviour
             attackSystem.HandleDeath(target);
     }
 
-    private void Expire()
+    private void Expire(bool fadeEffect = true)
     {
+        if (expired) return;
+        expired = true;
+        enabled = false;
         Unsubscribe();
-        FadeOutEffect();
+        if (fadeEffect)
+            FadeOutEffect();
+        else if (effectInstance != null)
+        {
+            effectInstance.SetActive(false);
+            Destroy(effectInstance);
+            effectInstance = null;
+        }
         Destroy(gameObject);
     }
 
@@ -189,7 +224,15 @@ public class DLJ_CurseZone : MonoBehaviour
         if (turnManager != null)
             turnManager.OnTurnChanged -= HandleTurnChanged;
 
+        if (stageDirector != null)
+            stageDirector.OnStageLoaded -= HandleStageLoaded;
+
+        if (stageFlow != null)
+            stageFlow.StageEnded -= HandleStageEnded;
+
         turnManager = null;
+        stageDirector = null;
+        stageFlow = null;
     }
 
     private void OnDestroy()
