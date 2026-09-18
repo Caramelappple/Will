@@ -12216,6 +12216,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 8235431001060134622, guid: 9d9a78bbb0464e943a39dd314f2dbed2, type: 3}
+      propertyPath: fontSize
+      value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8235431001060134622, guid: 9d9a78bbb0464e943a39dd314f2dbed2, type: 3}
+      propertyPath: heightOffset
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 8768805689184825978, guid: 9d9a78bbb0464e943a39dd314f2dbed2, type: 3}
       propertyPath: m_Name
       value: PlayerHealth
