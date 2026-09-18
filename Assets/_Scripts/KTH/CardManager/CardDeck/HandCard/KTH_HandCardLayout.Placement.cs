@@ -209,6 +209,52 @@ public partial class KTH_HandCardLayout
     }
 
     /// <summary>
+    /// 고른 카드를 전부 내려놓는다. 턴이 넘어갈 때 부른다.
+    ///
+    /// ── 왜 따로 필요한가 ──────────────────────────────────────
+    /// 턴이 끝나면 LDY_CardPlacer 가 배치를 물리면서 그 카드는 내려간다.
+    /// 그런데 **배치까지 안 간 카드**는 아무도 안 내려놓는다 — 골라서 위로
+    /// 올라와 있기만 한 카드, 코스트가 모자라 배치가 시작되지 않은 카드가
+    /// 그렇다. 그대로 적 턴 내내 올라와 있는다.
+    ///
+    /// 손패 전체를 훑어 고른 상태를 푼다. 이미 내려온 카드는
+    /// CancelSelectionState 가 첫 줄에서 돌아서므로 헛돌지 않는다.
+    /// ─────────────────────────────────────────────────────────
+    /// </summary>
+    public void DeselectAll()
+    {
+        // 더블클릭으로 내려가 있는 카드들도 같이 올린다.
+        KTH_HandCard.CancelDoubleClick();
+
+        // ── 배치 중이던 카드도 여기서 놓는다 ──────────────────────
+        // 아래 훑기는 IsSelected · IsConfirmed 만 본다. 칸을 고르는 중인 카드는
+        // 그 둘로는 안 잡히고, placingCard 로만 남아 있다.
+        //
+        // 그대로 두면 턴이 넘어가도 배치 세션이 살아 있다. 다음 내 턴에
+        // 카드를 누르면 "앞의 배치가 아직 안 끝났다"에 걸려 아무것도 안 된다.
+        //
+        // 턴이 끝나면 고른 것은 카드든 칸이든 전부 놓는다 — 예외를 두지 않는다.
+        // ─────────────────────────────────────────────────────────
+        if (placingCard != null) ExitPlacementMode();
+
+        // 뒤에서부터 돈다. CancelSelectionState 안에서 재배치가 돌며
+        // 목록을 건드릴 수 있다.
+        for (int i = handCards.Count - 1; i >= 0; i--)
+        {
+            if (i >= handCards.Count) continue;
+
+            KTH_HandCard card = handCards[i];
+
+            if (card == null) continue;
+            if (!card.IsSelected && !card.IsConfirmed) continue;
+
+            card.CancelSelectionState();
+        }
+
+        selectedCard = null;
+    }
+
+    /// <summary>
     /// 배치 모드에서 빠져나온다. 카드의 선택이 풀릴 때(KTH_HandCardSelectionController)
     /// 불린다.
     ///
@@ -245,11 +291,24 @@ public partial class KTH_HandCardLayout
 
         bool mine = card == null || card == placingCard;
 
-        if (mine && cardPlacer != null)
+        if (mine)
         {
+            // ── 비우는 것과 취소하는 것을 묶지 않는다 ──────────────
+            // 예전에는 cardPlacer 가 있을 때만 placingCard 를 비웠다. 배선이
+            // 빠지면 배치 중 표시가 영영 남아, 그 뒤로는 어떤 카드도 고를 수
+            // 없었다. 무엇이 막고 있는지도 화면에 안 나온다.
+            //
+            // 표시는 이 클래스의 것이므로 언제나 비운다. 놓는 쪽을 물리는 것은
+            // 그 다음이고, 부를 상대가 없으면 그 사실을 남긴다.
+            // ─────────────────────────────────────────────────────
             placingCard = null;
 
-            cardPlacer.CancelPlacement();
+            if (cardPlacer != null)
+                cardPlacer.CancelPlacement();
+            else
+                Debug.LogWarning(
+                    $"{name}: Card Placer 가 비어 있어 배치를 물리지 못했습니다. " +
+                    "고른 표시만 풀었습니다.", this);
         }
 
         UpdateHandLayout(

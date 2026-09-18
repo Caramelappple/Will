@@ -4913,7 +4913,7 @@ ParticleSystem:
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
   looping: 1
-  prewarm: 0
+  prewarm: 1
   playOnAwake: 1
   useUnscaledTime: 0
   autoRandomSeed: 1
@@ -9824,6 +9824,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7262646644299132312}
     m_Modifications:
+    - target: {fileID: 1210288493848101959, guid: 8365fae50d820c1479f01450c2128d52, type: 3}
+      propertyPath: looping
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1210288493848101959, guid: 8365fae50d820c1479f01450c2128d52, type: 3}
       propertyPath: EmissionModule.enabled
       value: 1

@@ -36,10 +36,13 @@ namespace _Scripts.LDY.AI
         public LDY_EnemyAction Decide(LDY_Animal self, LDY_BoardManager board)
         {
             if (self == null && board == null) return LDY_EnemyAction.Wait();
-            if (self == null)
-            {
-                DLJ_PlayerHealth.Instance.TakeDamage(5);
-            }
+
+            // 여기서 양초를 5 깎던 줄이 있었다. "기물을 안 놓으면 벌점"을 넣으려던 것인데,
+            // self 는 지금 판단 중인 **적 한 기**라 그 뜻이 되지 않았다. 게다가 돌아서지도
+            // 않아 그 아래로 그대로 흘렀다.
+            //
+            // 벌점은 LSO_EmptyBoardPenalty 가 맡는다 — 판을 보고 턴 끝에 한 번 센다.
+            // 판단하는 곳(여기)과 벌주는 곳을 섞지 않는다.
 
             CollectCandidates(self);
 

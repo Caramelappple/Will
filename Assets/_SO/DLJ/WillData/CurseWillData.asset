@@ -18,7 +18,7 @@ MonoBehaviour:
     \uC800\uC8FC \uC9C0\uC5ED\uC5D0\uC11C\uB294 \uAE30\uBB3C\uB4E4\uC5D0\uAC8C \uB514\uBC84\uD504\uB97C
     \uBD80\uC5EC\uD568(\uB9E4\uD134 \uD53C\uD574 1)"
   icon: {fileID: 21300000, guid: 51f1e188df295c049a6f029a6213c79d, type: 3}
-  flameColor: {r: 1, g: 1, b: 1, a: 1}
+  flameColor: {r: 0.6359816, g: 0, b: 1.5471698, a: 1}
   effectPrefab: {fileID: 6815130443842550441, guid: 51ac3ea255fd01b4ba90edceb35a6453, type: 3}
   cameraHoldDuration: 1.8
   damage: 1
