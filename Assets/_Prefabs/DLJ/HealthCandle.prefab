@@ -4981,3 +4981,5 @@ MonoBehaviour:
   heightOffset: 0.65
   spreadDuration: 0.65
   fadeOutDuration: 0.2
+  animationSpeed: 1
+  damageTooltipHoldDuration: 2

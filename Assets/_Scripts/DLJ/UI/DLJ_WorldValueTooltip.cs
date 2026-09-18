@@ -52,6 +52,7 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
             targetCamera = Camera.main;
 
         Transform next = FindHoveredTarget();
+        if (next == null && ShouldShowWithoutHover()) next = transform;
         int value = 0;
         int maximum = 0;
         string text = null;
@@ -80,11 +81,11 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
                 displayedMaximum = maximum;
                 displayingText = false;
                 label.SetText("{0}/{1}", value, maximum);
-                inkProgress = 0f;
+                if (ReplayInkOnValueChange) inkProgress = 0f;
             }
 
             // 빠르게 재진입하면 진행 중인 연출을 이어가서 깜빡임을 피한다.
-            if (entering && opacity <= 0f) inkProgress = 0f;
+            if (entering && opacity <= 0f) inkProgress = RevealInkOnShow ? 0f : 1f;
             label.gameObject.SetActive(true);
             inkProgress = Mathf.MoveTowards(inkProgress, 1f,
                 Time.unscaledDeltaTime / Mathf.Max(.05f, spreadDuration));
@@ -147,6 +148,9 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
     }
 
     protected abstract Transform FindHoveredTarget(Ray ray, Camera camera, out float distance);
+    protected virtual bool ShouldShowWithoutHover() => false;
+    protected virtual bool ReplayInkOnValueChange => true;
+    protected virtual bool RevealInkOnShow => true;
     protected virtual bool TryGetText(out string text)
     {
         text = null;

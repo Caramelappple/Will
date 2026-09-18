@@ -19,6 +19,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
     };
 
     public event Action<int, int> OnCandleHealthChanged;
+    public event Action<int, int> OnHealthDamaged;
     public event Action<int> OnCandleExtinguished;
     public event Action OnPlayerDeath;
 
@@ -80,6 +81,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
         if (damage <= 0 || IsDead)
             return;
 
+        int previousTotal = TotalHealth;
         int remainingDamage = damage;
 
         for (int i = 0; i < CandleCount && remainingDamage > 0; i++)
@@ -98,6 +100,8 @@ public class DLJ_PlayerHealth : MonoBehaviour
             if (previousHealth > 0 && candleHealth[i] == 0)
                 OnCandleExtinguished?.Invoke(i);
         }
+
+        OnHealthDamaged?.Invoke(previousTotal, TotalHealth);
 
         if (IsDead)
             OnPlayerDeath?.Invoke();

@@ -23,10 +23,12 @@ internal sealed class DLJ_ContractWill : LSO_IWill
     private readonly int unitCost;
     private readonly LDY_Team ownerTeam;
     private readonly DLJ_ContractRefund refundService;
+    private readonly LDY_TurnManager contextTurnManager;
+    private readonly LDY_ActionPointManager contextActionPoints;
     private readonly bool isEnhanced;
     private readonly GameObject owner;
     private readonly DLJ_ContractWillDataSO data;
-    private readonly DLJ_IWillEffect effect = new DLJ_ContractEffect();
+    private readonly DLJ_ContractEffect effect = new DLJ_ContractEffect();
 
     internal DLJ_ContractWill(DLJ_WillContext context, DLJ_ContractWillDataSO sourceData)
     {
@@ -38,6 +40,8 @@ internal sealed class DLJ_ContractWill : LSO_IWill
         refundService = DLJ_ContractRefund.GetOrCreate(
             context.actionPoints,
             context.turnManager);
+        contextTurnManager = context.turnManager;
+        contextActionPoints = context.actionPoints;
         owner = context.owner;
         data = sourceData;
     }
@@ -56,29 +60,34 @@ internal sealed class DLJ_ContractWill : LSO_IWill
         int refundAmount = isEnhanced
             ? unitCost
             : Mathf.CeilToInt(unitCost / 2f);
-        refundService.QueueRefund(refundAmount);
+
+        Vector3 effectPosition = owner != null
+            ? owner.transform.position
+            : Vector3.zero;
+        DLJ_WillEffectContext effectContext = new DLJ_WillEffectContext
+        {
+            data = data,
+            owner = owner,
+            origin = effectPosition
+        };
+        DLJ_PigCoinPayout payout = effect.PlayCoins(
+            effectContext, refundAmount, contextTurnManager, contextActionPoints);
+        if (payout != null)
+            refundService.QueueRefund(refundAmount, payout.OnRefundPaid);
+        else
+            refundService.QueueRefund(refundAmount);
 
         if (refundAmount > 0)
             DLJ_WillBenefitEvents.Raise(
                 owner != null ? owner.GetComponent<LDY_Animal>() : null,
                 LSO_WillType.Contract);
 
-        Vector3 effectPosition = owner != null
-            ? owner.transform.position
-            : Vector3.zero;
         GameObject effectObject = data.effectPrefab != null
             ? Object.Instantiate(
                 data.effectPrefab,
                 effectPosition,
                 data.effectPrefab.transform.rotation)
             : null;
-        effect.Play(
-            effectObject,
-            new DLJ_WillEffectContext
-            {
-                data = data,
-                owner = owner,
-                origin = effectPosition
-            });
+        effect.Play(effectObject, effectContext);
     }
 }

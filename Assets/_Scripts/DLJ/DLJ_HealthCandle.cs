@@ -46,6 +46,11 @@ public class DLJ_HealthCandle : MonoBehaviour
     private Vector3 meltedWaxSurfacePosition;
     private float initialWaxSpread;
 
+    public int CandleIndex => resolvedCandleIndex;
+    public int DisplayedHealth => Mathf.CeilToInt(
+        displayedHealthRatio * DLJ_PlayerHealth.MaxHealthPerCandle - .0001f);
+    public float PlaybackSpeed { get; set; } = 1f;
+
     public Vector3 TooltipAnchor => flame != null ? flame.position :
         candleBody != null ? candleBody.TransformPoint(GetLocalTop()) : transform.position;
 
@@ -217,7 +222,7 @@ public class DLJ_HealthCandle : MonoBehaviour
         float elapsed = 0f;
         float duration = resizeDuration > 0f ? resizeDuration : 2f;
 
-        while (elapsed < duration)
+        while (elapsed < duration || !Mathf.Approximately(displayedHealthRatio, targetRatio))
         {
             // 실제 체력은 즉시 반영하되, 소모 연출은 앞 초가 목표 길이에 도달한 뒤 진행한다.
             // 대기 중 추가 피해가 와도 앞 초의 최신 목표와 현재 표시 길이로 순서를 유지한다.
@@ -227,11 +232,16 @@ public class DLJ_HealthCandle : MonoBehaviour
                 continue;
             }
 
-            elapsed += Time.deltaTime;
-            displayedHealthRatio = Mathf.Lerp(
+            elapsed += Time.deltaTime * Mathf.Max(.01f, PlaybackSpeed);
+            float nextRatio = Mathf.Lerp(
                 startRatio,
                 targetRatio,
                 Mathf.Clamp01(elapsed / duration));
+            // 숫자가 한 프레임에 1보다 많이 건너뛰지 않도록 감소 폭을 제한한다.
+            float maxStep = targetRatio < displayedHealthRatio
+                ? 1f / DLJ_PlayerHealth.MaxHealthPerCandle
+                : 1f;
+            displayedHealthRatio = Mathf.MoveTowards(displayedHealthRatio, nextRatio, maxStep);
             ApplyHealthRatio(displayedHealthRatio);
             yield return null;
         }

@@ -20,3 +20,9 @@ MonoBehaviour:
   effectPrefab: {fileID: 717776494696762760, guid: 602409888938a3240919990e8f1c74b1, type: 3}
   cameraHoldDuration: 1.8
   holdTime: 0.3
+  coinMesh: {fileID: -955584151905325032, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+  goldMaterial: {fileID: 2100000, guid: f38284cfe89b46ff9cec2d50ae38e834, type: 2}
+  coinDiameter: 0.28
+  scatterRadius: 0.6
+  collectionDuration: 0.65
+  collectionInterval: 0.12

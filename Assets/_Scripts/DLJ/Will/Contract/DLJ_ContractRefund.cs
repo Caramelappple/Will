@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using UnityEngine;
@@ -11,6 +12,19 @@ public sealed class DLJ_ContractRefund
     private LDY_ActionPointManager actionPoints;
     private readonly LDY_TurnManager turnManager;
     private int pendingRefund;
+    private readonly List<RefundRequest> requests = new();
+
+    private readonly struct RefundRequest
+    {
+        public readonly int Amount;
+        public readonly Action<int, int> OnPaid;
+
+        public RefundRequest(int amount, Action<int, int> onPaid)
+        {
+            Amount = amount;
+            OnPaid = onPaid;
+        }
+    }
 
     private DLJ_ContractRefund(
         LDY_ActionPointManager sourceActionPoints,
@@ -53,13 +67,14 @@ public sealed class DLJ_ContractRefund
         Instances.Clear();
     }
 
-    public void QueueRefund(int amount)
+    public void QueueRefund(int amount, Action<int, int> onPaid = null)
     {
         amount = Mathf.Max(0, amount);
         if (amount == 0)
             return;
 
         pendingRefund += amount;
+        requests.Add(new RefundRequest(amount, onPaid));
         Debug.Log(
             $"Queued {amount} action points " +
             $"(pending: {pendingRefund}).");
@@ -72,14 +87,26 @@ public sealed class DLJ_ContractRefund
 
         int amount = pendingRefund;
         pendingRefund = 0;
+        RefundRequest[] paying = requests.ToArray();
+        requests.Clear();
 
         if (actionPoints == null)
         {
             Debug.LogError("Failed to refund action points.");
+            foreach (RefundRequest request in paying)
+                request.OnPaid?.Invoke(0, 0);
             return;
         }
 
-        actionPoints.AddActionPoints(amount);
+        int firstSlot = actionPoints.Current;
+        int remaining = actionPoints.AddActionPoints(amount);
+        foreach (RefundRequest request in paying)
+        {
+            int gained = Mathf.Min(request.Amount, remaining);
+            request.OnPaid?.Invoke(firstSlot, gained);
+            firstSlot += gained;
+            remaining -= gained;
+        }
 
         Debug.Log(
             $"Refunded {amount} action points " +
