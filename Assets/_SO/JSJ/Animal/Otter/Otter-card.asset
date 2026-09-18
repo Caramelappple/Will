@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Otter-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 7be11ed6f51842a8a21eaa7b48d89733, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: c030a0c3678b14749a0851fb640d1a3b, type: 3}

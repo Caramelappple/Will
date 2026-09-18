@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6343bd3f83674af9941dba6d33396421, type: 3}
   m_Name: DLJ_PieceTeamMaterials
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_PieceTeamMaterialSettingsSO
-  playerMaterial: {fileID: 2100000, guid: 07f099f83b3f4caeb8b8ac69d8bfd9de, type: 2}
-  enemyMaterial: {fileID: 2100000, guid: d9560ab421ae49ddb1f13bfd563877f1, type: 2}
+  playerMaterial: {fileID: 6649010749092099507, guid: c4ca17acb078ccd428f74b9ee6dd0ab2, type: 3}
+  enemyMaterial: {fileID: 3590808959669803025, guid: c4ca17acb078ccd428f74b9ee6dd0ab2, type: 3}
