@@ -148,7 +148,7 @@ public class KTH_HandCardSelectionController
 
         owner.transform.DOKill();
 
-        owner.SetOutlineVisible(isSelected);
+        // 테두리는 없앴다. 고른 카드는 앞으로 나오고 커지는 것으로 드러난다.
 
         if (isSelected)
         {

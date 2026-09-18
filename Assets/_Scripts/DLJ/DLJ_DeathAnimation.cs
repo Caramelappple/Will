@@ -41,6 +41,36 @@ public sealed class DLJ_DeathAnimation : MonoBehaviour
         StartCoroutine(PlayRoutine(target, onComplete));
     }
 
+    /// <summary>
+    /// 꺼지면 돌던 코루틴이 죽는다. **그때 _isPlaying 은 되돌아가지 않는다.**
+    ///
+    /// ── 왜 여기가 필요한가 ────────────────────────────────────
+    /// 유니티는 코루틴을 중단할 때 반복자를 정리하지 않는다. PlayRoutine 안에서만
+    /// _isPlaying 을 false 로 되돌리므로, 연출 도중에 오브젝트가 꺼지면 그 값이
+    /// true 로 굳는다.
+    ///
+    /// KTH_GameEndManager 는 HasPlayingDeathAnimation 이 거짓이 될 때까지
+    /// 클리어를 미룬다. 하나라도 굳어 있으면 **적을 다 잡아도 보상으로
+    /// 넘어가지 않는다.** 판정이 막히는 것이지 적이 살아 있는 것이 아니라
+    /// 화면만 보고는 원인을 알 수 없다.
+    ///
+    /// 같은 종류로 LDY_DissolveEffect.ActiveCount 가 새던 적이 있다.
+    /// ─────────────────────────────────────────────────────────
+    ///
+    /// 콜백은 부르지 않는다. 그쪽은 대개 오브젝트를 파괴하는데, 꺼지는 중에
+    /// 부르면 파괴 순서가 꼬인다. 여기서는 "더 기다리지 말라"만 알리면 된다.
+    /// </summary>
+    private void OnDisable()
+    {
+        if (!_isPlaying) return;
+
+        _isPlaying = false;
+
+        Debug.LogWarning(
+            $"{name}: 사망 연출이 끝나기 전에 꺼졌습니다. " +
+            "클리어 판정이 막히지 않도록 재생 표시를 되돌립니다.", this);
+    }
+
     private IEnumerator PlayRoutine(Transform target, Action onComplete)
     {
         DisableColliders();

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Ability.Catalog;
@@ -45,11 +47,11 @@ namespace _Scripts.LSO.UI.Text
         {
             return value switch
             {
-                LDY_RangeType.Melee => "근접",
-                LDY_RangeType.MeleeOrthogonal => "직선 근접",
-                LDY_RangeType.Ranged => "원거리",
-                LDY_RangeType.Jump => "도약",
-                LDY_RangeType.None => "없음",
+                LDY_RangeType.Melee => "1",
+                LDY_RangeType.MeleeOrthogonal => "✚",
+                LDY_RangeType.Ranged => "2",
+                LDY_RangeType.Jump => "3",
+                LDY_RangeType.None => "X",
                 _ => value.ToString()
             };
         }
@@ -72,5 +74,34 @@ namespace _Scripts.LSO.UI.Text
         /// 설명·아이콘까지 필요하면 LSO_AbilityText를 직접 쓸 것.
         /// </summary>
         public static string Of(LSO_AbilityType value) => LSO_AbilityText.NameOf(value);
+
+        /// <summary>
+        /// 특성 여럿을 한 줄로 잇는다. 없으면 빈 문자열.
+        ///
+        /// ── 왜 창구가 이어 붙이나 ─────────────────────────────────
+        /// 손패 카드와 보상 카드가 같은 목록을 그린다. 각자 이어 붙이면 한쪽만
+        /// 쉼표 뒤에 공백을 넣거나, 한쪽만 None 을 걸러내는 식으로 갈린다.
+        /// 같은 기물인데 두 화면의 글이 달라 보인다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// None 은 건너뛴다. "없음"을 줄줄이 적을 이유가 없다.
+        /// </summary>
+        public static string Of(IReadOnlyList<LSO_AbilityType> values)
+        {
+            if (values == null || values.Count == 0) return string.Empty;
+
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i] == LSO_AbilityType.None) continue;
+
+                if (builder.Length > 0) builder.Append(", ");
+
+                builder.Append(Of(values[i]));
+            }
+
+            return builder.ToString();
+        }
     }
 }

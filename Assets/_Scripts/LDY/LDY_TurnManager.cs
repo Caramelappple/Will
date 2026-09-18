@@ -66,8 +66,6 @@ namespace _Scripts.LDY
 
         private void Start()
         {
-            SubscribeStageDirector();
-
             BeginPlayerTurn();
         }
 
@@ -76,22 +74,70 @@ namespace _Scripts.LDY
         ///
         /// 씬을 넘기지 않고 같은 화면에서 다음 스테이지를 세우므로 Start가 다시 돌지 않는다.
         /// 그래서 아무도 "이제 플레이어 턴이다"를 말해주지 않는다.
+        ///
+        /// ── 왜 한 번만 찾으면 안 되나 ─────────────────────────────
+        /// 예전에는 Start에서 한 번 FindAnyObjectByType으로 찾고 끝이었다.
+        ///
+        /// Start는 오브젝트마다 순서가 정해져 있지 않고, 그 함수는 **꺼져 있는
+        /// 오브젝트를 못 찾는다.** 그래서 씬을 다시 켜거나 로딩 순서가 조금
+        /// 달라지면 잡히기도 하고 안 잡히기도 했다 — 다음 판에서 턴이 시작되지
+        /// 않는 일이 간헐적으로 나던 것이 이것이다.
+        ///
+        /// 지금은 못 찾으면 계속 다시 찾는다. 인스펙터에 꽂혀 있으면 첫 판에
+        /// 바로 붙고 그 뒤로는 아무 일도 하지 않는다.
+        /// ─────────────────────────────────────────────────────────
         /// </summary>
-        private void SubscribeStageDirector()
+        private void OnEnable()
         {
+            TrySubscribeStageDirector();
+        }
+
+        private void OnDisable()
+        {
+            if (stageDirector != null)
+                stageDirector.OnStageLoaded -= HandleStageLoaded;
+
+            _subscribedToDirector = false;
+        }
+
+        /// <summary>이미 붙었는지. 붙은 뒤로는 찾지 않는다.</summary>
+        private bool _subscribedToDirector;
+
+        /// <summary>못 찾았다고 이미 알렸는지. 매 프레임 내면 콘솔이 덮인다.</summary>
+        private bool _warnedMissingDirector;
+
+        /// <summary>찾기를 시작한 때. 한참 못 찾으면 그때 한 번 알린다.</summary>
+        private float _searchStartedAt = -1f;
+
+        private void TrySubscribeStageDirector()
+        {
+            if (_subscribedToDirector) return;
+
             if (stageDirector == null) stageDirector = FindAnyObjectByType<LDY_StageDirector>();
 
             if (stageDirector == null)
             {
-                Debug.LogWarning(
-                    $"{name}: LDY_StageDirector를 찾지 못해 다음 스테이지에서 턴을 새로 시작하지 못합니다. " +
-                    "턴을 한 번 넘겨야 덱과 코스트가 채워집니다.", this);
+                if (_searchStartedAt < 0f) _searchStartedAt = Time.unscaledTime;
+
+                // 몇 초가 지나도 없으면 배선이 빠진 것이다. 그때 한 번만 알린다.
+                // 곧바로 알리면 아직 켜지지 않았을 뿐인 경우에도 경고가 나간다.
+                if (!_warnedMissingDirector && Time.unscaledTime - _searchStartedAt > 3f)
+                {
+                    _warnedMissingDirector = true;
+
+                    Debug.LogWarning(
+                        $"{name}: LDY_StageDirector를 찾지 못해 다음 스테이지에서 턴을 새로 시작하지 못합니다. " +
+                        "턴을 한 번 넘겨야 덱과 코스트가 채워집니다. " +
+                        "인스펙터의 Stage Director 칸에 직접 꽂아주세요.", this);
+                }
 
                 return;
             }
 
             stageDirector.OnStageLoaded -= HandleStageLoaded;
             stageDirector.OnStageLoaded += HandleStageLoaded;
+
+            _subscribedToDirector = true;
         }
 
         private void HandleStageLoaded(LDY_StageSO stage)
@@ -144,6 +190,9 @@ namespace _Scripts.LDY
         /// </summary>
         private void Update()
         {
+            // 아직 못 붙었으면 계속 찾는다. 붙은 뒤로는 첫 줄에서 곧바로 돌아선다.
+            TrySubscribeStageDirector();
+
             if (!autoEndTurn) return;
             if (actionPoints == null || actionPoints.HasActionPoints) return;
             if (!CanEndPlayerTurn()) return;

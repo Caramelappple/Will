@@ -15,8 +15,9 @@ using UnityEngine.Events;
 ///     단, Health의 IsDestroyed 갱신 타이밍을 고려하여
 ///     한 프레임 뒤에 최종 확인한다.
 ///
-/// 아군 전멸:
-///     턴 변경 시점에 패배 여부를 확인한다.
+/// 패배:
+///     **양초가 다 닳으면** 진다(DLJ_PlayerHealth). 기물을 다 잃어도
+///     양초가 남아 있으면 계속한다.
 /// </summary>
 public class KTH_GameEndManager : MonoBehaviour
 {
@@ -36,6 +37,12 @@ public class KTH_GameEndManager : MonoBehaviour
              "이게 없으면 첫 판의 기물만 명단에 남는다. 그 기물들은 다음 판이 세워질 때\n" +
              "파괴되므로, 명단이 통째로 유령이 되어 턴만 넘겨도 클리어로 읽힌다.")]
     [SerializeField] private LDY_StageDirector stageDirector;
+
+    [Header("멈춤 방지")]
+    [Tooltip("클리어를 넘기기 전에 사망 연출이 끝나기를 기다리는 상한(초).\n" +
+             "\n" +
+             "기다림이 영영 안 끝나는 쪽이 연출이 잘리는 쪽보다 나쁘므로 상한을 둔다.")]
+    [SerializeField, Min(0.5f)] private float deathAnimationWaitTimeout = 5f;
 
     [Header("스테이지 클리어 시 연출용 (선택)")]
     [Tooltip("보스인지 일반인지 가르지 않는다. 그 판단은 LSO_StageProgression이 하고,\n" +
@@ -62,6 +69,11 @@ public class KTH_GameEndManager : MonoBehaviour
             turnManager.OnTurnChanged += HandleTurnChanged;
         }
 
+        // 양초가 꺼지는 순간 바로 안다. 턴이 바뀔 때까지 기다리면
+        // 마지막 양초가 꺼진 뒤에도 한참 더 두는 것처럼 보인다.
+        if (DLJ_PlayerHealth.Instance != null)
+            DLJ_PlayerHealth.Instance.OnPlayerDeath += HandlePlayerDeath;
+
         // 게임 시작 직후 상태 확인
         CheckGameClear();
         CheckGameOver();
@@ -81,6 +93,9 @@ public class KTH_GameEndManager : MonoBehaviour
         {
             stageDirector.OnStageLoaded -= HandleStageLoaded;
         }
+
+        if (DLJ_PlayerHealth.Instance != null)
+            DLJ_PlayerHealth.Instance.OnPlayerDeath -= HandlePlayerDeath;
 
         UnregisterEnemies();
         UnregisterAllies();
@@ -186,7 +201,7 @@ public class KTH_GameEndManager : MonoBehaviour
         // 안전을 위해 턴 변경 시에도 한 번 확인
         CheckGameClear();
 
-        // 아군 전멸은 턴 변경 시 검사한다.
+        // 양초는 꺼지는 순간 알지만, 놓친 경우를 위해 여기서도 한 번 본다.
         CheckGameOver();
     }
 
@@ -401,32 +416,10 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
         }
 
-        // 살았는지 죽었는지 실제로 확인할 수 있었던 적의 수.
-        // 명단에 이름은 있는데 전부 확인이 안 되면, 다 잡아서가 아니라
-        // 명단이 낡아서일 수 있다. 그 둘을 갈라야 한다.
-        int checkedCount = 0;
-
-        // 살아있는 적이 하나라도 있으면 클리어하지 않는다.
-        for (int i = 0; i < _enemies.Count; i++)
-        {
-            LDY_Animal enemy = _enemies[i];
-
-            // GameObject가 Destroy되었으면 죽은 것으로 취급
-            if (enemy == null)
-                continue;
-
-            // Health가 없으면 검사에서 제외
-            if (enemy.health == null)
-                continue;
-
-            checkedCount++;
-
-            // 아직 살아있는 적이 있음
-            if (!enemy.health.IsDestroyed)
-            {
-                return;
-            }
-        }
+        // 전멸을 읽는 규칙은 AllDead 하나다. 이기는 조건과 지는 조건이 같은 함수를
+        // 봐야 한 쪽만 고쳤을 때 서로 다른 말을 하지 않는다.
+        if (!AllDead(_enemies, out int checkedCount))
+            return;
 
         // 명단에 이름은 남았는데 하나도 확인하지 못했다.
         //
@@ -447,6 +440,9 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
         }
 
+        // 아군이 전멸했는지는 보지 않는다. 기물을 다 잃어도 양초가 남아 있으면
+        // 아직 진 것이 아니다 — 패배는 양초가 다 닳을 때다(CheckGameOver).
+        //
         // 모든 적이 죽음
         Debug.Log(
             "[KTH_GameEndManager] ★ 모든 Enemy 사망 확인 → 즉시 클리어"
@@ -455,67 +451,96 @@ public class KTH_GameEndManager : MonoBehaviour
         ClearStage();
     }
 
+    /// <summary>
+    /// 명단이 전부 죽었는지.
+    /// </summary>
+    /// <param name="checkedCount">
+    /// 살았는지 죽었는지 **실제로 확인할 수 있었던** 수.
+    ///
+    /// 0이면 다 죽어서가 아니라 명단이 낡아서다 — 판이 새로 세워지며 기물이
+    /// 통째로 파괴됐는데 아무도 다시 적히지 않은 경우다. 그걸 전멸로 읽으면
+    /// 살아있는 편을 눈앞에 두고 판이 끝난다. 부르는 쪽이 이 값을 볼 것.
+    /// </param>
+    private static bool AllDead(List<LDY_Animal> animals, out int checkedCount)
+    {
+        checkedCount = 0;
+
+        for (int i = 0; i < animals.Count; i++)
+        {
+            LDY_Animal animal = animals[i];
+
+            // 파괴된 것은 죽은 것으로 친다.
+            if (animal == null) continue;
+            if (animal.health == null) continue;
+
+            checkedCount++;
+
+            if (!animal.health.IsDestroyed) return false;
+        }
+
+        return true;
+    }
+
 
     // =========================================================
     // 패배 판정
     // =========================================================
 
+    /// <summary>
+    /// 패배했는지 본다.
+    ///
+    /// ── 기준이 바뀌었다 ───────────────────────────────────────
+    /// 예전에는 아군이 전멸하면 졌다. 지금은 **양초가 다 닳을 때** 진다.
+    ///
+    /// 기물을 다 잃어도 양초가 남아 있으면 계속한다. 그래서 적이 마지막 아군을
+    /// 잡은 뒤 유언에 휘말려 죽는 판은 그냥 클리어다 — 잃은 것은 기물이지
+    /// 판이 아니다.
+    ///
+    /// 세는 곳은 DLJ_PlayerHealth 하나다. 여기서 양초를 따로 세지 않는다.
+    /// ─────────────────────────────────────────────────────────
+    /// </summary>
     private void CheckGameOver()
     {
         if (_isGameEnded)
             return;
 
-        if (HasPlayingDeathAnimation(_allies))
+        DLJ_PlayerHealth health = DLJ_PlayerHealth.Instance;
+
+        if (health == null)
+        {
+            if (!_warnedMissingPlayerHealth)
+            {
+                _warnedMissingPlayerHealth = true;
+
+                Debug.LogWarning(
+                    "[KTH_GameEndManager] DLJ_PlayerHealth를 찾지 못해 패배 판정을 못 합니다. " +
+                    "양초가 다 닳아도 판이 끝나지 않습니다. (이 경고는 한 번만 나옵니다)",
+                    this
+                );
+            }
+
+            return;
+        }
+
+        if (!health.IsDead)
+            return;
+
+        // 마지막 기물이 쓰러지는 중이면 그것부터 보여준다.
+        if (HasPlayingDeathAnimation(_allies) || HasPlayingDeathAnimation(_enemies))
         {
             RequestGameOverCheck();
             return;
         }
 
-        // 동적으로 생성된 아군이 있을 수 있으므로 다시 검색
-        RegisterAllies();
-
-        if (_allies.Count == 0)
-        {
-            // 아직 아군이 배치되지 않은 상태
-            return;
-        }
-
-        // 적 쪽과 같은 이유로 확인된 수를 센다. CheckGameClear의 주석을 볼 것.
-        // 이쪽이 더 위험하다 — 잘못 읽으면 클리어가 아니라 패배가 뜬다.
-        int checkedCount = 0;
-
-        // 살아있는 아군이 하나라도 있으면 계속
-        for (int i = 0; i < _allies.Count; i++)
-        {
-            LDY_Animal ally = _allies[i];
-
-            if (ally == null)
-                continue;
-
-            if (ally.health == null)
-                continue;
-
-            checkedCount++;
-
-            if (!ally.health.IsDestroyed)
-            {
-                return;
-            }
-        }
-
-        if (checkedCount == 0)
-        {
-            Debug.LogWarning(
-                $"[KTH_GameEndManager] 명단에 아군 {_allies.Count}기가 있지만 하나도 확인할 수 없습니다. " +
-                "명단이 낡았습니다. 패배로 치지 않습니다.",
-                this
-            );
-
-            return;
-        }
-
-        // 모든 아군 사망
         FailStage();
+    }
+
+    private bool _warnedMissingPlayerHealth;
+
+    /// <summary>마지막 양초가 꺼졌다. 연출이 끝나면 패배로 넘긴다.</summary>
+    private void HandlePlayerDeath()
+    {
+        CheckGameOver();
     }
 
     private void RequestGameOverCheck()
@@ -528,7 +553,7 @@ public class KTH_GameEndManager : MonoBehaviour
 
     private IEnumerator CheckGameOverAfterDeathAnimation()
     {
-        while (HasPlayingDeathAnimation(_allies))
+        while (HasPlayingDeathAnimation(_allies) || HasPlayingDeathAnimation(_enemies))
             yield return null;
 
         _allyDefeatCheckCoroutine = null;
@@ -582,6 +607,35 @@ public class KTH_GameEndManager : MonoBehaviour
         {
             while (turnManager.IsAnimating())
                 yield return null;
+        }
+
+        // ── 아군의 사망 연출도 기다린다 ───────────────────────────
+        // IsAnimating은 이동·공격만 본다. CheckGameClear가 기다리는 사망 연출도
+        // **적만** 본다. 그래서 마지막 적과 마지막 아군이 같이 죽으면, 아군이
+        // 쓰러지는 도중에 클리어가 달려나가 판이 뒤집히고 보상이 올라온다.
+        //
+        // 일반 클리어에서는 아군이 멀쩡하니 생기지 않던 일이다. 여기서 한 번
+        // 더 기다려 두 경우를 같은 모양으로 만든다.
+        //
+        // 상한을 두는 이유는 기다림이 영영 안 끝나는 쪽이 연출이 잘리는 쪽보다
+        // 나쁘기 때문이다. 실제로 재생 표시가 굳어 클리어가 막힌 적이 있다.
+        // ─────────────────────────────────────────────────────────
+        float waitUntil = Time.unscaledTime + deathAnimationWaitTimeout;
+
+        while (HasPlayingDeathAnimation(_allies) || HasPlayingDeathAnimation(_enemies))
+        {
+            if (Time.unscaledTime > waitUntil)
+            {
+                Debug.LogWarning(
+                    "[KTH_GameEndManager] 사망 연출이 " +
+                    $"{deathAnimationWaitTimeout:0.#}초 안에 끝나지 않아 그대로 넘어갑니다. " +
+                    "DLJ_DeathAnimation 의 재생 표시가 굳었을 수 있습니다.",
+                    this);
+
+                break;
+            }
+
+            yield return null;
         }
 
         Debug.Log("[KTH_GameEndManager] ★ 스테이지 클리어!");

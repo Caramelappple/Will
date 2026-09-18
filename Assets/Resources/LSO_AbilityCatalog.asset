@@ -68,10 +68,10 @@ MonoBehaviour:
     description: "\uC800\uC8FC\uC758 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uB294\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
+    effectPrefab: {fileID: 35817892298996743, guid: a6bded3eb73d8f14fb245953ce9af478, type: 3}
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectScale: {x: 1, y: 1, z: 1}
   - type: 12
     displayName: "\uC9C4\uD654"
     description: "5\uD134 \uB3D9\uC548 \uC0B4\uC544\uB0A8\uC73C\uBA74 \uB4DC\uB798\uACE4\uC73C\uB85C
@@ -102,7 +102,7 @@ MonoBehaviour:
     effectPrefab: {fileID: 6134397333264359803, guid: 4c77e589e2036904eb3e30b8bece15bb, type: 3}
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0.1, y: 0.1, z: 0.1}
+    effectScale: {x: 10, y: 10, z: 10}
   - type: 15
     displayName: "\uCF54\uC2A4\uD2B8 \uC800\uCD95"
     description: "\uC0DD\uC874\uD55C \uD134\uB9C8\uB2E4 \uCF54\uC2A4\uD2B8\uB97C

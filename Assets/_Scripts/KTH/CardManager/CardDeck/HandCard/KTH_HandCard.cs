@@ -357,11 +357,6 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.KillAll();
     }
 
-    internal void SetOutlineVisible(bool visible)
-    {
-        initCardData.SetOutlineVisible(visible);
-    }
-
     internal void RestoreSorting()
     {
         cardSorting?.RestoreSorting();
@@ -446,7 +441,10 @@ public class KTH_HandCard : MonoBehaviour,
         hoverController.ResetForPool();
         selectionController.ResetForPool();
         doubleClickController.ResetForPool();
-        initCardData.ResetForPool();
+
+        // KTH_InitCardData 는 되돌릴 것이 없다. 테두리를 껐다 켜던 때만
+        // 풀 복구가 필요했고, 지금은 값을 채우기만 한다 — 다음 SetupCard 가
+        // 어차피 전부 새로 쓴다.
 
         enabled = true;
 

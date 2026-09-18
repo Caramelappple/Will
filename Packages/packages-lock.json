@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.teller.util": {
+      "version": "https://github.com/KimJinWooDa/Utils.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "3de888ecf1faf6d1d5ae472bac11d5af19788804"
+    },
     "com.unity.2d.common": {
       "version": "12.0.1",
       "depth": 1,

@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using _Scripts.LSO.UI.Text;
 using _Scripts.LSO.Will;
 using UnityEngine;
@@ -13,7 +14,8 @@ namespace _Scripts.LSO.Reward
     /// 설명이 적힌 작은 메모장이 나오게 된다."
     ///
     /// 보여주는 것은 셋뿐이다. 이름 · 아이콘 · 설명.
-    /// LSO_RewardCard가 이미 그 셋을 들고 있으므로 여기서는 무엇을 넣을지만 정한다.
+    /// 앞의 둘은 LSO_RewardCard가 들고 있고, 설명은 여기 것이다 —
+    /// 기물 카드는 설명을 쓰지 않아서 공통에서 내렸다.
     ///
     /// ── 도장이 아니다 ──────────────────────────────────────────
     /// 한때 유언마다 다른 3D 도장 모델을 켜고 끄는 방식이었다. 기획이 메모장으로
@@ -27,6 +29,17 @@ namespace _Scripts.LSO.Reward
     /// </summary>
     public class LSO_WillNote : LSO_RewardCard
     {
+        /// <summary>
+        /// 유언 설명이 적힐 칸.
+        ///
+        /// 공통(LSO_RewardCard)에 있던 것을 여기로 내렸다. 기물 카드는 설명을
+        /// 쓰지 않기로 해서, 공통에 두면 기물 카드 프리팹마다 안 쓰는 칸이
+        /// 하나씩 비어 있게 된다. 비어 있는 것이 "아직 안 꽂은 것"인지
+        /// "원래 안 쓰는 것"인지 구별할 방법이 없어진다.
+        /// </summary>
+        [Header("메모장")]
+        [SerializeField] private TMP_Text descriptionText;
+
         /// <summary>
         /// 보상 없이 유언만 그린다. 고른 뒤 보여줄 때 부른다.
         ///
@@ -78,6 +91,11 @@ namespace _Scripts.LSO.Reward
         protected override void Clear()
         {
             ClearCommon();
+
+            // 설명은 이제 이 클래스 것이라 공통이 안 비워준다.
+            SetDescription(string.Empty);
         }
+
+        private void SetDescription(string value) => SetText(descriptionText, value);
     }
 }

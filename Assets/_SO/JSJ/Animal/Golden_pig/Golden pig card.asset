@@ -13,5 +13,4 @@ MonoBehaviour:
   m_Name: Golden pig card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: daa3542119103d94c9e733646b3dd855, type: 2}
-  willType: 0
-  image: {fileID: 21300000, guid: 8398287685a45e54d9783954a3c71871, type: 3}
+  image: {fileID: 21300000, guid: 84089424e96d0ec4bb5ec49f7e85dd0f, type: 3}

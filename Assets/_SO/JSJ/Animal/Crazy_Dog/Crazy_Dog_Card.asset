@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Crazy_Dog_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 85fdb9405a7154945b6204b4a82532d0, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: c52bafe0637c32b48b3730e3b5982b59, type: 3}

@@ -17,13 +17,233 @@ MonoBehaviour:
   - chapter: 1
     stage: 1
     possiblePieces:
-    - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+    - pieceSO: {fileID: 11400000, guid: bf2b238773af15e4d98e835ef27ed6e2, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 1
+    stageWill: {fileID: 0}
+  - chapter: 1
+    stage: 2
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 60ded7c6334f8d048bd79fb5139b25f7, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 1
+    stageWill: {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
+  - chapter: 1
+    stage: 3
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 3291d64e2b4047b7bd5041c2f9a7d7f6, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 1
+    stage: 4
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 9384bc8dc4ce4c67af902efd5d57a315, type: 2}
       weight: 1
     - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
+  - chapter: 1
+    stage: 5
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 1
+    stage: 6
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 3
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 2
+    stage: 1
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 64a796d6dcc7c9a4eb7e31b2227b1bb4, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
       weight: 1
     - pieceSO: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
+  - chapter: 2
+    stage: 2
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
       weight: 1
+    - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 3291d64e2b4047b7bd5041c2f9a7d7f6, type: 2}
+      weight: 2
     stageWill: {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
+  - chapter: 2
+    stage: 3
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 9384bc8dc4ce4c67af902efd5d57a315, type: 2}
+      weight: 1
+    stageWill: {fileID: 0}
+  - chapter: 2
+    stage: 4
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 57ed180045244f718e461e2b957bca81, type: 2}
+      weight: 1
+    stageWill: {fileID: 0}
+  - chapter: 2
+    stage: 5
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 1
+    stageWill: {fileID: 0}
+  - chapter: 2
+    stage: 6
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 3
+    - pieceSO: {fileID: 11400000, guid: 12388c50966d45d192fe57ace8a69e1b, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 3
+    stage: 1
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 3
+    stage: 2
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 3291d64e2b4047b7bd5041c2f9a7d7f6, type: 2}
+      weight: 3
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+      weight: 2
+    stageWill: {fileID: 11400000, guid: 5f01234567894abcdef0123456789abc, type: 2}
+  - chapter: 3
+    stage: 3
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 9384bc8dc4ce4c67af902efd5d57a315, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 60ded7c6334f8d048bd79fb5139b25f7, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
+  - chapter: 3
+    stage: 4
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 12388c50966d45d192fe57ace8a69e1b, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 3
+    stage: 5
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 1
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 3
+    stage: 6
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 3
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
+  - chapter: 4
+    stage: 1
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 4
+    stage: 2
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+      weight: 3
+    - pieceSO: {fileID: 11400000, guid: 3291d64e2b4047b7bd5041c2f9a7d7f6, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
+  - chapter: 4
+    stage: 3
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 12388c50966d45d192fe57ace8a69e1b, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 4
+    stage: 4
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 2
+    stageWill: {fileID: 0}
+  - chapter: 4
+    stage: 5
+    possiblePieces:
+    - pieceSO: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+      weight: 2
+    - pieceSO: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+      weight: 3
+    stageWill: {fileID: 0}
   testChapter: 1
   testStage: 1
   testRolls: 1000
