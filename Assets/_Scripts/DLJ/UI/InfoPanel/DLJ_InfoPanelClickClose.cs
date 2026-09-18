@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 열린 인포창 자체를 좌클릭 또는 우클릭하면 닫기 애니메이션을 실행한다.
-/// EventSystem의 PhysicsRaycaster 없이 카메라에서 직접 레이캐스트한다.
+/// 열린 인포창을 우클릭하면 위치와 관계없이 닫는다.
+/// 좌클릭은 EventSystem의 PhysicsRaycaster 없이 카메라에서 직접 레이캐스트한다.
 /// </summary>
 [RequireComponent(typeof(BoxCollider))]
 public sealed class DLJ_InfoPanelClickClose : MonoBehaviour
@@ -34,7 +34,7 @@ public sealed class DLJ_InfoPanelClickClose : MonoBehaviour
 
     private void Update()
     {
-        if (Mouse.current == null || clickArea == null)
+        if (Mouse.current == null)
             return;
 
         bool leftClicked = closeWithLeftClick && Mouse.current.leftButton.wasPressedThisFrame;
@@ -42,15 +42,21 @@ public sealed class DLJ_InfoPanelClickClose : MonoBehaviour
         if (!leftClicked && !rightClicked)
             return;
 
-        if (targetCamera == null)
-            targetCamera = Camera.main;
+        if (!rightClicked)
+        {
+            if (clickArea == null)
+                return;
 
-        if (targetCamera == null)
-            return;
+            if (targetCamera == null)
+                targetCamera = Camera.main;
 
-        Ray ray = targetCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (!clickArea.Raycast(ray, out _, targetCamera.farClipPlane))
-            return;
+            if (targetCamera == null)
+                return;
+
+            Ray ray = targetCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (!clickArea.Raycast(ray, out _, targetCamera.farClipPlane))
+                return;
+        }
 
         DLJ_InfoPanel panel = infoPanel != null ? infoPanel : DLJ_InfoPanel.Instance;
         if (panel == null)

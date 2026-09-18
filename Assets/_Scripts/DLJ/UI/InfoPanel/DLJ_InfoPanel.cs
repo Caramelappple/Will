@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using _Scripts.LDY;
 using _Scripts.LSO.Animal.Data;
 using _Scripts.LSO.Deck.Data;
@@ -34,7 +35,7 @@ public static class DLJ_InfoPanelEvents
 
 /// <summary>
 /// 선택한 카드 또는 기물의 SO 데이터를 상세 정보 UI에 표시한다.
-/// UI 배치와 애니메이션은 담당하지 않는다.
+/// 정보가 바뀌면 기존 내용을 지운 뒤 새 내용을 잉크처럼 드러낸다.
 /// </summary>
 public sealed class DLJ_InfoPanel : MonoBehaviour
 {
@@ -68,6 +69,12 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     [Tooltip("인포창의 열기/닫기 이동 애니메이션. 비워두면 자식에서도 자동으로 찾는다.")]
     [SerializeField] private DLJ_InfoPanelAnimation panelAnimation;
 
+    [Header("정보 교체 연출")]
+    [Tooltip("글자에 적용할 DLJ/Ledger Ink 머티리얼. 각 글자용 복사본을 만들어 사용한다.")]
+    [SerializeField] private Material inkMaterial;
+    [SerializeField, Min(0f)] private float inkDisappearDuration = 0.18f;
+    [SerializeField, Min(0f)] private float inkAppearDuration = 0.35f;
+
     [Header("기물 사진")]
     [SerializeField] private SpriteRenderer portraitRenderer;
     [SerializeField] private SpriteRenderer attackPortraitRenderer;
@@ -96,6 +103,20 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     private float _lastPieceClickTime = float.NegativeInfinity;
     private FontStyles _costFontStyle;
     private FontStyles _playerHealthPointsFontStyle;
+    private TMP_Text[] _inkTexts;
+    private Material[] _originalTextMaterials;
+    private Material[] _inkTextMaterials;
+    private Color[] _originalTextColors;
+    private SpriteRenderer[] _fadeSprites;
+    private Color[] _originalSpriteColors;
+    private Coroutine _inkRoutine;
+    private float _inkProgress = 1f;
+    private bool _wantsVisible;
+    private bool _hasDisplayedData;
+    private bool _hasPendingData;
+    private DLJ_InfoPanelData _displayedData;
+    private DLJ_InfoPanelData _pendingData;
+    private static readonly int InkProgressId = Shader.PropertyToID("_InkProgress");
 
     private DLJ_InfoPanelPortraits CommonPortraits =>
         new DLJ_InfoPanelPortraits(
@@ -128,6 +149,8 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         if (playerHealthPoints != null)
             _playerHealthPointsFontStyle = playerHealthPoints.fontStyle;
 
+        InitializeInk();
+
         if (selection != null)
             selection.OnAnimalClicked += HandleAnimalClicked;
 
@@ -144,6 +167,18 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         KTH_HandCard.OnCardDoubleClicked -= HandleHandCardDoubleClicked;
 
         BindUnit(null);
+
+        StopInkRoutine();
+        if (_inkTextMaterials != null)
+        {
+            for (int i = 0; i < _inkTextMaterials.Length; i++)
+            {
+                if (_inkTextMaterials[i] == null) continue;
+                if (_inkTexts[i] != null)
+                    _inkTexts[i].fontSharedMaterial = _originalTextMaterials[i];
+                Destroy(_inkTextMaterials[i]);
+            }
+        }
 
         if (Instance == this)
             Instance = null;
@@ -171,7 +206,7 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         }
 
         BindUnit(null);
-        Apply(data);
+        ShowData(data);
     }
 
     public void Show(LSO_AnimalSO animal)
@@ -188,7 +223,7 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         }
 
         BindUnit(null);
-        Apply(data);
+        ShowData(data);
     }
 
     public void Show(LDY_Animal unit)
@@ -205,17 +240,171 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         }
 
         BindUnit(unit);
-        Apply(data);
+        ShowData(data);
     }
 
     public void Hide()
     {
         BindUnit(null);
+        StopInkRoutine();
+        _hasPendingData = false;
+        _wantsVisible = false;
         SetVisible(false);
     }
 
-    private void Apply(DLJ_InfoPanelData data)
+    private void ShowData(DLJ_InfoPanelData data)
     {
+        if (!_wantsVisible || !_hasDisplayedData)
+        {
+            StopInkRoutine();
+            _hasPendingData = false;
+            ApplyData(data);
+            SetInkProgress(0f);
+            _wantsVisible = true;
+            SetVisible(true);
+            _inkRoutine = StartCoroutine(RevealInk());
+            return;
+        }
+
+        if (_hasPendingData ? SameVisualData(_pendingData, data) : SameVisualData(_displayedData, data))
+            return;
+
+        _pendingData = data;
+        _hasPendingData = true;
+        if (_inkRoutine == null)
+            _inkRoutine = StartCoroutine(ReplaceInk());
+    }
+
+    private IEnumerator RevealInk()
+    {
+        yield return AnimateInk(1f, inkAppearDuration);
+        _inkRoutine = null;
+        if (_hasPendingData)
+            _inkRoutine = StartCoroutine(ReplaceInk());
+    }
+
+    private IEnumerator ReplaceInk()
+    {
+        do
+        {
+            yield return AnimateInk(0f, inkDisappearDuration);
+            ApplyData(_pendingData);
+            _hasPendingData = false;
+            yield return AnimateInk(1f, inkAppearDuration);
+        } while (_hasPendingData);
+
+        _inkRoutine = null;
+    }
+
+    private IEnumerator AnimateInk(float target, float duration)
+    {
+        float start = _inkProgress;
+        if (duration <= 0f)
+        {
+            SetInkProgress(target);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            SetInkProgress(Mathf.Lerp(start, target, Mathf.Clamp01(elapsed / duration)));
+            yield return null;
+        }
+
+        SetInkProgress(target);
+    }
+
+    private void StopInkRoutine()
+    {
+        if (_inkRoutine == null) return;
+        StopCoroutine(_inkRoutine);
+        _inkRoutine = null;
+    }
+
+    private void InitializeInk()
+    {
+        _inkTexts = new[]
+        {
+            pieceName, attack, health, traitName, traitDescription, willName,
+            willDescription, attackRange, moveRange, cost, playerHealthPoints
+        };
+        _originalTextMaterials = new Material[_inkTexts.Length];
+        _inkTextMaterials = new Material[_inkTexts.Length];
+        _originalTextColors = new Color[_inkTexts.Length];
+
+        for (int i = 0; i < _inkTexts.Length; i++)
+        {
+            TMP_Text label = _inkTexts[i];
+            if (label == null) continue;
+            _originalTextColors[i] = label.color;
+            if (inkMaterial == null || label.font == null) continue;
+
+            Material original = label.fontSharedMaterial;
+            _originalTextMaterials[i] = original;
+            Material material = new Material(inkMaterial) { name = $"{label.name}_InfoInk" };
+            material.mainTexture = label.font.atlasTexture;
+            Material fontMaterial = original != null ? original : label.font.material;
+            if (fontMaterial != null && fontMaterial.HasProperty("_GradientScale"))
+                material.SetFloat("_GradientScale", fontMaterial.GetFloat("_GradientScale"));
+            material.SetFloat("_TextureWidth", label.font.atlasWidth);
+            material.SetFloat("_TextureHeight", label.font.atlasHeight);
+            material.SetFloat(InkProgressId, 1f);
+            label.fontSharedMaterial = material;
+            _inkTextMaterials[i] = material;
+        }
+
+        _fadeSprites = new[]
+        {
+            portraitRenderer, attackPortraitRenderer, healthPortraitRenderer,
+            aRPortraitRenderer, mRPortraitRenderer, willPortraitRenderer
+        };
+        _originalSpriteColors = new Color[_fadeSprites.Length];
+        for (int i = 0; i < _fadeSprites.Length; i++)
+            if (_fadeSprites[i] != null)
+                _originalSpriteColors[i] = _fadeSprites[i].color;
+    }
+
+    private void SetInkProgress(float progress)
+    {
+        _inkProgress = progress;
+        for (int i = 0; i < _inkTexts.Length; i++)
+        {
+            if (_inkTextMaterials[i] != null)
+                _inkTextMaterials[i].SetFloat(InkProgressId, progress);
+            else if (_inkTexts[i] != null)
+            {
+                Color color = _originalTextColors[i];
+                color.a *= progress;
+                _inkTexts[i].color = color;
+            }
+        }
+
+        for (int i = 0; i < _fadeSprites.Length; i++)
+        {
+            if (_fadeSprites[i] == null) continue;
+            Color color = _originalSpriteColors[i];
+            color.a *= progress;
+            _fadeSprites[i].color = color;
+        }
+    }
+
+    private static bool SameVisualData(DLJ_InfoPanelData a, DLJ_InfoPanelData b) =>
+        a.portrait == b.portrait && a.attackPortrait == b.attackPortrait &&
+        a.healthPortrait == b.healthPortrait && a.aRPortrait == b.aRPortrait &&
+        a.mRPortrait == b.mRPortrait && a.willPortrait == b.willPortrait &&
+        a.Name == b.Name && a.Attack == b.Attack && a.Health == b.Health &&
+        a.TraitName == b.TraitName && a.TraitDescription == b.TraitDescription &&
+        a.WillName == b.WillName && a.WillDescription == b.WillDescription &&
+        a.AttackRange == b.AttackRange && a.MoveRange == b.MoveRange &&
+        a.Cost == b.Cost && a.PlayerHealthPoints == b.PlayerHealthPoints &&
+        a.HasCost == b.HasCost && a.HasPlayerHealthPoints == b.HasPlayerHealthPoints;
+
+    private void ApplyData(DLJ_InfoPanelData data)
+    {
+        _displayedData = data;
+        _hasDisplayedData = true;
         SetSprite(portraitRenderer, data.portrait);
         SetSprite(attackPortraitRenderer, data.attackPortrait);
         SetSprite(healthPortraitRenderer, data.healthPortrait);
@@ -236,8 +425,6 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         SetText(playerHealthPoints, data.PlayerHealthPoints);
         SetFontStyle(cost, data.HasCost, _costFontStyle);
         SetFontStyle(playerHealthPoints, data.HasPlayerHealthPoints, _playerHealthPointsFontStyle);
-
-        SetVisible(true);
     }
 
     private void HandleAnimalClicked(LDY_Animal unit)
@@ -325,7 +512,7 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
                 CommonPortraits,
                 willDatabase,
                 out DLJ_InfoPanelData data))
-            Apply(data);
+            ShowData(data);
     }
 
     private void SetVisible(bool visible, bool immediate = false)
