@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using _Scripts.LDY;
-using _Scripts.LSO.Camera;
 using _Scripts.LSO.Manager;
 using _Scripts.LSO.UI.Popup;
 using UnityEngine;
@@ -34,11 +33,14 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
     [Tooltip("공격 영역 너비에 대한 모델의 가로/세로 중 긴 쪽 크기 비율. 모델 비율은 유지")]
     [SerializeField, Range(0.1f, 1f)] private float attackCubeSizeRatio = 0.6f;
-    [Tooltip("최고점에서 공격 모델 아랫면과 바닥 사이의 거리")]
+    [Tooltip("수직으로 솟을 때 모델 중심을 수면 위로 올리는 추가 높이")]
     [SerializeField, Min(0f)] private float attackCubeRiseHeight = 1f;
-    [SerializeField, Min(0.01f)] private float attackCubeRiseDuration = 0.2f;
-    [SerializeField, Min(0f)] private float attackCubeHoldDuration = 0.15f;
-    [SerializeField, Min(0.01f)] private float attackCubeSinkDuration = 0.35f;
+    [Tooltip("부드럽게 가속했다가 정점에서 감속하는 상승 시간")]
+    [SerializeField, Min(0.01f), InspectorName("상승 시간")] private float attackCubeRiseDuration = 0.75f;
+    [Tooltip("정점에서 위치와 자세를 그대로 유지하는 체공 시간")]
+    [SerializeField, Min(0f), InspectorName("체공 시간")] private float attackCubeHoldDuration = 0.22f;
+    [Tooltip("체공 뒤 점점 빠르게 떨어지는 시간. 짧을수록 강하게 낙하")]
+    [SerializeField, Min(0.01f), InspectorName("낙하 시간")] private float attackCubeSinkDuration = 0.45f;
     [Tooltip("공격 모델의 모든 머티리얼 슬롯에 적용. 비워두면 프리팹의 원래 머티리얼 유지")]
     [SerializeField] private Material attackCubeMaterial;
 
@@ -60,20 +62,15 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float attackWaterRadiusRatio = 0.18f;
     [Tooltip("물보라 전체 크기 배율. 기존 씬에서도 적용")]
     [SerializeField, Range(0.5f, 3f)] private float attackWaterScale = 1.35f;
+    [Tooltip("낙하할 때 나오는 물줄기·물막·잔물결의 크기 배율. 1이면 상승 때와 같은 크기. 입자 개수는 유지")]
+    [SerializeField, Range(1f, 3f), InspectorName("낙하 물보라 크기 배율")]
+    private float attackWaterFallScale = 1.8f;
 
     [Header("Shark Attack Motion")]
     [Tooltip("모델의 로컬 전방 축. 상어가 향하는 축에 맞춰 조절")]
     [SerializeField] private Vector3 attackForwardAxis = Vector3.forward;
-    [Tooltip("모델 크기에 대한 전진 거리 비율")]
-    [SerializeField, Range(0f, 1f)] private float attackTravelRatio = 0.35f;
-    [SerializeField, Range(-90f, 90f)] private float attackLaunchAngle = -30f;
-    [SerializeField, Range(-90f, 90f)] private float attackBiteAngle = 12f;
-    [SerializeField, Range(-90f, 90f)] private float attackDiveAngle = 55f;
-    [SerializeField, Range(0f, 30f)] private float attackRollAngle = 8f;
-
-    [Header("Shark Attack Camera Shake")]
-    [SerializeField, Min(0f)] private float attackShakeDuration = 0.18f;
-    [SerializeField, Min(0f)] private float attackShakeStrength = 0.08f;
+    [Tooltip("재생 내내 유지할 고정 자세. -90이면 머리가 수직 위를 향함")]
+    [SerializeField, Range(-90f, 90f)] private float attackLaunchAngle = -78f;
 
     [Header("Predation Mark")]
     [Tooltip("포식 상태의 기물 위에 표시할 문양 프리팹. 비워두면 임시 Quad 사용")]
@@ -90,7 +87,6 @@ public sealed class DLJ_SharkKing : MonoBehaviour
     private readonly HashSet<GameObject> _previewEffects = new();
     private LDY_TurnManager _turnManager;
     private DLJ_SharkKingHuntingGround _huntingGround;
-    private int _lastAttackShakeFrame = -1;
     private Material _runtimeWaterMaterial;
     private Material _runtimeSurfaceMaterial;
 
@@ -249,7 +245,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         int areaSize,
         LDY_BoardManager board)
     {
-        PlayAttackEffects(origins, areaSize, board, _attackEffects, true);
+        PlayAttackEffects(origins, areaSize, board, _attackEffects);
     }
 
     public bool IsPreviewingAttack => _previewEffects.Count > 0;
@@ -272,7 +268,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         }
         else
         {
-            PlayAttackEffects(new[] { first }, areaSize, board, _previewEffects, false);
+            PlayAttackEffects(new[] { first }, areaSize, board, _previewEffects);
         }
     }
 
@@ -293,13 +289,11 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         IEnumerable<Vector3Int> origins,
         int areaSize,
         LDY_BoardManager board,
-        HashSet<GameObject> effects,
-        bool shakeEnabled)
+        HashSet<GameObject> effects)
     {
         if (!isActiveAndEnabled || origins == null || areaSize <= 0 || board == null) return;
 
         float effectSize = GetAttackEffectSize(board, areaSize);
-        bool shakeScheduled = false;
 
         HashSet<Vector3Int> uniqueOrigins = new();
         foreach (Vector3Int origin in origins)
@@ -314,6 +308,14 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             if (attackSharkPrefab != null)
             {
                 effect = Instantiate(attackSharkPrefab, center, attackSharkPrefab.transform.rotation);
+                // 이펙트 복제본은 위치만 이동. 원본 모델의 애니메이션 설정은 유지.
+                foreach (Animator animator in effect.GetComponentsInChildren<Animator>(true))
+                    animator.enabled = false;
+                foreach (Animation animation in effect.GetComponentsInChildren<Animation>(true))
+                {
+                    animation.Stop();
+                    animation.enabled = false;
+                }
                 if (TryGetRendererBounds(effect, out Bounds modelBounds))
                 {
                     float footprint = Mathf.Max(modelBounds.size.x, modelBounds.size.z);
@@ -344,42 +346,50 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             if (!TryGetRendererBounds(effect, out Bounds effectBounds))
                 effectBounds = new Bounds(effect.transform.position, Vector3.one * effectSize);
 
-            // 외형 중심을 회전축으로 삼아 FBX 피벗이 멀리 있어도 제자리에서 몸을 꺾는다.
+            // FBX 피벗과 무관하게 외형 중심을 기준으로 수직 이동.
             GameObject motionRoot = new GameObject("DLJ_SharkKingAttackMotion");
             motionRoot.transform.position = center;
             effect.transform.SetParent(motionRoot.transform, true);
             effect.transform.position += center - effectBounds.center;
 
-            Vector3 forward = Vector3.ProjectOnPlane(effect.transform.rotation * attackForwardAxis, Vector3.up);
+            Vector3 modelForward = effect.transform.rotation * attackForwardAxis;
+            modelForward = modelForward.sqrMagnitude > 0.0001f ? modelForward.normalized : Vector3.forward;
+            Vector3 forward = Vector3.ProjectOnPlane(modelForward, Vector3.up);
             forward = forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
             Vector3 right = Vector3.Cross(Vector3.up, forward);
-            float travel = effectSize * Mathf.Clamp01(attackTravelRatio);
+            Quaternion levelRotation = Quaternion.FromToRotation(modelForward, forward);
             // 회전한 모델의 모서리까지 잠기도록 바운딩 구의 반지름만큼 내린다.
             float buriedY = center.y - effectBounds.extents.magnitude - 0.05f;
-            Vector3 launch = center - forward * travel * 0.5f;
+            Vector3 launch = center;
             launch.y = buriedY;
+            // 정점에서는 높이를 유지하고, 체공이 끝나면 꼬리부터 가속 낙하.
             Vector3 peak = center + Vector3.up * (effectBounds.extents.y + Mathf.Max(0f, attackCubeRiseHeight));
-            Vector3 dive = center + forward * travel;
-            dive.y = buriedY;
+            Vector3 dive = launch;
             Quaternion launchRotation = Quaternion.AngleAxis(attackLaunchAngle, right)
-                * Quaternion.AngleAxis(-attackRollAngle, forward);
-            Quaternion biteRotation = Quaternion.AngleAxis(attackBiteAngle, right)
-                * Quaternion.AngleAxis(attackRollAngle, forward);
-            Quaternion diveRotation = Quaternion.AngleAxis(attackDiveAngle, right)
-                * Quaternion.AngleAxis(-attackRollAngle, forward);
+                * levelRotation;
             motionRoot.transform.SetPositionAndRotation(launch, launchRotation);
             float riseDuration = Mathf.Max(0.01f, attackCubeRiseDuration);
             float holdDuration = Mathf.Max(0f, attackCubeHoldDuration);
             float sinkDuration = Mathf.Max(0.01f, attackCubeSinkDuration);
 
+            // 모델의 세로 중심이 수면을 지날 때 절반쯤 잠긴 것으로 처리.
+            float modelCenterOffsetY = TryGetRendererBounds(effect, out Bounds posedBounds)
+                ? posedBounds.center.y - launch.y : 0f;
+            float waterSurfaceY = center.y + Mathf.Max(0.12f, attackHighlightHeightOffset);
+            float submergedDistanceRatio = Mathf.InverseLerp(peak.y, dive.y,
+                waterSurfaceY - modelCenterOffsetY);
+            // 낙하의 InCubic(t^3)을 역산해야 이동 거리와 물보라 타이밍이 일치.
+            float fallSplashTime = riseDuration + holdDuration
+                + sinkDuration * Mathf.Pow(submergedDistanceRatio, 1f / 3f);
+
             // 경고가 제거된 뒤에도 재생을 마치도록 공격 연출은 별도로 관리한다.
             effects.Add(motionRoot);
             Sequence motion = DOTween.Sequence()
                 .Append(motionRoot.transform.DOMove(peak, riseDuration).SetEase(Ease.OutCubic))
-                .Join(motionRoot.transform.DORotateQuaternion(Quaternion.identity, riseDuration).SetEase(Ease.OutCubic))
-                .Append(motionRoot.transform.DORotateQuaternion(biteRotation, holdDuration).SetEase(Ease.InOutSine))
-                .Append(motionRoot.transform.DOMove(dive, sinkDuration).SetEase(Ease.InQuad))
-                .Join(motionRoot.transform.DORotateQuaternion(diveRotation, sinkDuration).SetEase(Ease.InSine))
+                .AppendInterval(holdDuration)
+                .Append(motionRoot.transform.DOMove(dive, sinkDuration).SetEase(Ease.InCubic))
+                .InsertCallback(fallSplashTime, () => CreateWaterSplash(center,
+                    effectSize, effects, Mathf.Clamp(attackWaterFallScale, 1f, 3f)))
                 .SetTarget(motionRoot.transform)
                 .SetLink(motionRoot)
                 .OnComplete(() =>
@@ -389,23 +399,22 @@ public sealed class DLJ_SharkKing : MonoBehaviour
                 });
 
             // 먼저 수면이 열리고 상승 중 물막이 솟도록 상어와 동시에 시작.
-            CreateWaterSplash(center - forward * travel * 0.25f, effectSize, effects);
+            CreateWaterSplash(center, effectSize, effects);
 
-            if (shakeEnabled && !shakeScheduled)
-            {
-                motion.InsertCallback(riseDuration * 0.2f, ShakeOnAttack);
-                shakeScheduled = true;
-            }
         }
     }
 
-    private void CreateWaterSplash(Vector3 center, float effectSize, HashSet<GameObject> effects)
+    private void CreateWaterSplash(Vector3 center, float effectSize, HashSet<GameObject> effects,
+        float sizeMultiplier = 1f)
     {
         Material waterMaterial = GetWaterMaterial();
         if (waterMaterial == null) return;
 
-        float size = Mathf.Max(0.4f, effectSize) * Mathf.Clamp(attackWaterScale, 0.5f, 3f);
-        float lifetime = Mathf.Max(1.15f, attackWaterLifetime);
+        float size = Mathf.Max(0.4f, effectSize) * Mathf.Clamp(attackWaterScale, 0.5f, 3f)
+            * sizeMultiplier;
+        float motionDuration = Mathf.Max(0.01f, attackCubeRiseDuration)
+            + Mathf.Max(0f, attackCubeHoldDuration) + Mathf.Max(0.01f, attackCubeSinkDuration);
+        float lifetime = Mathf.Max(1.15f, attackWaterLifetime, motionDuration + 0.2f);
         int count = Mathf.Clamp(attackWaterParticleCount, 0, 128);
         int jetCount = Mathf.Clamp(attackWaterJetCount, 0, 64);
         float extraBurstRatio = Mathf.Clamp01(attackWaterExtraBurstRatio);
@@ -546,14 +555,6 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         if (shader == null) return null;
         _runtimeSurfaceMaterial = new Material(shader) { name = "DLJ_SharkKingSurfaceRuntime" };
         return _runtimeSurfaceMaterial;
-    }
-
-    private void ShakeOnAttack()
-    {
-        // 같은 프레임에 여러 예약 공격이 터져도 흔들림 세기가 중첩되지 않게 한다.
-        if (_lastAttackShakeFrame == Time.frameCount) return;
-        _lastAttackShakeFrame = Time.frameCount;
-        LSO_CameraImpulse.Shake(attackShakeDuration, attackShakeStrength);
     }
 
     private void ClearAttackEffects()

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using DG.Tweening;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.UI.Effect;
+using _Scripts.DLJ.Boss;
+using _Scripts.LDY.Boss.BullKing;
 using UnityEngine;
 
 namespace _Scripts.LDY
@@ -36,6 +38,12 @@ namespace _Scripts.LDY
         /// </summary>
         private void OnDisable()
         {
+            foreach (var animal in _movingAnimals)
+            {
+                if (animal == null) continue;
+                var bull = animal.GetComponent<LDY_BullKingBoss>();
+                if (bull != null) bull.StopChargeShake();
+            }
             _activeCount = 0;
             _movingAnimals.Clear();
         }
@@ -171,13 +179,25 @@ namespace _Scripts.LDY
         {
             _movingAnimals.Add(animal);
             _activeCount++;
+            var bull = animal.GetComponent<LDY_BullKingBoss>();
             try
             {
                 int distance = Mathf.Max(
                     Mathf.Abs(animal.pos.x - from.x), Mathf.Abs(animal.pos.z - from.z));
 
+                LDY_Animal contactTarget = null;
+                Vector3Int chargeDirection = default;
+                if (bull != null && bull.isActiveAndEnabled &&
+                    LDY_ChargePath.TryIdentify(board, from, animal.pos, bull.Rule.chargeRange, out var charge))
+                {
+                    contactTarget = charge.Blocker;
+                    chargeDirection = charge.Direction;
+                }
+
+                if (bull != null) bull.ShakeOnChargeStart();
                 yield return Travel(animal, targetWorldPos, ResolveDuration(animal, distance),
-                    ResolveEasing(animal), moveAnimation, turnDuration);
+                    ResolveEasing(animal), moveAnimation, turnDuration, board, contactTarget, chargeDirection);
+                if (bull != null) bull.StopChargeShake();
 
                 // 도착한 뒤에 알린다. 돌진처럼 이동이 방아쇠인 특성은 부딪히는 순간에 맞춰
                 // 밀어내기를 일으켜야 하는데, 출발할 때 알리면 황소왕이 아직 오는 중인데
@@ -189,10 +209,15 @@ namespace _Scripts.LDY
                 {
                     LSO_AbilityNotify.Notify<LDY_IOnMoved>(
                         animal.Abilities, a => a.OnMoved(animal, from, animal.pos));
+
+                    // DLJ: 접촉/연쇄 넉백/사망까지 하나의 이동 행동으로 기다린다.
+                    while (bull != null && bull.IsResolvingCollision)
+                        yield return null;
                 }
             }
             finally
             {
+                if (bull != null) bull.StopChargeShake();
                 // 중간에 빠져나가도 IsBusy가 켜진 채 남지 않도록 finally에서 되돌린다.
                 _activeCount--;
                 _movingAnimals.Remove(animal);
@@ -201,7 +226,8 @@ namespace _Scripts.LDY
 
         private static IEnumerator Travel(
             LDY_Animal animal, Vector3 targetWorldPos, float duration, AnimationCurve easing,
-            KTH_MoveAnimation moveAnimation, float turnDuration)
+            KTH_MoveAnimation moveAnimation, float turnDuration, LDY_BoardManager board,
+            LDY_Animal contactTarget, Vector3Int chargeDirection)
         {
             Transform t = animal != null ? animal.modelTransform : null;
             if (t == null) yield break;
@@ -245,6 +271,14 @@ namespace _Scripts.LDY
 
             try
             {
+                if (contactTarget != null)
+                {
+                    // DLJ: 칸 중앙 도착/착지/추가 전진으로 끊지 않고 출발점에서 접촉면까지 달린다.
+                    yield return DLJ_BullImpactMotion.ChargeToContact(animal, contactTarget, board,
+                        chargeDirection, targetWorldPos, duration, easing);
+                    yield break;
+                }
+
                 // 뜨는 높이는 따로 정하지 않고 호버 때 뜨는 높이(LSO_HoverMoveEffect.Offset.y)를
                 // 그대로 따라간다 — 얼마나 뜨는지를 정하는 주체를 하나로 유지하기 위해서다.
                 // 바닥 높이도 지금 화면 위치가 아니라 GroundWorldY()로 구한다 — 위에서 트윈을

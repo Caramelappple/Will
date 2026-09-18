@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.HealthSystem;
@@ -21,32 +22,45 @@ namespace _Scripts.LDY.Boss.BullKing
         private readonly List<LDY_Animal> _chain = new();
         private readonly List<Vector3Int> _deathTiles = new();
 
-        public void Resolve(
+        public IEnumerator Resolve(
             LDY_Animal bull,
             LDY_BoardManager board,
-            in LDY_ChargeLine line,
+            LDY_ChargeLine line,
             LDY_BullChargeRule rule,
             LSO_IDeathService deaths,
             LDY_BullKingBoss boss)
         {
-            if (bull == null || board == null || rule == null || boss == null) return;
-            if (!line.Collides) return;
+            if (bull == null || board == null || rule == null || boss == null) yield break;
+            if (!line.Collides) yield break;
 
             LDY_ChargePath.CollectPushChain(board, line.Blocker, line.Direction, rule.maxChainPush, _chain);
-            if (_chain.Count == 0) return;
+            if (_chain.Count == 0) yield break;
 
-            // 부딪히는 순간에 흔든다. 밀어내기 전에 불러야 화면이 먼저 튀고 기물이 뒤따라 날아간다.
-            // 연쇄 충돌도 한 번의 부딪힘이므로 흔들림도 한 번이다.
-            boss.ShakeOnCollision();
+            // DLJ: 이동 시스템이 접촉면까지 연속 돌진을 마쳤으므로 바로 충격을 전달한다.
+            var motion = boss.CreateImpactMotion(bull, board, _chain, line.Direction);
+            if (bull == null || board == null || boss == null || !boss.isActiveAndEnabled) yield break;
+            foreach (LDY_Animal piece in _chain)
+                if (piece == null || board.Get(piece.pos) != piece) yield break;
 
             // 줄이 맞닿아 있으므로 맨 끝이 못 가면 아무도 못 간다. 한 번만 물어보면 된다.
             bool advanced = LDY_ChargePath.CanAdvance(board, _chain[_chain.Count - 1], line.Direction);
+            LDY_Animal last = _chain[_chain.Count - 1];
+            Vector3Int nextTile = new Vector3Int(
+                last.pos.x + line.Direction.x,
+                0,
+                last.pos.z + line.Direction.z);
+            bool hitBoardEdge = !board.IsInside(nextTile);
 
             if (advanced)
-                PushChain(board, boss, line.Direction);
-            else
-                SlamChain(board, boss);
+                PushChain(board, line.Direction);
 
+            // 이동 가능한 줄과 보드 끝에 막힌 줄 모두 같은 접촉 순서로 재생한다.
+            yield return motion.PlayChain(boss, advanced, hitBoardEdge, boss.PushFlightDuration,
+                boss.PushReturnDuration, boss.PushHeight, boss.BlockedHeight, boss.ContactReturnDuration,
+                boss.ChainTimeMultiplier);
+            if (bull == null || boss == null || !boss.isActiveAndEnabled) yield break;
+
+            // 연출 전에 사망시키면 뒤 기물은 맞기도 전에 사라진다. 착지 후 피해/유언을 처리한다.
             _deathTiles.Clear();
             ApplyDamage(bull, rule, deaths, advanced);
 
@@ -66,10 +80,11 @@ namespace _Scripts.LDY.Boss.BullKing
         }
 
         /// <summary>
-        /// 뒤쪽(황소왕에서 먼 쪽)부터 옮긴다. 앞에서부터 옮기면 아직 비지 않은 칸으로 밀어 넣게 되고,
-        /// LDY_BoardManager.Move가 점유 검사에 걸려 조용히 거부한다.
+        /// 보드 좌표는 뒤쪽(황소왕에서 먼 쪽)부터 옮긴다. 앞에서부터 옮기면 아직 비지 않은 칸으로
+        /// 밀어 넣게 되고, LDY_BoardManager.Move가 점유 검사에 걸려 조용히 거부한다.
+        /// 화면 연출은 DLJ_BullImpactMotion이 앞쪽부터 접촉 순간에 맞춰 시작한다.
         /// </summary>
-        private void PushChain(LDY_BoardManager board, LDY_BullKingBoss boss, Vector3Int direction)
+        private void PushChain(LDY_BoardManager board, Vector3Int direction)
         {
             for (int i = _chain.Count - 1; i >= 0; i--)
             {
@@ -80,22 +95,6 @@ namespace _Scripts.LDY.Boss.BullKing
                 Vector3Int to = new Vector3Int(from.x + direction.x, 0, from.z + direction.z);
 
                 board.Move(pushed, from, to);
-                boss.PlayPush(pushed, board.GridToWorld(pushed.pos));
-            }
-        }
-
-        /// <summary>
-        /// 갈 곳이 없어 밀려나지 못한 줄. 자리는 그대로여도 부딪힌 충격은 보여야 하므로
-        /// 제자리에서 튀어오르게 한다.
-        /// </summary>
-        private void SlamChain(LDY_BoardManager board, LDY_BullKingBoss boss)
-        {
-            for (int i = 0; i < _chain.Count; i++)
-            {
-                LDY_Animal victim = _chain[i];
-                if (victim == null) continue;
-
-                boss.PlaySlamHop(victim, board.GridToWorld(victim.pos));
             }
         }
 

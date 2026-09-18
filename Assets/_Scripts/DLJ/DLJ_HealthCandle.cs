@@ -27,6 +27,45 @@ public class DLJ_HealthCandle : MonoBehaviour
     private float displayedHealthRatio = 1f;
     private Coroutine resizeCoroutine;
 
+    public Vector3 TooltipAnchor => flame != null ? flame.position :
+        candleBody != null ? candleBody.TransformPoint(GetLocalTop()) : transform.position;
+
+    public Vector3 FullHeightTooltipAnchor => flame != null
+        ? (flame.parent != null ? flame.parent.TransformPoint(originalFlamePosition) : originalFlamePosition)
+        : candleBody != null
+            ? (candleBody.parent != null ? candleBody.parent.TransformPoint(bodyTop) : bodyTop)
+            : transform.position;
+
+    // 콜라이더를 추가하지 않고 현재 초의 크기로 마우스 영역을 계산한다.
+    // 다 탄 초도 바닥에 작은 영역을 남겨 총 체력을 확인할 수 있다.
+    public bool TryGetTooltipBounds(out Bounds bounds)
+    {
+        bounds = default;
+        if (!isActiveAndEnabled || candleBody == null || !candleBody.gameObject.activeInHierarchy)
+            return false;
+
+        Vector3 scale = originalBodyScale;
+        scale.y *= Mathf.Max(.04f, displayedHealthRatio);
+        Quaternion rotation = candleBody.localRotation;
+        Vector3 position = bodyBottom - rotation * Vector3.Scale(GetLocalBottom(), scale);
+        Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, scale);
+        if (candleBody.parent != null)
+            matrix = candleBody.parent.localToWorldMatrix * matrix;
+
+        bounds = new Bounds(matrix.MultiplyPoint3x4(bodyBounds.min), Vector3.zero);
+        for (int i = 1; i < 8; i++)
+        {
+            Vector3 corner = new Vector3(
+                (i & 1) == 0 ? bodyBounds.min.x : bodyBounds.max.x,
+                (i & 2) == 0 ? bodyBounds.min.y : bodyBounds.max.y,
+                (i & 4) == 0 ? bodyBounds.min.z : bodyBounds.max.z);
+            bounds.Encapsulate(matrix.MultiplyPoint3x4(corner));
+        }
+        bounds.Encapsulate(TooltipAnchor);
+        bounds.Expand(.12f);
+        return true;
+    }
+
     private void Awake()
     {
         resolvedCandleIndex = ResolveCandleIndex();

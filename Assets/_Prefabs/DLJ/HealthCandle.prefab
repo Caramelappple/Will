@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5885144190698568897}
+  - component: {fileID: 8235431001060134621}
   - component: {fileID: 3949675294073283898}
   m_Layer: 0
   m_Name: HealthCandle
@@ -4958,3 +4959,23 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -3910990755373119420, guid: 21fc70fb982ee3841b170e07f692a4ea, type: 3}
   m_PrefabInstance: {fileID: 5915389484565896686}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8235431001060134621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187138202382660363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62a02d8b847245169c8591bceda3ae0e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CandleHealthTooltip
+  targetCamera: {fileID: 0}
+  font: {fileID: 11400000, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
+  inkMaterial: {fileID: 2100000, guid: 37d4fda3216263d4d946390e6d7871c6, type: 2}
+  fontSize: 5
+  textColor: {r: 1, g: 0.92, b: 0.75, a: 1}
+  heightOffset: 0.65
+  spreadDuration: 0.65
+  fadeOutDuration: 0.2
