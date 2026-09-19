@@ -73,6 +73,28 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
     /// <summary>나가는 중인지.</summary>
     public bool IsExiting => _exitTween != null && _exitTween.IsActive();
 
+    /// <summary>
+    /// 제자리에 없는지. 나가는 중이거나 이미 나가 있으면 참이다.
+    ///
+    /// ── 왜 IsExiting 만으로는 안 되나 ─────────────────────────
+    /// 나가는 트윈이 끝나면 IsExiting 은 거짓이 되는데, 케이스는 화면 밖에
+    /// 그대로 있다. 그 사이에 턴이 바뀌면 코스트가 채워지고, 케이스가 없는
+    /// 자리로 금화가 쏟아진다.
+    ///
+    /// 그래서 트윈이 도는지가 아니라 **지금 어디에 있는지**로 답한다.
+    /// 다시 들어오기 시작하면 IsPlaying 쪽이 기다리라고 말해준다.
+    /// ─────────────────────────────────────────────────────────
+    /// </summary>
+    public bool IsAway => IsExiting || _isOutside;
+
+    /// <summary>
+    /// 나가 있는 상태인지. PlayExit 로 서고 PlayEntrance 로 풀린다.
+    ///
+    /// 위치를 재서 판단하지 않는 이유는, "얼마나 멀면 나간 것인가"를 여기서
+    /// 정하게 되기 때문이다. 나가라고 시킨 사실을 그대로 적는 편이 확실하다.
+    /// </summary>
+    private bool _isOutside;
+
     /// <summary>도착했을 때. **들어올 때만 나간다** — 코인은 이 신호를 듣고 쏟아진다.</summary>
     public event Action Completed;
 
@@ -116,6 +138,9 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
 
         KillEntranceTween();
         KillExitTween();
+
+        // 들어오기 시작했으므로 더는 나가 있는 것이 아니다.
+        _isOutside = false;
 
         transform.localPosition = _restLocalPosition;
         transform.localPosition = GetEntranceLocalPosition();
@@ -162,6 +187,9 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
         KillEntranceTween();
         KillExitTween();
 
+        // 트윈이 끝나도 케이스는 화면 밖에 남는다. 그 사실을 여기서 적는다.
+        _isOutside = true;
+
         // 지금 자리에서 계산한다. 진입 시작점은 화면 기준이라
         // 케이스가 제자리에 있을 때 재야 맞다.
         Vector3 away = GetEntranceLocalPosition();
@@ -185,6 +213,9 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
         if (_hasRestPosition)
             transform.localPosition = _restLocalPosition;
 
+        // 도착점에 놓았으니 제자리다.
+        _isOutside = false;
+
         if (wasPlaying)
             Completed?.Invoke();
     }
@@ -197,6 +228,10 @@ public class DLJ_CostAnimation : MonoBehaviour, IDLJ_CostCaseEntrance
         // 나가던 도중에 꺼지면 화면 밖에 굳는다. 다시 켰을 때 케이스가 사라진 것처럼 보인다.
         if (_hasRestPosition)
             transform.localPosition = _restLocalPosition;
+
+        // 자리를 되돌렸으므로 나가 있다는 표시도 함께 푼다.
+        // 안 풀면 다시 켰을 때 케이스는 보이는데 코인이 영영 안 들어온다.
+        _isOutside = false;
     }
 
     private void KillEntranceTween()
