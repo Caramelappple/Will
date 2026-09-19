@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Deck1 2
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "\uB371\uC5D0\uC11C \uBF51\uC740 \uCE74\uB4DC\uB294 \uC190\uD328\uC5D0 \uB4E4\uC5B4\uC635\uB2C8\uB2E4."
+  lineHold: 2.5
+  guide: 0
+  guideTiles: []
+  allowed: 0
+  gate: {fileID: 11400000, guid: bc70e98457991d04e8a4cfb947bf9ef5, type: 2}
+  gateTimeout: 30
