@@ -51,6 +51,8 @@ MonoBehaviour:
   candleBody: {fileID: 1994797510119888298}
   flame: {fileID: 5236444641235295410}
   flameRenderer: {fileID: 8298367415688351145}
+  playerFlameMaterial: {fileID: 2100000, guid: f64815edb354ba14099eb660332a99b8, type: 2}
+  enemyFlameMaterial: {fileID: 2100000, guid: e613788224f849b49c08b817656bcbbb, type: 2}
   meltedWaxPrefab: {fileID: 4411300738888215382, guid: 078b69ee9a5e6864290122dfa5970467, type: 3}
   meltedWaxScale: 1
   resizeDuration: 2

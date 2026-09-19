@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Scripts.LDY;
+using _Scripts.LSO.Manager;
 using UnityEngine;
 
 public class DLJ_HealthCandle : MonoBehaviour
@@ -14,6 +16,12 @@ public class DLJ_HealthCandle : MonoBehaviour
     [Tooltip("줄어든 초의 윗면을 따라 내려갈 불꽃")]
     [SerializeField] private Transform flame;
     [SerializeField] private ParticleSystemRenderer flameRenderer;
+
+    [Header("Turn Flame Materials")]
+    [Tooltip("플레이어 턴에 사용할 불꽃 머티리얼. 이 머티리얼의 색을 수정해 표시 색을 바꿀 수 있어.")]
+    [SerializeField] private Material playerFlameMaterial;
+    [Tooltip("적 턴에 사용할 불꽃 머티리얼. 이 머티리얼의 색을 수정해 표시 색을 바꿀 수 있어.")]
+    [SerializeField] private Material enemyFlameMaterial;
 
     [Header("Melted Wax")]
     [Tooltip("초가 줄어들수록 바닥에 퍼질 촛농 프리팹")]
@@ -36,6 +44,7 @@ public class DLJ_HealthCandle : MonoBehaviour
     private Vector3 bodyTop;
     private Bounds bodyBounds;
     private DLJ_PlayerHealth playerHealth;
+    private LDY_TurnManager turnManager;
     private int resolvedCandleIndex;
     private float displayedHealthRatio = 1f;
     private float targetHealthRatio = 1f;
@@ -126,6 +135,8 @@ public class DLJ_HealthCandle : MonoBehaviour
     {
         activeCandles.Add(this);
         TryBindPlayerHealth();
+        GameManager.Instance.TurnManagerChanged += BindTurnManager;
+        BindTurnManager(GameManager.Instance.TurnManager);
     }
 
     private void Start()
@@ -136,6 +147,10 @@ public class DLJ_HealthCandle : MonoBehaviour
     private void OnDisable()
     {
         activeCandles.Remove(this);
+        if (GameManager.HasInstance)
+            GameManager.Instance.TurnManagerChanged -= BindTurnManager;
+        BindTurnManager(null);
+        ApplyFlameMaterial(LDY_Team.Player);
         if (resizeCoroutine != null)
             StopCoroutine(resizeCoroutine);
 
@@ -144,6 +159,27 @@ public class DLJ_HealthCandle : MonoBehaviour
 
         playerHealth = null;
         resizeCoroutine = null;
+    }
+
+    private void BindTurnManager(LDY_TurnManager manager)
+    {
+        if (turnManager != null)
+            turnManager.OnTurnChanged -= ApplyFlameMaterial;
+
+        turnManager = manager;
+        if (turnManager != null)
+            turnManager.OnTurnChanged += ApplyFlameMaterial;
+
+        ApplyFlameMaterial(turnManager != null ? turnManager.CurrentTurn : LDY_Team.Player);
+    }
+
+    private void ApplyFlameMaterial(LDY_Team team)
+    {
+        if (flameRenderer == null) return;
+
+        Material material = team == LDY_Team.Enemy ? enemyFlameMaterial : playerFlameMaterial;
+        if (material != null && flameRenderer.sharedMaterial != material)
+            flameRenderer.sharedMaterial = material;
     }
 
     private void TryBindPlayerHealth()
