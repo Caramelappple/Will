@@ -1,0 +1,1 @@
+PASS: prefab import; editable elements; moved/resized/rotated layout retained; death/survival text; preview/playback world scale and offset match; UpdatePose preserves child layout.

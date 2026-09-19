@@ -113,8 +113,21 @@ namespace _Scripts.LSO.Ability
 
         private void HandleFired(LSO_AbilityFired fired)
         {
-            if (_catalog == null) return;
             if (!fired.HasPosition) return;
+
+            // 개복치 기물에 직접 맞춘 설정이 있으면 그것을 재생 원본으로 쓴다.
+            // 사전 프리팹까지 생성하면 다른 크기의 연출이 중복된다.
+            if (fired.Type == LSO_AbilityType.Frail && fired.Animal != null &&
+                fired.Animal.TryGetComponent(out DLJ_SunfishFateEffect sunfish) &&
+                sunfish.isActiveAndEnabled)
+            {
+                TrimToLimit();
+                DLJ_SunfishFateEffect effect = sunfish.CreateDetachedPlayback(fired.EffectVariant);
+                _live.Add(new Live(effect.gameObject, Time.unscaledTime + effect.Duration + 0.1f));
+                return;
+            }
+
+            if (_catalog == null) return;
 
             if (!_catalog.TryGet(fired.Type, out LSO_AbilityInfo info))
             {

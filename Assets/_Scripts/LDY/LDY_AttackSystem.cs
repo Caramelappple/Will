@@ -241,7 +241,8 @@ namespace _Scripts.LDY
                         attacker.GetAtk(),
                         ToDamageSource(attacker.RangeType));
 
-                    NotifyAttackAbilities(attacker);
+                    NotifyAttackAbilities(attacker, target.modelTransform != null
+                        ? target.modelTransform.position : target.transform.position);
                     target.health.GetDamage(data);
                     PlayHitReaction(attacker, target);
                     if (target.health.IsDestroyed)
@@ -399,12 +400,18 @@ namespace _Scripts.LDY
             }
         }
 
-        private static void NotifyAttackAbilities(LDY_Animal attacker)
+        private static void NotifyAttackAbilities(LDY_Animal attacker, Vector3 impactPosition)
         {
             if (attacker == null) return;
 
             LSO_AbilityNotify.Notify<IOnAnimalAttack>(
-                attacker.Abilities, a => a.OnAttack(attacker.data));
+                attacker.Abilities, a =>
+                {
+                    if (a is DLJ_IOnAttackImpact impact)
+                        impact.OnAttack(attacker.data, impactPosition);
+                    else
+                        a.OnAttack(attacker.data);
+                });
         }
 
         // 팀을 가리지 않고 모든 죽음을 알린다. 누가 적인지는 받는 특성이 판단한다.

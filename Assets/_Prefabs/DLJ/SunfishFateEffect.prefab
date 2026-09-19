@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1f7a93d836e4c43a9532e26c86bf117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SunfishFateEffect
+  layoutPrefab: {fileID: 1004, guid: e059a7bf9f7a46f7b4d09454d5eb31a3, type: 3}
   deathText: "\uB3CC\uC5F0\uC0AC"
   survivalText: "\uC0B4\uC558\uB2E4!"
   fontAsset: {fileID: 0}
@@ -55,7 +56,3 @@ MonoBehaviour:
   duration: 1.7
   riseDistance: 0.16
   pixelJitter: 0.018
-  panelColor: {r: 0.025, g: 0.14, b: 0.16, a: 0.98}
-  borderColor: {r: 0.015, g: 0.018, b: 0.02, a: 1}
-  pulseColor: {r: 0.92, g: 0.035, b: 0.055, a: 1}
-  textColor: {r: 0.96, g: 0.95, b: 0.9, a: 1}
