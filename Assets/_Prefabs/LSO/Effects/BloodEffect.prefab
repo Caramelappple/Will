@@ -4932,7 +4932,7 @@ Transform:
   m_LocalRotation: {x: -0.23943962, y: -0, z: -0, w: 0.97091126}
   m_LocalPosition: {x: 0, y: 2.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5231462738227255763}
   m_Father: {fileID: 0}
@@ -8523,7 +8523,7 @@ ParticleSystem:
         m_NumAlphaKeys: 2
     range: {x: 0, y: 1}
   CollisionModule:
-    enabled: 1
+    enabled: 0
     serializedVersion: 4
     type: 1
     collisionMode: 0

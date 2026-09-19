@@ -48,9 +48,13 @@ namespace _Scripts.LSO.Ability
         /// <param name="type">어떤 특성인지. 사전에서 이펙트를 찾는 열쇠다.</param>
         /// <param name="owner">특성을 가진 기물.</param>
         /// <param name="message">콘솔에 남길 말. 비우면 로그를 남기지 않는다.</param>
-        public static void Raise(LSO_AbilityType type, LDY_Animal owner, string message = null)
+        public static void Raise(
+            LSO_AbilityType type,
+            LDY_Animal owner,
+            string message = null,
+            int effectVariant = 0)
         {
-            Raise(type, owner, owner, message);
+            Raise(type, owner, owner, message, effectVariant);
         }
 
         /// <summary>
@@ -72,14 +76,19 @@ namespace _Scripts.LSO.Ability
         /// <param name="owner">특성을 가진 기물.</param>
         /// <param name="at">이펙트가 뜰 자리가 될 기물. null 이면 아무것도 띄우지 않는다.</param>
         /// <param name="message">콘솔에 남길 말. 비우면 로그를 남기지 않는다.</param>
-        public static void Raise(LSO_AbilityType type, LDY_Animal owner, LDY_Animal at, string message = null)
+        public static void Raise(
+            LSO_AbilityType type,
+            LDY_Animal owner,
+            LDY_Animal at,
+            string message = null,
+            int effectVariant = 0)
         {
             if (!string.IsNullOrEmpty(message))
                 LSO_AbilityLog.Log(message, owner);
 
             if (type == LSO_AbilityType.None) return;
 
-            Fired?.Invoke(new LSO_AbilityFired(type, owner, at));
+            Fired?.Invoke(new LSO_AbilityFired(type, owner, at, effectVariant));
         }
 
         /// <summary>
@@ -107,13 +116,18 @@ namespace _Scripts.LSO.Ability
     public readonly struct LSO_AbilityFired
     {
         public LSO_AbilityFired(LSO_AbilityType type, LDY_Animal animal)
-            : this(type, animal, animal) { }
+            : this(type, animal, animal, 0) { }
 
-        public LSO_AbilityFired(LSO_AbilityType type, LDY_Animal animal, LDY_Animal at)
+        public LSO_AbilityFired(
+            LSO_AbilityType type,
+            LDY_Animal animal,
+            LDY_Animal at,
+            int effectVariant = 0)
         {
             Type = type;
             Animal = animal;
             At = at;
+            EffectVariant = effectVariant;
 
             Position = PositionOf(at);
             HasPosition = at != null;
@@ -130,6 +144,12 @@ namespace _Scripts.LSO.Ability
         /// 특성에서는 다르다. 마찬가지로 이미 파괴됐을 수 있다.
         /// </summary>
         public LDY_Animal At { get; }
+
+        /// <summary>
+        /// 같은 특성이 서로 다른 결과 연출을 가질 때 쓰는 번호.
+        /// 0은 기본 연출이며, 값을 해석하는 것은 해당 이펙트 프리팹이다.
+        /// </summary>
+        public int EffectVariant { get; }
 
         /// <summary>이펙트가 뜰 자리. 기물이 사라져도 남는다.</summary>
         public Vector3 Position { get; }

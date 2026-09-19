@@ -142,14 +142,21 @@ namespace _Scripts.LSO.Ability
                     "사전에서 1, 1, 1 로 바꿔주세요.");
             }
 
-            Spawn(info, fired.Position);
+            Spawn(info, fired.Position, fired.EffectVariant);
         }
 
-        private void Spawn(LSO_AbilityInfo info, Vector3 at)
+        private void Spawn(LSO_AbilityInfo info, Vector3 at, int effectVariant)
         {
             TrimToLimit();
 
             GameObject instance = Instantiate(info.effectPrefab, parent);
+
+            // 같은 특성 안에서도 판정 결과가 갈릴 수 있다. 개복치의 생존/돌연사처럼
+            // 프리팹이 결과별 표현을 지원하면 번호를 넘기고, 아니면 조용히 무시한다.
+            instance.BroadcastMessage(
+                "ApplyAbilityEffectVariant",
+                effectVariant,
+                SendMessageOptions.DontRequireReceiver);
 
             // 자리·자세·크기를 정하는 곳은 LSO_AbilityEffectPlacement 하나다.
             // 에디터 미리보기도 같은 것을 쓴다 — 두 곳이 각자 계산하면

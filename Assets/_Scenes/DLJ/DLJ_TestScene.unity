@@ -2822,6 +2822,7 @@ GameObject:
   - component: {fileID: 579526123}
   - component: {fileID: 579526132}
   - component: {fileID: 579526133}
+  - component: {fileID: 579526134}
   m_Layer: 0
   m_Name: LDY_GameSystems
   m_TagString: Untagged
@@ -3044,6 +3045,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_DeathHandler
   board: {fileID: 579526130}
+--- !u!114 &579526134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579526122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1be196a56a04c84fbf833aa75531ac7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Ability.LSO_AbilityEffectPlayer
+  parent: {fileID: 0}
+  maxActive: 12
+  fallbackLifetime: 2
+  logSteps: 1
 --- !u!1 &598217199
 GameObject:
   m_ObjectHideFlags: 0
@@ -6783,6 +6800,7 @@ GameObject:
   - component: {fileID: 1196145411}
   - component: {fileID: 1196145410}
   - component: {fileID: 1196145409}
+  - component: {fileID: 1196145415}
   m_Layer: 10
   m_Name: Ally7
   m_TagString: Ally
@@ -6819,7 +6837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 11400000, guid: 198c5840683c9e64b9dfbd7e9bd63b2f, type: 2}
+  data: {fileID: 11400000, guid: 658328d1c069437cb0da1bc1c0600e5b, type: 2}
   health: {fileID: 1196145409}
   pos: {x: 3, y: 0, z: 3}
   team: 0
@@ -6923,6 +6941,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1196145415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1196145408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1f7a93d836e4c43a9532e26c86bf117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_SunfishFateEffect
+  deathText: "\uB3CC\uC5F0\uC0AC"
+  survivalText: "\uC0B4\uC558\uB2E4!"
+  fontAsset: {fileID: 0}
+  worldOffset: {x: 0, y: 0.87, z: 0}
+  worldScale: 0.002
+  sortingOrder: 220
+  autoPlayOnStart: 0
+  previewInEditMode: 1
+  duration: 2.2
+  riseDistance: 0.16
+  pixelJitter: 0.018
+  panelColor: {r: 0.025, g: 0.14, b: 0.16, a: 0.98}
+  borderColor: {r: 0.015, g: 0.018, b: 0.02, a: 1}
+  pulseColor: {r: 0.92, g: 0.035, b: 0.055, a: 1}
+  textColor: {r: 0.96, g: 0.95, b: 0.9, a: 1}
 --- !u!4 &1218268697 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6759159158562701642, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}

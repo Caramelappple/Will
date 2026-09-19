@@ -59,10 +59,10 @@ MonoBehaviour:
       \uB3CC\uC5F0\uC0AC\uB97C \uD310\uC815\uD55C\uB2E4. 67% \uD655\uB960\uB85C \uC0B4\uC544\uB0A8\uB294\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
+    effectPrefab: {fileID: 5811829816082480728, guid: a0189309e32f4e3cab8769ec2e820f7c, type: 3}
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectScale: {x: 1, y: 1, z: 1}
   - type: 11
     displayName: "\uBE44\uD0C0\uBBFC"
     description: "\uC800\uC8FC\uC758 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uB294\uB2E4."
@@ -102,7 +102,7 @@ MonoBehaviour:
     effectPrefab: {fileID: 6134397333264359803, guid: 4c77e589e2036904eb3e30b8bece15bb, type: 3}
     effectOffset: {x: 0, y: 0, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 10, y: 10, z: 10}
+    effectScale: {x: 0.25, y: 0.25, z: 0.25}
   - type: 15
     displayName: "\uCF54\uC2A4\uD2B8 \uC800\uCD95"
     description: "\uC0DD\uC874\uD55C \uD134\uB9C8\uB2E4 \uCF54\uC2A4\uD2B8\uB97C

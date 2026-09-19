@@ -46,10 +46,18 @@ namespace _Scripts.LSO.Ability
 
             // 팀을 가리지 않고 모든 턴 시작에 판정한다.
             if (owner.health != null && owner.health.IsDestroyed) return;
-            if (Random.value >= DeathChance) return;
+            if (Random.value >= DeathChance)
+            {
+                LSO_AbilitySignal.Raise(
+                    LSO_AbilityType.Frail,
+                    owner,
+                    effectVariant: 1);
+                return;
+            }
 
             LSO_AbilitySignal.Raise(LSO_AbilityType.Frail, owner,
-                $"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>");
+                $"<color=grey>{owner.name}: 허약 발동 — 쓰러졌습니다.</color>",
+                effectVariant: 0);
 
             LSO_AbilityDeath.KillThrough(_context, owner);
         }

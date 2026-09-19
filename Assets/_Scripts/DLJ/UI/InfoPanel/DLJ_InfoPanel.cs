@@ -41,6 +41,12 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 {
     public static DLJ_InfoPanel Instance { get; private set; }
 
+    /// <summary>
+    /// 열려 있던 인포창에 닫기 요청이 들어왔을 때 한 번 발생한다.
+    /// 이미 닫힌 상태에서 Hide를 다시 호출해도 발생하지 않는다.
+    /// </summary>
+    public event Action Closed;
+
     public bool IsHidden
     {
         get
@@ -251,11 +257,16 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
     public void Hide()
     {
+        bool wasVisible = _wantsVisible;
+
         BindUnit(null);
         StopInkRoutine();
         _hasPendingData = false;
         _wantsVisible = false;
         SetVisible(false);
+
+        if (wasVisible)
+            Closed?.Invoke();
     }
 
     /// <param name="replay">
