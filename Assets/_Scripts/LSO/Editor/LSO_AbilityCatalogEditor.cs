@@ -29,6 +29,7 @@ namespace _Scripts.LSO.Editor
         private LSO_AbilityType _picked = LSO_AbilityType.None;
         private Transform _at;
         private GameObject _preview;
+        private GameObject _previewPrefab;
         private bool _follow = true;
 
         // 편집 모드에서는 파티클이 저절로 돌지 않는다. 시간을 손으로 밀어줘야 한다.
@@ -72,7 +73,13 @@ namespace _Scripts.LSO.Editor
             DrawPlayback();
             DrawStatus();
 
-            if (_follow && _preview != null) Place();
+            if (_follow && _preview != null)
+            {
+                if (TryGetInfo(out LSO_AbilityInfo info) && info.effectPrefab != _previewPrefab)
+                    Spawn();
+                else
+                    Place();
+            }
         }
 
         /// <summary>
@@ -141,7 +148,10 @@ namespace _Scripts.LSO.Editor
             int current = Mathf.Max(0, withEffect.IndexOf(_picked));
             int next = EditorGUILayout.Popup("특성", current, labels);
 
+            bool changed = _picked != withEffect[next];
             _picked = withEffect[next];
+
+            if (changed && _preview != null) Spawn();
 
             _at = (Transform)EditorGUILayout.ObjectField(
                 new GUIContent("놓을 자리", "비워두면 원점(0,0,0)에 놓는다. 기물이나 타일을 꽂으면 그 자리에 놓인다."),
@@ -210,6 +220,7 @@ namespace _Scripts.LSO.Editor
             if (!TryGetInfo(out LSO_AbilityInfo info)) return;
 
             _preview = Instantiate(info.effectPrefab);
+            _previewPrefab = info.effectPrefab;
             _preview.name = PreviewName;
 
             // 씬에 저장되지 않고 하이어라키에도 안 보인다. 지우는 것을 잊어도 남지 않는다.
@@ -217,15 +228,27 @@ namespace _Scripts.LSO.Editor
 
             CollectParticleRoots();
 
-            _time = 0f;
+            // 첫 화면부터 입자가 보이게 하고 실제 크기로 프레이밍한다.
+            _time = 0.1f;
+            _playing = true;
             _lastTick = EditorApplication.timeSinceStartup;
 
             Place();
 
+            foreach (ParticleSystem ps in _roots)
+                ps.Simulate(_time, true, true, false);
+
+            Bounds bounds = new Bounds(_preview.transform.position, Vector3.one);
+            foreach (ParticleSystem ps in _preview.GetComponentsInChildren<ParticleSystem>())
+            {
+                if (ps.particleCount > 0 && ps.TryGetComponent(out ParticleSystemRenderer renderer))
+                    bounds.Encapsulate(renderer.bounds);
+            }
+            bounds.Expand(0.5f);
+
             // 씬 뷰가 이 자리를 비추게 한다. 안 그러면 화면 밖에 놓여 안 보인다.
             if (SceneView.lastActiveSceneView != null)
-                SceneView.lastActiveSceneView.Frame(
-                    new Bounds(_preview.transform.position, Vector3.one * 3f), false);
+                SceneView.lastActiveSceneView.Frame(bounds, false);
         }
 
         /// <summary>
@@ -251,7 +274,7 @@ namespace _Scripts.LSO.Editor
                 //
                 // 미리보기 사본에만 손대는 것이라 프리팹 원본은 그대로다.
 
-               //main. = false; 오류나서 주석 쳐둠
+                ps.useAutoRandomSeed = false;
                 ps.randomSeed = 1234;
 
                 longest = Mathf.Max(
@@ -296,6 +319,7 @@ namespace _Scripts.LSO.Editor
 
             DestroyImmediate(_preview);
             _preview = null;
+            _previewPrefab = null;
             _roots = null;
         }
     }

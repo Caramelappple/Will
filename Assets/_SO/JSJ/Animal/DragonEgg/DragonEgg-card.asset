@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: DragonEgg-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: ebdadb1a693948378e493d6c44fc58da, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 4e19c1050cef4ff45ad5f2b7f316b60b, type: 3}
