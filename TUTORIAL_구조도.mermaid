@@ -1,0 +1,49 @@
+flowchart TB
+    subgraph TUT["LSO/Tutorial &nbsp;&mdash;&nbsp; 새로 만드는 것"]
+        direction TB
+        SO["LSO_TutorialChapterSO<br/>└ LSO_TutorialStepSO<br/><i>카메라·안내문·가이드칸·허용조작·관문</i>"]
+        D["<b>LSO_TutorialDirector</b><br/><i>한 걸음씩 재생. 조건은 모른다</i>"]
+        B["LSO_TutorialBanner<br/><i>안내문</i>"]
+        G["LSO_TutorialGuide<br/><i>칸 물들이기</i>"]
+        L["LSO_TutorialLock<br/><i>조작 잠금</i>"]
+        P["LSO_TutorialEnemyPlan<br/><i>적을 대본대로</i>"]
+        GA{{"LSO_ITutorialGate<br/>Arm / Disarm"}}
+    end
+
+    subgraph GAME["기존 게임 &nbsp;&mdash;&nbsp; 튜토리얼을 모른다"]
+        direction TB
+        CAM["LSO_CameraDirector"]
+        TH["LDY_TileHighlighter"]
+        CP["LDY_CardPlacer"]
+        MS["LDY_MoveSystem"]
+        AS["LDY_AttackSystem"]
+        AI["LDY_EnemyAI"]
+        ETC["턴 · 유언 · 보상 · 스테이지"]
+    end
+
+    SO --> D
+    D --> B
+    D --> G
+    D --> L
+    D --> GA
+    D -->|"Play·shotId"| CAM
+    D -->|"RestrictTo / Clear"| CP
+    D -->|"RestrictTo / Clear"| MS
+    D -->|"Plan 꽂고 뺀다"| AI
+    G --> TH
+    L --> CP
+    L --> MS
+    L --> AS
+    P -.->|"LDY_IEnemyPlan 구현"| AI
+
+    CP -.->|"Placed"| GA
+    MS -.->|"Moved"| GA
+    AS -.->|"Attacked"| GA
+    ETC -.->|"기존 이벤트"| GA
+
+    classDef tut fill:#2d3b55,stroke:#7aa2f7,color:#e6edf3
+    classDef game fill:#3a3a2f,stroke:#c0a05a,color:#e6edf3
+    classDef hub fill:#4a2d55,stroke:#c77dff,color:#e6edf3
+    class SO,B,G,L,P tut
+    class CAM,TH,CP,MS,AS,AI,ETC game
+    class D,GA hub

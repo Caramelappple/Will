@@ -448,8 +448,51 @@ namespace _Scripts.LDY
             if (board == null || !board.IsInside(pos) || !board.IsEmpty(pos)) return false;
 
             int half = LDY_BoardManager.Size / 2;
-            return team == LDY_Team.Player ? pos.z < half : pos.z >= half;
+            if (team == LDY_Team.Player ? pos.z >= half : pos.z < half) return false;
+
+            // 좁혀둔 칸이 있으면 마지막으로 그것도 본다. **원래 규칙 뒤에 얹는다** —
+            // 앞의 검사를 건너뛰게 만들면 튜토리얼이 평소보다 느슨한 규칙을 가르치게 된다.
+            return !IsRestricted || _restricted.Contains(Normalize(pos));
         }
+
+        // =========================================================
+        // 놓을 수 있는 칸 좁히기 (튜토리얼)
+        //
+        // 평소에는 아무도 안 부른다. 안 부르면 IsRestricted 가 거짓이라
+        // 위 검사는 예전과 똑같이 돈다.
+        // =========================================================
+
+        private readonly HashSet<Vector3Int> _restricted = new();
+
+        /// <summary>좁혀둔 칸이 있는지.</summary>
+        public bool IsRestricted => _restricted.Count > 0;
+
+        /// <summary>
+        /// 여기 담긴 칸에만 놓을 수 있게 한다.
+        ///
+        /// 푸는 것은 부른 쪽의 몫이다(ClearRestriction). 안 풀면 튜토리얼이 끝난 뒤에도
+        /// 그 칸에만 놓을 수 있게 되는데, 화면에는 아무 표시가 없어 원인을 짐작할 수 없다.
+        /// </summary>
+        public void RestrictTo(IEnumerable<Vector3Int> tiles)
+        {
+            _restricted.Clear();
+
+            if (tiles == null) return;
+
+            foreach (Vector3Int tile in tiles) _restricted.Add(Normalize(tile));
+        }
+
+        /// <summary>다시 전부 허용한다.</summary>
+        public void ClearRestriction()
+        {
+            _restricted.Clear();
+        }
+
+        /// <summary>
+        /// 높이를 지운다. 격자 좌표는 y 를 안 쓰는데, 밖에서 넘어온 값에는
+        /// 0 이 아닌 y 가 섞여 있을 수 있다. 그대로 비교하면 같은 칸이 안 맞는다.
+        /// </summary>
+        private static Vector3Int Normalize(Vector3Int pos) => new(pos.x, 0, pos.z);
 
         /// <summary>칸을 못 집은 이유. 화면에는 안 띄우고 콘솔에만 남긴다.</summary>
         private enum PickMiss

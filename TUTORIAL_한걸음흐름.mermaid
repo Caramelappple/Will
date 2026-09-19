@@ -1,0 +1,37 @@
+sequenceDiagram
+    autonumber
+    participant D as TutorialDirector
+    participant C as CameraDirector
+    participant V as Banner / Guide / Lock
+    participant R as CardPlacer · MoveSystem
+    participant G as Gate
+    participant U as 플레이어
+
+    Note over D: 걸음 시작 &mdash; StepSO 를 읽는다
+
+    D->>C: Play(shotId)
+    C-->>D: 블렌드 끝날 때까지 대기
+
+    D->>V: Guide.Show(guideTiles)
+    D->>R: RestrictTo(guideTiles)
+    Note over V,R: 표시하는 칸 = 놓을 수 있는 칸<br/>같은 값 하나에서 나온다
+    D->>V: Lock.Apply(allowed)
+
+    D->>V: Banner.Show(line) &times; N
+
+    alt gate 가 있다
+        D->>G: Arm(다음으로)
+        U->>G: 소환 · 이동 · 공격 · 숫자키 …
+        G-->>D: 통과
+    else 시간이 지났다
+        Note over D,G: gateTimeout 초과<br/>경고를 남기고 통과 &mdash; 멈춰 서는 쪽이 더 나쁘다
+    else gate 가 없다
+        Note over D: 마지막 줄을 읽고 바로 다음
+    end
+
+    D->>G: Disarm
+    D->>V: Guide.Clear
+    D->>R: ClearRestriction
+    Note over D: 다음 걸음
+
+    Note over D,U: 끝나는 길은 둘 &mdash; 마지막 걸음 · ESC<br/>정리하는 곳은 Stop 하나
