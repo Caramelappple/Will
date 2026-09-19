@@ -13,5 +13,4 @@ MonoBehaviour:
   m_Name: DLJ_FoxKingCard
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 188e4120f440f3c4496eb6ae18c44b56, type: 2}
-  willType: 0
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: a035b80d5a00e6c4d8d9f923a061de13, type: 3}

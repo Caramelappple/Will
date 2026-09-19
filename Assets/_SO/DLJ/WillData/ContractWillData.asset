@@ -16,8 +16,8 @@ MonoBehaviour:
   description: "\uC8FD\uC740 \uAE30\uBB3C\uC758 \uCF54\uC2A4\uD2B8\uB97C \uC808\uBC18\uC744
     \uB3CC\uB824\uBC1B\uB294\uB2E4."
   icon: {fileID: 21300000, guid: 1cb1abf179b32e3418e7a303ab208167, type: 3}
-  flameColor: {r: 4, g: 3.2066422, b: 0, a: 1}
-  effectPrefab: {fileID: 0}
+  flameColor: {r: 2, g: 1.6033211, b: 0, a: 1}
+  effectPrefab: {fileID: 717776494696762760, guid: 602409888938a3240919990e8f1c74b1, type: 3}
   cameraHoldDuration: 1.8
   holdTime: 0.3
   coinMesh: {fileID: -955584151905325032, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}

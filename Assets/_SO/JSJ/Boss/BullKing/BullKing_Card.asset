@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: BullKing_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
-  image: {fileID: 21300000, guid: 5967889aede50c349934e113016baa7a, type: 3}
+  image: {fileID: 21300000, guid: 15da36edbe9672443b3f0fd576284fa4, type: 3}

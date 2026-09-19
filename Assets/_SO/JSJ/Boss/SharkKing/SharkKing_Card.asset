@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: SharkKing_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 1d9e8c97bd2fb7c4985b41ff11da4d32, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 852383b5b54376f48afe4330b27dfc93, type: 3}

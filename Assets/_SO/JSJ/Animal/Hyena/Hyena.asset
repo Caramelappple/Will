@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Hyena
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uD558\uC774\uC5D0\uB098"
-  description: "\uC8FD\uC74C\uC758 \uB0C4\uC0C8\uB97C \uCAD3\uB294 \uD558\uC774\uC5D0\uB098\uC785\uB2C8\uB2E4. \uC801 \uAE30\uBB3C\uC774 \uC8FD\uC744 \uB54C\uB9C8\uB2E4 \uACF5\uACA9\uB825\uC774 1 \uC624\uB974\uBA70 \uCD5C\uB300 3\uAE4C\uC9C0 \uC313\uC785\uB2C8\uB2E4."
+  description: "\uC8FD\uC74C\uC758 \uB0C4\uC0C8\uB97C \uCAD3\uB294 \uD558\uC774\uC5D0\uB098\uC785\uB2C8\uB2E4.
+    \uC801 \uAE30\uBB3C\uC774 \uC8FD\uC744 \uB54C\uB9C8\uB2E4 \uACF5\uACA9\uB825\uC774
+    1 \uC624\uB974\uBA70 \uCD5C\uB300 3\uAE4C\uC9C0 \uC313\uC785\uB2C8\uB2E4."
   maxHealth: 4
   damage: 1
   cost: 3
@@ -22,4 +24,4 @@ MonoBehaviour:
   range: 0
   abilities: 06000000
   defaultWill: 0
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 1037066377696720215, guid: 47edf717e74ae534586bdef5f6023b09, type: 3}
