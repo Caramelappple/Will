@@ -60,7 +60,9 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
     [SerializeField] private DLJ_WillDatabaseSO willDatabase;
 
     [Header("열기 입력")]
-    [Tooltip("같은 기물을 두 번 눌렀다고 인정할 최대 시간 간격.")]
+    [Tooltip("같은 기물을 두 번 눌렀다고 인정할 최대 시간 간격.\n" +
+             "\n" +
+             "여는 데만 쓴다. 닫는 것은 한 번 클릭이라 간격을 재지 않는다.")]
     [SerializeField, Min(0.05f)] private float pieceDoubleClickInterval = 0.35f;
 
     [Header("표시 루트")]
@@ -239,8 +241,12 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
             return;
         }
 
+        // 보던 기물과 다른 기물이면 창을 한 번 내렸다 올린다.
+        // BindUnit 이 _currentUnit 을 덮기 전에 봐야 한다.
+        bool changedUnit = _currentUnit != unit;
+
         BindUnit(unit);
-        ShowData(data);
+        ShowData(data, replay: changedUnit);
     }
 
     public void Hide()
@@ -252,7 +258,16 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         SetVisible(false);
     }
 
-    private void ShowData(DLJ_InfoPanelData data)
+    /// <param name="replay">
+    /// 이미 떠 있을 때 창을 내렸다 올릴지.
+    ///
+    /// 보던 대상이 바뀌었을 때 켠다. 글자만 갈리면 창이 제자리에 있어서
+    /// 지금 누구를 보고 있는지, 클릭이 먹기는 했는지 알기 어렵다.
+    ///
+    /// **내용이 같아도 내렸다 올린다.** 같은 종류의 기물을 번갈아 볼 때가
+    /// 그런 경우인데, 그때야말로 바뀐 것을 알려줄 다른 단서가 없다.
+    /// </param>
+    private void ShowData(DLJ_InfoPanelData data, bool replay = false)
     {
         if (!_wantsVisible || !_hasDisplayedData)
         {
@@ -266,13 +281,45 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
             return;
         }
 
-        if (_hasPendingData ? SameVisualData(_pendingData, data) : SameVisualData(_displayedData, data))
+        bool sameData = _hasPendingData
+            ? SameVisualData(_pendingData, data)
+            : SameVisualData(_displayedData, data);
+
+        if (sameData && !replay)
             return;
 
         _pendingData = data;
         _hasPendingData = true;
+
+        if (replay && panelAnimation != null)
+        {
+            // 글자 갈아 끼우기는 멈춘다. 갈아 끼우는 자리가 바닥으로 옮겨간다.
+            StopInkRoutine();
+
+            panelAnimation.Replay(SwapAtBottom);
+            return;
+        }
+
         if (_inkRoutine == null)
             _inkRoutine = StartCoroutine(ReplaceInk());
+    }
+
+    /// <summary>
+    /// 창이 바닥까지 내려간 순간 내용을 갈아 끼운다.
+    ///
+    /// 올라오는 도중에 바꾸면 바뀌는 장면이 그대로 보인다.
+    /// 글자는 0부터 다시 번지게 해서 처음 띄울 때와 같은 모양으로 만든다.
+    /// </summary>
+    private void SwapAtBottom()
+    {
+        if (!_hasPendingData) return;
+
+        ApplyData(_pendingData);
+        _hasPendingData = false;
+
+        SetInkProgress(0f);
+
+        _inkRoutine = StartCoroutine(RevealInk());
     }
 
     private IEnumerator RevealInk()
@@ -427,11 +474,38 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         SetFontStyle(playerHealthPoints, data.HasPlayerHealthPoints, _playerHealthPointsFontStyle);
     }
 
+    /// <summary>
+    /// 기물을 눌렀다.
+    ///
+    ///     띄우는 중인 기물을 누름  → 한 번으로 닫는다
+    ///     그 밖                    → 두 번 눌러야 뜬다
+    ///
+    /// ── 여는 것과 닫는 것이 왜 다른가 ─────────────────────────
+    /// 기물 클릭은 원래 "고른다"는 뜻이다(LDY_SelectionController). 한 번 누를
+    /// 때마다 창이 뜨면 기물을 고를 때마다 화면이 가려진다. 그래서 여는 데는
+    /// 두 번을 요구한다.
+    ///
+    /// 닫는 쪽은 반대다. 이미 창이 떠서 화면을 가리고 있으므로, 치우는 데 두 번을
+    /// 요구할 이유가 없다. 한 번에 치운다.
+    /// ─────────────────────────────────────────────────────────
+    ///
+    /// 카드로 띄운 경우에는 BindUnit(null) 이라 _currentUnit 이 비어 있어,
+    /// 기물을 누르면 닫히지 않고 그 기물로 갈아탄다.
+    /// </summary>
     private void HandleAnimalClicked(LDY_Animal unit)
     {
         if (unit == null)
         {
             ResetPieceClick();
+            return;
+        }
+
+        // 지금 이 기물을 띄우고 있으면 한 번으로 닫는다. 간격을 재기 전에 본다 —
+        // 여기까지 오면 더블클릭 여부는 답에 아무 영향이 없다.
+        if (_wantsVisible && _currentUnit == unit)
+        {
+            ResetPieceClick();
+            Hide();
             return;
         }
 
@@ -463,6 +537,11 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
         DLJ_InfoPanelEvents.RaiseCardDoubleClicked(handCard.CardData);
     }
 
+    /// <summary>
+    /// 재던 간격을 버린다. 창이 뜨거나 닫힌 뒤에 부른다.
+    ///
+    /// 안 버리면 방금 연 기물을 한 번만 더 눌러도 그것이 "두 번째 클릭"으로 읽힌다.
+    /// </summary>
     private void ResetPieceClick()
     {
         _lastClickedUnit = null;

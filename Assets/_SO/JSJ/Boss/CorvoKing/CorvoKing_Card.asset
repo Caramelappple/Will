@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: CorvoKing_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 33c78c3ce98301a4a9dc60449035a3df, type: 2}
-  image: {fileID: 21300000, guid: 454f59f9d97456e42ba9ef9bdbcb85c0, type: 3}
+  image: {fileID: 21300000, guid: 7ea9e3f215e373f42b999a69b148fd75, type: 3}
