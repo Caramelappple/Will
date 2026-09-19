@@ -10,8 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
-  m_Name: GameIntroduce
+  m_Name: Ch4_유언
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
-  title: Intro
+  title: "4. \uC720\uC5B8"
   steps:
-  - {fileID: 11400000, guid: 1a0cb9879baa1384fbba6627b076e7fe, type: 2}
+  - {fileID: 11400000, guid: 6151f0249b8445858931fedefe9bee21, type: 2}
+  - {fileID: 11400000, guid: 7515a16b844445bd8adf0098d0f1da17, type: 2}
+  - {fileID: 11400000, guid: 0605201106e34e89b4cc8e700dedb872, type: 2}
+  - {fileID: 11400000, guid: 76710aa07ff0407f90a4aa70ab2df959, type: 2}
+  - {fileID: 11400000, guid: d65fe85326f04f3f88b9064773d4a5b7, type: 2}

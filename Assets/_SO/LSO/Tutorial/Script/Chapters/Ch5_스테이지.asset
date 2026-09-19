@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
+  m_Name: Ch5_스테이지
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
+  title: "5. \uC2A4\uD14C\uC774\uC9C0"
+  steps:
+  - {fileID: 11400000, guid: 08b852a9bf6247349da97a8f1d5eeeb0, type: 2}
+  - {fileID: 11400000, guid: 8943aef5aaff42d19e50a4625d976a3a, type: 2}
+  - {fileID: 11400000, guid: b69804d5140d43eeb937e509ac155f9e, type: 2}
+  - {fileID: 11400000, guid: b8629b280b654fd19c284c4a338dfd2d, type: 2}
+  - {fileID: 11400000, guid: 3b4b6b8154ee48c69ff88e8bafcdfaef, type: 2}
+  - {fileID: 11400000, guid: 5a1b28b027ea467b9bc129c78a379f56, type: 2}
+  - {fileID: 11400000, guid: 6eafec1265de4f5aa83793bd337d3e70, type: 2}
+  - {fileID: 11400000, guid: 69bf0aa2a7b04de3b10e77febcefb45e, type: 2}
+  - {fileID: 11400000, guid: f236ae65815b432b9bb567fe8683fb50, type: 2}
+  - {fileID: 11400000, guid: c04279e652eb49e6bd40cab7506bbc89, type: 2}

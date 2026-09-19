@@ -1,3 +1,4 @@
+using System;
 using _Scripts.LDY;
 using _Scripts.LSO.Deck.Data;
 using _Scripts.LSO.Will.Candle;
@@ -123,6 +124,16 @@ public partial class KTH_HandCardLayout
         }
     }
 
+    /// <summary>
+    /// 손패에서 카드를 골랐을 때. 튜토리얼이 "카드를 하나 골라보세요"를 기다리는 데 쓴다.
+    ///
+    /// 정적인 이유는 손패가 씬마다 새로 생기기 때문이다. 듣는 쪽이 인스턴스를
+    /// 물고 있으면 판이 바뀔 때 끊긴다.
+    ///
+    /// **고른 순간만 쏜다.** 푸는 것은 안 쏜다 — 지금 듣는 쪽이 필요로 하지 않는다.
+    /// </summary>
+    public static event Action<KTH_HandCard> CardSelected;
+
     public void OnCardSelectionChanged(
         KTH_HandCard card,
         bool selected)
@@ -136,6 +147,8 @@ public partial class KTH_HandCardLayout
             }
 
             selectedCard = card;
+
+            CardSelected?.Invoke(card);
 
             return;
         }

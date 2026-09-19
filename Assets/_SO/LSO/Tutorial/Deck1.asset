@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
-  m_Name: TutStep
+  m_Name: Deck1
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: DeckCam
   waitForCamera: 1
   lines:
-  - 
+  - "\uC774\uAC83\uC740 \uD50C\uB808\uC774\uC5B4\uC758 \uB371 \uC785\uB2C8\uB2E4."
   lineHold: 2.5
   guide: 0
   guideTiles: []
   allowed: 0
-  gate: {fileID: 0}
+  gate: {fileID: 11400000, guid: bc70e98457991d04e8a4cfb947bf9ef5, type: 2}
   gateTimeout: 30

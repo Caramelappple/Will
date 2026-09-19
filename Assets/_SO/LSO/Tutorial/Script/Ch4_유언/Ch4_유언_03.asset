@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Ch4_유언_03
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "\uC22B\uC790\uD0A4\uB098 \uB9C8\uC6B0\uC2A4 \uD720\uB85C \uC720\uC5B8\uC758 \uC885\uB958\uB97C \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  lineHold: 2.5
+  guide: 0
+  guideTiles: []
+  allowed: 0
+  gate: {fileID: 11400000, guid: bc70e98457991d04e8a4cfb947bf9ef5, type: 2}
+  gateTimeout: 30
