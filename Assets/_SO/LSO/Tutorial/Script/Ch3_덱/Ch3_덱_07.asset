@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: tut_cost
   waitForCamera: 1
   lines:
-  - "\uAE30\uBB3C\uC744 \uC18C\uD658\uD558\uAC70\uB098 \uD589\uB3D9\uC744 \uC2DC\uD0A4\uBA74 \uCF54\uC2A4\uD2B8\uAC00 \uC18C\uBE44\uB429\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "기물을 소환하거나 기물이 행동을 취하면 코스트가 소비됩니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

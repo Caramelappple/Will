@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC22B\uC790\uD0A4\uB098 \uB9C8\uC6B0\uC2A4 \uD720\uB85C \uC720\uC5B8\uC758 \uC885\uB958\uB97C \uBC14\uAFC0 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "숫자키를 눌러 유언의 종류를 바꿀 수 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

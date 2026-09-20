@@ -231,6 +231,8 @@ namespace _Scripts.LSO.Reward
         /// 정리가 끝나면 다시 꺼진다.
         /// </summary>
         public bool HasBegun => _phase != Phase.Idle;
+        public bool IsOpened => _phase == Phase.Opened;
+        public bool IsSelecting => _phase == Phase.Selecting;
 
         /// <summary>클릭을 받지 않는 구간인지. 밖에서 커서 모양을 바꿀 때 본다.</summary>
         public bool IsBusy =>
@@ -402,6 +404,7 @@ namespace _Scripts.LSO.Reward
         /// </summary>
         public void OnClick()
         {
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Reward)) return;
             switch (_phase)
             {
                 // 첫 클릭. 뚜껑을 연다.

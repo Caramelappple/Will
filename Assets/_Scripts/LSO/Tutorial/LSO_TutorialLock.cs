@@ -43,6 +43,10 @@ namespace _Scripts.LSO.Tutorial
         [Header("진단 (읽기 전용)")]
         [SerializeField] private LSO_TutorialAction current = LSO_TutorialAction.All;
 
+        private static LSO_TutorialLock _active;
+        public static bool Allows(LSO_TutorialAction action) =>
+            _active == null || !_active.isActiveAndEnabled || Has(_active.current, action);
+
         private void Awake()
         {
             if (selection == null) selection = FindAnyObjectByType<LDY_SelectionController>();
@@ -53,6 +57,7 @@ namespace _Scripts.LSO.Tutorial
         /// <summary>이 걸음 동안 허용할 것을 정한다.</summary>
         public void Apply(LSO_TutorialAction allowed)
         {
+            _active = this;
             current = allowed;
 
             // 전부 허용이면 다시 훑을 이유가 없다.

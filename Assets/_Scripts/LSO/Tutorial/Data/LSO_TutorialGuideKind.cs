@@ -4,6 +4,7 @@ namespace _Scripts.LSO.Tutorial.Data
     {
         None,
         Place,
-        Move
+        Move,
+        PlaceYellow
     }
 }

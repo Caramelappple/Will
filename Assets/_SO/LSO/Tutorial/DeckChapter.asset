@@ -12,15 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
   m_Name: DeckChapter
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
-  title: "3. \uB371"
+  title: "3. 덱"
   steps:
   - {fileID: 11400000, guid: 28967e5daed79734da7674802b869e71, type: 2}
   - {fileID: 11400000, guid: 995c44d93e5249044b4cd4d34d644c40, type: 2}
   - {fileID: 11400000, guid: 05807b6bfb96c044a8fd46e00694f2a8, type: 2}
   - {fileID: 11400000, guid: 69f8775a1e7825d4db44380ea4529778, type: 2}
   - {fileID: 11400000, guid: 7a9a0fac5a7065c42ab7e992d4075849, type: 2}
+  - {fileID: 11400000, guid: fa9176d3cea91d45cafe814bebfdb0ac, type: 2}
   - {fileID: 11400000, guid: ddd423ae93ae441d85fad41466677389, type: 2}
   - {fileID: 11400000, guid: 50f6479069a54172936e233c201f08be, type: 2}
+  - {fileID: 11400000, guid: 1988103223ca28423f151a0b45bd0766, type: 2}
   - {fileID: 11400000, guid: 8b802ca15f634bfeaacc770658bc07a6, type: 2}
+  - {fileID: 11400000, guid: 887c640382bed7f30ff6affaa45bae60, type: 2}
   - {fileID: 11400000, guid: 836d3d7320114e498c80be44361db015, type: 2}
+  - {fileID: 11400000, guid: e8881e8c94c0c50b6069434150737f6c, type: 2}
   - {fileID: 11400000, guid: 9dc590bc83f24a2da356b62e83098675, type: 2}

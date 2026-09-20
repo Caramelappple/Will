@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
   m_Name: GameIntroduce
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
-  title: "1. \uAC8C\uC784 \uC124\uBA85"
+  title: "1. 게임 설명"
   steps:
   - {fileID: 11400000, guid: 1a0cb9879baa1384fbba6627b076e7fe, type: 2}
   - {fileID: 11400000, guid: d16e3dfb5ec050340924c430023918b6, type: 2}

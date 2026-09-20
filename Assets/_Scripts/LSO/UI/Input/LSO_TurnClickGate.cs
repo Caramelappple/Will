@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Manager;
+using _Scripts.LSO.Tutorial;
 using _Scripts.LSO.Will;
 using UnityEngine;
 
@@ -180,6 +181,9 @@ namespace _Scripts.LSO.UI.Input
 
                 case LSO_ClickBlockCondition.SuccessionWaiting:
                     return DLJ_SuccessionSystem.IsWaitingForSuccessionTarget;
+
+                case LSO_ClickBlockCondition.TutorialPlaying:
+                    return LSO_TutorialDirector.IsRunning;
 
                 default:
                     return false;

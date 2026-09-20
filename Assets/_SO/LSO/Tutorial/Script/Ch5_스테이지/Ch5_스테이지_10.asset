@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uBB34\uC6B4\uC744 \uBE55\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "무운을 빕니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

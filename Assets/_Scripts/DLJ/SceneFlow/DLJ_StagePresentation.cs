@@ -187,9 +187,9 @@ namespace _Scripts.DLJ.SceneFlow
                     yield return FadeVeil(Color.white, 0f, 1f);
                     ApplyLook(look);
                     ApplyStageDecorations(stage);
-                    string boss = look != null && !string.IsNullOrWhiteSpace(look.bossName)
-                        ? look.bossName : stage != null ? stage.stageName : "보스";
-                    yield return PlayBossTitle(boss, look != null ? look.bossEpithet : string.Empty);
+                    yield return PlayBossTitle(
+                        ResolveBossName(chapter, look),
+                        look != null ? look.bossEpithet : string.Empty);
                     yield return new WaitForSecondsRealtime(titleHold);
                     yield return FadeGroup(titleGroup, 1f, 0f);
                     yield return FadeVeil(Color.white, 1f, 0f);
@@ -359,6 +359,45 @@ namespace _Scripts.DLJ.SceneFlow
                 yield return null;
             }
             group.alpha = to;
+        }
+
+        /// <summary>
+        /// 화면에 띄울 보스 이름.
+        ///
+        /// ── 이름을 들고 있는 곳은 Chapter Looks 하나다 ────────────
+        /// 예전에는 못 찾으면 stage.stageName 으로 떨어졌다. 그런데 스테이지 이름은
+        /// "1-6 보스 · 황소왕" 처럼 자리와 이름이 섞인 값이라, 그대로 띄우면
+        /// 화면에 "1-6 보스 · 황소왕" 이 통째로 나온다.
+        ///
+        /// 더 나쁜 것은 **그것이 그럴듯해 보인다**는 점이다. 배선이 끊긴 줄 모르고
+        /// 넘어가게 된다. 실제로 챕터 에셋이 바뀌면서 Chapter Looks 가 옛 에셋을
+        /// 가리키고 있었는데, 화면에는 이름이 떠서 한참 동안 드러나지 않았다.
+        ///
+        /// 그래서 대신 쓰지 않는다. 못 찾으면 못 찾았다고 남기고 눈에 띄게 둔다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
+        private string ResolveBossName(LSO_ChapterSO chapter, ChapterLook look)
+        {
+            if (look == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: '{(chapter != null ? chapter.name : "챕터 없음")}' 의 Chapter Look 을 찾지 못했습니다. " +
+                    "Chapter Looks 에 그 챕터 에셋이 등록돼 있는지 확인하세요 — " +
+                    "LSO_StageProgression 이 쓰는 것과 **같은 에셋**이어야 합니다.", this);
+
+                return "???";
+            }
+
+            if (string.IsNullOrWhiteSpace(look.bossName))
+            {
+                Debug.LogWarning(
+                    $"{name}: '{chapter?.name}' 의 Boss Name 이 비어 있습니다. " +
+                    "Chapter Looks 에서 이름을 적어 주세요.", this);
+
+                return "???";
+            }
+
+            return look.bossName;
         }
 
         private IEnumerator PlayBossTitle(string boss, string epithet)

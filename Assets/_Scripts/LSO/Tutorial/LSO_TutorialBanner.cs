@@ -40,6 +40,15 @@ namespace _Scripts.LSO.Tutorial
         {
             if (label == null) return;
 
+            // 건너뛰려고 누르고 있는 중에 걸음이 넘어갈 수 있다.
+            // 그때 글자를 덮으면 "건너뛰는 중..." 이 사라지고 흐려진 채로 대사가 뜬다.
+            // 새 대사는 적어만 두고, 손을 뗄 때 그것으로 돌아간다.
+            if (_skipping)
+            {
+                _lineBeforeSkip = line;
+                return;
+            }
+
             label.text = line;
 
             Fade(1f);
@@ -48,7 +57,63 @@ namespace _Scripts.LSO.Tutorial
         /// <summary>지운다.</summary>
         public void Clear()
         {
+            SetSkipProgress(0f);
+
             Fade(0f);
+        }
+
+        // =========================================================
+        // 건너뛰기 진행 표시
+        //
+        // 스페이스를 꾹 누르는 동안 얼마나 눌렀는지 보여준다.
+        // 아무 반응이 없으면 눌리고 있는지 알 수 없어서, 되는지 확인하려고 손을 뗀다.
+        // =========================================================
+
+        [Header("건너뛰기 표시")]
+        [Tooltip("다 눌렀을 때의 안내문 투명도. 흐려질수록 '사라지려 한다'로 읽힌다.")]
+        [SerializeField, Range(0f, 1f)] private float skipFadedAlpha = 0.2f;
+
+        [Tooltip("누르는 동안 보여줄 문구. 비우면 글자는 그대로 두고 흐려지기만 한다.\n" +
+                 "\n" +
+                 "{0} 자리에 남은 비율(%)이 들어간다.")]
+        [SerializeField] private string skipMessage = "건너뛰는 중...";
+
+        private string _lineBeforeSkip;
+
+        private bool _skipping;
+
+        /// <summary>
+        /// 얼마나 눌렀는지 알린다. 0이면 원래대로 돌린다.
+        ///
+        /// 진행도를 받기만 하고 시간을 재지 않는다. 얼마나 눌러야 하는지는
+        /// 감독이 정하는 값이라, 여기서 또 세면 둘이 어긋난다.
+        /// </summary>
+        public void SetSkipProgress(float progress)
+        {
+            if (label == null) return;
+
+            bool skipping = progress > 0f;
+
+            if (skipping && !_skipping)
+            {
+                // 되돌릴 문구를 적어둔다. 안 적어두면 손을 뗐을 때 안내문이 사라진다.
+                _lineBeforeSkip = label.text;
+
+                if (!string.IsNullOrEmpty(skipMessage)) label.text = skipMessage;
+
+                if (_fade != null) StopCoroutine(_fade);
+                _fade = null;
+            }
+            else if (!skipping && _skipping)
+            {
+                label.text = _lineBeforeSkip;
+
+                SetAlpha(1f);
+            }
+
+            _skipping = skipping;
+
+            if (skipping) SetAlpha(Mathf.Lerp(1f, skipFadedAlpha, progress));
         }
 
         private void Fade(float target)

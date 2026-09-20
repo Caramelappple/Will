@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch5_스테이지_05
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: tut_reward
+  shotId:
   waitForCamera: 1
   lines:
-  - "\uC804\uD22C\uC5D0\uC11C \uC774\uAE30\uBA74 \uBCF4\uC0C1 \uC0C1\uC790\uAC00 \uC62C\uB77C\uC635\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "대가의 시간은 언제나 달콤하죠."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

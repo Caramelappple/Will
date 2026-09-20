@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
   m_Name: Enemy
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
-  title: "2. \uC804\uC7A5\uACFC \uC801"
+  title: "2. 전장과 적"
   steps:
   - {fileID: 11400000, guid: 53eda251c77270f45bef52f9adf267bf, type: 2}
   - {fileID: 11400000, guid: 36d1ff9d5b8e4404ab241f2928e27c80, type: 2}

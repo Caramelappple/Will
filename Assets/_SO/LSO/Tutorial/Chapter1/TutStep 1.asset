@@ -15,11 +15,10 @@ MonoBehaviour:
   shotId: Cam1
   waitForCamera: 1
   lines:
-  - "\uC801\uC744 \uBAA8\uB450 \uCC98\uCE58\uD558\uBA74 \uB2E4\uC74C \uC804\uC7A5\uC73C\uB85C
-    \uB118\uC5B4\uAC11\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "적을 모두 처치하면 다음 전장으로 넘어갑니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0
-  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
+  gate: {fileID: 11400000, guid: 5d81e935342d4e37a27a61a5f4d14776, type: 2}
   gateTimeout: 30

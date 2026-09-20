@@ -16,6 +16,12 @@ namespace _Scripts.LSO.Tutorial.Data
     public sealed class LSO_TutorialStepSO : ScriptableObject
     {
         [Header("카메라")]
+        [Tooltip("켜면 평소 화면으로 돌아간다. Shot Id 보다 우선한다.\n" +
+                 "\n" +
+                 "무언가를 눌러보게 하는 걸음에 쓴다. 확대된 채로 두면 인포창이나\n" +
+                 "손패처럼 화면 다른 곳에서 일어나는 일이 안 보인다.")]
+        public bool returnToDefaultCamera;
+
         [Tooltip("LSO_CameraDirector 에 등록된 샷 이름. 비우면 카메라를 안 움직인다.")]
         public string shotId;
 

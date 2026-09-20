@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: Cam3
   waitForCamera: 1
   lines:
-  - "\uC774\uAC74 \uC801 \uAE30\uBB3C\uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이건 적 기물입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

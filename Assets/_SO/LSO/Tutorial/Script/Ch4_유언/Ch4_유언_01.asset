@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: tut_candle
   waitForCamera: 1
   lines:
-  - "\uC774\uAC83\uC740 \uC720\uC5B8\uC744 \uC0C8\uAE30\uB294 \uCD1B\uBD88\uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이것은 유언을 새기는 촛불입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

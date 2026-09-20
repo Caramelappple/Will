@@ -11,7 +11,8 @@ namespace _Scripts.LDY
     // targetCamera를 비워두면 Camera.main을 사용한다.
     // 프로젝트의 Active Input Handling이 New Input System 전용이므로 UnityEngine.InputSystem을 사용한다.
     // 조작: 좌클릭 = 내 기물 선택/공격, 우클릭 = 갈 수 있는 칸이면 이동 · 그 밖이면 선택 해제.
-    //       이동하거나 공격해도 선택은 유지된다. 행동력이 남아 있으면 이어서 또 시킬 수 있다.
+    //       이동하거나 공격하면 선택이 풀린다. 이어서 또 시키려면 다시 고른다.
+    //       카드로 소환한 기물은 놓자마자 골라진다(HandlePlaced).
     public class LDY_SelectionController : MonoBehaviour
     {
         [SerializeField] private LDY_BoardManager board;
@@ -25,12 +26,6 @@ namespace _Scripts.LDY
 
         /// <summary>지금 선택된 기물. 선택된 것이 없으면 null.</summary>
         public LDY_Animal Selected { get; private set; }
-
-        /// <summary>
-        /// 고른 기물이 행동 중이라 칸 표시를 내려둔 상태인지.
-        /// 연출이 끝나면 다시 그려야 한다는 뜻이다.
-        /// </summary>
-        private bool _refreshHighlightsAfterAction;
 
         /// <summary>
         /// 밖에 "골랐다"고 알려둔 상태인지.
@@ -66,6 +61,13 @@ namespace _Scripts.LDY
             if (targetCamera == null)
                 targetCamera = Camera.main;
 
+            if (cardPlacer == null) cardPlacer = FindAnyObjectByType<LDY_CardPlacer>();
+
+            if (cardPlacer == null)
+                Debug.LogWarning(
+                    $"{name}: LDY_CardPlacer 를 못 찾았습니다. 소환한 기물이 자동으로 " +
+                    "골라지지 않고, 칸을 고르는 중에도 보드 클릭이 막히지 않습니다.", this);
+
             // 호버 연출은 여기서 붙이지 않는다.
             // 기물 프리팹의 LSO_ButtonHoverHandler + LSO_HoverMoveEffect가 맡는다.
         }
@@ -74,14 +76,50 @@ namespace _Scripts.LDY
         {
             _Scripts.LSO.Will.LSO_WillSelection.BoardInteractionLockChanged += HandleBoardInteractionLockChanged;
             if (turnManager != null) turnManager.OnTurnChanged += HandleTurnChanged;
+            if (cardPlacer != null) cardPlacer.Placed += HandlePlaced;
         }
 
         private void OnDisable()
         {
             _Scripts.LSO.Will.LSO_WillSelection.BoardInteractionLockChanged -= HandleBoardInteractionLockChanged;
             if (turnManager != null) turnManager.OnTurnChanged -= HandleTurnChanged;
+            if (cardPlacer != null) cardPlacer.Placed -= HandlePlaced;
             Deselect();
         }
+
+        /// <summary>
+        /// 방금 소환한 기물을 바로 고른다.
+        ///
+        /// ── 왜 자동으로 고르나 ───────────────────────────────────
+        /// 놓자마자 움직이거나 때리고 싶은 것이 보통이다. 그런데 놓은 직후에는
+        /// 아무것도 안 골라진 상태라, 방금 놓은 그 기물을 한 번 더 눌러야 했다.
+        ///
+        /// 놓는 것과 고르는 것은 같은 손짓의 앞뒤라 이어주는 편이 자연스럽다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 적 기물은 안 고른다 — 스테이지 배치도 이 길을 지날 수 있다.
+        /// </summary>
+        private void HandlePlaced(LDY_Animal animal)
+        {
+            if (!IsSelectable(animal)) return;
+
+            Select(animal);
+
+            // ── 놓은 클릭이 여기까지 흘러오는 것을 막는다 ─────────────
+            // 칸을 눌러 기물을 놓는 것은 LDY_CardPlacer 의 Update 다. 그 클릭은
+            // 같은 프레임 동안 wasPressedThisFrame 으로 남아 있어서, 이 컴포넌트의
+            // Update 가 뒤에 돌면 **같은 클릭을 한 번 더 읽는다.**
+            //
+            // 그러면 방금 놓인 기물의 칸을 누른 것으로 읽혀 "이미 고른 것을 다시
+            // 눌렀다" → 선택 해제가 된다. 자동 선택이 한 프레임 만에 풀렸다.
+            //
+            // 실행 순서는 보장되지 않으므로 순서를 맞추는 대신 그 프레임을 건너뛴다.
+            // ─────────────────────────────────────────────────────────
+            _ignoreClicksOnFrame = Time.frameCount;
+        }
+
+        /// <summary>이 프레임의 클릭은 이미 다른 곳이 썼다. 여기서는 안 읽는다.</summary>
+        private int _ignoreClicksOnFrame = -1;
 
         private void HandleTurnChanged(LDY_Team team)
         {
@@ -102,9 +140,9 @@ namespace _Scripts.LDY
             // 아래 조기 반환들에 걸려 영영 안 돌면, 죽은 기물이 골라진 채로 남거나
             // 칸 표시가 사라진 채로 남는다.
             DropSelectionIfGone();
-            SyncSelectionWithAction();
 
             if (Mouse.current == null) return;
+            if (Time.frameCount == _ignoreClicksOnFrame) return;
 
             // 계승 대기 중에는 좌클릭이 계승 대상 선택으로만 쓰이고, 그 외 조작은 전부 막힌다.
             // 계승은 주로 적 턴에(내 기물이 맞아 죽을 때) 발동하므로 턴 가드보다 앞에 둬야 클릭을 받을 수 있다.
@@ -167,6 +205,7 @@ namespace _Scripts.LDY
         /// </summary>
         private void HandleRightClick()
         {
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Move)) return;
             if (Selected == null) return;
             if (IsActing(Selected)) return;
 
@@ -175,7 +214,8 @@ namespace _Scripts.LDY
             {
                 LDY_Animal movingAnimal = Selected;
 
-                BeginAction();
+                // 한 번 움직이면 선택이 풀린다. 이어서 또 시키려면 다시 고른다.
+                Deselect();
 
                 moveSystem.MoveTo(movingAnimal, gridPos);
                 return;
@@ -214,13 +254,14 @@ namespace _Scripts.LDY
             // 사거리 안의 적을 클릭한 것은 "공격"이 우선이다. 정보를 보려면 선택을 푼 뒤 클릭하면 된다.
             if (occupant != null && attackSystem.GetAttackTargets(Selected).Contains(occupant))
             {
+                if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Attack)) return;
                 LDY_Animal attacker = Selected;
 
-                // 공격은 뜬 상태에서 그대로 재생된다. 선택이 유지되므로 호버도 뜬 채로
-                // 남고, 따로 내려놓을 콜백이 필요 없다 — 내리는 것은 선택을 풀 때다.
-                BeginAction();
+                // 공격은 뜬 상태에서 그대로 재생돼야 한다("공격할때는 떠있는 상태에서 포물선으로").
+                // 선택은 지금 풀되 호버는 내리지 않는다. 내리는 것은 연출이 끝난 뒤 콜백에서 한다.
+                Deselect(lowerHover: false);
 
-                attackSystem.Attack(attacker, occupant);
+                attackSystem.Attack(attacker, occupant, () => SetSelectedHover(attacker, false));
                 return;
             }
 
@@ -256,7 +297,6 @@ namespace _Scripts.LDY
             SetSelectedHover(Selected, true);
 
             _hasSelection = true;
-            _refreshHighlightsAfterAction = false;
 
             ShowHighlightsFor(animal);
 
@@ -279,19 +319,27 @@ namespace _Scripts.LDY
         }
 
         /// <summary>
-        /// 고른 기물이 움직이거나 때리기 시작했다.
+        /// 선택을 푼다.
         ///
-        /// **선택은 풀지 않는다.** 행동력이 남아 있으면 이어서 또 시킬 수 있어야 하는데,
-        /// 매번 다시 고르게 하면 한 기물을 두 번 쓰는 것이 두 배로 번거롭다.
-        ///
-        /// 대신 칸 표시는 지금 지운다. 자리가 곧 바뀌므로 지금 그려진 칸은 곧 거짓말이 된다.
-        /// 다시 그리는 것은 연출이 끝난 뒤다(SyncSelectionWithAction).
+        /// lowerHover 를 false 로 주면 선택은 풀되 호버는 뜬 채로 남겨둔다.
+        /// 공격처럼 뜬 상태에서 이어서 연출해야 할 때 쓴다 — 그 경우 부른 쪽이
+        /// 연출이 끝난 뒤 SetSelectedHover(animal, false) 로 직접 내려놓아야 한다.
         /// </summary>
-        private void BeginAction()
+        private void Deselect(bool lowerHover = true)
         {
-            _refreshHighlightsAfterAction = true;
+            // 파괴된 기물은 Selected 가 null 로 읽히므로 그것으로는 셀 수 없다.
+            bool hadSelection = _hasSelection;
+
+            _hasSelection = false;
+
+            if (lowerHover) SetSelectedHover(Selected, false);
+
+            Selected = null;
 
             if (highlighter != null) highlighter.ClearHighlights(this);
+
+            // 선택이 없던 상태에서 또 불려도 UI가 헛돌지 않게 실제로 바뀐 경우에만 알린다.
+            if (hadSelection) OnSelectionChanged?.Invoke(null);
         }
 
         /// <summary>
@@ -324,50 +372,6 @@ namespace _Scripts.LDY
             if (animal == null) return false;
 
             return animal.health == null || !animal.health.IsDestroyed;
-        }
-
-        /// <summary>
-        /// 행동이 끝났으면 칸 표시를 다시 그린다.
-        ///
-        /// 연출이 끝나는 것을 알려주는 신호가 없어 매 프레임 물어본다. 두 시스템에
-        /// 완료 콜백을 새로 내는 것보다, 이미 있는 IsActing 하나만 보는 편이 낫다 —
-        /// 끝났는지 판단하는 곳이 늘지 않는다.
-        ///
-        /// 죽은 경우는 여기까지 오지 않는다. DropSelectionIfGone 이 먼저 선택을 푼다.
-        /// </summary>
-        private void SyncSelectionWithAction()
-        {
-            if (!_refreshHighlightsAfterAction) return;
-            if (Selected == null) return;
-            if (IsActing(Selected)) return;
-
-            _refreshHighlightsAfterAction = false;
-
-            ShowHighlightsFor(Selected);
-        }
-
-        /// <summary>
-        /// 선택을 푼다. 호버도 같이 내린다.
-        ///
-        /// 예전에는 호버를 남겨두는 길이 따로 있었다. 공격할 때 선택을 먼저 풀면서도
-        /// 기물은 뜬 채로 연출해야 했기 때문이다. 이제 공격해도 선택이 유지되므로
-        /// 그 길은 쓰이지 않아 없앴다 — 내리는 시점은 여기 하나다.
-        /// </summary>
-        private void Deselect()
-        {
-            // 파괴된 기물은 Selected 가 null 로 읽히므로 그것으로는 셀 수 없다.
-            bool hadSelection = _hasSelection;
-
-            _hasSelection = false;
-            _refreshHighlightsAfterAction = false;
-
-            SetSelectedHover(Selected, false);
-            Selected = null;
-            if (highlighter != null) highlighter.ClearHighlights(this);
-
-            // 선택이 없던 상태에서 또 호출돼도 UI가 헛돌지 않게 실제로 바뀐 경우에만 알린다.
-            if (hadSelection)
-                OnSelectionChanged?.Invoke(null);
         }
 
         private bool IsActing(LDY_Animal animal)

@@ -46,6 +46,14 @@ namespace _Scripts.LDY
 
         public event Action<int, int> OnCostChanged;
 
+        /// <summary>
+        /// 카드로 기물을 실제로 놓았을 때. 취소·실패는 쏘지 않는다.
+        ///
+        /// onPlaced 콜백과 따로 두는 이유는 그쪽이 **배치를 시작한 한 곳**만 받기
+        /// 때문이다. 손패가 그 자리를 쓰고 있어서, 다른 곳이 끼어들면 서로 덮는다.
+        /// </summary>
+        public event Action<LDY_Animal> Placed;
+
         [Header("진단")]
         [Tooltip("켜면 소환할 때 어떤 유언으로 갔는지 콘솔에 찍는다.\n" +
                  "양초로 붙인 것이 기물에 안 들어갈 때 어디서 끊겼는지 보인다.")]
@@ -111,6 +119,9 @@ namespace _Scripts.LDY
 
             if (Mouse.current.rightButton.wasPressedThisFrame)
             {
+                // 유언을 새긴 한 장을 놓는 실습에서는 카드 재선택을 열지 않는다.
+                if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
+                        _Scripts.LSO.Tutorial.LSO_TutorialAction.CardSelect)) return;
                 CancelPlacement();
                 return;
             }
@@ -174,6 +185,10 @@ namespace _Scripts.LDY
 
             LDY_Animal animal = PlaceCard(card, team, pos, will);
             onPlaced?.Invoke(animal);
+
+            // 카드를 시작한 쪽(손패)만 아는 콜백과 달리, 이쪽은 누구든 들을 수 있다.
+            // 방금 놓은 기물을 바로 고르는 곳(LDY_SelectionController)이 쓴다.
+            if (animal != null) Placed?.Invoke(animal);
         }
 
         private void HandleTurnChanged(LDY_Team team)
@@ -223,6 +238,11 @@ namespace _Scripts.LDY
             LSO_CardSO card, LDY_Team team, Vector3Int pos, LSO_WillType? will = null)
         {
             if (board == null || card == null || !card.IsValid) return null;
+
+            // 유언을 아직 배우지 않은 실습에서는 소환 뒤의 선택창을 생략한다.
+            if (!will.HasValue && !_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
+                    _Scripts.LSO.Tutorial.LSO_TutorialAction.Will))
+                will = card.DefaultWill;
 
             if (card.Cost > CurrentCost)
             {

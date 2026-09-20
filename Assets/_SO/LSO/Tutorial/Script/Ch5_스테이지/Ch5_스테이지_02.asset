@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC591\uCD08\uB294 \uC14B\uC774\uACE0, \uD558\uB098\uC5D0 100\uC758 \uCCB4\uB825\uC744 \uAC00\uC9D1\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "양초는 총 3개로, 개당 100의 체력을 지녔습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

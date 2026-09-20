@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: DeckCam
   waitForCamera: 1
   lines:
-  - "\uC774\uAC83\uC740 \uD50C\uB808\uC774\uC5B4\uC758 \uB371 \uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이것은 플레이어의 덱입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

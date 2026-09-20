@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Deck1 4
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: Cam2
   waitForCamera: 1
   lines:
-  - "\uCE74\uB4DC\uB97C \uC120\uD0DD\uD558\uACE0 \uCCB4\uC2A4\uD310\uC5D0 \uB193\uC73C\uBA74
-    \uAE30\uBB3C\uC774 \uC18C\uD658\uB429\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "카드를 선택하고 체스판에 놓으면 기물이 소환됩니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
-  allowed: 1
+  allowed: 0
   gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
   gateTimeout: 30

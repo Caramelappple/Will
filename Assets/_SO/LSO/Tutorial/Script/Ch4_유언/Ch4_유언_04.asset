@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch4_유언_04
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: tut_candle
   waitForCamera: 1
   lines:
-  - "\uCD1B\uBD88\uC744 \uB204\uB978 \uB4A4 \uCE74\uB4DC\uB97C \uB204\uB974\uBA74 \uADF8 \uCE74\uB4DC\uC5D0 \uC720\uC5B8\uC774 \uC0C8\uACA8\uC9D1\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "촛불을 클릭하여 선택한 카드에 분노 유언을 새겨 보세요."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
-  allowed: 0
-  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
-  gateTimeout: 30
+  allowed: 64
+  gate: {fileID: 11400000, guid: 33e6e694bcdba6d0c73a9cd792ad98f4, type: 2}
+  gateTimeout: 0
