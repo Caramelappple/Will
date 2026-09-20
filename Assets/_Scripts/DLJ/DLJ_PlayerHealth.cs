@@ -108,10 +108,10 @@ public class DLJ_PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// 다음 스테이지로 넘어갈 때 아직 켜져 있는 초만 최대 체력으로 회복한다.
+    /// 다음 챕터로 넘어갈 때 아직 켜져 있는 초만 최대 체력으로 회복한다.
     /// 이미 꺼진 초는 0을 유지한다.
     /// </summary>
-    public void RecoverForNextStage()
+    public void RecoverForNextChapter()
     {
         for (int i = 0; i < CandleCount; i++)
         {

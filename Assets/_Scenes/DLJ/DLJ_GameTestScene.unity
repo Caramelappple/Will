@@ -6790,10 +6790,6 @@ MonoBehaviour:
   flameBody: {fileID: 0}
   colorProperty: _BaseColor
   litIntensity: 1
-  highlightIntensity: 2.2
-  highlightScale: 1.15
-  fadeDuration: 0.15
-  highlightHold: 0.12
 --- !u!114 &1392587311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6810,6 +6806,9 @@ MonoBehaviour:
   includeNone: 1
   startIndex: 0
   useNumberKeys: 1
+  useScrollWheel: 1
+  scrollUpGoesBack: 1
+  scrollThreshold: 10
   fallbackToAllWhenEmpty: 1
   onChanged:
     m_PersistentCalls:
@@ -6825,7 +6824,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c89ce7cd70c45d99afe6b42fe75d128, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_WillCandleTooltip
   targetCamera: {fileID: 0}
   tooltipAnchor: {fileID: 0}
@@ -11031,8 +11030,9 @@ MonoBehaviour:
     darkTile: {r: 0.08, g: 0.13, b: 0.22, a: 1}
     environment: {fileID: 0}
   stageDecorations:
-  - stage: {fileID: 0}
-    objects: []
+  - stage: {fileID: 11400000, guid: 37b3e1b931034ba18de2a3d80ca58545, type: 2}
+    objects:
+    - {fileID: 8913445507597936981, guid: 29e0af7da0eb1d14b9834fe864c41409, type: 3}
   normalHold: 1.5
   glitchDuration: 0.65
   titleHold: 1.8
@@ -11752,6 +11752,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2542950710747121885, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2712722889868034861, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
       propertyPath: foxKing
       value: 
@@ -11759,28 +11763,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4645217698844563664, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 7772178786523781472, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 1794355213703783313, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 6449638761067398907, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 1217714408448493781, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 4146756879960847109, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 3293703315704429717, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d005612f0ba5bb4cac48ccb82ed112a, type: 3}
 --- !u!1001 &3811588779476667254
 PrefabInstance:

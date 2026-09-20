@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cfc5aae4da65c242ac2fee79473c8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.LDY_Animal
-  data: {fileID: 0}
+  data: {fileID: 11400000, guid: 85fdb9405a7154945b6204b4a82532d0, type: 2}
   health: {fileID: 8745473040777472045}
   pos: {x: 0, y: 0, z: 0}
   team: 0
