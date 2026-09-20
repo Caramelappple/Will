@@ -3930,7 +3930,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4488470074872201150, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6759159158562701642, guid: 6e793f644e7f29845bbb521a780e2a27, type: 3}
       propertyPath: m_LocalScale.x
@@ -6845,7 +6845,7 @@ MonoBehaviour:
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
   baseAtk: 0
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 4
   modelTransform: {fileID: 1196145414}
   restHeight: 0
 --- !u!65 &1196145411
@@ -9875,7 +9875,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: ed720e87d2cde3640a13230b9542ae74, type: 2}
   health: {fileID: 1749388463}
   pos: {x: 5, y: 0, z: 4}
-  team: 1
+  team: 0
   fallbackRangeType: 0
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
@@ -10902,7 +10902,7 @@ MonoBehaviour:
   fallbackMoveRange: 1
   fallbackPlayerHealthPoints: 0
   baseAtk: 0
-  <WillType>k__BackingField: 1
+  <WillType>k__BackingField: 4
   modelTransform: {fileID: 1982195021}
   restHeight: 0
 --- !u!65 &1982195018
@@ -11884,7 +11884,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8678755304481251753, guid: 210430340acf72f4ca18c6b69ecde12e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
