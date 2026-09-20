@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch4_유언_04
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: tut_candle
+  returnToDefaultCamera: 1
+  shotId: 
   waitForCamera: 1
   lines:
   - "촛불을 클릭하여 선택한 카드에 분노 유언을 새겨 보세요."
