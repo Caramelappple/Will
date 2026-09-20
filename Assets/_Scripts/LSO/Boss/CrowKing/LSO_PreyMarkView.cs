@@ -62,8 +62,33 @@ namespace _Scripts.LSO.Boss.CrowKing
             Transform anchor = prey.modelTransform != null ? prey.modelTransform : prey.transform;
 
             _mark = Instantiate(markPrefab, anchor);
-            _mark.transform.localPosition = localOffset;
-            _mark.transform.localScale = localScale;
+
+            // ── 부모의 스케일을 되돌린다 ──────────────────────────────
+            // 기물 모델은 스케일이 1이 아니다. 까마귀는 150이다.
+            // 그 밑에 그냥 붙이면 Local Offset 0.6 이 90유닛이 되고 크기도 150배가 된다.
+            // 화면 밖으로 날아가 "표식이 안 뜬다"로 보인다.
+            //
+            // 부모 스케일로 나눠주면 인스펙터에 적은 값이 **월드 기준**이 된다 —
+            // 0.6 은 0.6 유닛 위, 1 은 프리팹 원래 크기.
+            // ─────────────────────────────────────────────────────────
+            Vector3 scale = anchor.lossyScale;
+
+            _mark.transform.localPosition = Unscale(localOffset, scale);
+            _mark.transform.localScale = Unscale(localScale, scale);
+        }
+
+        /// <summary>
+        /// 부모 스케일을 나눠 없앤다.
+        ///
+        /// 0으로 나누지 않는다. 스케일이 0인 축은 어차피 보이지 않으므로 그대로 둔다 —
+        /// 무한대를 넣으면 트랜스폼이 깨져 그 뒤로 아무것도 안 보인다.
+        /// </summary>
+        private static Vector3 Unscale(Vector3 value, Vector3 scale)
+        {
+            return new Vector3(
+                Mathf.Approximately(scale.x, 0f) ? value.x : value.x / scale.x,
+                Mathf.Approximately(scale.y, 0f) ? value.y : value.y / scale.y,
+                Mathf.Approximately(scale.z, 0f) ? value.z : value.z / scale.z);
         }
 
         private void Clear()

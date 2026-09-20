@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3102cc7d511b7f84fad6a24225e364be, type: 3}
   m_Name: Stage_1_6_Boss
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
-  stageName: "1-6 \uBCF4\uC2A4 \u00B7 \uD669\uC18C\uC655"
+  stageName: "1-6 \uBCF4\uC2A4"
   description: "\uD669\uC18C\uC655(e2)"
   enemies:
   - card: {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}

@@ -49,7 +49,68 @@ namespace _Scripts.LSO.Animal
         {
             if (animal == null) return;
 
-            animal.transform.localRotation = Quaternion.Euler(0f, YawFor(animal.team), 0f);
+            float yaw = YawFor(animal.team);
+
+            if (Mathf.Approximately(yaw, 0f)) return;
+
+            if (IsFlatModel(animal))
+            {
+                // 평면은 돌리면 뒷면이 보인다. 그대로 둔다.
+                return;
+            }
+
+            // ── 덮어쓰지 않고 얹는다 ──────────────────────────────────
+            // 프리팹이 자기 자세를 들고 있을 수 있다. 통째로 대입하면 그 자세가
+            // 지워져 모델이 엉뚱하게 눕거나 선다.
+            // ─────────────────────────────────────────────────────────
+            animal.transform.localRotation =
+                Quaternion.Euler(0f, yaw, 0f) * animal.transform.localRotation;
+        }
+
+        /// <summary>
+        /// 모델이 납작한 판(빌보드)인지.
+        ///
+        /// ── 왜 이것을 가려내나 ───────────────────────────────────
+        /// 상어왕처럼 그림 한 장을 세워둔 기물은 모델 자식이 X축으로 크게 누워 있다.
+        /// 그 상태에서 루트를 180° 돌리면 판의 **뒷면**이 보인다. 한 면짜리 판이면
+        /// 사라지고, 양면이어도 그림이 좌우로 뒤집혀 "이상하게 틀어진" 모양이 된다.
+        ///
+        /// 판은 애초에 어느 쪽에서 봐도 같은 그림을 보여주려고 만든 것이라,
+        /// 돌릴 이유 자체가 없다.
+        ///
+        /// 기울기(X·Z)로 가른다. Y 만 돌아 있는 것은 방향을 정해둔 입체 모델이므로
+        /// 그대로 얹는다.
+        /// ─────────────────────────────────────────────────────────
+        /// </summary>
+        private static bool IsFlatModel(LDY_Animal animal)
+        {
+            // modelTransform 만 보면 놓친다. 상어왕은 그 값이 루트를 가리키고,
+            // 실제로 누워 있는 것은 그 아래의 그림 자식이다.
+            //
+            // 그래서 **눈에 보이는 것**을 기준으로 본다 — 렌더러가 달린 자식 중
+            // 하나라도 크게 기울어 있으면 판으로 친다.
+            Renderer[] renderers = animal.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Transform t = renderers[i] != null ? renderers[i].transform : null;
+
+                if (t == null || t == animal.transform) continue;
+
+                Vector3 euler = t.localEulerAngles;
+
+                if (Tilted(euler.x) || Tilted(euler.z)) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>0°(=360°)에서 눈에 띄게 벗어났는지.</summary>
+        private static bool Tilted(float angle)
+        {
+            float wrapped = Mathf.Abs(Mathf.DeltaAngle(0f, angle));
+
+            return wrapped > 20f;
         }
 
         /// <summary>이 팀이 볼 방향. 모르는 팀은 아군 기준으로 둔다.</summary>
