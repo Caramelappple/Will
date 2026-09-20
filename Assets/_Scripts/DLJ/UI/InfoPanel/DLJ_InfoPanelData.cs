@@ -190,14 +190,16 @@ public readonly struct DLJ_InfoPanelData
         return true;
     }
 
-    /// <summary>기본값과 현재값이 다르면 "3 + 1" 또는 "3 - 1"로 표시한다.</summary>
+    /// <summary>
+    /// 지금 값을 숫자 하나로만 표시한다.
+    ///
+    /// 예전에는 기본값과 다르면 "3 + 1" 처럼 식으로 보여줬다.
+    /// 인포창은 좁아서 한 칸에 세 토막이 들어가면 줄이 넘치고,
+    /// 플레이어가 알아야 하는 것은 계산 과정이 아니라 결과값이다.
+    /// </summary>
     public static string FormatChangedStat(int baseValue, int currentValue)
     {
-        int delta = currentValue - baseValue;
-        if (delta == 0) return baseValue.ToString();
-
-        string operation = delta > 0 ? "+" : "-";
-        return $"{baseValue} {operation} {Mathf.Abs(delta)}";
+        return currentValue.ToString();
     }
 
     /// <summary>실제 공격 판정에서 사용하는 최대 사거리를 숫자로 표시한다.</summary>
