@@ -18,9 +18,9 @@ MonoBehaviour:
   lines:
   - "유언이 새겨진 카드를 표시된 칸에 배치해 보세요."
   lineHold: 4.5
-  guide: 3
+  guide: 1
   guideTiles:
   - {x: 4, y: 0, z: 2}
-  allowed: 2
+  allowed: 3
   gate: {fileID: 11400000, guid: 05535a5b587565f670ebc4bc0a400bae, type: 2}
   gateTimeout: 0

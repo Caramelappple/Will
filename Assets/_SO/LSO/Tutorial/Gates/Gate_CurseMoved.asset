@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b51619bbee4b53143adf66e38b3d7816, type: 3}
-  m_Name: Gate_RageSelected
+  m_Name: Gate_CurseMoved
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Gate.LSO_GatePractice
-  condition: 4
-  tile: {x: 0, y: 0, z: 0}
-  requireTile: 0
-  will: 2
-  requireWill: 0
+  condition: 2
+  tile: {x: 4, y: 0, z: 3}
+  requireTile: 1
+  will: 1
+  requireWill: 1

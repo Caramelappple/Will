@@ -12665,14 +12665,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_ItemLibraryManager
   unlockedPieces:
-  - {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0, type: 2}
-  - {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0, type: 2}
-  - {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0, type: 2}
-  - {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0, type: 2}
-  - {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
   unlockedWills:
   - {fileID: 11400000, guid: 1f01234567894abcdef0123456789abc, type: 2}
-  - {fileID: 11400000, guid: 2f01234567894abcdef0123456789abc, type: 2}
+  - {fileID: 11400000, guid: 4f01234567894abcdef0123456789abc, type: 2}
 --- !u!114 &1339222914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12839,8 +12839,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4c042e2b519a4723b340b683c3c930dc, type: 2}
   - {fileID: 11400000, guid: 24ba5d3066724f869e5134a74b25223d, type: 2}
   - {fileID: 11400000, guid: 237f12cbc5ef45569dacb8c50e554f40, type: 2}
-  startChapterIndex: 0
-  startStageIndex: 0
+  startChapterIndex: 2
+  startStageIndex: 5
   logSteps: 1
 --- !u!114 &1339222920
 MonoBehaviour:
@@ -16989,6 +16989,10 @@ PrefabInstance:
       propertyPath: chapterLooks.Array.data[3].darkTile.r
       value: 0.08
       objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].environment
+      value: 
+      objectReference: {fileID: 1787500739}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[2].bossEpithet
       value: "\uBC14\uB2E4\uB97C \uC0BC\uD0A8 \uC774"

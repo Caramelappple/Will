@@ -16,7 +16,7 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "촛불을 클릭하여 선택한 카드에 분노 유언을 새겨 보세요."
+  - "촛불을 클릭하여 선택한 카드에 저주 유언을 새겨 보세요."
   lineHold: 4.5
   guide: 0
   guideTiles: []
