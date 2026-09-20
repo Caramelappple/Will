@@ -15,10 +15,10 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uCE74\uB4DC \uD55C\uC7A5\uC744 \uC120\uD0DD\uD574\uBCF4\uC138\uC694"
+  - "\uCE74\uB4DC \uD55C \uC7A5\uC744 \uC120\uD0DD\uD574\uBCF4\uC138\uC694."
   lineHold: 2.5
   guide: 0
   guideTiles: []
   allowed: 1
   gate: {fileID: 11400000, guid: f50ea33bcf66fd944bf95884676befdc, type: 2}
-  gateTimeout: 30
+  gateTimeout: 0

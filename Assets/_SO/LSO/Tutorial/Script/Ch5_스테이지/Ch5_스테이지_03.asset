@@ -20,5 +20,5 @@ MonoBehaviour:
   guide: 0
   guideTiles: []
   allowed: 0
-  gate: {fileID: 11400000, guid: bc70e98457991d04e8a4cfb947bf9ef5, type: 2}
+  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
   gateTimeout: 30
