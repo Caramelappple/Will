@@ -13,6 +13,19 @@ using UnityEngine;
 [RequireComponent(typeof(LDY_Animal))]
 public sealed class DLJ_SharkKing : MonoBehaviour
 {
+    [Header("일반 공격 · 반투명 이빨")]
+    [SerializeField] private Color biteColor = new(0.78f, 0.95f, 1f, 0.62f);
+    [SerializeField, Min(0.5f)] private float biteSize = 1.25f;
+    [SerializeField, Min(0.05f)] private float biteAppearDuration = 0.16f;
+    [SerializeField, Min(0.05f)] private float biteCloseDuration = 0.12f;
+    [SerializeField, Min(0.05f)] private float biteFadeDuration = 0.22f;
+
+    public System.Collections.IEnumerator PlayBiteAttack(LDY_Animal target, System.Action onImpact)
+    {
+        return DLJ_SharkKingBiteEffect.Play(this, target, biteColor, biteSize,
+            biteAppearDuration, biteCloseDuration, biteFadeDuration, onImpact);
+    }
+
     [Header("Hunting Ground Warning")]
     [Tooltip("사냥 영역의 각 바닥 칸에 생성할 AttackHighlight 프리팹")]
     [SerializeField] private GameObject attackHighlightPrefab;

@@ -16,7 +16,7 @@ namespace _Scripts.LSO.Stage
     /// ─────────────────────────────────────────────────────────
     ///
     /// **꺼진 초는 되살리지 않는다.** 그 판단은 DLJ_PlayerHealth 가 한다
-    /// (RecoverForNextStage). 여기서 초를 하나하나 세지 않는다 —
+    /// (RecoverForNextChapter). 여기서 초를 하나하나 세지 않는다 —
     /// 세는 곳이 둘이 되면 언젠가 서로 다른 말을 한다.
     ///
     /// 씬 배선: 아무 관리 오브젝트에나 하나만. 둘 붙이면 두 번 부르는데,
@@ -38,7 +38,12 @@ namespace _Scripts.LSO.Stage
 
         private void OnEnable()
         {
-            if (!LSO_StageProgression.HasInstance)
+            // 진행 컴포넌트의 Awake보다 먼저 켜져도 씬에 있는 인스턴스를 구독한다.
+            _progression = LSO_StageProgression.HasInstance
+                ? LSO_StageProgression.Instance
+                : FindFirstObjectByType<LSO_StageProgression>();
+
+            if (_progression == null)
             {
                 Debug.LogWarning(
                     $"{name}: LSO_StageProgression이 없어 챕터 클리어를 들을 수 없습니다. " +
@@ -47,7 +52,6 @@ namespace _Scripts.LSO.Stage
                 return;
             }
 
-            _progression = LSO_StageProgression.Instance;
             _progression.ChapterChanged += HandleChapterChanged;
         }
 
@@ -80,7 +84,7 @@ namespace _Scripts.LSO.Stage
 
             int before = health.TotalHealth;
 
-            health.RecoverForNextStage();
+            health.RecoverForNextChapter();
 
             if (logSteps)
                 Debug.Log(

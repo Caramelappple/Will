@@ -204,6 +204,13 @@ namespace _Scripts.LDY
         // 공격 대상 쪽으로 살짝 달려들었다가 원위치로 돌아오는 연출. 데미지는 달려든 시점(절반 지점)에 적용한다.
         private IEnumerator StrikeOnce(LDY_Animal attacker, LDY_Animal target)
         {
+            var shark = attacker.GetComponent<DLJ_SharkKing>();
+            if (shark != null && shark.isActiveAndEnabled)
+            {
+                yield return shark.PlayBiteAttack(target, () => ApplyStrikeImpact(attacker, target));
+                yield break;
+            }
+
             Transform t = attacker.modelTransform;
             Vector3 startPos = t.position;
 
@@ -229,9 +236,19 @@ namespace _Scripts.LDY
 
             yield return LungeTo(t, lungePos, lungeRot, half, attacker.gameObject);
 
+            ApplyStrikeImpact(attacker, target);
+
+            // 자리는 원래 위치로 돌아오되, 방향은 되돌리지 않는다.
+            if (attacker != null && t != null)
+                yield return LungeTo(t, startPos, faceTargetRot, half, attacker.gameObject);
+        }
+
+        private void ApplyStrikeImpact(LDY_Animal attacker, LDY_Animal target)
+        {
             // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
-            if (target != null)
+            if (attacker != null && target != null)
             {
+                if (target.health != null && target.health.IsDestroyed) return;
                 if (target.health != null && attacker.health != null)
                 {
                     // 피해량은 때리는 쪽의 공격력이다. 출처를 함께 실어 보내면
@@ -253,10 +270,6 @@ namespace _Scripts.LDY
                     Debug.Log("체력이 존재하지 않습니다");
                 }
             }
-
-            // 자리는 원래 위치로 돌아오되, 방향은 되돌리지 않는다 — 방금 공격한 대상 쪽을 계속 본다.
-            if (attacker != null && t != null)
-                yield return LungeTo(t, startPos, faceTargetRot, half, attacker.gameObject);
         }
 
         /// <summary>

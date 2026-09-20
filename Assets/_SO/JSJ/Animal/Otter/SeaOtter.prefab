@@ -75,6 +75,36 @@ MonoBehaviour:
   <WillType>k__BackingField: 0
   modelTransform: {fileID: 5912448350903016436}
   restHeight: 0
+--- !u!114 &709110202609200001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4399621611223337635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 953e73d7f7444e9ea5ca3113b00c9270, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_OtterShellEffect
+  shellPrefab: {fileID: 919132149155446097, guid: 0e13c02b451bc384baec223792d9c8b5, type: 3}
+  shellScale: {x: 2, y: 2, z: 2}
+  shellRotation: {x: 0, y: 0, z: 0}
+  spawnOffset: {x: 0, y: 0, z: 0}
+  spinDegreesPerSecond: {x: 0, y: 300, z: 120}
+  riseDuration: 0.55
+  riseHeight: 1.6
+  burstPrefab: {fileID: 6709254386204810102, guid: 4295ec1d54b473b49b863635b4efe75c, type: 3}
+  burstScale: 0.25
+  sacrificePrefab: {fileID: 6709254386204810102, guid: 4295ec1d54b473b49b863635b4efe75c, type: 3}
+  boardBurstDelay: 0.12
+  sacrificeReferenceWidth: 1.25
+  boardParticleSizeInCells: 0.816
+  boardParticleCount: 96
+  boardParticleBrightness: 1.15
+  boardHeightOffset: 0.08
+  emissionDuration: 0.35
+  minimumEffectLifetime: 1.5
 --- !u!1001 &640134589452632157
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -226,33 +256,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4928933dd71cbd04599654d6c98ff2e2, type: 3}
   m_PrefabInstance: {fileID: 6165817422688251626}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &709110202609200001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4399621611223337635}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 953e73d7f7444e9ea5ca3113b00c9270, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::DLJ_OtterShellEffect
-  shellPrefab: {fileID: 0}
-  shellScale: {x: 1, y: 1, z: 1}
-  shellRotation: {x: 0, y: 0, z: 0}
-  spawnOffset: {x: 0, y: 0, z: 0}
-  spinDegreesPerSecond: {x: 0, y: 300, z: 120}
-  riseDuration: 0.55
-  riseHeight: 1.6
-  burstPrefab: {fileID: 6709254386204810102, guid: 4295ec1d54b473b49b863635b4efe75c, type: 3}
-  burstScale: 0.25
-  sacrificePrefab: {fileID: 6709254386204810102, guid: 4295ec1d54b473b49b863635b4efe75c, type: 3}
-  boardBurstDelay: 0.12
-  sacrificeReferenceWidth: 1.25
-  boardParticleSizeInCells: 0.65
-  boardParticleCount: 96
-  boardParticleBrightness: 1.15
-  boardHeightOffset: 0.08
-  emissionDuration: 0.35
-  minimumEffectLifetime: 1.5

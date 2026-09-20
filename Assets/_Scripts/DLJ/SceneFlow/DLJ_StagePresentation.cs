@@ -33,7 +33,7 @@ namespace _Scripts.DLJ.SceneFlow
         {
             [Tooltip("이 장식을 표시할 스테이지 에셋.")]
             public LDY_StageSO stage;
-            [Tooltip("해당 스테이지에서만 켤 씬 장식. 여러 장식을 묶은 루트도 지정할 수 있다.")]
+            [Tooltip("해당 스테이지에서만 켤 씬 장식 또는 프리팹. 프리팹은 저장된 위치에 한 번 생성해 재사용한다.")]
             public GameObject[] objects = Array.Empty<GameObject>();
         }
 
@@ -81,6 +81,8 @@ namespace _Scripts.DLJ.SceneFlow
         private readonly List<Image> noise = new List<Image>();
         private readonly List<Behaviour> disabledInputs = new List<Behaviour>();
         private readonly List<CinemachineImpulseListener> ownedImpulseListeners = new List<CinemachineImpulseListener>();
+        private readonly Dictionary<GameObject, GameObject> decorationInstances = new Dictionary<GameObject, GameObject>();
+        private Transform decorationRoot;
         private Coroutine routine;
         private LSO_ChapterSO lastChapter;
         private bool inputHeld;
@@ -127,6 +129,8 @@ namespace _Scripts.DLJ.SceneFlow
 
         private void OnDestroy()
         {
+            if (decorationRoot != null) Destroy(decorationRoot.gameObject);
+            decorationInstances.Clear();
             // 이 테스트 씬이 만든 진행 객체가 다른 씬의 실행을 가로막지 않게 정리한다.
             if (flow != null) Destroy(flow.gameObject);
             if (progression != null) Destroy(progression.gameObject);
@@ -254,8 +258,35 @@ namespace _Scripts.DLJ.SceneFlow
             }
 
             foreach (KeyValuePair<GameObject, bool> item in visibility)
-                if (item.Key != null && item.Key.activeSelf != item.Value)
-                    item.Key.SetActive(item.Value);
+            {
+                GameObject decoration = ResolveDecoration(item.Key, item.Value);
+                if (decoration != null && decoration.activeSelf != item.Value)
+                    decoration.SetActive(item.Value);
+            }
+        }
+
+        private GameObject ResolveDecoration(GameObject source, bool show)
+        {
+            if (source == null) return null;
+            if (source.scene.IsValid()) return source;
+
+            // Project의 프리팹 에셋에 SetActive를 호출해도 씬에는 나타나지 않는다.
+            // 같은 프리팹을 여러 스테이지에 등록해도 인스턴스는 하나만 만든다.
+            if (decorationInstances.TryGetValue(source, out GameObject instance) && instance != null)
+                return instance;
+            if (!show) return null;
+
+            if (decorationRoot == null)
+            {
+                decorationRoot = new GameObject("DLJ_StageDecorations (Runtime)").transform;
+                // 프리팹에 저장된 배치를 유지하고 이 연출 객체와 함께 정리한다.
+                decorationRoot.SetParent(transform, true);
+            }
+
+            instance = Instantiate(source, decorationRoot, false);
+            instance.name = source.name + " (Runtime)";
+            decorationInstances[source] = instance;
+            return instance;
         }
 
         private void ApplyLook(ChapterLook look)
