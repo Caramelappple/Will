@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
+  m_Name: Enemy
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
+  title: "2. 전장과 적"
+  steps:
+  - {fileID: 11400000, guid: 53eda251c77270f45bef52f9adf267bf, type: 2}
+  - {fileID: 11400000, guid: 36d1ff9d5b8e4404ab241f2928e27c80, type: 2}
+  - {fileID: 11400000, guid: f20c0bad23d30c548b9597a2f1297157, type: 2}
+  - {fileID: 11400000, guid: 33d0222483efb234585c9e866d28c9ab, type: 2}
+  - {fileID: 11400000, guid: b2cddae5bfe09134482168cbcc628282, type: 2}
+  - {fileID: 11400000, guid: d6e4f6d5f311f174bb19e6b9598f3ef9, type: 2}

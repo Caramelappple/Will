@@ -3,10 +3,9 @@ using _Scripts.LDY;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.Animal.Data;
 using UnityEngine;
-using _Scripts.LSO.Interfaces;
 
 /// <summary>Each attack has a 10% chance to heal every living ally by 1.</summary>
-public sealed class DLJ_AllHeal : LSO_IAbility, IOnAnimalAttack,
+public sealed class DLJ_AllHeal : LSO_IAbility, DLJ_IOnAttackImpact,
     LSO_IAbilityInitializable
 {
     private const float HealChance = 0.1f;
@@ -20,6 +19,12 @@ public sealed class DLJ_AllHeal : LSO_IAbility, IOnAnimalAttack,
     }
 
     public void OnAttack(LSO_AnimalSO animal)
+    {
+        LDY_Animal owner = context?.Owner;
+        OnAttack(animal, owner != null ? owner.transform.position : Vector3.zero);
+    }
+
+    public void OnAttack(LSO_AnimalSO animal, Vector3 impactPosition)
     {
         LDY_Animal owner = context?.Owner;
         LDY_BoardManager board = context?.Board;
@@ -40,6 +45,9 @@ public sealed class DLJ_AllHeal : LSO_IAbility, IOnAnimalAttack,
 
             ally.health.Recover(RecoverData.Create(owner.health, HealAmount));
         }
+
+        if (owner.TryGetComponent(out DLJ_OtterShellEffect effect))
+            effect.Play(impactPosition, board);
 
         Debug.Log(
             $"<color=cyan>{owner.name}: All Heal activated. All allies recovered {HealAmount} HP.</color>",

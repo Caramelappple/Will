@@ -12,6 +12,26 @@ public enum DLJ_GreedEffectType
     MaxHealth
 }
 
+public enum DLJ_InvestmentEffectType
+{
+    Heal,
+    Attack
+}
+
+public readonly struct DLJ_FoxKingInvestmentEntry
+{
+    public int Cost { get; }
+    public DLJ_InvestmentEffectType Effect { get; }
+    public int Amount { get; }
+
+    public DLJ_FoxKingInvestmentEntry(int cost, DLJ_InvestmentEffectType effect, int amount)
+    {
+        Cost = cost;
+        Effect = effect;
+        Amount = amount;
+    }
+}
+
 [Serializable]
 public sealed class DLJ_GreedMilestone
 {
@@ -38,10 +58,16 @@ public sealed class DLJ_FoxKingBoss : MonoBehaviour
     public int PendingAttackBonus { get; internal set; }
     public int Phase => GetComponent<LSO_BossPhase>()?.CurrentPhase ?? 1;
     public IReadOnlyList<DLJ_GreedMilestone> GreedMilestones => greedMilestones;
+    public IReadOnlyList<DLJ_FoxKingInvestmentEntry> ActiveInvestments => activeInvestments;
 
     public event Action<int> OnStolenResourcesChanged;
     public event Action<int> OnGreedChanged;
+    public event Action<DLJ_FoxKingInvestmentEntry> OnInvestmentMade;
+    public event Action OnInvestmentTurnAdvanced;
+    public event Action OnAttackInvestmentConsumed;
     internal event Action<int> OnGreedMilestoneEvaluationRequested;
+
+    private readonly List<DLJ_FoxKingInvestmentEntry> activeInvestments = new();
 
     public void Gain(int stolenAmount, int greedAmount)
     {
@@ -68,5 +94,33 @@ public sealed class DLJ_FoxKingBoss : MonoBehaviour
         StolenResources -= amount;
         OnStolenResourcesChanged?.Invoke(StolenResources);
         return true;
+    }
+
+    internal void ReportInvestment(int cost, DLJ_InvestmentEffectType effect, int amount)
+    {
+        if (cost <= 0 || amount <= 0)
+            return;
+
+        var entry = new DLJ_FoxKingInvestmentEntry(cost, effect, amount);
+        activeInvestments.Add(entry);
+        OnInvestmentMade?.Invoke(entry);
+    }
+
+    internal void AdvanceInvestmentTurn()
+    {
+        activeInvestments.RemoveAll(entry => entry.Effect != DLJ_InvestmentEffectType.Attack);
+        OnInvestmentTurnAdvanced?.Invoke();
+    }
+
+    internal int ConsumePendingAttackBonus()
+    {
+        int bonus = PendingAttackBonus;
+        if (bonus <= 0)
+            return 0;
+
+        PendingAttackBonus = 0;
+        activeInvestments.RemoveAll(entry => entry.Effect == DLJ_InvestmentEffectType.Attack);
+        OnAttackInvestmentConsumed?.Invoke();
+        return bonus;
     }
 }

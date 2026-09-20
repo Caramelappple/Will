@@ -449,6 +449,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5143151016832537363}
   - component: {fileID: 7552531465361108778}
+  - component: {fileID: 6000000000000000006}
   m_Layer: 0
   m_Name: CostSystem
   m_TagString: Untagged
@@ -491,6 +492,28 @@ MonoBehaviour:
   coinsPerCase: 5
   caseStep: {x: -1, y: 0, z: 0}
   removeUnusedCases: 1
+--- !u!114 &6000000000000000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6490632961811247619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d878be0377bc4cf7ad1edb24c63bd01e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DLJ_CostTooltip
+  targetCamera: {fileID: 0}
+  tooltipAnchor: {fileID: 0}
+  font: {fileID: 11400000, guid: 50c176767f39aa24f8bb561e5af6568c, type: 2}
+  inkMaterial: {fileID: 2100000, guid: 37d4fda3216263d4d946390e6d7871c6, type: 2}
+  fontSize: 5
+  textColor: {r: 1, g: 0.92, b: 0.75, a: 1}
+  heightOffset: 0.65
+  spreadDuration: 0.65
+  fadeOutDuration: 0.2
+  costSystem: {fileID: 7552531465361108778}
 --- !u!1 &6561152438443855745
 GameObject:
   m_ObjectHideFlags: 0

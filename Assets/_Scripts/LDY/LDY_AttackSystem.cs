@@ -55,6 +55,7 @@ namespace _Scripts.LDY
         // 공격 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         // 다단 타격은 한 번의 공격 행동이므로 횟수와 무관하게 1로 센다.
         public bool IsBusy => _activeCount > 0;
+        public event Action<LDY_Animal> AttackCompleted;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         private int _activeCount;
         private readonly HashSet<LDY_Animal> _attackingAnimals = new();
@@ -130,9 +131,10 @@ namespace _Scripts.LDY
 
         /// <summary>
         /// onComplete는 공격 연출이 완전히 끝난 뒤(성공하든 검증에 막히든) 반드시 호출된다.
-        /// 호출자가 공격 전에 호버를 뜬 채로 남겨뒀다면(Deselect의 lowerHover: false 등),
-        /// 그 자리를 내려놓는 책임은 이 콜백을 받는 쪽에 있다 — 여기서 실패해도 안 부르면
-        /// 기물이 영영 뜬 채로 남는다.
+        /// 뒤처리를 여기에 맡기는 쪽이 있으므로, 실패했다고 안 부르면 그 뒤처리가 영영 안 돈다.
+        ///
+        /// 지금 부르는 곳들은 콜백을 쓰지 않는다. 선택도 호버도 공격 뒤까지 유지되므로
+        /// 내려놓을 것이 없다(LDY_SelectionController).
         /// </summary>
         public void Attack(LDY_Animal attacker, LDY_Animal target, Action onComplete = null)
         {
@@ -174,6 +176,7 @@ namespace _Scripts.LDY
 
                     yield return StrikeOnce(attacker, target);
                 }
+                AttackCompleted?.Invoke(attacker);
             }
             finally
             {
@@ -203,6 +206,13 @@ namespace _Scripts.LDY
         // 공격 대상 쪽으로 살짝 달려들었다가 원위치로 돌아오는 연출. 데미지는 달려든 시점(절반 지점)에 적용한다.
         private IEnumerator StrikeOnce(LDY_Animal attacker, LDY_Animal target)
         {
+            var shark = attacker.GetComponent<DLJ_SharkKing>();
+            if (shark != null && shark.isActiveAndEnabled)
+            {
+                yield return shark.PlayBiteAttack(target, () => ApplyStrikeImpact(attacker, target));
+                yield break;
+            }
+
             Transform t = attacker.modelTransform;
             Vector3 startPos = t.position;
 
@@ -228,9 +238,19 @@ namespace _Scripts.LDY
 
             yield return LungeTo(t, lungePos, lungeRot, half, attacker.gameObject);
 
+            ApplyStrikeImpact(attacker, target);
+
+            // 자리는 원래 위치로 돌아오되, 방향은 되돌리지 않는다.
+            if (attacker != null && t != null)
+                yield return LungeTo(t, startPos, faceTargetRot, half, attacker.gameObject);
+        }
+
+        private void ApplyStrikeImpact(LDY_Animal attacker, LDY_Animal target)
+        {
             // 연출이 재생되는 동안 다른 공격이 같은 대상을 먼저 처치했을 수 있으므로 다시 확인한다.
-            if (target != null)
+            if (attacker != null && target != null)
             {
+                if (target.health != null && target.health.IsDestroyed) return;
                 if (target.health != null && attacker.health != null)
                 {
                     // 피해량은 때리는 쪽의 공격력이다. 출처를 함께 실어 보내면
@@ -240,7 +260,8 @@ namespace _Scripts.LDY
                         attacker.GetAtk(),
                         ToDamageSource(attacker.RangeType));
 
-                    NotifyAttackAbilities(attacker);
+                    NotifyAttackAbilities(attacker, target.modelTransform != null
+                        ? target.modelTransform.position : target.transform.position);
                     target.health.GetDamage(data);
                     PlayHitReaction(attacker, target);
                     if (target.health.IsDestroyed)
@@ -251,10 +272,6 @@ namespace _Scripts.LDY
                     Debug.Log("체력이 존재하지 않습니다");
                 }
             }
-
-            // 자리는 원래 위치로 돌아오되, 방향은 되돌리지 않는다 — 방금 공격한 대상 쪽을 계속 본다.
-            if (attacker != null && t != null)
-                yield return LungeTo(t, startPos, faceTargetRot, half, attacker.gameObject);
         }
 
         /// <summary>
@@ -398,12 +415,18 @@ namespace _Scripts.LDY
             }
         }
 
-        private static void NotifyAttackAbilities(LDY_Animal attacker)
+        private static void NotifyAttackAbilities(LDY_Animal attacker, Vector3 impactPosition)
         {
             if (attacker == null) return;
 
             LSO_AbilityNotify.Notify<IOnAnimalAttack>(
-                attacker.Abilities, a => a.OnAttack(attacker.data));
+                attacker.Abilities, a =>
+                {
+                    if (a is DLJ_IOnAttackImpact impact)
+                        impact.OnAttack(attacker.data, impactPosition);
+                    else
+                        a.OnAttack(attacker.data);
+                });
         }
 
         // 팀을 가리지 않고 모든 죽음을 알린다. 누가 적인지는 받는 특성이 판단한다.

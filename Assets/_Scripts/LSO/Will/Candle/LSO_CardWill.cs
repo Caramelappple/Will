@@ -37,11 +37,12 @@ namespace _Scripts.LSO.Will.Candle
         public bool HasWill { get; private set; }
 
         /// <summary>
-        /// 이번 전투에 이미 붙였는지. 참이면 다시 못 붙인다.
+        /// 이번 전투에 이미 붙였는지. 참이면 이 전투 동안 다시 못 붙인다.
         ///
-        /// HasWill 과 따로 두는 이유는 **다음 전투가 와도 유언은 그대로 남기 때문이다.**
-        /// 잠금만 풀리고 값은 유지된다 — 붙여둔 것을 전투가 바뀌었다고 잃으면
-        /// 플레이어가 정한 것을 게임이 마음대로 지우는 셈이다.
+        /// HasWill 과 따로 두는 이유는 **"빈 초를 붙였다"와 "아직 안 붙였다"가
+        /// 다른 상태이기 때문이다.** 유언 없음을 골라도 그 전투에서는 다 쓴 것이다.
+        ///
+        /// 전투가 끝나면 값과 함께 풀린다 — LSO_WillPainter.Refill 이 Clear 를 돌린다.
         /// </summary>
         public bool PaintedThisBattle { get; private set; }
 
@@ -83,15 +84,9 @@ namespace _Scripts.LSO.Will.Candle
             Changed?.Invoke(Will, HasWill);
         }
 
-        /// <summary>
-        /// 새 전투가 시작돼 다시 붙일 수 있게 한다. **붙어 있던 유언은 그대로 둔다.**
-        ///
-        /// 값까지 지우려면 Clear 를 쓴다. 그쪽은 카드를 풀에서 돌려쓸 때다.
-        /// </summary>
-        public void UnlockForNewBattle()
-        {
-            PaintedThisBattle = false;
-        }
+        // 잠금만 풀고 값은 남기는 UnlockForNewBattle 이 여기 있었다.
+        // 유언이 한 전투짜리로 정리되면서 "남기는" 쪽이 없어져 지웠다 — 이제
+        // 전투가 끝나면 Clear 하나로 값과 잠금을 함께 푼다.
 
         /// <summary>
         /// 붙어 있는 유언의 아이콘을 드러낸다. 값은 건드리지 않는다.

@@ -13,18 +13,22 @@ MonoBehaviour:
   m_Name: Stage_3_2_A
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
   stageName: "3-2 \uAD6C\uC131 1"
-  description: "\uAE4C\uB9C8\uADC0(a1) \uAE4C\uB9C8\uADC0(b1) \uAE4C\uB9C8\uADC0(c1) \uAE4C\uB9C8\uADC0(d1) \uAE4C\uB9C8\uADC0(e1) \uAE4C\uB9C8\uADC0(f1) \uAE4C\uB9C8\uADC0(g1) \uAE4C\uB9C8\uADC0(h1) \uAE4C\uB9C8\uADC0(d2) \uAE4C\uB9C8\uADC0(e2)"
+  description: "\uAE4C\uB9C8\uADC0(a4) \uAE4C\uB9C8\uADC0(b3) \uAE4C\uB9C8\uADC0(c2) \uAE4C\uB9C8\uADC0(d2) \uAE4C\uB9C8\uADC0(d1) \uAE4C\uB9C8\uADC0(e1) \uAE4C\uB9C8\uADC0(e2) \uAE4C\uB9C8\uADC0(f2) \uAE4C\uB9C8\uADC0(g3) \uAE4C\uB9C8\uADC0(h4)"
   enemies:
   - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 0, y: 0, z: 7}
+    pos: {x: 0, y: 0, z: 4}
     overrideWill: 0
     will: 0
   - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 1, y: 0, z: 7}
+    pos: {x: 1, y: 0, z: 5}
     overrideWill: 0
     will: 0
   - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 2, y: 0, z: 7}
+    pos: {x: 2, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+    pos: {x: 3, y: 0, z: 6}
     overrideWill: 0
     will: 0
   - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
@@ -36,22 +40,18 @@ MonoBehaviour:
     overrideWill: 0
     will: 0
   - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 5, y: 0, z: 7}
-    overrideWill: 0
-    will: 0
-  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 6, y: 0, z: 7}
-    overrideWill: 0
-    will: 0
-  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 7, y: 0, z: 7}
-    overrideWill: 0
-    will: 0
-  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
-    pos: {x: 3, y: 0, z: 6}
-    overrideWill: 0
-    will: 0
-  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
     pos: {x: 4, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+    pos: {x: 5, y: 0, z: 6}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+    pos: {x: 6, y: 0, z: 5}
+    overrideWill: 0
+    will: 0
+  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+    pos: {x: 7, y: 0, z: 4}
     overrideWill: 0
     will: 0

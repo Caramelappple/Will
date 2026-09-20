@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Wolf-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 58b0bf0a6ffe0b54ca473fe4354eff7e, type: 2}
-  image: {fileID: -1046838945, guid: 27ea174e56072f84097c03da43843b5f, type: 3}
+  image: {fileID: 21300000, guid: 1aabc5834c4d05b4ca69f472b90ab94c, type: 3}

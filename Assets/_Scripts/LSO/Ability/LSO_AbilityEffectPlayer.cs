@@ -113,8 +113,21 @@ namespace _Scripts.LSO.Ability
 
         private void HandleFired(LSO_AbilityFired fired)
         {
-            if (_catalog == null) return;
             if (!fired.HasPosition) return;
+
+            // 개복치 기물에 직접 맞춘 설정이 있으면 그것을 재생 원본으로 쓴다.
+            // 사전 프리팹까지 생성하면 다른 크기의 연출이 중복된다.
+            if (fired.Type == LSO_AbilityType.Frail && fired.Animal != null &&
+                fired.Animal.TryGetComponent(out DLJ_SunfishFateEffect sunfish) &&
+                sunfish.isActiveAndEnabled)
+            {
+                TrimToLimit();
+                DLJ_SunfishFateEffect effect = sunfish.CreateDetachedPlayback(fired.EffectVariant);
+                _live.Add(new Live(effect.gameObject, Time.unscaledTime + effect.Duration + 0.1f));
+                return;
+            }
+
+            if (_catalog == null) return;
 
             if (!_catalog.TryGet(fired.Type, out LSO_AbilityInfo info))
             {
@@ -142,14 +155,21 @@ namespace _Scripts.LSO.Ability
                     "사전에서 1, 1, 1 로 바꿔주세요.");
             }
 
-            Spawn(info, fired.Position);
+            Spawn(info, fired.Position, fired.EffectVariant);
         }
 
-        private void Spawn(LSO_AbilityInfo info, Vector3 at)
+        private void Spawn(LSO_AbilityInfo info, Vector3 at, int effectVariant)
         {
             TrimToLimit();
 
             GameObject instance = Instantiate(info.effectPrefab, parent);
+
+            // 같은 특성 안에서도 판정 결과가 갈릴 수 있다. 개복치의 생존/돌연사처럼
+            // 프리팹이 결과별 표현을 지원하면 번호를 넘기고, 아니면 조용히 무시한다.
+            instance.BroadcastMessage(
+                "ApplyAbilityEffectVariant",
+                effectVariant,
+                SendMessageOptions.DontRequireReceiver);
 
             // 자리·자세·크기를 정하는 곳은 LSO_AbilityEffectPlacement 하나다.
             // 에디터 미리보기도 같은 것을 쓴다 — 두 곳이 각자 계산하면

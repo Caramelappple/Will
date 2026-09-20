@@ -13,4 +13,23 @@ MonoBehaviour:
   m_Name: DLJ_InfoPanelCatalog
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_InfoPanelCatalogSO
   entries:
-  - card: {fileID: 0}
+  - card: {fileID: 11400000, guid: 894a2c3433942594f89f1d9371540d03, type: 2}
+  - card: {fileID: 11400000, guid: c789e8b6ba314ef2a11facce62b89d10, type: 2}
+  - card: {fileID: 11400000, guid: 049a984091544b55ae25b061830bb792, type: 2}
+  - card: {fileID: 11400000, guid: 3df07e856e281cd4c89785fb9e051ce2, type: 2}
+  - card: {fileID: 11400000, guid: 085ca3bffd0c2064b9e3a76594aec506, type: 2}
+  - card: {fileID: 11400000, guid: 57ed180045244f718e461e2b957bca81, type: 2}
+  - card: {fileID: 11400000, guid: aa44c204af47cd64696677fdc4e4c08f, type: 2}
+  - card: {fileID: 11400000, guid: 6ce70073e485426c8a4cced9640e41dd, type: 2}
+  - card: {fileID: 11400000, guid: bf2b238773af15e4d98e835ef27ed6e2, type: 2}
+  - card: {fileID: 11400000, guid: 12388c50966d45d192fe57ace8a69e1b, type: 2}
+  - card: {fileID: 11400000, guid: 60ded7c6334f8d048bd79fb5139b25f7, type: 2}
+  - card: {fileID: 11400000, guid: f1cce9f803af4479a58a8cd5eff85748, type: 2}
+  - card: {fileID: 11400000, guid: afc051278e6995946a0784f0fd687a99, type: 2}
+  - card: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
+  - card: {fileID: 11400000, guid: 79aec8ae5772d754a9c1389608c5f592, type: 2}
+  - card: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
+  - card: {fileID: 11400000, guid: 3291d64e2b4047b7bd5041c2f9a7d7f6, type: 2}
+  - card: {fileID: 11400000, guid: 9384bc8dc4ce4c67af902efd5d57a315, type: 2}
+  - card: {fileID: 11400000, guid: 64a796d6dcc7c9a4eb7e31b2227b1bb4, type: 2}
+  - card: {fileID: 11400000, guid: 21bbc17ca120c2c4fb1d8b7cf26bc703, type: 2}

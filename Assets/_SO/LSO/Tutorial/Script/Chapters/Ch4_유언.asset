@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72c0f42786024b2bae17c2d8ce40efa5, type: 3}
+  m_Name: Ch4_유언
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialChapterSO
+  title: "4. 유언"
+  steps:
+  - {fileID: 11400000, guid: 6151f0249b8445858931fedefe9bee21, type: 2}
+  - {fileID: 11400000, guid: 7515a16b844445bd8adf0098d0f1da17, type: 2}
+  - {fileID: 11400000, guid: 0605201106e34e89b4cc8e700dedb872, type: 2}
+  - {fileID: 11400000, guid: 4f4ec7b300f3690b670f7a38115ff53f, type: 2}
+  - {fileID: 11400000, guid: 88ec5ee7e034e82b4c8db55569ad6dbe, type: 2}
+  - {fileID: 11400000, guid: 76710aa07ff0407f90a4aa70ab2df959, type: 2}
+  - {fileID: 11400000, guid: dbae768cc23ef3a60c0d149e7326ab3e, type: 2}
+  - {fileID: 11400000, guid: d65fe85326f04f3f88b9064773d4a5b7, type: 2}
+  - {fileID: 11400000, guid: 0fa459ad4bd4708c544d187dd1205099, type: 2}
+  - {fileID: 11400000, guid: 1fbfc5f7ec77c08cb8c488d3df002dcd, type: 2}
+  - {fileID: 11400000, guid: d7bcf654c024ce3976d9d7d62eeda2ce, type: 2}
+  - {fileID: 11400000, guid: 3d77152258c69603dd6e04d2929850a3, type: 2}
+  - {fileID: 11400000, guid: fc407c5454843ab8868e8eff6af5a349, type: 2}
+  - {fileID: 11400000, guid: 73265f0bb8e78f0925ec3ba2fa3ba3f2, type: 2}

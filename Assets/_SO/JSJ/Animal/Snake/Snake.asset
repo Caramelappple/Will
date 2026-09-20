@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Snake
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uBC40"
-  description: "\uC870\uC6A9\uD788 \uBAB8\uC744 \uAC10\uACE0 \uAE30\uB2E4\uB9AC\uB294 \uBC40\uC785\uB2C8\uB2E4. \uD2B9\uBCC4\uD55C \uC7AC\uC8FC\uB294 \uC5C6\uC9C0\uB9CC \uAC12\uC5D0 \uBE44\uD574 \uB2E8\uB2E8\uD569\uB2C8\uB2E4."
+  description: "\uC870\uC6A9\uD788 \uBAB8\uC744 \uAC10\uACE0 \uAE30\uB2E4\uB9AC\uB294
+    \uBC40\uC785\uB2C8\uB2E4. \uD2B9\uBCC4\uD55C \uC7AC\uC8FC\uB294 \uC5C6\uC9C0\uB9CC
+    \uAC12\uC5D0 \uBE44\uD574 \uB2E8\uB2E8\uD569\uB2C8\uB2E4."
   maxHealth: 3
   damage: 2
   cost: 2
@@ -22,4 +24,4 @@ MonoBehaviour:
   range: 0
   abilities: 
   defaultWill: 0
-  unitPrefab: {fileID: 1731931975698927426, guid: a12a8bc93ca9a1e418447bddf7090726, type: 3}
+  unitPrefab: {fileID: 632078599163774492, guid: a287c618e3a059b4c89309840906d8c7, type: 3}

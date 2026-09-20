@@ -11,16 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17d90fdbc50b7ae45a3bdf0ff9cf032f, type: 3}
   m_Name: Dragon
-  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
-  animalName: Dragon
-  description: "\uAE30\uB2E4\uB9BC\uC758 \uBBF8\uD559, \uC54C\uC744 \uBD80\uC218\uACE0
-    \uB098\uC628 \uCD5C\uAC15\uC758 \uC0DD\uBA85\uCCB4\uC785\uB2C8\uB2E4."
+  m_EditorClassIdentifier: Assembly-CSharp::LSO_AnimalSO
+  animalName: "\uB4DC\uB798\uACE4"
+  description: 
   maxHealth: 7
   damage: 3
-  cost: 0
-  playerHealthPoints: 0
+  cost: 3
+  playerHealthPoints: 7
   moveRange: 1
-  range: 0
-  abilities: 
+  range: 1
+  abilities: 0c000000
   defaultWill: 0
-  unitPrefab: {fileID: 4657898075375362652, guid: 8a478a1a234515f49a156ec8d53bb939, type: 3}
+  unitPrefab: {fileID: 118948098518971157, guid: 9d0e277eebcdc1a44bcb613572014c45, type: 3}

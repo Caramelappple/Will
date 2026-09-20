@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Snake_Card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 6f59c26415a1f644fbda703a5aad69d5, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: a913d6204c676874e976cb59f4936048, type: 3}

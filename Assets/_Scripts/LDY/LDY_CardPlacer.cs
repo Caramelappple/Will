@@ -46,6 +46,14 @@ namespace _Scripts.LDY
 
         public event Action<int, int> OnCostChanged;
 
+        /// <summary>
+        /// 카드로 기물을 실제로 놓았을 때. 취소·실패는 쏘지 않는다.
+        ///
+        /// onPlaced 콜백과 따로 두는 이유는 그쪽이 **배치를 시작한 한 곳**만 받기
+        /// 때문이다. 손패가 그 자리를 쓰고 있어서, 다른 곳이 끼어들면 서로 덮는다.
+        /// </summary>
+        public event Action<LDY_Animal> Placed;
+
         [Header("진단")]
         [Tooltip("켜면 소환할 때 어떤 유언으로 갔는지 콘솔에 찍는다.\n" +
                  "양초로 붙인 것이 기물에 안 들어갈 때 어디서 끊겼는지 보인다.")]
@@ -111,6 +119,9 @@ namespace _Scripts.LDY
 
             if (Mouse.current.rightButton.wasPressedThisFrame)
             {
+                // 유언을 새긴 한 장을 놓는 실습에서는 카드 재선택을 열지 않는다.
+                if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
+                        _Scripts.LSO.Tutorial.LSO_TutorialAction.CardSelect)) return;
                 CancelPlacement();
                 return;
             }
@@ -174,6 +185,10 @@ namespace _Scripts.LDY
 
             LDY_Animal animal = PlaceCard(card, team, pos, will);
             onPlaced?.Invoke(animal);
+
+            // 카드를 시작한 쪽(손패)만 아는 콜백과 달리, 이쪽은 누구든 들을 수 있다.
+            // 방금 놓은 기물을 바로 고르는 곳(LDY_SelectionController)이 쓴다.
+            if (animal != null) Placed?.Invoke(animal);
         }
 
         private void HandleTurnChanged(LDY_Team team)
@@ -223,6 +238,11 @@ namespace _Scripts.LDY
             LSO_CardSO card, LDY_Team team, Vector3Int pos, LSO_WillType? will = null)
         {
             if (board == null || card == null || !card.IsValid) return null;
+
+            // 유언을 아직 배우지 않은 실습에서는 소환 뒤의 선택창을 생략한다.
+            if (!will.HasValue && !_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
+                    _Scripts.LSO.Tutorial.LSO_TutorialAction.Will))
+                will = card.DefaultWill;
 
             if (card.Cost > CurrentCost)
             {
@@ -448,8 +468,51 @@ namespace _Scripts.LDY
             if (board == null || !board.IsInside(pos) || !board.IsEmpty(pos)) return false;
 
             int half = LDY_BoardManager.Size / 2;
-            return team == LDY_Team.Player ? pos.z < half : pos.z >= half;
+            if (team == LDY_Team.Player ? pos.z >= half : pos.z < half) return false;
+
+            // 좁혀둔 칸이 있으면 마지막으로 그것도 본다. **원래 규칙 뒤에 얹는다** —
+            // 앞의 검사를 건너뛰게 만들면 튜토리얼이 평소보다 느슨한 규칙을 가르치게 된다.
+            return !IsRestricted || _restricted.Contains(Normalize(pos));
         }
+
+        // =========================================================
+        // 놓을 수 있는 칸 좁히기 (튜토리얼)
+        //
+        // 평소에는 아무도 안 부른다. 안 부르면 IsRestricted 가 거짓이라
+        // 위 검사는 예전과 똑같이 돈다.
+        // =========================================================
+
+        private readonly HashSet<Vector3Int> _restricted = new();
+
+        /// <summary>좁혀둔 칸이 있는지.</summary>
+        public bool IsRestricted => _restricted.Count > 0;
+
+        /// <summary>
+        /// 여기 담긴 칸에만 놓을 수 있게 한다.
+        ///
+        /// 푸는 것은 부른 쪽의 몫이다(ClearRestriction). 안 풀면 튜토리얼이 끝난 뒤에도
+        /// 그 칸에만 놓을 수 있게 되는데, 화면에는 아무 표시가 없어 원인을 짐작할 수 없다.
+        /// </summary>
+        public void RestrictTo(IEnumerable<Vector3Int> tiles)
+        {
+            _restricted.Clear();
+
+            if (tiles == null) return;
+
+            foreach (Vector3Int tile in tiles) _restricted.Add(Normalize(tile));
+        }
+
+        /// <summary>다시 전부 허용한다.</summary>
+        public void ClearRestriction()
+        {
+            _restricted.Clear();
+        }
+
+        /// <summary>
+        /// 높이를 지운다. 격자 좌표는 y 를 안 쓰는데, 밖에서 넘어온 값에는
+        /// 0 이 아닌 y 가 섞여 있을 수 있다. 그대로 비교하면 같은 칸이 안 맞는다.
+        /// </summary>
+        private static Vector3Int Normalize(Vector3Int pos) => new(pos.x, 0, pos.z);
 
         /// <summary>칸을 못 집은 이유. 화면에는 안 띄우고 콘솔에만 남긴다.</summary>
         private enum PickMiss

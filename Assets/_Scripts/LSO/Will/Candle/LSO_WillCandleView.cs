@@ -1,6 +1,5 @@
 using _Scripts.LSO.Effect;
 using _Scripts.LSO.UI.Text;
-using DG.Tweening;
 using UnityEngine;
 
 namespace _Scripts.LSO.Will.Candle
@@ -42,25 +41,8 @@ namespace _Scripts.LSO.Will.Candle
         [Tooltip("켜져 있을 때의 밝기.")]
         [SerializeField, Min(0f)] private float litIntensity = 1f;
 
-        [Tooltip("색이 막 바뀐 순간 잠깐 밝아지는 세기.\n" +
-                 "\n" +
-                 "숫자키를 눌렀을 때 반응이 있어야 바뀐 것을 알아챈다.\n" +
-                 "Lit Intensity 와 같게 두면 번쩍임이 없어진다.")]
-        [SerializeField, Min(0f)] private float highlightIntensity = 2.2f;
-
-        [Tooltip("색이 막 바뀐 순간 잠깐 커지는 배율.")]
-        [SerializeField, Min(1f)] private float highlightScale = 1.15f;
-
-        [Tooltip("밝기와 크기가 바뀌는 데 걸리는 시간.")]
-        [SerializeField, Min(0f)] private float fadeDuration = 0.15f;
-
-        [Tooltip("번쩍인 뒤 평소로 돌아가기까지 머무는 시간.")]
-        [SerializeField, Min(0f)] private float highlightHold = 0.12f;
-
         private LSO_CandleFlicker _flicker;
         private MaterialPropertyBlock _block;
-        private Vector3 _baseScale;
-        private Tween _scaleTween;
         private int _colorId;
 
         /// <summary>지금 이 초가 나타내는 유언. 불이 꺼져 있으면 None.</summary>
@@ -78,7 +60,6 @@ namespace _Scripts.LSO.Will.Candle
             else
                 _flicker = flame.GetComponent<LSO_CandleFlicker>();
 
-            _baseScale = transform.localScale;
             _colorId = Shader.PropertyToID(colorProperty);
             _block = new MaterialPropertyBlock();
         }
@@ -88,55 +69,19 @@ namespace _Scripts.LSO.Will.Candle
         ///
         /// 색을 사전에서 가져오므로, 유언이 늘어도 여기는 고치지 않는다.
         /// </summary>
+        /// <remarks>
+        /// 바뀌는 순간의 연출은 없다. 색만 그 자리에서 갈린다.
+        ///
+        /// 예전에는 한 번 번쩍이고 살짝 커졌다. 초가 하나뿐이라 "무엇이 골라졌나"를
+        /// 자리로 알릴 수 없으니 반응을 주려던 것이었는데, 휠로 훑으면 그 연출이
+        /// 칸마다 겹쳐 초가 계속 들썩였다.
+        /// </remarks>
         public void Show(LSO_WillType type)
         {
-            bool changed = Current != type;
-
             Current = type;
 
             ApplyColor(ResolveColor(type));
-            ApplyIntensity(IsLit ? litIntensity : 0f, instant: true);
-
-            // 처음 세팅할 때는 번쩍이지 않는다. 화면에 나오자마자 튀면 놀란다.
-            if (changed) Flash();
-        }
-
-        /// <summary>
-        /// 색이 바뀌었다고 한 번 번쩍인다.
-        ///
-        /// 초가 하나뿐이라 "무엇이 골라졌나"를 자리로 알릴 수 없다.
-        /// 숫자키를 눌렀는데 색만 슬쩍 바뀌면 눌린 줄 모르므로, 반응을 한 번 준다.
-        ///
-        /// 불이 꺼진 상태("유언 없음")에서는 밝기 대신 크기로만 알린다.
-        /// </summary>
-        public void Flash()
-        {
-            _scaleTween?.Kill();
-
-            if (!isActiveAndEnabled || fadeDuration <= 0f)
-            {
-                transform.localScale = _baseScale;
-                return;
-            }
-
-            if (IsLit)
-            {
-                ApplyIntensity(highlightIntensity, instant: false);
-
-                // 밝기는 시퀀스로 묶지 않는다. 흔들림이 켜져 있으면
-                // ApplyIntensity 가 기준값만 바꾸고 트윈을 안 쓰기 때문이다.
-                DOVirtual
-                    .DelayedCall(fadeDuration + highlightHold,
-                        () => ApplyIntensity(litIntensity, instant: false), false)
-                    .SetLink(gameObject);
-            }
-
-            _scaleTween = DOTween.Sequence()
-                .Append(transform.DOScale(_baseScale * highlightScale, fadeDuration))
-                .AppendInterval(highlightHold)
-                .Append(transform.DOScale(_baseScale, fadeDuration))
-                .SetUpdate(true)
-                .SetLink(gameObject);
+            ApplyIntensity(IsLit ? litIntensity : 0f);
         }
 
         /// <summary>불을 끈다. 촛대가 정리할 때 부른다.</summary>
@@ -174,44 +119,18 @@ namespace _Scripts.LSO.Will.Candle
         }
 
         /// <summary>
-        /// 밝기를 바꾼다. 흔들림이 켜져 있으면 그쪽의 기준값을 바꾼다 —
-        /// Light.intensity 를 직접 만지면 다음 흔들림 구간이 덮어써서 되돌아간다.
+        /// 밝기를 바꾼다. 흔들림이 켜져 있으면 그쪽의 기준값도 바꾼다 —
+        /// Light.intensity 만 만지면 다음 흔들림 구간이 덮어써서 되돌아간다.
+        ///
+        /// 언제나 그 자리에서 바꾼다. 서서히 바꾸던 길은 번쩍임과 함께 없앴다.
         /// </summary>
-        private void ApplyIntensity(float value, bool instant)
+        private void ApplyIntensity(float value)
         {
             if (flame == null) return;
 
-            if (_flicker != null)
-            {
-                _flicker.BaseIntensity = value;
+            if (_flicker != null) _flicker.BaseIntensity = value;
 
-                // 흔들림이 다음 구간에서 반영하므로 즉시 보여야 할 때만 직접 넣는다.
-                if (instant) flame.intensity = value;
-
-                return;
-            }
-
-            flame.DOKill();
-
-            if (instant || fadeDuration <= 0f || !isActiveAndEnabled)
-            {
-                flame.intensity = value;
-                return;
-            }
-
-            flame.DOIntensity(value, fadeDuration)
-                .SetUpdate(true)
-                .SetLink(gameObject);
-        }
-
-        private void OnDisable()
-        {
-            _scaleTween?.Kill();
-            _scaleTween = null;
-
-            if (flame != null) flame.DOKill();
-
-            transform.localScale = _baseScale;
+            flame.intensity = value;
         }
     }
 }

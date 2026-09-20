@@ -100,7 +100,40 @@ namespace _Scripts.LDY
                 frontier = next;
             }
 
+            // 좁혀둔 칸이 있으면 마지막으로 걸러낸다. **BFS 뒤에 얹는다** —
+            // 앞에서 거르면 좁힌 칸 너머로 지나가는 길까지 막혀 버린다.
+            if (IsRestricted) result.RemoveAll(tile => !_restricted.Contains(tile));
+
             return result;
+        }
+
+        // =========================================================
+        // 갈 수 있는 칸 좁히기 (튜토리얼)
+        //
+        // 평소에는 아무도 안 부른다. LDY_CardPlacer 와 같은 모양·같은 이유다.
+        // 표시되는 칸은 여기서 나오므로, 좁히면 노란 칸도 같이 좁아진다.
+        // =========================================================
+
+        private readonly HashSet<Vector3Int> _restricted = new();
+
+        /// <summary>좁혀둔 칸이 있는지.</summary>
+        public bool IsRestricted => _restricted.Count > 0;
+
+        /// <summary>여기 담긴 칸으로만 갈 수 있게 한다. 푸는 것은 부른 쪽의 몫이다.</summary>
+        public void RestrictTo(IEnumerable<Vector3Int> tiles)
+        {
+            _restricted.Clear();
+
+            if (tiles == null) return;
+
+            foreach (Vector3Int tile in tiles)
+                _restricted.Add(new Vector3Int(tile.x, 0, tile.z));
+        }
+
+        /// <summary>다시 전부 허용한다.</summary>
+        public void ClearRestriction()
+        {
+            _restricted.Clear();
         }
 
         public void MoveTo(LDY_Animal animal, Vector3Int target)

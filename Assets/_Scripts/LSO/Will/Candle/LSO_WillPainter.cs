@@ -1,6 +1,7 @@
 using System.Collections;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.Camera;
+using _Scripts.LSO.Stage;
 using _Scripts.LSO.UI.Input;
 using UnityEngine;
 using UnityEngine.Events;
@@ -139,6 +140,11 @@ namespace _Scripts.LSO.Will.Candle
             if (_stageDirector != null)
                 _stageDirector.OnStageLoaded += HandleStageLoaded;
 
+            // 깨는 순간에도 뗀다. 판이 세워질 때까지 기다리면 보상 화면이 도는 내내
+            // 지난 판의 유언이 카드에 남아 있고, 그 사이에 손패를 보면 아직 붙어 있다.
+            if (LSO_StageFlow.HasInstance)
+                LSO_StageFlow.Instance.StageCleared += HandleStageCleared;
+
             Refill();
         }
 
@@ -146,6 +152,9 @@ namespace _Scripts.LSO.Will.Candle
         {
             if (_stageDirector != null)
                 _stageDirector.OnStageLoaded -= HandleStageLoaded;
+
+            if (LSO_StageFlow.HasInstance)
+                LSO_StageFlow.Instance.StageCleared -= HandleStageCleared;
 
             // 꺼지면 코루틴은 유니티가 죽이지만 핸들은 그대로 남는다.
             // 남겨두면 다시 켰을 때 StopCoroutine 이 죽은 핸들을 붙든다.
@@ -157,32 +166,51 @@ namespace _Scripts.LSO.Will.Candle
             Refill();
         }
 
+        private void HandleStageCleared(LDY_StageSO stage)
+        {
+            Refill();
+        }
+
         /// <summary>
-        /// 손패의 모든 카드를 다시 붙일 수 있게 푼다. 새 전투가 시작될 때 불린다.
+        /// 모든 카드의 유언을 떼어낸다. 스테이지를 깼을 때와 새 판이 세워질 때 불린다.
         ///
-        /// 붙어 있던 유언은 지우지 않는다. 잠금만 푼다.
+        /// ── 값까지 지우는 이유 ────────────────────────────────────
+        /// 예전에는 잠금만 풀고 붙어 있던 유언은 남겼다. 플레이어가 정한 것을
+        /// 게임이 마음대로 지우지 않으려던 것이다.
+        ///
+        /// 그런데 유언은 **한 전투 동안 쓰는 것**으로 정리됐다. 남겨두면 다음 판이
+        /// 지난 판의 선택을 물고 시작하고, 그 카드만 다시 못 바르게 된다.
+        /// 매 판 새로 바르는 편이 규칙이 하나로 읽힌다.
+        /// ─────────────────────────────────────────────────────────
         ///
         /// 꺼진 카드까지 훑는 이유는 손패가 카드를 풀에 넣어두기 때문이다.
         /// 지금 안 보이는 카드도 다음에 뽑히면 그대로 다시 나온다.
+        ///
+        /// 부르는 자리가 둘인 것은 놓치지 않기 위해서다 — 하는 일이 "전부 None 으로"
+        /// 하나뿐이라 두 번 불려도 두 번째는 지울 것이 없어 그냥 돌아선다.
         /// </summary>
         public void Refill()
         {
             LSO_CardWill[] cards =
                 FindObjectsByType<LSO_CardWill>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
-            int unlocked = 0;
+            int cleared = 0;
 
             foreach (LSO_CardWill card in cards)
             {
-                if (card == null || !card.PaintedThisBattle) continue;
+                if (card == null) continue;
 
-                card.UnlockForNewBattle();
-                unlocked++;
+                // 아직 아무것도 안 붙은 카드는 건드리지 않는다. Clear 가 첫 줄에서
+                // 돌아서기는 하지만, 여기서 세는 수가 "실제로 뗀 장수"여야 로그가 맞는다.
+                if (!card.HasWill && !card.PaintedThisBattle) continue;
+
+                card.Clear();
+                cleared++;
             }
 
-            if (unlocked == 0) return;
+            if (cleared == 0) return;
 
-            Log($"카드 {unlocked}장을 다시 붙일 수 있게 풀었다");
+            Log($"카드 {cleared}장의 유언을 떼어냈다");
 
             onRefilled?.Invoke();
         }
@@ -199,11 +227,28 @@ namespace _Scripts.LSO.Will.Candle
         /// <returns>붙였으면 참. 고를 카드가 없거나 배선이 빠졌으면 거짓.</returns>
         public bool Paint()
         {
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Will)) return false;
             Log("양초를 눌렀다");
 
             if (candle == null)
             {
                 Debug.LogWarning($"{name}: LSO_WillCandle이 없어 무슨 색인지 알 수 없습니다.", this);
+                return false;
+            }
+
+            // ── 빈 초를 들고 있으면 아무 일도 하지 않는다 ─────────────
+            // '유언 없음'은 고를 수 있는 값이지만 **붙이는 값은 아니다.**
+            //
+            // 예전에는 그대로 붙어서 카드가 "유언 없음을 새긴 상태"가 됐다.
+            // 그러면 oncePerCardPerBattle 이 한 번을 써버려 이번 전투에는
+            // 진짜 유언을 못 붙인다 — 실수로 한 번 누른 것이 판을 망친다.
+            //
+            // 지우는 길도 아니다. 이미 붙은 것을 빼려면 따로 만들어야 한다.
+            // 여기서는 누른 적이 없는 것처럼 조용히 돌아선다.
+            // ─────────────────────────────────────────────────────────
+            if (candle.Current == LSO_WillType.None)
+            {
+                Log("빈 초다 — 붙일 것이 없어 넘어간다");
                 return false;
             }
 

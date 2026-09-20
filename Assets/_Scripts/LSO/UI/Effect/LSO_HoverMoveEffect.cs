@@ -197,6 +197,22 @@ namespace _Scripts.LSO.UI.Effect
         /// </summary>
         public void ClearOffset()
         {
+            // ── 쉬는 중이면 지우지 않는다 ─────────────────────────────
+            // 쉬는 동안 부르는 것은 "자리가 바뀌었을지 모른다"는 뜻인데, 그건
+            // SetSuspended(restore: false)가 이미 _baseStale 로 적어뒀다.
+            //
+            // 여기서 _isOffset 까지 지우면 **떠 있다는 사실을 잃는다.** 그러면
+            // 재개할 때 떠 있는 자리를 바닥으로 착각해서 그 위에 또 띄운다.
+            // 공격할수록 기물이 한 칸씩 올라가던 것이 이것이다.
+            //
+            // 재개 시점의 처리는 아래 SetSuspended(false) 가 한다.
+            // ─────────────────────────────────────────────────────────
+            if (_suspendCount > 0)
+            {
+                _baseStale = true;
+                return;
+            }
+
             _isOffset = false;
             _liftRequested = false;
         }
@@ -239,12 +255,36 @@ namespace _Scripts.LSO.UI.Effect
             // 남아 있던 _originalPosition 이 거기를 가리키기 때문이다.
             //
             // 기억을 못 믿게 된 것은 여기가 아는 사실이므로 여기서 지운다.
-            // 부르는 쪽의 ClearOffset() 은 그대로 둬도 된다 — 두 번 지워도 같다.
+            // 부르는 쪽의 ClearOffset() 은 그대로 둬도 된다 — 쉬는 중에는 아무 일도
+            // 하지 않고 돌아선다(위 ClearOffset 주석).
             // ─────────────────────────────────────────────────────────
             if (_baseStale)
             {
                 _baseStale = false;
-                ClearOffset();
+
+                if (_isOffset && _target != null)
+                {
+                    // ── 떠 있는 채로 쉬었다 ───────────────────────────
+                    // 지금 자리에는 offset 이 이미 들어 있다. 이것을 그대로 새
+                    // 기준으로 삼으면 다시 떠오를 때 offset 이 한 번 더 얹힌다.
+                    //
+                    // 지금 자리에서 offset 을 빼면 "이 기물이 선 칸의 바닥"이
+                    // 나온다. 쉬는 동안 다른 칸으로 옮겨졌어도 그 칸의 바닥을
+                    // 가리키므로, 옛 칸으로 끌려가지도 않는다.
+                    //
+                    // 떠 있다는 사실(_isOffset)은 지우지 않는다. 실제로 떠 있고,
+                    // 내려놓을 때 이 값이 있어야 바닥까지 내려간다.
+                    // ─────────────────────────────────────────────────
+                    _originalPosition = _target.localPosition - offset;
+
+                    // 지금은 떠 있는 상태다. 아래 RefreshLift 가 "계속 떠 있을지"
+                    // 를 이 값과 비교해 판단한다.
+                    _liftRequested = true;
+                }
+                else
+                {
+                    ClearOffset();
+                }
             }
 
             RefreshLift();

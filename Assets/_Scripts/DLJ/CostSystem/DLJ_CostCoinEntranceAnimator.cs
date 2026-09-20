@@ -88,7 +88,19 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
             PrepareSlot(_slots[i]);
 
         ResolveCaseEntrance();
-        if (waitForCaseEntrance && _caseEntrance != null && _caseEntrance.IsPlaying)
+
+        // ── 케이스가 제자리에 있을 때만 쏟는다 ────────────────────
+        // 예전에는 IsPlaying(들어오는 중)만 봤다. 그래서 스테이지를 깨고 케이스가
+        // 화면 밖으로 빠져 있는 동안 턴이 바뀌면, 케이스가 없는 자리로 금화가
+        // 그대로 쏟아졌다.
+        //
+        // IsAway 를 같이 본다. 준비된 슬롯은 그대로 남아 있다가, 케이스가 다시
+        // 들어와 Completed 를 쏘는 순간 한꺼번에 재생된다.
+        // ─────────────────────────────────────────────────────────
+        bool caseNotReady = _caseEntrance != null &&
+                            (_caseEntrance.IsPlaying || _caseEntrance.IsAway);
+
+        if (waitForCaseEntrance && caseNotReady)
         {
             _pendingDelay = Mathf.Max(_pendingDelay, initialDelay, afterCaseEntranceDelay);
             if (!_waitingForCase)

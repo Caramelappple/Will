@@ -1,8 +1,13 @@
 using System.Collections;
+using System.Collections.Generic;
+using _Scripts.LDY;
+using _Scripts.LSO.Manager;
 using UnityEngine;
 
 public class DLJ_HealthCandle : MonoBehaviour
 {
+    private static readonly HashSet<DLJ_HealthCandle> activeCandles = new HashSet<DLJ_HealthCandle>();
+
     [Header("References")]
     [Tooltip("이름이 Candle, Candle (1), Candle (2)면 자동으로 0, 1, 2를 사용한다.")]
     [SerializeField, Range(0, DLJ_PlayerHealth.CandleCount - 1)] private int candleIndex;
@@ -11,6 +16,22 @@ public class DLJ_HealthCandle : MonoBehaviour
     [Tooltip("줄어든 초의 윗면을 따라 내려갈 불꽃")]
     [SerializeField] private Transform flame;
     [SerializeField] private ParticleSystemRenderer flameRenderer;
+
+    [Header("Turn Flame Materials")]
+    [Tooltip("플레이어 턴에 사용할 불꽃 머티리얼. 이 머티리얼의 색을 수정해 표시 색을 바꿀 수 있어.")]
+    [SerializeField] private Material playerFlameMaterial;
+    [Tooltip("적 턴에 사용할 불꽃 머티리얼. 이 머티리얼의 색을 수정해 표시 색을 바꿀 수 있어.")]
+    [SerializeField] private Material enemyFlameMaterial;
+
+    [Header("Melted Wax")]
+    [Tooltip("초가 줄어들수록 바닥에 퍼질 촛농 프리팹")]
+    [SerializeField] private GameObject meltedWaxPrefab;
+    [Tooltip("촛농 에셋의 최종 크기 배율")]
+    [SerializeField, Min(0f)] private float meltedWaxScale = 1f;
+    [Tooltip("촛농을 올릴 받침. 없으면 초의 원래 밑면을 사용해.")]
+    [SerializeField] private Transform meltedWaxSurface;
+    [Tooltip("받침의 로컬 좌표 기준 안쪽 바닥 높이")]
+    [SerializeField] private float meltedWaxSurfaceLocalHeight;
 
     [Header("Animation")]
     [Tooltip("체력이 변한 뒤 목표 길이에 도달할 때까지 걸리는 시간")]
@@ -23,9 +44,21 @@ public class DLJ_HealthCandle : MonoBehaviour
     private Vector3 bodyTop;
     private Bounds bodyBounds;
     private DLJ_PlayerHealth playerHealth;
+    private LDY_TurnManager turnManager;
     private int resolvedCandleIndex;
     private float displayedHealthRatio = 1f;
+    private float targetHealthRatio = 1f;
     private Coroutine resizeCoroutine;
+    private Transform meltedWax;
+    private Vector3 originalMeltedWaxScale;
+    private Vector3 meltedWaxBottom;
+    private Vector3 meltedWaxSurfacePosition;
+    private float initialWaxSpread;
+
+    public int CandleIndex => resolvedCandleIndex;
+    public int DisplayedHealth => Mathf.CeilToInt(
+        displayedHealthRatio * DLJ_PlayerHealth.MaxHealthPerCandle - .0001f);
+    public float PlaybackSpeed { get; set; } = 1f;
 
     public Vector3 TooltipAnchor => flame != null ? flame.position :
         candleBody != null ? candleBody.TransformPoint(GetLocalTop()) : transform.position;
@@ -95,11 +128,15 @@ public class DLJ_HealthCandle : MonoBehaviour
 
         bodyBounds = CalculateBodyBounds();
         CacheBodyEndpoints();
+        CreateMeltedWax();
     }
 
     private void OnEnable()
     {
+        activeCandles.Add(this);
         TryBindPlayerHealth();
+        GameManager.Instance.TurnManagerChanged += BindTurnManager;
+        BindTurnManager(GameManager.Instance.TurnManager);
     }
 
     private void Start()
@@ -109,11 +146,40 @@ public class DLJ_HealthCandle : MonoBehaviour
 
     private void OnDisable()
     {
+        activeCandles.Remove(this);
+        if (GameManager.HasInstance)
+            GameManager.Instance.TurnManagerChanged -= BindTurnManager;
+        BindTurnManager(null);
+        ApplyFlameMaterial(LDY_Team.Player);
+        if (resizeCoroutine != null)
+            StopCoroutine(resizeCoroutine);
+
         if (playerHealth != null)
             playerHealth.OnCandleHealthChanged -= HandleHealthChanged;
 
         playerHealth = null;
         resizeCoroutine = null;
+    }
+
+    private void BindTurnManager(LDY_TurnManager manager)
+    {
+        if (turnManager != null)
+            turnManager.OnTurnChanged -= ApplyFlameMaterial;
+
+        turnManager = manager;
+        if (turnManager != null)
+            turnManager.OnTurnChanged += ApplyFlameMaterial;
+
+        ApplyFlameMaterial(turnManager != null ? turnManager.CurrentTurn : LDY_Team.Player);
+    }
+
+    private void ApplyFlameMaterial(LDY_Team team)
+    {
+        if (flameRenderer == null) return;
+
+        Material material = team == LDY_Team.Enemy ? enemyFlameMaterial : playerFlameMaterial;
+        if (material != null && flameRenderer.sharedMaterial != material)
+            flameRenderer.sharedMaterial = material;
     }
 
     private void TryBindPlayerHealth()
@@ -158,18 +224,32 @@ public class DLJ_HealthCandle : MonoBehaviour
     {
         displayedHealthRatio = Mathf.Clamp01(
             health / (float)DLJ_PlayerHealth.MaxHealthPerCandle);
+        targetHealthRatio = displayedHealthRatio;
         ApplyHealthRatio(displayedHealthRatio);
     }
 
     private void AnimateToHealth(int health)
     {
-        float targetRatio = Mathf.Clamp01(
+        targetHealthRatio = Mathf.Clamp01(
             health / (float)DLJ_PlayerHealth.MaxHealthPerCandle);
 
         if (resizeCoroutine != null)
             StopCoroutine(resizeCoroutine);
 
-        resizeCoroutine = StartCoroutine(ResizeOverTime(targetRatio));
+        resizeCoroutine = StartCoroutine(ResizeOverTime(targetHealthRatio));
+    }
+
+    private bool HasEarlierCandleMelting()
+    {
+        foreach (DLJ_HealthCandle candle in activeCandles)
+        {
+            if (candle != null && candle.playerHealth == playerHealth &&
+                candle.resolvedCandleIndex < resolvedCandleIndex &&
+                candle.displayedHealthRatio > candle.targetHealthRatio)
+                return true;
+        }
+
+        return false;
     }
 
     private IEnumerator ResizeOverTime(float targetRatio)
@@ -178,13 +258,26 @@ public class DLJ_HealthCandle : MonoBehaviour
         float elapsed = 0f;
         float duration = resizeDuration > 0f ? resizeDuration : 2f;
 
-        while (elapsed < duration)
+        while (elapsed < duration || !Mathf.Approximately(displayedHealthRatio, targetRatio))
         {
-            elapsed += Time.deltaTime;
-            displayedHealthRatio = Mathf.Lerp(
+            // 실제 체력은 즉시 반영하되, 소모 연출은 앞 초가 목표 길이에 도달한 뒤 진행한다.
+            // 대기 중 추가 피해가 와도 앞 초의 최신 목표와 현재 표시 길이로 순서를 유지한다.
+            if (targetRatio < displayedHealthRatio && HasEarlierCandleMelting())
+            {
+                yield return null;
+                continue;
+            }
+
+            elapsed += Time.deltaTime * Mathf.Max(.01f, PlaybackSpeed);
+            float nextRatio = Mathf.Lerp(
                 startRatio,
                 targetRatio,
                 Mathf.Clamp01(elapsed / duration));
+            // 숫자가 한 프레임에 1보다 많이 건너뛰지 않도록 감소 폭을 제한한다.
+            float maxStep = targetRatio < displayedHealthRatio
+                ? 1f / DLJ_PlayerHealth.MaxHealthPerCandle
+                : 1f;
+            displayedHealthRatio = Mathf.MoveTowards(displayedHealthRatio, nextRatio, maxStep);
             ApplyHealthRatio(displayedHealthRatio);
             yield return null;
         }
@@ -206,6 +299,8 @@ public class DLJ_HealthCandle : MonoBehaviour
             GetLocalBottom(), scale);
         candleBody.localPosition = bodyBottom - scaledBottomOffset;
 
+        ApplyMeltedWax(healthRatio);
+
         if (flame == null)
             return;
 
@@ -220,6 +315,60 @@ public class DLJ_HealthCandle : MonoBehaviour
 
         flame.localPosition = originalFlamePosition + topDeltaInFlameParent;
         flame.gameObject.SetActive(healthRatio > 0f);
+    }
+
+    private void CreateMeltedWax()
+    {
+        if (meltedWaxPrefab == null)
+            return;
+
+        // 몸통과 같은 부모를 사용해야 몸통이 줄어도 촛농이 함께 줄지 않는다.
+        GameObject instance = Instantiate(meltedWaxPrefab, candleBody.parent, false);
+        instance.name = $"{meltedWaxPrefab.name} (Melted)";
+        meltedWax = instance.transform;
+        meltedWax.localRotation = candleBody.localRotation;
+        originalMeltedWaxScale = Vector3.Scale(meltedWax.localScale, originalBodyScale) * meltedWaxScale;
+        meltedWaxSurfacePosition = bodyBottom;
+        if (meltedWaxSurface != null)
+        {
+            Vector3 worldBottom = candleBody.parent != null
+                ? candleBody.parent.TransformPoint(bodyBottom) : bodyBottom;
+            Vector3 surfacePoint = meltedWaxSurface.TransformPoint(Vector3.up * meltedWaxSurfaceLocalHeight);
+            worldBottom += meltedWaxSurface.up * Vector3.Dot(surfacePoint - worldBottom, meltedWaxSurface.up);
+            meltedWaxSurfacePosition = candleBody.parent != null
+                ? candleBody.parent.InverseTransformPoint(worldBottom) : worldBottom;
+        }
+
+        Bounds waxBounds = CalculateMeshBounds(meltedWax);
+        meltedWaxBottom = new Vector3(waxBounds.center.x, waxBounds.min.y, waxBounds.center.z);
+        float waxWidth = Mathf.Max(waxBounds.size.x * originalMeltedWaxScale.x,
+            waxBounds.size.z * originalMeltedWaxScale.z);
+        float bodyWidth = Mathf.Max(bodyBounds.size.x * originalBodyScale.x,
+            bodyBounds.size.z * originalBodyScale.z);
+        initialWaxSpread = waxWidth > 0f ? Mathf.Clamp01(bodyWidth / waxWidth) : 0f;
+        ApplyMeltedWax(displayedHealthRatio);
+    }
+
+    private void ApplyMeltedWax(float healthRatio)
+    {
+        if (meltedWax == null)
+            return;
+
+        float meltedRatio = Mathf.Clamp01(1f - healthRatio);
+        meltedWax.gameObject.SetActive(meltedRatio > 0f);
+
+        // 처음부터 초 밑면 둘레에서 퍼지게 해서 작은 피해에도 몸통 밖으로 보인다.
+        float spread = Mathf.Lerp(initialWaxSpread, 1f, Mathf.Sqrt(meltedRatio));
+        Vector3 scale = originalMeltedWaxScale;
+        scale.x *= spread;
+        scale.y *= meltedRatio;
+        scale.z *= spread;
+        meltedWax.localScale = scale;
+        // GLB의 원점은 메시 중심/바닥과 다르므로 매 프레임 밑면을 맞춘다.
+        Vector3 surfaceOffset = candleBody.localRotation *
+            new Vector3(0f, .005f * Mathf.Abs(originalBodyScale.y), 0f);
+        meltedWax.localPosition = meltedWaxSurfacePosition + surfaceOffset -
+            meltedWax.localRotation * Vector3.Scale(meltedWaxBottom, scale);
     }
 
     private void CacheBodyEndpoints()
@@ -245,7 +394,12 @@ public class DLJ_HealthCandle : MonoBehaviour
 
     private Bounds CalculateBodyBounds()
     {
-        Renderer[] renderers = candleBody.GetComponentsInChildren<Renderer>(true);
+        return CalculateMeshBounds(candleBody);
+    }
+
+    private Bounds CalculateMeshBounds(Transform root)
+    {
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
         Bounds combinedBounds = default;
         bool hasBounds = false;
 
@@ -277,7 +431,7 @@ public class DLJ_HealthCandle : MonoBehaviour
                     y == 0 ? min.y : max.y,
                     z == 0 ? min.z : max.z);
                 Vector3 worldCorner = renderer.transform.TransformPoint(corner);
-                Vector3 bodyLocalCorner = candleBody.InverseTransformPoint(worldCorner);
+                Vector3 bodyLocalCorner = root.InverseTransformPoint(worldCorner);
 
                 if (!hasBounds)
                 {
@@ -294,7 +448,7 @@ public class DLJ_HealthCandle : MonoBehaviour
         if (hasBounds)
             return combinedBounds;
 
-        Debug.LogWarning($"{name}: Candle Body에서 메시를 찾지 못해 기본 높이를 사용해.", this);
+        Debug.LogWarning($"{name}: {root.name}에서 메시를 찾지 못해 기본 크기를 사용해.", this);
         return new Bounds(Vector3.zero, Vector3.one);
     }
 }

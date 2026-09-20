@@ -41,6 +41,9 @@ namespace _Scripts.LSO.Animal
 
             animal.Setup(card, team);
 
+            // 적은 플레이어 쪽으로 돌려세운다. Setup 뒤여야 팀이 정해져 있다.
+            LSO_PieceFacing.Apply(animal);
+
             // 호버는 프리팹마다 붙이지 않고 여기서 챙긴다.
             // 기물이 태어나는 입구가 여기뿐이라, 새 동물이 늘어도 빠뜨릴 일이 없다.
             // Setup 뒤인 이유는 팀이 정해진 뒤여야 아군만 반응하게 걸 수 있어서다.

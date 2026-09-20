@@ -8,11 +8,28 @@ public sealed class DLJ_SharkKingEditor : Editor
     private LDY_BoardManager previewBoard;
     private Vector2Int previewOrigin = new(3, 3);
     private int previewAreaSize = 2;
+    private LDY_Animal bitePreviewTarget;
 
     public override void OnInspectorGUI()
     {
         var shark = (DLJ_SharkKing)target;
         serializedObject.Update();
+        EditorGUILayout.LabelField("일반 공격 · 이빨 미리보기", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("biteColor"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("biteSize"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("biteAppearDuration"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("biteCloseDuration"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("biteFadeDuration"));
+        serializedObject.ApplyModifiedProperties();
+        bitePreviewTarget = (LDY_Animal)EditorGUILayout.ObjectField(
+            "물기 대상", bitePreviewTarget, typeof(LDY_Animal), true);
+        using (new EditorGUI.DisabledScope(!Application.isPlaying || !shark.isActiveAndEnabled ||
+            bitePreviewTarget == null || bitePreviewTarget.health == null || bitePreviewTarget.health.IsDestroyed))
+        {
+            if (GUILayout.Button("반투명 이빨 재생 (피해 없음)"))
+                shark.StartCoroutine(shark.PlayBiteAttack(bitePreviewTarget, null));
+        }
+        EditorGUILayout.Space();
         EditorGUILayout.LabelField("물보라 모양 · 양 조절", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterCrownHeight"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("attackWaterPoolRadius"));
@@ -57,6 +74,7 @@ public sealed class DLJ_SharkKingEditor : Editor
 
         EditorGUILayout.Space(12f);
         DrawPropertiesExcluding(serializedObject, "m_Script",
+            "biteColor", "biteSize", "biteAppearDuration", "biteCloseDuration", "biteFadeDuration",
             "attackWaterParticleCount", "attackWaterJetCount", "attackWaterExtraBurstRatio",
             "attackWaterCrownHeight", "attackWaterPoolRadius", "attackWaterFallScale");
         serializedObject.ApplyModifiedProperties();

@@ -67,6 +67,7 @@ namespace _Scripts.LSO.Reward
 
         public void OnClick()
         {
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Reward)) return;
             // 이미 넘긴 뒤라면 아무것도 하지 않는다.
             // 한 번 클릭으로 확정되므로 두 번째 클릭이 들어올 틈이 짧게 있다.
             if (_onClick == null) return;

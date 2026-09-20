@@ -17,8 +17,8 @@ MonoBehaviour:
   allowedTeam: 0
   move:
     offset: {x: 0, y: 0.2, z: 0}
-    enterDuration: 0.15
-    exitDuration: 0.2
-    easeEnter: 6
-    easeExit: 6
+    enterDuration: 0.1
+    exitDuration: 0.12
+    easeEnter: 12
+    easeExit: 12
     ignoreTimeScale: 1

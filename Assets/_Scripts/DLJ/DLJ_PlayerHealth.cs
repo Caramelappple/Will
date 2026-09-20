@@ -19,6 +19,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
     };
 
     public event Action<int, int> OnCandleHealthChanged;
+    public event Action<int, int> OnHealthDamaged;
     public event Action<int> OnCandleExtinguished;
     public event Action OnPlayerDeath;
 
@@ -80,6 +81,7 @@ public class DLJ_PlayerHealth : MonoBehaviour
         if (damage <= 0 || IsDead)
             return;
 
+        int previousTotal = TotalHealth;
         int remainingDamage = damage;
 
         for (int i = 0; i < CandleCount && remainingDamage > 0; i++)
@@ -99,15 +101,17 @@ public class DLJ_PlayerHealth : MonoBehaviour
                 OnCandleExtinguished?.Invoke(i);
         }
 
+        OnHealthDamaged?.Invoke(previousTotal, TotalHealth);
+
         if (IsDead)
             OnPlayerDeath?.Invoke();
     }
 
     /// <summary>
-    /// 다음 스테이지로 넘어갈 때 아직 켜져 있는 초만 최대 체력으로 회복한다.
+    /// 다음 챕터로 넘어갈 때 아직 켜져 있는 초만 최대 체력으로 회복한다.
     /// 이미 꺼진 초는 0을 유지한다.
     /// </summary>
-    public void RecoverForNextStage()
+    public void RecoverForNextChapter()
     {
         for (int i = 0; i < CandleCount; i++)
         {

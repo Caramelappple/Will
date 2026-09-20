@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Otter
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uD574\uB2EC"
-  description: "\uC870\uAC1C\uB97C \uAE68 \uBA39\uB294 \uD574\uB2EC\uC785\uB2C8\uB2E4. \uACF5\uACA9\uD560 \uB54C\uB9C8\uB2E4 \uB0AE\uC740 \uD655\uB960\uB85C \uC0B4\uC544 \uC788\uB294 \uC544\uAD70 \uC804\uCCB4\uC758 \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uC2DC\uD0B5\uB2C8\uB2E4."
+  description: "\uC870\uAC1C\uB97C \uAE68 \uBA39\uB294 \uD574\uB2EC\uC785\uB2C8\uB2E4.
+    \uACF5\uACA9\uD560 \uB54C\uB9C8\uB2E4 \uB0AE\uC740 \uD655\uB960\uB85C \uC0B4\uC544
+    \uC788\uB294 \uC544\uAD70 \uC804\uCCB4\uC758 \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uC2DC\uD0B5\uB2C8\uB2E4."
   maxHealth: 3
   damage: 2
   cost: 2
@@ -22,4 +24,4 @@ MonoBehaviour:
   range: 2
   abilities: 0d000000
   defaultWill: 0
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 4399621611223337635, guid: 18ea3719f412e0d46b95d2c2db0b0e91, type: 3}

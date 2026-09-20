@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Hyena-card
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Deck.Data.LSO_CardSO
   animal: {fileID: 11400000, guid: 037c11cb87314903aba4e3a00632a35e, type: 2}
-  image: {fileID: 0}
+  image: {fileID: 21300000, guid: 574595c4be8bca24aa440dd2fc8e01c0, type: 3}
