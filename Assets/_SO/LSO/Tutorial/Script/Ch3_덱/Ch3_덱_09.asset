@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch3_덱_09
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: tut_clock
+  shotId: Turn
   waitForCamera: 1
   lines:
-  - "\uCF54\uC2A4\uD2B8\uB97C \uC804\uBD80 \uC4F0\uC9C0 \uC54A\uC544\uB3C4, \uCCB4\uC2A4 \uC2DC\uACC4\uB97C \uB20C\uB7EC \uD134\uC744 \uB118\uAE38 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "코스트를 전부 소비하지 않아도 체스 시계를 눌러 턴을 종료할 수 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

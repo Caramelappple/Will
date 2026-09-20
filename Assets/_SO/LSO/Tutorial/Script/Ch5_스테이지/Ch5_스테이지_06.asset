@@ -15,10 +15,10 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC0C1\uC790\uB97C \uC5F4\uC5B4 \uD568\uAED8\uD560 \uB3D9\uB8CC\uB098 \uC0C8\uB85C\uC6B4 \uC720\uC5B8\uC744 \uC5BB\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "유언은 특정 스테이지에서만 얻을 수 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0
-  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
+  gate: {fileID: 11400000, guid: 5d81e935342d4e37a27a61a5f4d14776, type: 2}
   gateTimeout: 30

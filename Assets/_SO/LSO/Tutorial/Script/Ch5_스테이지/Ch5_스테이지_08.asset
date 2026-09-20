@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC5EC\uC12F \uBC88\uC9F8 \uC2A4\uD14C\uC774\uC9C0\uC5D0\uC11C\uB294 \uB2F9\uC2E0\uC744 \uB9C9\uAE30 \uC704\uD55C \uC655\uC774 \uAE30\uB2E4\uB9BD\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "여섯 번째 스테이지에서는 당신을 막기 위한 왕이 기다립니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

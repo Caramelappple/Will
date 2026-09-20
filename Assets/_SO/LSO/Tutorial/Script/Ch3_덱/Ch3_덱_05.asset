@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC18C\uD658\uB41C \uAE30\uBB3C\uC740 \uC774\uB3D9\uD558\uAC70\uB098 \uC801\uC744 \uACF5\uACA9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "소환된 기물은 이동하거나 적을 공격할 수 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

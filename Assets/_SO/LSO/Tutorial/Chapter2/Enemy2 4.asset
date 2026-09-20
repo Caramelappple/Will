@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Enemy2 4
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 1
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC544\uBB34 \uB370\uB098 \uB20C\uB7EC \uC815\uBCF4\uCC3D\uC744 \uB2EB\uC73C\uC138\uC694."
-  lineHold: 2.5
+  - "아무 데나 눌러 기물 정보창을 닫으세요."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
-  allowed: 132
-  gate: {fileID: 11400000, guid: bc70e98457991d04e8a4cfb947bf9ef5, type: 2}
+  allowed: 128
+  gate: {fileID: 11400000, guid: 59a98b61c0291daa036900d8a2ab0c6f, type: 2}
   gateTimeout: 0

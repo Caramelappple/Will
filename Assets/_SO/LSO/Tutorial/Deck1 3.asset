@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Deck1 3
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 1
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uCE74\uB4DC \uD55C \uC7A5\uC744 \uC120\uD0DD\uD574\uBCF4\uC138\uC694."
-  lineHold: 2.5
+  - "카드 한 장을 선택해 보세요."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 1

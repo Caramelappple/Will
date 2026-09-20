@@ -15,10 +15,10 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC720\uC5B8\uC774 \uC0C8\uACA8\uC9C4 \uAE30\uBB3C\uC774 \uC8FD\uC73C\uBA74 \uADF8 \uC720\uC5B8\uC774 \uBC1C\uB3D9\uD569\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "기물이 죽으면 새겨진 유언이 발동합니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0
-  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
+  gate: {fileID: 11400000, guid: 5d81e935342d4e37a27a61a5f4d14776, type: 2}
   gateTimeout: 30

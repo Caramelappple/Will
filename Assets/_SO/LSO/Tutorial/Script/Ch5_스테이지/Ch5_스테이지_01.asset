@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: tut_health
   waitForCamera: 1
   lines:
-  - "\uAE30\uBB3C\uC774 \uC8FD\uC73C\uBA74 \uC591\uCD08\uAC00 \uC904\uC5B4\uB4ED\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "기물이 사망하면 양초가 줄어듭니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

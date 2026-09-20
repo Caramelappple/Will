@@ -16,13 +16,13 @@ namespace _Scripts.LSO.Tutorial.Gate
     {
         protected override void OnArm()
         {
-            KTH_HandCardLayout.CardSelected -= Handle;
-            KTH_HandCardLayout.CardSelected += Handle;
+            KTH_HandCardLayout.CardConfirmed -= Handle;
+            KTH_HandCardLayout.CardConfirmed += Handle;
         }
 
         protected override void OnDisarm()
         {
-            KTH_HandCardLayout.CardSelected -= Handle;
+            KTH_HandCardLayout.CardConfirmed -= Handle;
         }
 
         private void Handle(KTH_HandCard card)

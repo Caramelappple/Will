@@ -12,13 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: TutStep
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: Main
   waitForCamera: 1
   lines:
-  - "\uC774 \uAC8C\uC784\uC740 \uC8FC\uC5B4\uC9C4 \uAE30\uBB3C\uC744 \uC774\uC6A9\uD574
-    \uC815\uD574\uC9C4 \uC2A4\uD14C\uC774\uC9C0\uB97C \uB3CC\uD30C\uD558\uB294 \uC804\uB7B5
-    \uAC8C\uC784\uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이 게임은 주어진 기물을 이용해 정해진 스테이지를 돌파하는 전략 게임입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

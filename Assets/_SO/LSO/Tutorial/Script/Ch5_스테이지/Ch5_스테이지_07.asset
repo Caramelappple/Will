@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch5_스테이지_07
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: tut_stage
+  shotId: Main
   waitForCamera: 1
   lines:
-  - "\uD55C \uB9C9\uC740 \uC5EC\uC12F \uAC1C\uC758 \uC2A4\uD14C\uC774\uC9C0\uB85C \uC774\uB8E8\uC5B4\uC838 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "한 막은 여섯 개의 스테이지로 이루어져 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

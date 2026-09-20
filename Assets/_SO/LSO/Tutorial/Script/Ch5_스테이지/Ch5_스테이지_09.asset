@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC655\uC744 \uCC98\uCE58\uD558\uACE0 \uB2E4\uC74C \uB9C9\uC73C\uB85C \uAC00\uBA74, \uAEBC\uC9C4 \uCD08\uB97C \uC81C\uC678\uD55C \uBAA8\uB4E0 \uC591\uCD08\uAC00 \uD68C\uBCF5\uB429\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "왕을 처치하고 다음 막으로 넘어가면 꺼져 버린 초를 제외한 모든 양초가 회복됩니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

@@ -47,14 +47,40 @@ namespace _Scripts.LSO.Tutorial
         [Header("동작")]
         [SerializeField] private bool playOnStart;
 
-        [Tooltip("켜면 ESC 로 건너뛸 수 있다.")]
-        [SerializeField] private bool skipWithEscape = true;
+        [Tooltip("켜면 스페이스를 꾹 눌러 건너뛸 수 있다.\n" +
+                 "\n" +
+                 "ESC 가 아닌 이유는 DLJ_EscapeKey 가 그 키를 쓰기 때문이다 —\n" +
+                 "꾹 누르면 메인 메뉴로 나간다. 같은 키를 쓰면 한 번 누르는 동안\n" +
+                 "튜토리얼이 건너뛰어지고 화면도 어두워진다.")]
+        [SerializeField] private bool skipWithSpace = true;
+
+        [Tooltip("이만큼 누르고 있어야 건너뛴다(초).\n" +
+                 "\n" +
+                 "한 번 눌러 바로 넘기면 실수로 튜토리얼이 통째로 사라진다.\n" +
+                 "튜토리얼은 다시 볼 수 없으므로 되돌릴 방법이 없다.")]
+        [SerializeField, Min(0.1f)] private float skipHoldSeconds = 1f;
 
         [Header("진단")]
         [SerializeField] private bool logSteps = true;
 
-        /// <summary>돌고 있는지. 다른 곳이 \"지금 튜토리얼 중인가\"를 물을 때 쓴다.</summary>
-        public bool IsPlaying { get; private set; }
+        /// <summary>
+        /// 튜토리얼이 도는 중인지.
+        ///
+        /// 정적인 이유는 **밖에서도 물어야 하기 때문이다.** 클릭을 막는 쪽
+        /// (LSO_TurnClickGate)이 씬마다 여러 개라, 각자 감독을 찾아 물고 있게 하면
+        /// 배선이 그만큼 늘고 하나라도 빠지면 그것만 조용히 안 막힌다.
+        ///
+        /// 값을 들고 있는 곳은 여기 하나다. 보는 쪽은 복사해두지 말고 그때그때 물을 것.
+        /// 씬에 감독은 하나뿐이라 정적으로 두어도 주체가 갈리지 않는다.
+        /// </summary>
+        public static bool IsRunning { get; private set; }
+
+        /// <summary>돌고 있는지. 이 인스턴스로 묻는 길.</summary>
+        public bool IsPlaying
+        {
+            get => IsRunning;
+            private set => IsRunning = value;
+        }
 
         /// <summary>끝났을 때. 건너뛰어도 똑같이 쏜다 — 끝난 것은 끝난 것이다.</summary>
         public event Action Finished;
@@ -63,6 +89,7 @@ namespace _Scripts.LSO.Tutorial
 
         /// <summary>지금 기다리는 관문. 건너뛸 때 이것부터 풀어야 한다.</summary>
         private LSO_TutorialGateSO _armedGate;
+        private bool _gatePassed;
 
         private void Awake()
         {
@@ -76,6 +103,11 @@ namespace _Scripts.LSO.Tutorial
 
         private void Start()
         {
+            // 정적 값이라 씬을 다시 열어도 지난 판의 "도는 중"이 남아 있을 수 있다.
+            // (Enter Play Mode Options 로 도메인 재로드를 끄면 특히 그렇다)
+            // 안 지우면 튜토리얼도 안 도는데 클릭이 통째로 막힌다.
+            if (_routine == null) IsRunning = false;
+
             if (playOnStart) Play();
         }
 
@@ -86,17 +118,55 @@ namespace _Scripts.LSO.Tutorial
             if (IsPlaying) Stop();
         }
 
+        /// <summary>스페이스를 누르고 있은 시간. 떼면 0으로 돌아간다.</summary>
+        private float _skipHeld;
+
+        /// <summary>
+        /// 스페이스를 꾹 누르면 건너뛴다.
+        ///
+        /// ── ESC 가 아닌 이유 ──────────────────────────────────────
+        /// ESC 는 DLJ_EscapeKey 가 쓴다 — 꾹 누르면 메인 메뉴로 나간다.
+        /// 같은 키를 쓰면 한 번 누르는 동안 튜토리얼이 건너뛰어지고 화면도 어두워진다.
+        ///
+        /// 여기서 저쪽을 껐다 켜는 방법도 있지만, 그러면 튜토리얼이 남의 컴포넌트를
+        /// 여닫는 것을 알게 된다. 키를 나누는 편이 서로 모르는 채로 남는다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 누르고 있는 동안 안내문이 흐려진다. 아무 반응이 없으면 눌리고 있는지
+        /// 알 수 없어서, 사람들은 되는지 확인하려고 손을 뗀다.
+        /// </summary>
         private void Update()
         {
-            if (!IsPlaying || !skipWithEscape) return;
-            if (Keyboard.current == null) return;
-
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (!IsPlaying || !skipWithSpace || Keyboard.current == null ||
+                !Keyboard.current.spaceKey.isPressed)
             {
-                Log("ESC — 건너뜁니다.");
-
-                Stop();
+                ReleaseSkipHold();
+                return;
             }
+
+            // Realtime 이다. 연출이 timeScale 을 쥐는 구간에서도 같은 시간만 누르면 된다.
+            _skipHeld += Time.unscaledDeltaTime;
+
+            if (banner != null)
+                banner.SetSkipProgress(Mathf.Clamp01(_skipHeld / skipHoldSeconds));
+
+            if (_skipHeld < skipHoldSeconds) return;
+
+            Log($"스페이스를 {skipHoldSeconds:0.#}초 눌렀습니다 — 건너뜁니다.");
+
+            ReleaseSkipHold();
+
+            Stop();
+        }
+
+        /// <summary>누름을 놓는다. 안내문도 원래대로 돌린다.</summary>
+        private void ReleaseSkipHold()
+        {
+            if (_skipHeld <= 0f) return;
+
+            _skipHeld = 0f;
+
+            if (banner != null) banner.SetSkipProgress(0f);
         }
 
         // =========================================================
@@ -187,22 +257,47 @@ namespace _Scripts.LSO.Tutorial
         {
             Log($"[{chapter.title}] {index + 1}. {step.Preview}");
 
+            // 카메라가 이동하는 동안 직전 단계의 조작이 새 단계로 새지 않게 한다.
+            if (locks != null) locks.Apply(LSO_TutorialAction.None);
+
             // 1. 카메라
-            if (!string.IsNullOrEmpty(step.shotId) && cameraDirector != null)
+            //
+            // 돌아가기가 샷보다 우선한다. 둘 다 적혀 있으면 "평소 화면으로"가 뜻이 분명하고,
+            // 샷을 고른 채 돌아가기를 켜는 것은 대개 실수다.
+            bool movedCamera = false;
+
+            if (cameraDirector != null)
             {
-                cameraDirector.Play(step.shotId);
-
-                if (step.waitForCamera)
+                if (step.returnToDefaultCamera)
                 {
-                    // 한 프레임 준다. 부른 직후에는 아직 IsBlending 이 안 켜져 있다.
-                    yield return null;
-
-                    while (cameraDirector.IsBlending) yield return null;
+                    cameraDirector.ReturnToDefault();
+                    movedCamera = true;
                 }
+                else if (!string.IsNullOrEmpty(step.shotId))
+                {
+                    cameraDirector.Play(step.shotId);
+                    movedCamera = true;
+                }
+            }
+
+            if (movedCamera && step.waitForCamera)
+            {
+                // 한 프레임 준다. 부른 직후에는 아직 IsBlending 이 안 켜져 있다.
+                yield return null;
+
+                while (cameraDirector.IsBlending) yield return null;
             }
 
             // 2. 가이드와 칸 제한 — 같은 값에서 나온다
             ApplyGuide(step);
+
+            _gatePassed = false;
+            // 턴 전환/사망 등은 여러 줄 안내를 읽는 동안에도 일어난다.
+            if (step.gate is LSO_GatePractice)
+            {
+                _armedGate = step.gate;
+                _armedGate.Arm(this, () => _gatePassed = true);
+            }
 
             // 3. 조작 잠금
             if (locks != null) locks.Apply(step.allowed);
@@ -248,16 +343,17 @@ namespace _Scripts.LSO.Tutorial
                 yield break;
             }
 
-            bool passed = false;
-
-            _armedGate = step.gate;
-            _armedGate.Arm(this, () => passed = true);
+            if (_armedGate == null)
+            {
+                _armedGate = step.gate;
+                _armedGate.Arm(this, () => _gatePassed = true);
+            }
 
             float deadline = step.gateTimeout > 0f
                 ? Time.unscaledTime + step.gateTimeout
                 : float.PositiveInfinity;
 
-            while (!passed)
+            while (!_gatePassed)
             {
                 if (Time.unscaledTime >= deadline)
                 {
@@ -299,6 +395,7 @@ namespace _Scripts.LSO.Tutorial
             switch (step.guide)
             {
                 case LSO_TutorialGuideKind.Place:
+                case LSO_TutorialGuideKind.PlaceYellow:
                     if (cardPlacer != null) cardPlacer.RestrictTo(step.guideTiles);
                     break;
 
@@ -363,6 +460,7 @@ namespace _Scripts.LSO.Tutorial
             // 실제 통과와 다르게 동작할 수 있다.
             _armedGate.Disarm();
             _armedGate = null;
+            _gatePassed = true;
         }
 #endif
     }

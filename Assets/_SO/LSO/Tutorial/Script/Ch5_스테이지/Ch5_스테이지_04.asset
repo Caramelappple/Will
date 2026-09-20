@@ -15,8 +15,9 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uD55C \uBC88 \uAEBC\uC9C4 \uC591\uCD08\uB294 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uBAA8\uB450 \uAEBC\uC9C0\uBA74 \uD328\uBC30\uD569\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "한 번 완전히 꺼진 양초는 다시 되돌릴 수 없습니다."
+  - "모든 양초가 꺼진다면 당신은 이 게임에서 추방당할 것입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

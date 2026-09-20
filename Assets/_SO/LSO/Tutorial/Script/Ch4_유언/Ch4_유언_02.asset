@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch4_유언_02
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: tut_candle_close
   waitForCamera: 1
   lines:
-  - "\uC720\uC5B8\uC740 \uAE30\uBB3C\uC774 \uC8FD\uC744 \uB54C \uBC1C\uB3D9\uD558\uB294 \uB2A5\uB825\uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "유언은 기물이 죽을 때 발동하는 능력입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

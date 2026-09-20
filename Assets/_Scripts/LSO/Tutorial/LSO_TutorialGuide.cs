@@ -48,6 +48,7 @@ namespace _Scripts.LSO.Tutorial
 
                 // 노란색. 평소 이동 표시와 같은 색이라 플레이어가 이미 아는 뜻이다.
                 case LSO_TutorialGuideKind.Move:
+                case LSO_TutorialGuideKind.PlaceYellow:
                     highlighter.ShowMoveHighlights(this, tiles);
                     break;
             }

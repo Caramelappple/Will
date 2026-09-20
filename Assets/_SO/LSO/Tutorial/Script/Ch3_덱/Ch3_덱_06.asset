@@ -15,8 +15,9 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uAE30\uBB3C\uB9C8\uB2E4 \uCCB4\uB825, \uACF5\uACA9\uB825, \uC0AC\uAC70\uB9AC, \uC774\uB3D9\uAC70\uB9AC\uAC00 \uB2E4\uB974\uB2C8 \uAF3C\uAF3C\uD788 \uD655\uC778\uD558\uC138\uC694."
-  lineHold: 2.5
+  - "기물마다 체력, 공격력, 사거리, 이동 거리가 다릅니다."
+  - "특정 사거리에서만 공격 가능한 기물도 있으니, 꼼꼼히 확인하세요."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

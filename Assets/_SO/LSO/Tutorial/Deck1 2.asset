@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uB371\uC5D0\uC11C \uBF51\uC740 \uCE74\uB4DC\uB294 \uC190\uD328\uC5D0 \uB4E4\uC5B4\uC635\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "덱에서 뽑은 카드는 손패에 들어옵니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

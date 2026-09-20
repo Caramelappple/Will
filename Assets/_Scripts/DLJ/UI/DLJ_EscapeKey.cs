@@ -31,6 +31,19 @@ public sealed class DLJ_EscapeKey : MonoBehaviour
     [Tooltip("문구가 다시 사라지는 데 걸리는 시간")]
     [SerializeField, Min(0f)] private float textFadeOutDuration = 0.35f;
 
+    [Header("누르는 동안 깜박임")]
+    [Tooltip("누르고 있는 동안 문구를 깜박이게 한다.\n" +
+             "\n" +
+             "끄면 예전처럼 선명하게 떠 있기만 한다. 그러면 누르고 있는지\n" +
+             "그냥 떠 있는지 구분이 안 된다.")]
+    [SerializeField] private bool blinkWhileHeld = true;
+
+    [Tooltip("1초에 몇 번 깜박일지")]
+    [SerializeField, Min(0.1f)] private float blinkPerSecond = 3f;
+
+    [Tooltip("가장 흐려질 때의 알파. 0으로 두면 완전히 사라졌다 나타난다")]
+    [SerializeField, Range(0f, 1f)] private float blinkMinAlpha = 0.25f;
+
     [Header("화면 암전")]
     [Tooltip("화면 전체를 덮는 검은색 UI Image. 안내 문구보다 뒤에 둘 것")]
     [SerializeField] private Graphic dimOverlay;
@@ -162,14 +175,40 @@ public sealed class DLJ_EscapeKey : MonoBehaviour
         float startAlpha = GetTextAlpha();
         yield return FadeTextRoutine(startAlpha, visibleTextAlpha, textFadeInDuration);
 
+        // ── 누르고 있는 동안 깜박인다 ─────────────────────────────
+        // 예전에는 선명하게 떠 있기만 했다. 그러면 "지금 누르고 있어서 뜬 것"인지
+        // "아까 눌러서 잠깐 떠 있는 것"인지 구분할 수 없다.
+        //
+        // 암전이 시작되는 2초까지는 화면에 아무 변화가 없으므로, 그 사이를
+        // 채워주지 않으면 사람들은 되는지 확인하려고 손을 뗀다.
+        //
+        // Realtime 인 이유는 이 화면이 timeScale 을 쥐는 연출 위에서도 떠야 하기 때문이다.
+        // ─────────────────────────────────────────────────────────
+        float blinkStartedAt = Time.unscaledTime;
+
         while (isPressed && !longPressHandled)
+        {
+            if (blinkWhileHeld)
+            {
+                float wave = Mathf.PingPong(
+                    (Time.unscaledTime - blinkStartedAt) * blinkPerSecond * 2f, 1f);
+
+                SetTextAlpha(Mathf.Lerp(
+                    visibleTextAlpha * blinkMinAlpha, visibleTextAlpha, wave));
+            }
+
             yield return null;
+        }
 
         if (longPressHandled && sceneTransitionCoroutine != null)
         {
             textAnimationCoroutine = null;
             yield break;
         }
+
+        // 깜박이다 멈추면 어중간한 밝기에서 시작한다. 선명한 값으로 되돌린 뒤
+        // 사라지게 해야 "손을 떼니 한 번 또렷해졌다가 사라진다"로 읽힌다.
+        if (blinkWhileHeld) SetTextAlpha(visibleTextAlpha);
 
         if (textVisibleDuration > 0f)
             yield return new WaitForSecondsRealtime(textVisibleDuration);

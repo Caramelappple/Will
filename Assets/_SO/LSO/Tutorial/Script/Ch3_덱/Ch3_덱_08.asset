@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uCF54\uC2A4\uD2B8\uB294 \uB9E4 \uD134 \uB2E4\uC12F \uAC1C\uAC00 \uC790\uB3D9\uC73C\uB85C \uB4E4\uC5B4\uC635\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "코스트는 매 턴마다 5개가 자동으로 들어옵니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

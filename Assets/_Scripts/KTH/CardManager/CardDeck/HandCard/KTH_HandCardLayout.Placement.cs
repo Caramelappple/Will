@@ -117,7 +117,11 @@ public partial class KTH_HandCardLayout
             ? "배치 시작됨 — 이제 칸을 누르면 놓인다"
             : "배치를 시작하지 못함 (내 턴이 아니거나 코스트 부족)");
 
-        if (!started)
+        if (started)
+        {
+            CardConfirmed?.Invoke(card);
+        }
+        else
         {
             // 내 턴이 아니거나 코스트가 부족해서 아예 시작을 못 한 경우.
             card.CancelSelectionState();
@@ -125,14 +129,16 @@ public partial class KTH_HandCardLayout
     }
 
     /// <summary>
-    /// 손패에서 카드를 골랐을 때. 튜토리얼이 "카드를 하나 골라보세요"를 기다리는 데 쓴다.
+    /// 손패 카드를 클릭해 배치 모드가 실제로 시작됐을 때.
+    /// 튜토리얼이 "카드를 하나 골라보세요"를 기다리는 데 쓴다.
     ///
     /// 정적인 이유는 손패가 씬마다 새로 생기기 때문이다. 듣는 쪽이 인스턴스를
     /// 물고 있으면 판이 바뀔 때 끊긴다.
     ///
-    /// **고른 순간만 쏜다.** 푸는 것은 안 쏜다 — 지금 듣는 쪽이 필요로 하지 않는다.
+    /// 호버도 시각 연출을 위해 SetSelected(true)를 사용한다. 따라서 선택 상태가 아니라
+    /// BeginPlacement가 성공한 이 자리에서만 쏴야 호버를 클릭으로 오인하지 않는다.
     /// </summary>
-    public static event Action<KTH_HandCard> CardSelected;
+    public static event Action<KTH_HandCard> CardConfirmed;
 
     public void OnCardSelectionChanged(
         KTH_HandCard card,
@@ -147,8 +153,6 @@ public partial class KTH_HandCardLayout
             }
 
             selectedCard = card;
-
-            CardSelected?.Invoke(card);
 
             return;
         }

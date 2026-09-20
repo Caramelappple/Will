@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Deck1 1
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: 
+  shotId: tut_hand
   waitForCamera: 1
   lines:
-  - "\uB9E4 \uD134\uB9C8\uB2E4 \uB371\uC5D0\uC11C \uCE74\uB4DC 5\uC7A5\uC744 \uBF51\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "매 턴마다 덱에서 카드 5장을 뽑습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

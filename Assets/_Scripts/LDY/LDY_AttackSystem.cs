@@ -55,6 +55,7 @@ namespace _Scripts.LDY
         // 공격 연출(코루틴)이 하나라도 재생 중이면 true. 턴 전환이 이 애니메이션 도중에 끼어들지 않도록 막는 용도.
         // 다단 타격은 한 번의 공격 행동이므로 횟수와 무관하게 1로 센다.
         public bool IsBusy => _activeCount > 0;
+        public event Action<LDY_Animal> AttackCompleted;
         public LDY_ActionPointManager ActionPoints => actionPoints;
         private int _activeCount;
         private readonly HashSet<LDY_Animal> _attackingAnimals = new();
@@ -175,6 +176,7 @@ namespace _Scripts.LDY
 
                     yield return StrikeOnce(attacker, target);
                 }
+                AttackCompleted?.Invoke(attacker);
             }
             finally
             {

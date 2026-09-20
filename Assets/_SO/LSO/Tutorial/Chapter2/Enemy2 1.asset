@@ -15,9 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uAE30\uBB3C\uB4E4\uC740 \uAC01\uC790\uC758 \uACF5\uACA9\uB825, \uCCB4\uB825,
-    \uC774\uB3D9 \uAC70\uB9AC\uC640 \uD2B9\uC131\uC744 \uAC00\uC9C0\uACE0 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "기물들은 각자의 공격력, 체력, 이동 거리와 특성을 가지고 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

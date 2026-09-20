@@ -15,8 +15,8 @@ MonoBehaviour:
   shotId: Cam2
   waitForCamera: 1
   lines:
-  - "\uC774\uACF3\uC740 \uC804\uD22C\uAC00 \uC9C4\uD589\uB418\uB294 \uC804\uC7A5\uC785\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이곳은 전투가 진행되는 전장입니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0

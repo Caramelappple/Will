@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Enemy2 3
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 1
   shotId: 
   waitForCamera: 1
   lines:
-  - "\uC774\uB807\uAC8C \uAE30\uBB3C\uC758 \uC0C1\uD0DC\uB97C \uD655\uC778\uD560
-    \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-  lineHold: 2.5
+  - "이렇게 기물의 상태를 확인할 수 있습니다."
+  lineHold: 4.5
   guide: 0
   guideTiles: []
   allowed: 0
