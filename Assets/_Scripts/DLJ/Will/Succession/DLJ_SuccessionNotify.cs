@@ -89,6 +89,22 @@ public sealed class DLJ_SuccessionNotify : MonoBehaviour
         PlayUnreveal();
     }
 
+    /// <summary>씬에 배치된 계승 안내를 찾아 잉크 번짐 연출을 시작한다.</summary>
+    public static void ShowPrompt()
+    {
+        DLJ_SuccessionNotify notify = Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
+            FindObjectsInactive.Include);
+        notify?.ShowAndPlay();
+    }
+
+    /// <summary>현재 표시 중인 계승 안내를 닫는다.</summary>
+    public static void HidePrompt()
+    {
+        DLJ_SuccessionNotify notify = Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
+            FindObjectsInactive.Include);
+        notify?.Unable();
+    }
+
     public void ShowImmediately()
     {
         StopAnimation();
