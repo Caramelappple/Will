@@ -279,6 +279,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             return false;
         }
 
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillMemory);
         successionSource = this;
         successionTeam = animal.team;
         int sourceHealth = animal.health != null

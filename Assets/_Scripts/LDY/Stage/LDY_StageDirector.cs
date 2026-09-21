@@ -60,6 +60,7 @@ namespace _Scripts.LDY.Stage
             foreach (LDY_IStageSetupStep step in _steps)
                 step.Setup(stage);
 
+            _Scripts.LSO.Sound.LSO_CombatAudio.Stage(stage);
             OnStageLoaded?.Invoke(stage);
         }
     }

@@ -64,6 +64,7 @@ public sealed class DLJ_InfoPanelAnimation : MonoBehaviour
             return;
 
         animatedTarget.gameObject.SetActive(true);
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.InfoOpen, 107, 0f);
         Play(_shownLocalPosition, showDuration, showCurve, State.Showing, State.Shown, false);
     }
 
@@ -78,6 +79,7 @@ public sealed class DLJ_InfoPanelAnimation : MonoBehaviour
             return;
 
         _replaying = false;
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.InfoOpen, 107, 0f);
 
         Play(_hiddenLocalPosition, hideDuration, hideCurve, State.Hiding, State.Hidden, true);
     }
@@ -140,6 +142,7 @@ public sealed class DLJ_InfoPanelAnimation : MonoBehaviour
         onBottom?.Invoke();
 
         _state = State.Showing;
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.InfoOpen, 107, 0f);
 
         if (upDuration > 0f)
             yield return Move(_shownLocalPosition, upDuration, showCurve);

@@ -262,6 +262,8 @@ namespace _Scripts.LDY
             if (animal == null) return null;
 
             board.Place(animal, pos);
+            if (board.Get(pos) == animal)
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.PieceMove);
             ActionPoints?.TryConsume(card.Cost);
 
             // 카드에 이미 유언이 붙어 있으면 그걸로 끝이다. 고르는 창을 띄우지 않는다.

@@ -329,7 +329,11 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
                 coin.Visual.localScale = Vector3.Lerp(coin.Scale, targetScale, eased);
                 yield return null;
             }
-            if (coin.Case != null) coin.Case.CompleteWorldArrival(coin.Slot);
+            if (coin.Case != null)
+            {
+                coin.Case.CompleteWorldArrival(coin.Slot);
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.Cost, 102, 0.12f);
+            }
             coin.Visual.gameObject.SetActive(false);
             if (_interval > 0f) yield return new WaitForSeconds(_interval);
         }

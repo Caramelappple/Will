@@ -262,6 +262,7 @@ namespace _Scripts.LDY
 
                     NotifyAttackAbilities(attacker, target.modelTransform != null
                         ? target.modelTransform.position : target.transform.position);
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.PieceAttack);
                     target.health.GetDamage(data);
                     PlayHitReaction(attacker, target);
                     if (target.health.IsDestroyed)
@@ -386,6 +387,7 @@ namespace _Scripts.LDY
                 return;
             }
 
+            _Scripts.LSO.Sound.LSO_CombatAudio.Death(target);
             board.Remove(target);
             DLJ_CombatKillEvents.Raise(target, killer);
             RaiseAnimalDead(target);

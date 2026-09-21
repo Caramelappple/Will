@@ -28,6 +28,8 @@ namespace _Scripts.LSO.UI.Effect
         {
             // 버튼이 비활성이면 LSO_ButtonClickHandler가 애초에 부르지 않는다.
             if (clickSfx == null) return;
+            if (TryGetComponent(out _Scripts.LSO.Sound.LSO_MenuButtonAudio menuAudio) &&
+                menuAudio.isActiveAndEnabled) return;
 
             ServiceLocator.Get<IAudioService>()?.PlaySfx(clickSfx, channel);
         }

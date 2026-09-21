@@ -12839,8 +12839,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4c042e2b519a4723b340b683c3c930dc, type: 2}
   - {fileID: 11400000, guid: 24ba5d3066724f869e5134a74b25223d, type: 2}
   - {fileID: 11400000, guid: 237f12cbc5ef45569dacb8c50e554f40, type: 2}
-  startChapterIndex: 2
-  startStageIndex: 5
+  startChapterIndex: 0
+  startStageIndex: 0
   logSteps: 1
 --- !u!114 &1339222920
 MonoBehaviour:

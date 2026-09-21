@@ -158,7 +158,11 @@ namespace _Scripts.LDY.Boss.BullKing
         /// <summary>돌진을 시작할 때 우는 소리. 사운드 매니저가 없으면 아무 일도 없다.</summary>
         public void PlayChargeCry()
         {
-            if (chargeSfx == null) return;
+            if (chargeSfx == null)
+            {
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.BullCry);
+                return;
+            }
 
             ServiceLocator.Get<IAudioService>()?.PlaySfx(chargeSfx);
         }
@@ -167,6 +171,8 @@ namespace _Scripts.LDY.Boss.BullKing
         public void ShakeOnChargeStart()
         {
             StopChargeShake();
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.BullMove,
+                _Scripts.LSO.Sound.LSO_GameAudio.BullMovementChannel);
             if (!isActiveAndEnabled || chargeShakeDuration <= 0f || chargeShakeStrength <= 0f) return;
             _chargeShakeRoutine = StartCoroutine(ChargeShakeRoutine());
         }
@@ -183,6 +189,7 @@ namespace _Scripts.LDY.Boss.BullKing
 
         internal void StopChargeShake()
         {
+            _Scripts.LSO.Sound.LSO_GameAudio.Stop(_Scripts.LSO.Sound.LSO_GameAudio.BullMovementChannel);
             if (_chargeShakeRoutine != null) StopCoroutine(_chargeShakeRoutine);
             _chargeShakeRoutine = null;
         }

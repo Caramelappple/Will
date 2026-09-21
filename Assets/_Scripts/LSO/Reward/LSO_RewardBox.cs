@@ -504,6 +504,9 @@ namespace _Scripts.LSO.Reward
 
             if (card == null) return;
 
+            if (_cards.Count == 0)
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.CardDraw);
+
             _cards.Add(card);
         }
 
