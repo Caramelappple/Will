@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Sunfish
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uAC1C\uBCF5\uCE58"
-  description: "\uB54C\uB824\uC11C\uB294 \uC8FD\uC9C0 \uC54A\uB294 \uAC1C\uBCF5\uCE58\uC785\uB2C8\uB2E4. \uB300\uC2E0 \uD134\uC774 \uC2DC\uC791\uB420 \uB54C\uB9C8\uB2E4 \uC2A4\uC2A4\uB85C \uC4F0\uB7EC\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  description: "\uB54C\uB824\uC11C\uB294 \uC8FD\uC9C0 \uC54A\uB294 \uAC1C\uBCF5\uCE58\uC785\uB2C8\uB2E4.
+    \uB300\uC2E0 \uD134\uC774 \uC2DC\uC791\uB420 \uB54C\uB9C8\uB2E4 \uC2A4\uC2A4\uB85C
+    \uC4F0\uB7EC\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
   maxHealth: 999
   damage: 1
   cost: 4
@@ -22,4 +24,4 @@ MonoBehaviour:
   range: 0
   abilities: 0a000000
   defaultWill: 0
-  unitPrefab: {fileID: 0}
+  unitPrefab: {fileID: 5842311661923538857, guid: dd49338f819b83e4e90e53875b42e09b, type: 3}
