@@ -226,6 +226,10 @@ namespace _Scripts.LDY
 
         private void HandleSelectOrAttackClick(LDY_Animal occupant)
         {
+            // 튜토리얼 단계가 바뀌기 직전에 선택된 기물이 남아 있는 경우에도
+            // 제한 밖 기물을 공격 주체로 쓰지 못하게 실행 직전에 다시 확인한다.
+            if (Selected != null && !IsSelectable(Selected)) Deselect();
+
             // 논리 좌표는 출발 즉시 바뀌므로 연출 중인 기물의 재조작은 막는다.
             if (IsActing(occupant) || IsActing(Selected)) return;
 
@@ -283,9 +287,11 @@ namespace _Scripts.LDY
 
         // 내 팀(Player) 기물만 선택 가능. 이게 없으면 좌클릭으로 상대 기물을 직접 조작하게 되는 버그가 생긴다.
         // 행동력이 남아있는 한 같은 기물도 여러 번 선택해서 행동할 수 있다.
-        private static bool IsSelectable(LDY_Animal animal)
+        private bool IsSelectable(LDY_Animal animal)
         {
-            return animal != null && animal.team == LDY_Team.Player;
+            return animal != null &&
+                   animal.team == LDY_Team.Player &&
+                   _Scripts.LSO.Tutorial.LSO_TutorialLock.AllowsSelecting(animal);
         }
 
         private void Select(LDY_Animal animal)
@@ -340,6 +346,12 @@ namespace _Scripts.LDY
 
             // 선택이 없던 상태에서 또 불려도 UI가 헛돌지 않게 실제로 바뀐 경우에만 알린다.
             if (hadSelection) OnSelectionChanged?.Invoke(null);
+        }
+
+        /// <summary>튜토리얼처럼 외부 규칙이 현재 선택을 무효화할 때 선택을 해제한다.</summary>
+        public void ClearSelection()
+        {
+            Deselect();
         }
 
         /// <summary>

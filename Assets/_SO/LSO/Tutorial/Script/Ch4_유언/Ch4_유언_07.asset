@@ -20,6 +20,10 @@ MonoBehaviour:
   guide: 2
   guideTiles:
   - {x: 4, y: 0, z: 3}
+  restrictSelectionToWill: 1
+  selectionWill: 1
+  restrictSelectionToTile: 1
+  selectionTile: {x: 4, y: 0, z: 2}
   allowed: 12
   gate: {fileID: 11400000, guid: 8f3d2416c6b6ceed6ae3c1e0694c6c71, type: 2}
   gateTimeout: 0

@@ -241,7 +241,7 @@ namespace _Scripts.LDY
 
             // 유언을 아직 배우지 않은 실습에서는 소환 뒤의 선택창을 생략한다.
             if (!will.HasValue && !_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
-                    _Scripts.LSO.Tutorial.LSO_TutorialAction.Will))
+                    _Scripts.LSO.Tutorial.LSO_TutorialAction.WillPaint))
                 will = card.DefaultWill;
 
             if (card.Cost > CurrentCost)
