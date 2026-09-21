@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 6304906199209021946}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.463, z: 0}
   m_LocalScale: {x: 225, y: 225, z: 225}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -129,7 +129,7 @@ GameObject:
   m_Layer: 10
   m_Name: SharkKing
   m_TagString: Enemy
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2488908585195742037, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -143,7 +143,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.9, y: 6.267, z: -19.89}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2369653158673188677}
@@ -169,7 +169,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &8169532250795333539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,6 +235,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74c4b54bbd314ae8b9b83917aab4ead8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_SharkKing
+  biteColor: {r: 0.78, g: 0.95, b: 1, a: 0.62}
+  biteSize: 1.25
+  biteAppearDuration: 0.16
+  biteCloseDuration: 0.12
+  biteFadeDuration: 0.22
   attackHighlightPrefab: {fileID: 8543462503013108171, guid: 913dad7399cae0e499158e8f4f0f49ca, type: 3}
   attackHighlightHeightOffset: 0.05
   sharkTeethPrefab: {fileID: 919132149155446097, guid: 6ea784aa38be2c840bb4ce4e9d7d7c67, type: 3}
