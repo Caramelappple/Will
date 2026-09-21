@@ -14,10 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
   chapter: 4
   regionName: "\uAE4C\uB9C8\uADC0\uC655\uC758 \uD3D0\uD5C8"
-  stages:
-  - {fileID: 11400000, guid: 93c75df3d3f3477ea0300d0b5290e44c, type: 2}
-  - {fileID: 11400000, guid: 0750b554815c45fdbf86bdadc6342280, type: 2}
-  - {fileID: 11400000, guid: 87012e442edb49559fb561dfcc20f9f1, type: 2}
-  - {fileID: 11400000, guid: 54518dab90de417c8a823ead355a763a, type: 2}
-  - {fileID: 11400000, guid: 44c612f94a8645e5a77015fbc88ced91, type: 2}
-  - {fileID: 11400000, guid: 462f47f99269482a956d2d5547384263, type: 2}
+  stages: []
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 11400000, guid: 93c75df3d3f3477ea0300d0b5290e44c, type: 2}
+    - {fileID: 11400000, guid: 8d5792c91d064126b266941350741a28, type: 2}
+    - {fileID: 11400000, guid: b7be60fd3a134ba99c917766f2a71e13, type: 2}
+  - stageIndex: 1
+    alternatives:
+    - {fileID: 11400000, guid: 0750b554815c45fdbf86bdadc6342280, type: 2}
+    - {fileID: 11400000, guid: 7196e4750c084508b92e56fb33f9c4ce, type: 2}
+    - {fileID: 11400000, guid: e0fb4cfd74c94bbdafba320698fd1349, type: 2}
+  - stageIndex: 2
+    alternatives:
+    - {fileID: 11400000, guid: 87012e442edb49559fb561dfcc20f9f1, type: 2}
+    - {fileID: 11400000, guid: e30d2047a5cd4d6e953a020656f8d514, type: 2}
+    - {fileID: 11400000, guid: 6257f3b8debe4be8911a90de747b8511, type: 2}
+  - stageIndex: 3
+    alternatives:
+    - {fileID: 11400000, guid: 54518dab90de417c8a823ead355a763a, type: 2}
+    - {fileID: 11400000, guid: e97843f3938643b983e47bfec4ae2fda, type: 2}
+    - {fileID: 11400000, guid: 3e384fdf74e74d30b9069cca96bbdf71, type: 2}
+  - stageIndex: 4
+    alternatives:
+    - {fileID: 11400000, guid: 44c612f94a8645e5a77015fbc88ced91, type: 2}
+    - {fileID: 11400000, guid: e8bd2f64d71a4f33a13ebab92998f727, type: 2}
+    - {fileID: 11400000, guid: 1f61f974c4c849558089aea9a3d051d2, type: 2}
+  - stageIndex: 5
+    alternatives:
+    - {fileID: 11400000, guid: 462f47f99269482a956d2d5547384263, type: 2}

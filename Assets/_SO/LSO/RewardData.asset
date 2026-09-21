@@ -123,7 +123,7 @@ MonoBehaviour:
       weight: 1
     - pieceSO: {fileID: 11400000, guid: 14781768bb5f43c499ba3abe182eb7c0, type: 2}
       weight: 1
-    stageWill: {fileID: 0}
+    stageWill: {fileID: 11400000, guid: 5f01234567894abcdef0123456789abc, type: 2}
   - chapter: 2
     stage: 6
     possiblePieces:
@@ -153,7 +153,7 @@ MonoBehaviour:
       weight: 2
     - pieceSO: {fileID: 11400000, guid: cdfe4545d37f4e8fae727e2e4955739e, type: 2}
       weight: 2
-    stageWill: {fileID: 11400000, guid: 5f01234567894abcdef0123456789abc, type: 2}
+    stageWill: {fileID: 0}
   - chapter: 3
     stage: 3
     possiblePieces:

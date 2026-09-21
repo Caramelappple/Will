@@ -14,10 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
   chapter: 3
   regionName: "\uC0C1\uC5B4\uC655\uC758 \uBC14\uB2E4"
-  stages:
-  - {fileID: 11400000, guid: 42e17bf380ad4dcbac28c100de9ba684, type: 2}
-  - {fileID: 11400000, guid: 32b20694fb4c4dae84bdc690f0b17bab, type: 2}
-  - {fileID: 11400000, guid: f28f53364f424bb59db81d50f1694ccb, type: 2}
-  - {fileID: 11400000, guid: 040172e9992949f9888eea030fe41524, type: 2}
-  - {fileID: 11400000, guid: c5080a25506a4c60a26717fa1fe56e8f, type: 2}
-  - {fileID: 11400000, guid: a5e24f290f444aeca31f832ca49241c8, type: 2}
+  stages: []
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 11400000, guid: 42e17bf380ad4dcbac28c100de9ba684, type: 2}
+    - {fileID: 11400000, guid: 54267a09aca94f388e211a8d3fb08703, type: 2}
+    - {fileID: 11400000, guid: 717d38a39cfe4b1580464f744e6c91ae, type: 2}
+  - stageIndex: 1
+    alternatives:
+    - {fileID: 11400000, guid: 32b20694fb4c4dae84bdc690f0b17bab, type: 2}
+    - {fileID: 11400000, guid: 27c781305e29465fa52e5741874354c6, type: 2}
+    - {fileID: 11400000, guid: 999c9ee9bf6045bb914e59cdf398c4dd, type: 2}
+  - stageIndex: 2
+    alternatives:
+    - {fileID: 11400000, guid: f28f53364f424bb59db81d50f1694ccb, type: 2}
+    - {fileID: 11400000, guid: 29b8d0e1e08b460386228825859bb4a2, type: 2}
+    - {fileID: 11400000, guid: e2d9878409b84833b7fb8fc6b4fe374d, type: 2}
+  - stageIndex: 3
+    alternatives:
+    - {fileID: 11400000, guid: 040172e9992949f9888eea030fe41524, type: 2}
+    - {fileID: 11400000, guid: 5e94efcb4dba483c80880bb6b6c5ef7e, type: 2}
+    - {fileID: 11400000, guid: f72efeceb13e492ba8b23c258b70f72a, type: 2}
+  - stageIndex: 4
+    alternatives:
+    - {fileID: 11400000, guid: c5080a25506a4c60a26717fa1fe56e8f, type: 2}
+    - {fileID: 11400000, guid: 93f6cde894b342d7a7bb00b921249142, type: 2}
+    - {fileID: 11400000, guid: 1ebd7bd827a642d09da78b3f3222ef7f, type: 2}
+  - stageIndex: 5
+    alternatives:
+    - {fileID: 11400000, guid: a5e24f290f444aeca31f832ca49241c8, type: 2}

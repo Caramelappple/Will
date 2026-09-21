@@ -7,8 +7,9 @@ using UnityEngine;
 namespace _Scripts.LSO.Ability
 {
     /// <summary>
-    /// 키위 - 저주 면역: 저주에서 온 피해를 전부 무효화한다. 횟수 제한은 없다.
-    /// 출처가 Curse인 피해만 막으므로 일반 공격이나 다른 유언 피해는 그대로 받는다.
+    /// 키위 - 해로운 유언 면역: 유언에서 온 피해를 전부 무효화한다. 횟수 제한은 없다.
+    /// 저주·분노 피해만 막고, 계승·희생처럼 이로운 유언 효과는 정상적으로 받는다.
+    /// 일반 공격과 유언이 아닌 특성 피해도 그대로 받는다.
     /// </summary>
     public sealed class LSO_CurseImmunity : LSO_IAbility, LSO_IDamageModifier
     {
@@ -24,7 +25,8 @@ namespace _Scripts.LSO.Ability
         public int ModifyIncomingDamage(DamageableResources target, DamageData data, int damage)
         {
             if (damage <= 0) return damage;
-            if (data.source != LSO_DamageSource.Curse) return damage;
+            if (data.source != LSO_DamageSource.Curse && data.source != LSO_DamageSource.Rage)
+                return damage;
 
             Immuned?.Invoke(target);
 
@@ -33,11 +35,11 @@ namespace _Scripts.LSO.Ability
             // "무효" 한 줄만 있으면 막은 것이 맞는지 확인하려고 체력을 따로 봐야 한다.
             // 준 쪽까지 있으면 저주 장판이 여러 겹일 때 몇 번 막았는지도 그대로 읽힌다.
             string who = target != null ? target.name : "대상";
-            string giver = data.giver != null ? data.giver.name : "알 수 없는 저주";
+            string source = data.source == LSO_DamageSource.Curse ? "저주" : "분노";
 
             LSO_AbilitySignal.Raise(
                 LSO_AbilityType.CurseImmunity, target,
-                $"<color=violet>[비타민] {who}: {giver} 의 저주 피해 {damage} 무효 " +
+                $"<color=violet>[비타민] {who}: {source} 유언 피해 {damage} 무효 " +
                 $"(남은 체력 {(target != null ? target.Value.ToString() : "?")})</color>");
 
             return 0;

@@ -21,3 +21,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cc7a77ae6c644f11adc1867a9dfcf017, type: 2}
   - {fileID: 11400000, guid: 701b4e0ca5f249e299ffc0324ea623a9, type: 2}
   - {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}

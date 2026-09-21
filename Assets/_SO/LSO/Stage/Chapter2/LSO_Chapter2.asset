@@ -14,10 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
   chapter: 2
   regionName: "\uC5EC\uC6B0\uC655\uC758 \uC800\uC7A3\uAC70\uB9AC"
-  stages:
-  - {fileID: 11400000, guid: 7387644a541544588aa9ae54e6e87290, type: 2}
-  - {fileID: 11400000, guid: 4de3c317e2c54089ae9d67dc5fb4d752, type: 2}
-  - {fileID: 11400000, guid: cad3927ef93446acb2525e43ed44bf02, type: 2}
-  - {fileID: 11400000, guid: e15bfd7136e74091b9d86e39b2e15052, type: 2}
-  - {fileID: 11400000, guid: 0d0b0fdbbe784d7f95087328f721082c, type: 2}
-  - {fileID: 11400000, guid: 96231f10e9d843e38527bd9bdad0b7ca, type: 2}
+  stages: []
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 11400000, guid: 7387644a541544588aa9ae54e6e87290, type: 2}
+    - {fileID: 11400000, guid: f0ccee6d99c04f70a692a43ee1b4eb14, type: 2}
+    - {fileID: 11400000, guid: 3d716081b6a0489194b24a0b93460183, type: 2}
+  - stageIndex: 1
+    alternatives:
+    - {fileID: 11400000, guid: 4de3c317e2c54089ae9d67dc5fb4d752, type: 2}
+    - {fileID: 11400000, guid: 1a64240b5ad548e3b70ee01889a12045, type: 2}
+    - {fileID: 11400000, guid: da54a767e77f4c78912038bcd5c3c9bc, type: 2}
+  - stageIndex: 2
+    alternatives:
+    - {fileID: 11400000, guid: cad3927ef93446acb2525e43ed44bf02, type: 2}
+    - {fileID: 11400000, guid: 05249345d56245dea420e2f48b44b926, type: 2}
+    - {fileID: 11400000, guid: 3ca1e4ea72da4e8585f8b07026fcc096, type: 2}
+  - stageIndex: 3
+    alternatives:
+    - {fileID: 11400000, guid: e15bfd7136e74091b9d86e39b2e15052, type: 2}
+    - {fileID: 11400000, guid: 8a943f8603364cfa9bea77c1a23df5d6, type: 2}
+    - {fileID: 11400000, guid: 46d24555482747d7b202be7743a1492a, type: 2}
+  - stageIndex: 4
+    alternatives:
+    - {fileID: 11400000, guid: 0d0b0fdbbe784d7f95087328f721082c, type: 2}
+    - {fileID: 11400000, guid: f51433c2ffb64dee8864a30b240ac05d, type: 2}
+    - {fileID: 11400000, guid: 12140fe9366c45f18f941f8d412e7ac8, type: 2}
+  - stageIndex: 5
+    alternatives:
+    - {fileID: 11400000, guid: 96231f10e9d843e38527bd9bdad0b7ca, type: 2}

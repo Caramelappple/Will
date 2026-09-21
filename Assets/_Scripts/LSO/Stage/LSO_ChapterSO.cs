@@ -1,9 +1,22 @@
+using System;
 using System.Collections.Generic;
+using _Scripts.LDY.Save;
 using _Scripts.LDY.Stage;
 using UnityEngine;
 
 namespace _Scripts.LSO.Stage
 {
+    /// <summary>한 스테이지 순번에서 무작위로 뽑을 모든 후보.</summary>
+    [Serializable]
+    public sealed class LSO_StageVariantGroup
+    {
+        [Tooltip("후보를 추가할 스테이지 순번. 0부터 센다. 화면의 1스테이지는 0이다.")]
+        [Min(0)] public int stageIndex;
+
+        [Tooltip("이 순번에서 무작위로 뽑을 모든 StageSO. A·B·C안을 모두 넣는다.")]
+        public List<LDY_StageSO> alternatives = new List<LDY_StageSO>();
+    }
+
     /// <summary>
     /// 챕터 하나. 스테이지를 순서대로 적어둔 목록이다.
     ///
@@ -31,15 +44,34 @@ namespace _Scripts.LSO.Stage
         [Tooltip("챕터가 바뀔 때 화면 가운데 뜨는 이름. 예: 까마귀왕의 둥지")]
         public string regionName;
 
-        [Header("스테이지 (위에서부터 차례로)")]
-        [Tooltip("클리어할 때마다 아래로 한 칸씩 내려간다.\n" +
-                 "\n" +
-                 "마지막 칸은 보통 보스다. 보스인지 아닌지는 스테이지가 정하는 것이 아니라\n" +
-                 "이 목록의 마지막인지로 판단한다 — 두 곳에 적어두면 어긋난다.")]
+        // 기존 챕터 에셋과의 직렬화 호환을 위한 단일 스테이지 목록이다.
+        // Variant Groups가 있는 순번에서는 사용하지 않으며 Inspector에서도 숨긴다.
+        [SerializeField, HideInInspector]
         public List<LDY_StageSO> stages = new List<LDY_StageSO>();
 
+        [Header("스테이지 (위에서부터 차례로)")]
+        [Tooltip("각 순번의 Alternatives에 A·B·C안을 모두 넣는다.\n" +
+                 "Stage Index는 0부터 세며, 후보가 하나뿐인 보스도 여기에 넣는다.")]
+        public List<LSO_StageVariantGroup> variantGroups = new List<LSO_StageVariantGroup>();
+
         /// <summary>이 챕터의 스테이지 수.</summary>
-        public int Count => stages != null ? stages.Count : 0;
+        public int Count
+        {
+            get
+            {
+                int count = stages != null ? stages.Count : 0;
+                if (variantGroups == null) return count;
+
+                for (int i = 0; i < variantGroups.Count; i++)
+                {
+                    LSO_StageVariantGroup group = variantGroups[i];
+                    if (group != null && group.stageIndex >= 0)
+                        count = Math.Max(count, group.stageIndex + 1);
+                }
+
+                return count;
+            }
+        }
 
         /// <summary>
         /// 몇 번째 스테이지. 범위를 벗어나면 null.
@@ -48,10 +80,63 @@ namespace _Scripts.LSO.Stage
         /// </summary>
         public LDY_StageSO At(int index)
         {
-            if (stages == null) return null;
-            if (index < 0 || index >= stages.Count) return null;
+            if (index < 0 || index >= Count) return null;
 
-            return stages[index];
+            LSO_StageVariantGroup group = FindVariantGroup(index);
+            if (group != null && group.alternatives != null)
+            {
+                int candidateCount = 0;
+                for (int i = 0; i < group.alternatives.Count; i++)
+                    if (group.alternatives[i] != null) candidateCount++;
+
+                if (candidateCount == 1) return FirstValid(group.alternatives);
+                if (candidateCount > 1)
+                {
+                    int seed = LDY_RunSeed.EnsureAssigned();
+                    int picked = new System.Random(CombineSeed(seed, chapter, index)).Next(candidateCount);
+
+                    for (int i = 0; i < group.alternatives.Count; i++)
+                    {
+                        LDY_StageSO candidate = group.alternatives[i];
+                        if (candidate == null) continue;
+                        if (picked-- == 0) return candidate;
+                    }
+                }
+            }
+
+            return stages != null && index < stages.Count ? stages[index] : null;
+        }
+
+        private LSO_StageVariantGroup FindVariantGroup(int index)
+        {
+            if (variantGroups == null) return null;
+
+            for (int i = 0; i < variantGroups.Count; i++)
+            {
+                LSO_StageVariantGroup group = variantGroups[i];
+                if (group != null && group.stageIndex == index) return group;
+            }
+
+            return null;
+        }
+
+        private static LDY_StageSO FirstValid(List<LDY_StageSO> candidates)
+        {
+            for (int i = 0; i < candidates.Count; i++)
+                if (candidates[i] != null) return candidates[i];
+
+            return null;
+        }
+
+        private static int CombineSeed(int runSeed, int chapterNumber, int stageIndex)
+        {
+            unchecked
+            {
+                int hash = runSeed;
+                hash = hash * 397 ^ chapterNumber;
+                hash = hash * 397 ^ stageIndex;
+                return hash;
+            }
         }
 
         /// <summary>이 자리가 보스인지. 목록의 마지막 칸을 보스로 본다.</summary>
@@ -63,13 +148,33 @@ namespace _Scripts.LSO.Stage
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (stages == null) return;
-
-            for (int i = 0; i < stages.Count; i++)
+            var usedIndices = new HashSet<int>();
+            if (variantGroups != null)
             {
-                // 빈 칸이 있으면 그 자리에서 진행이 멈춘다. 눈으로는 잘 안 보인다.
-                if (stages[i] == null)
-                    Debug.LogWarning($"{name}: {i}번 칸이 비어 있습니다.", this);
+                for (int i = 0; i < variantGroups.Count; i++)
+                {
+                    LSO_StageVariantGroup group = variantGroups[i];
+                    if (group == null) continue;
+
+                    if (group.stageIndex < 0)
+                        Debug.LogWarning($"{name}: 후보 그룹 {i}의 Stage Index가 음수입니다.", this);
+                    else if (!usedIndices.Add(group.stageIndex))
+                        Debug.LogWarning($"{name}: Stage Index {group.stageIndex}의 후보 그룹이 중복됐습니다.", this);
+
+                    if (group.alternatives == null) continue;
+                    for (int j = 0; j < group.alternatives.Count; j++)
+                        if (group.alternatives[j] == null)
+                            Debug.LogWarning($"{name}: Stage Index {group.stageIndex}의 후보 {j}가 비어 있습니다.", this);
+                }
+            }
+
+            for (int i = 0; i < Count; i++)
+            {
+                LSO_StageVariantGroup group = FindVariantGroup(i);
+                bool hasVariant = group != null && group.alternatives != null && FirstValid(group.alternatives) != null;
+                bool hasLegacy = stages != null && i < stages.Count && stages[i] != null;
+                if (!hasVariant && !hasLegacy)
+                    Debug.LogWarning($"{name}: Stage Index {i}에 사용할 스테이지가 없습니다.", this);
             }
         }
 #endif

@@ -91,7 +91,8 @@ internal sealed class DLJ_RageWill : LSO_IWill
             if (target == null || target.health == null || target.health.IsDestroyed)
                 continue;
 
-            target.health.GetDamage(DamageData.Create(null, damage));
+            // 분노 유언 피해임을 표시해야 키위의 해로운 유언 면역이 구분해 막을 수 있다.
+            target.health.GetDamage(DamageData.Create(null, damage, LSO_DamageSource.Rage));
             if (target.health.IsDestroyed)
                 attackSystem.HandleDeath(target);
         }

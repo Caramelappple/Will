@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: Kiwi
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uD0A4\uC704"
-  description: "\uC800\uC8FC\uC5D0 \uD754\uB4E4\uB9AC\uC9C0 \uC54A\uB294 \uD0A4\uC704\uC785\uB2C8\uB2E4.
-    \uC800\uC8FC\uB85C \uBC1B\uB294 \uD53C\uD574\uB97C \uC804\uBD80 \uBB34\uD6A8\uB85C
-    \uD558\uBA70, \uD69F\uC218 \uC81C\uD55C\uC740 \uC5C6\uC2B5\uB2C8\uB2E4."
+  description: "해로운 유언에 흔들리지 않는 키위입니다. 저주와 분노 유언으로 받는 피해를 전부 무효로 하지만, 계승과 희생 같은 이로운 효과는 정상적으로 받습니다."
   maxHealth: 2
   damage: 2
   cost: 2

@@ -14,10 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
   chapter: 1
   regionName: "\uD669\uC18C\uC655\uC758 \uB4E4\uD310"
-  stages:
-  - {fileID: 11400000, guid: af1ca64aa1434e018d8c6bdeb62bdf17, type: 2}
-  - {fileID: 11400000, guid: 75b9b0b93991464091c980d5f4bb07eb, type: 2}
-  - {fileID: 11400000, guid: 7f58ef5bfeb446798637f655e0f039c3, type: 2}
-  - {fileID: 11400000, guid: cc7a77ae6c644f11adc1867a9dfcf017, type: 2}
-  - {fileID: 11400000, guid: 701b4e0ca5f249e299ffc0324ea623a9, type: 2}
-  - {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
+  stages: []
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 11400000, guid: af1ca64aa1434e018d8c6bdeb62bdf17, type: 2}
+    - {fileID: 11400000, guid: ba72695ca9ca4613af6ec6b14386c582, type: 2}
+    - {fileID: 11400000, guid: bd16c51347dc4c38a0fb0caff84fb743, type: 2}
+  - stageIndex: 1
+    alternatives:
+    - {fileID: 11400000, guid: 75b9b0b93991464091c980d5f4bb07eb, type: 2}
+    - {fileID: 11400000, guid: 829efa3248024aec997f7e0d8f5047a6, type: 2}
+    - {fileID: 11400000, guid: 44250cd9f3c5485b939a84fd4d728c5f, type: 2}
+  - stageIndex: 2
+    alternatives:
+    - {fileID: 11400000, guid: 7f58ef5bfeb446798637f655e0f039c3, type: 2}
+    - {fileID: 11400000, guid: 561b567e99b04b09bfaf1beb98db2d15, type: 2}
+    - {fileID: 11400000, guid: 5af44f090c5040959ecfab620f8bc9e2, type: 2}
+  - stageIndex: 3
+    alternatives:
+    - {fileID: 11400000, guid: cc7a77ae6c644f11adc1867a9dfcf017, type: 2}
+    - {fileID: 11400000, guid: 70082aef11244fae805bd04bf9b42c31, type: 2}
+    - {fileID: 11400000, guid: 4a6e53c26a5d4ab6b6be5c835f8c860c, type: 2}
+  - stageIndex: 4
+    alternatives:
+    - {fileID: 11400000, guid: 701b4e0ca5f249e299ffc0324ea623a9, type: 2}
+    - {fileID: 11400000, guid: 6f4ad039adf6415ca4e28c4ba612f5ad, type: 2}
+    - {fileID: 11400000, guid: d1a73a6fcc69440c9aa2283efc1b2db6, type: 2}
+  - stageIndex: 5
+    alternatives:
+    - {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
