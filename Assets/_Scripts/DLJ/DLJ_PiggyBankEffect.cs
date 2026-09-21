@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>CostRefund의 저장/사망 시점에만 반응하는 황금돼지 연출.</summary>
 [DefaultExecutionOrder(100)]
@@ -11,7 +12,11 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
 {
     [Header("금화 / 금빛")]
     [SerializeField] private Mesh coinMesh;
-    [SerializeField] private Material goldMaterial;
+    [FormerlySerializedAs("goldMaterial")]
+    [SerializeField, Tooltip("저금·사망 환급에 사용할 코인 전용 머티리얼")]
+    private Material coinMaterial;
+    [SerializeField, Tooltip("황금돼지 몸체와 폭발 파편에 사용할 전용 머티리얼. 비우면 몸체의 원본 머티리얼을 유지")]
+    private Material pigMaterial;
     [SerializeField, Min(0.01f)] private float coinDiameter = 0.28f;
     [SerializeField, ColorUsage(false, true)] private Color glowColor = new Color(1f, 0.56f, 0.06f);
     [SerializeField, Min(0f)] private float baseGlow = 0.15f;
@@ -79,8 +84,8 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
             // Will_Pig의 눈 색은 보존하고 몸체만 금빛으로 바꾼다.
             if (renderer.name.IndexOf("Eyes", System.StringComparison.OrdinalIgnoreCase) >= 0) continue;
             Material[] originals = renderer.sharedMaterials;
-            if (originals.Length == 0 || (goldMaterial == null && originals[0] == null)) continue;
-            Material material = new Material(goldMaterial != null ? goldMaterial : originals[0]);
+            if (originals.Length == 0 || (pigMaterial == null && originals[0] == null)) continue;
+            Material material = new Material(pigMaterial != null ? pigMaterial : originals[0]);
             material.name = "DLJ_PigGold_Runtime";
             material.EnableKeyword("_EMISSION");
             Material[] replacement = (Material[])originals.Clone();
@@ -117,7 +122,7 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
 
     private IEnumerator Deposit(int storedCost)
     {
-        Transform coin = CreateCoin(transform, coinMesh, goldMaterial, coinDiameter);
+        Transform coin = CreateCoin(transform, coinMesh, coinMaterial, coinDiameter);
         _depositCoins.Add(coin.gameObject);
         Vector3 fullScale = coin.localScale;
         Quaternion upright = Quaternion.Euler(90f, 0f, 0f);
@@ -191,7 +196,7 @@ public sealed class DLJ_PiggyBankEffect : MonoBehaviour
         root.transform.position = center;
         root.AddComponent<DLJ_PigCoinPayout>().Initialize(
             count, turns, points,
-            coinMesh, goldMaterial, coinDiameter, scatterRadius, burstDuration,
+            coinMesh, coinMaterial, pigMaterial, coinDiameter, scatterRadius, burstDuration,
             collectionDuration, collectionInterval, ground, previewOnly, collectionEase);
         return root;
     }
