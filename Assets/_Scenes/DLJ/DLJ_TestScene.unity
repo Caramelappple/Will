@@ -6180,7 +6180,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_PiggyBankEffect
   coinMesh: {fileID: -955584151905325032, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
-  goldMaterial: {fileID: 2100000, guid: f38284cfe89b46ff9cec2d50ae38e834, type: 2}
+  coinMaterial: {fileID: -7055792790354660207, guid: ae8ed2ff0b4ed9549bf082aab901c6b6, type: 3}
+  pigMaterial: {fileID: 2100000, guid: f38284cfe89b46ff9cec2d50ae38e834, type: 2}
   coinDiameter: 0.28
   glowColor: {r: 1, g: 0.56, b: 0.06, a: 1}
   baseGlow: 0.15

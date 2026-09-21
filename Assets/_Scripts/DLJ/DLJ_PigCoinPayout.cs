@@ -56,6 +56,15 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
         float flightDuration, float interval, float fallbackGround = float.NaN, bool previewOnly = false,
         AnimationCurve collectionEase = null, bool externalPayout = false)
     {
+        Initialize(amount, turns, points, mesh, material, material, diameter, radius, burstDuration,
+            flightDuration, interval, fallbackGround, previewOnly, collectionEase, externalPayout);
+    }
+
+    public void Initialize(int amount, LDY_TurnManager turns, LDY_ActionPointManager points,
+        Mesh mesh, Material coinMaterial, Material burstMaterial, float diameter, float radius,
+        float burstDuration, float flightDuration, float interval, float fallbackGround = float.NaN,
+        bool previewOnly = false, AnimationCurve collectionEase = null, bool externalPayout = false)
+    {
         _previewOnly = previewOnly;
         _externalPayout = externalPayout;
         _turns = turns;
@@ -83,7 +92,7 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
         float phase = (float)random.NextDouble() * Mathf.PI * 2f;
         for (int i = 0; i < amount; i++)
         {
-            Transform visual = DLJ_PiggyBankEffect.CreateCoin(transform, mesh, material, diameter);
+            Transform visual = DLJ_PiggyBankEffect.CreateCoin(transform, mesh, coinMaterial, diameter);
             visual.position = transform.position;
             float angle = phase + i * 2.399963f + (float)random.NextDouble() * 0.5f;
             Vector3 direction = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
@@ -106,7 +115,7 @@ public sealed class DLJ_PigCoinPayout : MonoBehaviour
         if (_externalPayout)
             _burstFinished = true;
         else
-            StartCoroutine(Burst(material, radius, Mathf.Max(0.05f, burstDuration)));
+            StartCoroutine(Burst(burstMaterial, radius, Mathf.Max(0.05f, burstDuration)));
     }
 
     /// <summary>계약 환급이 실제로 지급한 코인만 케이스로 회수한다.</summary>
