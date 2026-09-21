@@ -207,7 +207,11 @@ public sealed class DLJ_CostCoinEntranceAnimator : MonoBehaviour, IDLJ_CostCoinE
             .Append(slot.Coin.DOMove(restWorldPosition, actualHorizontalDuration).SetEase(horizontalEase))
             .SetUpdate(ignoreTimeScale)
             .SetLink(gameObject)
-            .OnComplete(() => slot.Restore(true));
+            .OnComplete(() =>
+            {
+                slot.Restore(true);
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.Cost, 102, 0.12f);
+            });
 
         Track(slot.Coin, movement);
     }

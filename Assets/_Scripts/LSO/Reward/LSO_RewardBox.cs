@@ -504,6 +504,8 @@ namespace _Scripts.LSO.Reward
 
             if (card == null) return;
 
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.CardDraw, interval: 0f);
+
             _cards.Add(card);
         }
 
@@ -578,7 +580,10 @@ namespace _Scripts.LSO.Reward
             LSO_ItemLibraryManager library = LSO_ItemLibraryManager.Instance;
 
             if (library != null && library.Claim != null)
-                library.Claim.Claim(option, includeAttachedWill);
+            {
+                if (library.Claim.Claim(option, includeAttachedWill))
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.CardDraw);
+            }
             else
                 Debug.LogWarning($"{name}: LSO_ItemLibraryManager가 없어 보상을 지급하지 못했습니다.", this);
 

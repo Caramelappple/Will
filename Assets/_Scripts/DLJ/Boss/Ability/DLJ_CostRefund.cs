@@ -45,6 +45,7 @@ public sealed class DLJ_CostRefund : LSO_IAbility, IOnTurnStart, LSO_IOnDeath,
         if (storedCost >= MaxStoredCost)
             return;
 
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.Pig);
         storedCost++;
 
         owner.GetComponent<DLJ_PiggyBankEffect>()?.PlayDeposit(storedCost);

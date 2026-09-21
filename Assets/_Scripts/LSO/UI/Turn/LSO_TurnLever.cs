@@ -209,6 +209,7 @@ namespace _Scripts.LSO.UI.Turn
 
             // EndPlayerTurn 안에서 턴이 바뀌고 OnTurnChanged가 곧바로 발행된다.
             // 그래서 onTurnChanged가 onAccepted보다 먼저 불린다.
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnButton);
             _turnManager.EndPlayerTurn();
 
             onAccepted?.Invoke(_turnManager.CurrentTurn);

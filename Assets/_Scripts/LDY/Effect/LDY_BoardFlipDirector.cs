@@ -517,6 +517,7 @@ namespace _Scripts.LDY.Effect
             // 뒷면에서 함께 실려 올라온다.
             _riders.AttachForArrival(CollectSurvivingPieces(), boardRoot, pivot, flipAxis, angle);
 
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.BoardFlip);
             yield return _motion.Rotate(
                 boardRoot, pivot, flipAxis, angle, flipDuration, flipEase, boardRoot.gameObject);
 
@@ -619,6 +620,7 @@ namespace _Scripts.LDY.Effect
 
             SetAnchorContentVisible(true);
 
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.BoardFlip);
             yield return _motion.Rotate(
                 boardRoot, _flipPivot, flipAxis, flipAngle, flipDuration, flipEase, boardRoot.gameObject);
 

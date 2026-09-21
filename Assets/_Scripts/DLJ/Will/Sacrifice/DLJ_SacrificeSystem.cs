@@ -59,6 +59,7 @@ internal sealed class DLJ_SacrificeWill : LSO_IWill
             return;
         }
 
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillSacrifice);
         int buffedCount = 0;
         foreach (Vector3Int direction in Directions)
         {

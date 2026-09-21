@@ -56,6 +56,7 @@ public class KTH_HandCardMotionAnimator
 
     public void PlayDrawAnimation(Vector3 targetLocalPos, Vector3 targetLocalRot, float duration)
     {
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.CardDraw);
         owner.UpdateOriginalTransform(targetLocalPos, targetLocalRot);
 
         Transform t = owner.transform;

@@ -57,8 +57,18 @@ namespace DevLib.ServiceLocator
 
         private SoundPlayer _bgmPlayer;
 
+        public static AudioService Active { get; private set; }
+
         private void Awake()
         {
+            if (Active != null && Active != this)
+            {
+                Debug.LogWarning($"{name}: 이미 오디오 서비스가 있어 중복 생성을 정리합니다.", this);
+                Destroy(gameObject);
+                return;
+            }
+
+            Active = this;
             if (soundPlayerPrefab == null)
             {
                 Debug.LogError($"{name}: Sound Player Prefab 이 비어 있어 소리를 낼 수 없습니다.", this);
@@ -89,6 +99,9 @@ namespace DevLib.ServiceLocator
 
         private void OnDestroy()
         {
+            if (Active != this) return;
+            Active = null;
+
             // 나가 있던 스피커부터 걷는다. 안 걷으면 풀이 비워져도 소리가 계속 난다.
             foreach (SoundPlayer player in new List<SoundPlayer>(_live))
             {
@@ -100,7 +113,8 @@ namespace DevLib.ServiceLocator
 
             _pool?.Clear();
 
-            ServiceLocator.Register<IAudioService>(new NullAudioService());
+            if (ReferenceEquals(ServiceLocator.Get<IAudioService>(), this))
+                ServiceLocator.Register<IAudioService>(new NullAudioService());
         }
 
         // =========================================================
@@ -210,6 +224,13 @@ namespace DevLib.ServiceLocator
             _playerDict.Remove(channel);
 
             ReturnToPool(player);
+        }
+
+        /// <summary>씬을 떠날 때 이전 화면의 효과음이 다음 화면으로 새지 않게 한다.</summary>
+        public void StopAllSfx()
+        {
+            foreach (SoundPlayer player in new List<SoundPlayer>(_live))
+                ReturnToPool(player);
         }
 
         private void HandleSoundFinish(SoundPlayer player)

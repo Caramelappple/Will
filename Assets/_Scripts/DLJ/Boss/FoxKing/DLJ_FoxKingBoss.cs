@@ -73,6 +73,7 @@ public sealed class DLJ_FoxKingBoss : MonoBehaviour
     {
         if (stolenAmount > 0)
         {
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.FoxGain);
             StolenResources += stolenAmount;
             OnStolenResourcesChanged?.Invoke(StolenResources);
         }

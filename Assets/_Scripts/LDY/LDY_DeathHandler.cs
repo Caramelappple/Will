@@ -35,6 +35,8 @@ namespace _Scripts.LDY
             if (victim == null) return;
             if (!_processed.Add(victim)) return;
 
+            _Scripts.LSO.Sound.LSO_CombatAudio.Death(victim);
+
             LDY_BoardManager targetBoard = board != null
                 ? board
                 : (GameManager.HasInstance ? GameManager.Instance.Board : null);

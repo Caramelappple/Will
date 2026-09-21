@@ -187,6 +187,7 @@ namespace _Scripts.DLJ.SceneFlow
                     yield return FadeVeil(Color.white, 0f, 1f);
                     ApplyLook(look);
                     ApplyStageDecorations(stage);
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.StageIntro);
                     yield return PlayBossTitle(
                         ResolveBossName(chapter, look),
                         look != null ? look.bossEpithet : string.Empty);
@@ -202,6 +203,7 @@ namespace _Scripts.DLJ.SceneFlow
                     ApplyStageDecorations(stage);
                     yield return new WaitForSecondsRealtime(0.25f);
                     SetTitle(chapter.regionName, $"CHAPTER {progression.ChapterNumber:00}", Color.white);
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.StageIntro);
                     yield return FadeGroup(titleGroup, 0f, 1f);
                     yield return new WaitForSecondsRealtime(titleHold);
                     yield return FadeGroup(titleGroup, 1f, 0f);
@@ -211,6 +213,7 @@ namespace _Scripts.DLJ.SceneFlow
                 {
                     if (lastChapter == null) ApplyLook(look);
                     ApplyStageDecorations(stage);
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.StageIntro);
                     yield return FadeGroup(badge, 0f, 1f);
                     yield return new WaitForSecondsRealtime(normalHold);
                     yield return FadeGroup(badge, 1f, 0f);

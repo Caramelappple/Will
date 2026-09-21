@@ -52,6 +52,7 @@ internal sealed class DLJ_RageWill : LSO_IWill
             return;
         }
 
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillRage);
         DamageAnimalsInArea(center);
 
         Vector3 centerWorld = board.GridToWorld(center);

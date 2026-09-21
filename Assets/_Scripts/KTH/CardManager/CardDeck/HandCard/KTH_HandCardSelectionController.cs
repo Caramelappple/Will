@@ -108,6 +108,7 @@ public class KTH_HandCardSelectionController
         SetSelected(true);
 
         KTH_HandCardLayout.Instance?.EnterPlacementMode(owner);
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.CardDraw);
 
         owner.RaiseCardClicked();
     }

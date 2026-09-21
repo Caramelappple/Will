@@ -250,6 +250,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
             }
         }
 
+        if (uniqueOrigins.Count > 0) _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.SharkWater);
         Debug.Log($"[상어왕] {areaSize}x{areaSize} 사냥 영역 경고 {uniqueOrigins.Count}개 표시", this);
     }
 
@@ -258,6 +259,7 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         int areaSize,
         LDY_BoardManager board)
     {
+        if (origins != null && areaSize > 0 && board != null) _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.SharkAttack);
         PlayAttackEffects(origins, areaSize, board, _attackEffects);
     }
 
