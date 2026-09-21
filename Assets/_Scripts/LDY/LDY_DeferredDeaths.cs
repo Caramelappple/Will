@@ -39,6 +39,17 @@ namespace _Scripts.LDY
         }
 
         /// <summary>
+        /// 계승할 대상이 없어 정상 사망으로 돌아간 기물 하나만 유예 목록에서 뺀다.
+        /// 동시에 죽은 다른 계승 기물의 기록은 유지한다.
+        /// </summary>
+        public static void Remove(LDY_Animal victim)
+        {
+            if (victim == null) return;
+
+            _pending.Remove(victim);
+        }
+
+        /// <summary>
         /// 기록된 기물이 전부 같은 팀이면 그 팀을 돌려준다. 팀이 섞여 있거나 기록이 없으면 false.
         /// 틀린 팀에 계승을 넘기느니 판별 실패로 두는 편이 낫다.
         /// </summary>

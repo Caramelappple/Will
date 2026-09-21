@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LSO.Will;
 using DG.Tweening;
@@ -205,6 +206,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     private static DLJ_SuccessionWill successionSource;
 
     private readonly LDY_Animal animal;
+    private readonly LDY_BoardManager board;
     private readonly LDY_AttackSystem attackSystem;
     private readonly GameObject effectPrefab;
     private readonly DLJ_SuccessionWillDataSO data;
@@ -219,6 +221,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     internal DLJ_SuccessionWill(DLJ_WillContext context, DLJ_SuccessionWillDataSO data)
     {
         animal = context.animal;
+        board = context.board;
         attackSystem = context.attackSystem;
         this.data = data;
         effectPrefab = data.effectPrefab;
@@ -279,6 +282,16 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             return false;
         }
 
+        // 받을 같은 팀 생존 기물이 없으면 선택 대기와 시간 정지를 시작하지 않는다.
+        // 공격 연출을 기다린 뒤 여기 도착한 경우에는 사망 유예 기록이 이미 남아 있으므로
+        // 이 기물의 기록만 제거해 다음 계승의 팀 판정을 오염시키지 않게 한다.
+        if (!HasValidTarget())
+        {
+            LDY_DeferredDeaths.Remove(animal);
+            Debug.Log($"Succession skipped: {animal.name}의 계승을 받을 아군이 없습니다.", animal);
+            return false;
+        }
+
         successionSource = this;
         successionTeam = animal.team;
         int sourceHealth = animal.health != null
@@ -300,14 +313,40 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         effectInstance.transform.position = animal.transform.position;
         effectInstance.SetActive(true);
 
-        DLJ_SuccessionNotify notify =
-            Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
-                FindObjectsInactive.Include);
-        notify?.ShowAndPlay();
+        DLJ_SuccessionNotify.ShowPrompt();
 
         Time.timeScale = 0f;
         Debug.Log("Pick Target");
         return true;
+    }
+
+    private bool HasValidTarget()
+    {
+        if (board != null)
+        {
+            List<LDY_Animal> teammates = board.GetAllByTeam(animal.team);
+
+            for (int i = 0; i < teammates.Count; i++)
+                if (IsValidTarget(teammates[i])) return true;
+
+            return false;
+        }
+
+        // 보드 참조가 빠진 테스트 씬에서도 같은 규칙으로 판단한다.
+        LDY_Animal[] animals = Object.FindObjectsByType<LDY_Animal>(FindObjectsSortMode.None);
+        for (int i = 0; i < animals.Length; i++)
+            if (IsValidTarget(animals[i])) return true;
+
+        return false;
+    }
+
+    private bool IsValidTarget(LDY_Animal target)
+    {
+        return target != null &&
+               target != animal &&
+               target.team == animal.team &&
+               target.health != null &&
+               !target.health.IsDestroyed;
     }
 
     private int CalculateInheritedStat(int sourceStat)
@@ -335,10 +374,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             return false;
         }
 
-        DLJ_SuccessionNotify notify =
-            Object.FindFirstObjectByType<DLJ_SuccessionNotify>(
-                FindObjectsInactive.Include);
-        notify?.Unable();
+        DLJ_SuccessionNotify.HidePrompt();
 
         isCompletingSuccession = true;
         successionSource.MoveEffectAndApply(target);
