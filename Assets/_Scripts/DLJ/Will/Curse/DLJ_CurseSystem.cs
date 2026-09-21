@@ -53,6 +53,7 @@ internal sealed class DLJ_CurseWill : LSO_IWill
             return;
         }
 
+        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillCurse);
         Vector3 centerWorld = board.GridToWorld(center);
         Vector3 verticalWorld = board.GridToWorld(center + new Vector3Int(0, 0, 1));
         Vector3 horizontalWorld = board.GridToWorld(center + new Vector3Int(1, 0, 0));

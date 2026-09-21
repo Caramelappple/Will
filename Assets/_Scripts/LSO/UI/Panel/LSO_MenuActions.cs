@@ -49,6 +49,19 @@ namespace _Scripts.LSO.UI.Panel
 
         [SerializeField] private string titleSceneName = "TitleScene";
 
+        /// <summary>이 메뉴가 소유한 화면들. 버튼 소리 연결 범위를 한정한다.</summary>
+        public IEnumerable<GameObject> Panels
+        {
+            get
+            {
+                yield return mainPanel;
+                yield return settingsPanel;
+                yield return audioPanel;
+                yield return videoPanel;
+                yield return creditsPanel;
+            }
+        }
+
         // ── 씬 ──────────────────────────────────────────────
 
         public void StartGame()

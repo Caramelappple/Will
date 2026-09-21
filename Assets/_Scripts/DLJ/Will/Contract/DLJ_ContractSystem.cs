@@ -78,6 +78,9 @@ internal sealed class DLJ_ContractWill : LSO_IWill
             refundService.QueueRefund(refundAmount);
 
         if (refundAmount > 0)
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillContract);
+
+        if (refundAmount > 0)
             DLJ_WillBenefitEvents.Raise(
                 owner != null ? owner.GetComponent<LDY_Animal>() : null,
                 LSO_WillType.Contract);

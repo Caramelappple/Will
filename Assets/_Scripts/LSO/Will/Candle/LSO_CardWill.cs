@@ -82,6 +82,8 @@ namespace _Scripts.LSO.Will.Candle
             if (revealNow) Reveal(from);
 
             Changed?.Invoke(Will, HasWill);
+            if (will != LSO_WillType.None)
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.WillApply, 106, 0.12f);
         }
 
         // 잠금만 풀고 값은 남기는 UnlockForNewBattle 이 여기 있었다.

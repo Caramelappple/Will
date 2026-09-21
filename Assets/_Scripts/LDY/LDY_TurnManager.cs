@@ -263,6 +263,7 @@ namespace _Scripts.LDY
             }
 
             _isProcessingTurn = true;
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnChange);
             CurrentTurn = LDY_Team.Enemy;
             actionPoints.ResetPoints();
             OnTurnChanged?.Invoke(CurrentTurn);
@@ -282,6 +283,7 @@ namespace _Scripts.LDY
             finally
             {
                 _enemyRoutine = null;
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnChange);
                 CurrentTurn = LDY_Team.Player;
                 actionPoints.ResetPoints();
                 OnTurnChanged?.Invoke(CurrentTurn);

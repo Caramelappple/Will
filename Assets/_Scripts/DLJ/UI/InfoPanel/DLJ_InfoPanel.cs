@@ -621,7 +621,11 @@ public sealed class DLJ_InfoPanel : MonoBehaviour
 
         GameObject target = content != null ? content : gameObject;
         if (target.activeSelf != visible)
+        {
+            if (!immediate)
+                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.InfoOpen, 107, 0f);
             target.SetActive(visible);
+        }
     }
 
     private static void SetText(TMP_Text target, string value)

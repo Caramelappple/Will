@@ -331,6 +331,11 @@ namespace _Scripts.LDY
                 // duration/easing은 칸 수·특성에 따라 달라지는 값을 그대로 "이동하는 구간"에 쓴다.
                 Sequence sequence = moveAnimation.Play(
                     t, targetWorldPos, duration, easing, animal.gameObject, riseHeight, baseHeight);
+                sequence.OnComplete(() =>
+                {
+                    if (animal != null && animal.GetComponent<LDY_BullKingBoss>() == null)
+                        _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.PieceMove);
+                });
                 yield return sequence.WaitForCompletion();
 
                 if (t != null)

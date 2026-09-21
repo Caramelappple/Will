@@ -63,6 +63,10 @@ namespace _Scripts.LDY.Boss.BullKing
         {
             if (self != _owner || _boss == null) return;
 
+            LDY_BoardManager board = _context?.Board;
+            if (board == null ||
+                !LDY_ChargePath.TryIdentify(board, from, to, _boss.Rule.chargeRange, out _)) return;
+
             _boss.PlayChargeCry();
         }
 
