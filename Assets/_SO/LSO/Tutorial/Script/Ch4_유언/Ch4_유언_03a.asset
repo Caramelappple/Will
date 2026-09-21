@@ -15,10 +15,10 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "2를 눌러 분노 유언을 선택해 보세요."
+  - "1을 눌러 저주 유언을 선택해 보세요."
   lineHold: 4.5
   guide: 0
   guideTiles: []
-  allowed: 64
+  allowed: 512
   gate: {fileID: 11400000, guid: afcd09b2b3668ada377f1d6e63d9e0d5, type: 2}
   gateTimeout: 0

@@ -1,5 +1,6 @@
 using _Scripts.LDY;
 using _Scripts.LSO.UI.Input;
+using _Scripts.LSO.Will;
 using _Scripts.LSO.Will.Candle;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ namespace _Scripts.LSO.Tutorial
         [Tooltip("턴 넘기기 버튼의 클릭 처리. 끄면 눌러도 아무 일이 없다.")]
         [SerializeField] private LSO_ButtonClickHandler endTurnButton;
 
-        [Tooltip("유언 촛불. 끄면 숫자키·휠이 안 먹는다.")]
+        [Tooltip("유언 촛불. 끄면 숫자키·휠로 유언을 바꿀 수 없다. 촛불 클릭은 별도로 허용한다.")]
         [SerializeField] private LSO_WillCandle willCandle;
 
         [Tooltip("손패를 다시 훑는 간격(초). 새로 뽑힌 카드를 막는 데 쓴다.")]
@@ -47,6 +48,29 @@ namespace _Scripts.LSO.Tutorial
         public static bool Allows(LSO_TutorialAction action) =>
             _active == null || !_active.isActiveAndEnabled || Has(_active.current, action);
 
+        /// <summary>
+        /// 현재 튜토리얼 단계에서 이 기물을 조작 주체로 고를 수 있는지.
+        /// 실제 입력을 받는 SelectionController가 직접 물으므로 씬 참조가 엇갈려도 우회되지 않는다.
+        /// </summary>
+        public static bool AllowsSelecting(LDY_Animal animal)
+        {
+            if (_active == null || !_active.isActiveAndEnabled) return true;
+            if (animal == null) return false;
+
+            if (_active._restrictSelectionToWill && animal.WillType != _active._selectionWill)
+                return false;
+
+            if (_active._restrictSelectionToTile && Normalize(animal.pos) != _active._selectionTile)
+                return false;
+
+            return true;
+        }
+
+        private bool _restrictSelectionToWill;
+        private LSO_WillType _selectionWill;
+        private bool _restrictSelectionToTile;
+        private Vector3Int _selectionTile;
+
         private void Awake()
         {
             if (selection == null) selection = FindAnyObjectByType<LDY_SelectionController>();
@@ -57,8 +81,27 @@ namespace _Scripts.LSO.Tutorial
         /// <summary>이 걸음 동안 허용할 것을 정한다.</summary>
         public void Apply(LSO_TutorialAction allowed)
         {
+            Apply(allowed, false, default, false, default);
+        }
+
+        /// <summary>조작 권한과 함께 선택 가능한 기물을 제한한다.</summary>
+        public void Apply(
+            LSO_TutorialAction allowed,
+            bool restrictSelectionToWill,
+            LSO_WillType selectionWill,
+            bool restrictSelectionToTile,
+            Vector3Int selectionTile)
+        {
             _active = this;
             current = allowed;
+            _restrictSelectionToWill = restrictSelectionToWill;
+            _selectionWill = selectionWill;
+            _restrictSelectionToTile = restrictSelectionToTile;
+            _selectionTile = Normalize(selectionTile);
+
+            // 단계가 바뀌기 전에 골라둔 기물이 새 제한 밖이면 공격 주체로 남기지 않는다.
+            if (selection != null && selection.Selected != null && !AllowsSelecting(selection.Selected))
+                selection.ClearSelection();
 
             // 전부 허용이면 다시 훑을 이유가 없다.
             _locking = allowed != LSO_TutorialAction.All;
@@ -84,7 +127,9 @@ namespace _Scripts.LSO.Tutorial
             SetHandCardsEnabled(Has(allowed, LSO_TutorialAction.CardSelect));
 
             SetEnabled(endTurnButton, Has(allowed, LSO_TutorialAction.EndTurn));
-            SetEnabled(willCandle, Has(allowed, LSO_TutorialAction.Will));
+            // 유언을 바꾸는 입력과 카드에 바르는 입력은 분리한다.
+            // 저주를 바르는 단계에서는 촛불의 현재 값은 읽되 숫자키·휠은 막아야 한다.
+            SetEnabled(willCandle, Has(allowed, LSO_TutorialAction.WillSelect));
         }
 
         /// <summary>전부 연다. 튜토리얼이 끝나거나 건너뛸 때 부른다.</summary>
@@ -125,6 +170,8 @@ namespace _Scripts.LSO.Tutorial
 
         private static bool Has(LSO_TutorialAction value, LSO_TutorialAction flag) =>
             (value & flag) != 0;
+
+        private static Vector3Int Normalize(Vector3Int pos) => new(pos.x, 0, pos.z);
 
         /// <summary>
         /// 손패 카드의 클릭을 여닫는다.

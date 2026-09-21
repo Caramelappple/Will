@@ -227,7 +227,7 @@ namespace _Scripts.LSO.Will.Candle
         /// <returns>붙였으면 참. 고를 카드가 없거나 배선이 빠졌으면 거짓.</returns>
         public bool Paint()
         {
-            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Will)) return false;
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.WillPaint)) return false;
             Log("양초를 눌렀다");
 
             if (candle == null)

@@ -1,4 +1,5 @@
 using _Scripts.LSO.Tutorial.Gate;
+using _Scripts.LSO.Will;
 using UnityEngine;
 
 namespace _Scripts.LSO.Tutorial.Data
@@ -45,6 +46,17 @@ namespace _Scripts.LSO.Tutorial.Data
         public LSO_TutorialGuideKind guide;
 
         public Vector3Int[] guideTiles;
+
+        [Header("기물 선택 제한")]
+        [Tooltip("켜면 아래 유언이 새겨진 아군 기물만 선택할 수 있다.")]
+        public bool restrictSelectionToWill;
+
+        public LSO_WillType selectionWill = LSO_WillType.Curse;
+
+        [Tooltip("켜면 지정한 칸에 있는 아군 기물만 선택할 수 있다.")]
+        public bool restrictSelectionToTile;
+
+        public Vector3Int selectionTile;
 
         [Header("조작 허용")]
         [Tooltip("이 걸음 동안 할 수 있는 것. 여기 없는 것은 막힌다.")]

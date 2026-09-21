@@ -15,7 +15,8 @@ MonoBehaviour:
   shotId: 
   waitForCamera: 1
   lines:
-  - "분노 유언은 효과 범위 안의 모든 기물에게 피해를 줍니다."
+  - "저주 유언은 죽은 자리에 3 x 3 저주 지역을 2턴 동안 남깁니다."
+  - "저주 지역에 있는 적은 매 턴 피해를 입습니다."
   lineHold: 4.5
   guide: 0
   guideTiles: []

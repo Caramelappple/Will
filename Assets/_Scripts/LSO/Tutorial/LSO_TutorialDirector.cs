@@ -300,7 +300,15 @@ namespace _Scripts.LSO.Tutorial
             }
 
             // 3. 조작 잠금
-            if (locks != null) locks.Apply(step.allowed);
+            if (locks != null)
+            {
+                locks.Apply(
+                    step.allowed,
+                    step.restrictSelectionToWill,
+                    step.selectionWill,
+                    step.restrictSelectionToTile,
+                    step.selectionTile);
+            }
 
             // 4. 안내문
             yield return Co_Lines(step);

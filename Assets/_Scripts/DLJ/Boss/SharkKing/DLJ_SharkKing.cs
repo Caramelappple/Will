@@ -616,11 +616,23 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         float targetWidth = cellWidth * areaSize;
         float targetDepth = cellDepth * areaSize;
 
+        // 경고판은 눕혀서 생성하므로(ShowAttackHighlights의 Euler(90,0,0)) 로컬 축과 월드 축이 다르다.
+        // 크기는 월드에서 재고, 그 크기를 실제로 만들어내는 로컬 축에 곱해야 한다.
+        int widthAxis = LocalAxisOf(instance.transform, Vector3.right);
+        int depthAxis = LocalAxisOf(instance.transform, Vector3.forward);
+
+        if (widthAxis == depthAxis)
+        {
+            Debug.LogWarning(
+                $"{name}: 경고판이 비스듬히 놓여 가로와 세로가 같은 로컬 축({widthAxis})에 걸립니다. " +
+                "세로는 맞추지 못합니다. 프리팹 회전을 직각으로 두세요.", this);
+        }
+
         if (!TryGetRendererBounds(instance, out Bounds bounds))
         {
             Vector3 fallbackScale = instance.transform.localScale;
-            fallbackScale.x = targetWidth;
-            fallbackScale.z = targetDepth;
+            fallbackScale[widthAxis] = targetWidth;
+            if (widthAxis != depthAxis) fallbackScale[depthAxis] = targetDepth;
             instance.transform.localScale = fallbackScale;
             instance.transform.position = areaCenter + Vector3.up * attackHighlightHeightOffset;
             return;
@@ -628,9 +640,9 @@ public sealed class DLJ_SharkKing : MonoBehaviour
 
         Vector3 scale = instance.transform.localScale;
         if (bounds.size.x > Mathf.Epsilon)
-            scale.x *= targetWidth / bounds.size.x;
-        if (bounds.size.z > Mathf.Epsilon)
-            scale.z *= targetDepth / bounds.size.z;
+            scale[widthAxis] *= targetWidth / bounds.size.x;
+        if (bounds.size.z > Mathf.Epsilon && widthAxis != depthAxis)
+            scale[depthAxis] *= targetDepth / bounds.size.z;
         instance.transform.localScale = scale;
 
         TryGetRendererBounds(instance, out bounds);
@@ -638,6 +650,25 @@ public sealed class DLJ_SharkKing : MonoBehaviour
         // 두께 전체를 보드 위에 올리면 기물을 가리므로, 윗면만 살짝 보이게 나머지는 바닥 아래로 묻는다.
         correction.y = areaCenter.y + attackHighlightHeightOffset - bounds.max.y;
         instance.transform.position += correction;
+    }
+
+    /// <summary>
+    /// 그 월드 축의 길이를 실제로 만들어내는 로컬 축 번호(0=x, 1=y, 2=z).
+    ///
+    /// 눕힌 Quad 처럼 회전이 걸린 물건은 "월드에서 가로를 늘리고 싶다"가
+    /// 곧 "로컬 x를 늘려라"가 아니다. 회전을 되돌려서 어느 축인지 물어본다.
+    /// </summary>
+    private static int LocalAxisOf(Transform target, Vector3 worldAxis)
+    {
+        Vector3 local = Quaternion.Inverse(target.rotation) * worldAxis;
+
+        float x = Mathf.Abs(local.x);
+        float y = Mathf.Abs(local.y);
+        float z = Mathf.Abs(local.z);
+
+        if (x >= y && x >= z) return 0;
+
+        return y >= z ? 1 : 2;
     }
 
     private static bool TryGetRendererBounds(GameObject instance, out Bounds bounds)
