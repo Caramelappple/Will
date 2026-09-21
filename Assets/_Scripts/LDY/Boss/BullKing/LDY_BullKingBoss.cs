@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Scripts.DLJ.Boss;
 using _Scripts.LSO.Boss;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO.Camera;
 using UnityEngine;
 using _Scripts.LSO.Reward;
@@ -119,6 +120,8 @@ namespace _Scripts.LDY.Boss.BullKing
 
         private LDY_Animal _animal;
         private LSO_BossPhase _phase;
+        private LDY_TurnManager _cryTurnManager;
+        private bool _criedThisTurn;
 
         private DLJ_BullImpactMotion _impactMotion;
         private Coroutine _collisionRoutine;
@@ -155,9 +158,26 @@ namespace _Scripts.LDY.Boss.BullKing
             return Mathf.Max(minChargeDuration, chargeDuration * ratio);
         }
 
-        /// <summary>돌진을 시작할 때 우는 소리. 사운드 매니저가 없으면 아무 일도 없다.</summary>
+        /// <summary>적 턴의 첫 돌진에서만 운다.</summary>
         public void PlayChargeCry()
         {
+            LDY_TurnManager turnManager = GameManager.HasInstance ? GameManager.Instance.TurnManager : null;
+            if (_cryTurnManager != turnManager)
+            {
+                if (_cryTurnManager != null) _cryTurnManager.OnTurnChanged -= HandleCryTurnChanged;
+                _cryTurnManager = turnManager;
+                _criedThisTurn = false;
+                if (_cryTurnManager != null) _cryTurnManager.OnTurnChanged += HandleCryTurnChanged;
+            }
+
+            if (turnManager == null)
+            {
+                Debug.LogWarning($"{name}: 턴 매니저가 없어 황소왕 첫 돌진 울음을 재생할 수 없습니다.", this);
+                return;
+            }
+            if (turnManager.CurrentTurn != LDY_Team.Enemy || _criedThisTurn) return;
+            _criedThisTurn = true;
+
             if (chargeSfx == null)
             {
                 _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.BullCry);
@@ -165,6 +185,11 @@ namespace _Scripts.LDY.Boss.BullKing
             }
 
             ServiceLocator.Get<IAudioService>()?.PlaySfx(chargeSfx);
+        }
+
+        private void HandleCryTurnChanged(LDY_Team team)
+        {
+            if (team == LDY_Team.Enemy) _criedThisTurn = false;
         }
 
         /// <summary>DLJ: 이동하는 동안만 작은 임펄스를 반복한다.</summary>
@@ -268,6 +293,9 @@ namespace _Scripts.LDY.Boss.BullKing
 
         private void OnDisable()
         {
+            if (_cryTurnManager != null) _cryTurnManager.OnTurnChanged -= HandleCryTurnChanged;
+            _cryTurnManager = null;
+            _criedThisTurn = false;
             StopChargeShake();
             if (_phase != null)
                 _phase.OnPhaseChange -= LogPhaseChange;

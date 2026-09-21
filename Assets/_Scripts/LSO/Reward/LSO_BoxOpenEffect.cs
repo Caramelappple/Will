@@ -90,6 +90,7 @@ namespace _Scripts.LSO.Reward
       {
          if (IsMoving || !_isOpened || boxTop == null) return;
 
+         _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.ChestOpen);
          _isOpened = false;
 
          Rotate(_originalRotation, closeDuration, closeEase, () => OnClosed?.Invoke());

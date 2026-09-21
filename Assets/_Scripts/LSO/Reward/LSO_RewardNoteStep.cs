@@ -120,6 +120,7 @@ namespace _Scripts.LSO.Reward
 
             _dismissed = false;
             _note.Bind(_pending, HandleClicked);
+            _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.InfoOpen);
 
             // 멈출 자리는 앵커의 원점이다. 앵커를 옮기면 그대로 따라온다.
             yield return _note.transform
