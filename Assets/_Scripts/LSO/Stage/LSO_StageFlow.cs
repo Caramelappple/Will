@@ -4,6 +4,7 @@ using _Scripts.LDY.Effect;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.CoreLib;
 using _Scripts.LSO.Reward;
+using _Scripts.LSO.UI.Transition;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -25,7 +26,7 @@ namespace _Scripts.LSO.Stage
     /// (기획서 「새로운 UI · 여기서부터 다시 스테이지」).
     /// ─────────────────────────────────────────────────────────
     ///
-    /// 씬 배선: 씬 아무 곳에나 하나. 씬을 넘어가도 살아남는다.
+    /// 씬 배선: 전투 씬에 하나. 보드·보상·연출 참조를 들고 있으므로 씬과 함께 교체된다.
     /// </summary>
     [DisallowMultipleComponent]
     public class LSO_StageFlow : MonoSingleton<LSO_StageFlow>
@@ -48,6 +49,9 @@ namespace _Scripts.LSO.Stage
                  "켜면 다시 시작할 때 1챕터 1스테이지부터다.\n" +
                  "끄면 죽은 자리에 그대로 남는다 — 이어하기를 붙일 때 쓴다.")]
         [SerializeField] private bool restartOnDefeat = true;
+
+        [Tooltip("패배 시 이동할 씬. 기존 화면 전환 로더를 사용하므로 페이드와 입력 잠금이 함께 적용된다.")]
+        [SerializeField] private string defeatSceneName = "KTH_Death Scene";
 
         [Header("타이밍")]
         [Tooltip("보드 회전이 끝나기를 기다리는 상한(초). 멈춤 방지선이다.")]
@@ -85,6 +89,10 @@ namespace _Scripts.LSO.Stage
         // 어느 쪽이 먼저 오든 한 번만 시작한다.
         private bool _rewardStarted;
 
+        // 실제로 시작한 보상 상자의 완료만 듣는다. Instance를 다시 조회해 끊으면
+        // 그 사이 상자가 바뀌었을 때 엉뚱한 상자에서 구독을 해제하게 된다.
+        private LSO_RewardBox _subscribedRewardBox;
+
         /// <summary>클리어 처리가 도는 중인지. 같은 판이 두 번 정산되는 것을 막는다.</summary>
         public bool IsClearing => _clearing;
 
@@ -97,15 +105,12 @@ namespace _Scripts.LSO.Stage
         protected override void Awake()
         {
             base.Awake();
-
-            if (Instance != this) return;
-
-            DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
         {
             SubscribeFlip();
+            TakeRewardFlowOwnership();
 
             if (!startOnPlay) return;
 
@@ -121,7 +126,22 @@ namespace _Scripts.LSO.Stage
             if (flipDirector != null)
                 flipDirector.Finished -= HandleFlipFinished;
 
+            UnsubscribeRewardCompletion();
+
             base.OnDestroy();
+        }
+
+        /// <summary>
+        /// 보상 완료 → 다음 스테이지 연결은 런 전체 순서를 아는 이 클래스가 맡는다.
+        /// IntroDirector의 선택적 자체 구독은 꺼서 진행도가 두 번 증가하지 않게 한다.
+        /// </summary>
+        private void TakeRewardFlowOwnership()
+        {
+            if (introDirector == null)
+                introDirector = FindAnyObjectByType<LSO_StageIntroDirector>();
+
+            if (introDirector != null)
+                introDirector.UseExternalRewardFlow();
         }
 
         /// <summary>
@@ -196,9 +216,8 @@ namespace _Scripts.LSO.Stage
         /// <summary>
         /// 패배했다.
         ///
-        /// 씬을 넘기지 않는다. 패배 화면도 이 화면 위에 띄우고,
-        /// 다시 시작하면 같은 자리에서 판만 새로 세운다.
-        /// On Defeat에 화면을 걸고, 그 화면의 버튼이 Restart를 부르면 된다.
+        /// 진행을 초기화하고 패배 씬으로 이동한다.
+        /// 씬 전환은 공용 로더가 맡아 페이드 중 입력과 중복 요청을 막는다.
         /// </summary>
         public void Defeat()
         {
@@ -211,6 +230,14 @@ namespace _Scripts.LSO.Stage
                 Progression.Restart();
 
             onDefeat?.Invoke();
+
+            if (string.IsNullOrWhiteSpace(defeatSceneName))
+            {
+                Debug.LogWarning($"{name}: 패배 씬 이름이 비어 있어 씬을 이동하지 않습니다.", this);
+                return;
+            }
+
+            LSO_SceneLoader.Load(defeatSceneName);
         }
 
         /// <summary>
@@ -278,6 +305,7 @@ namespace _Scripts.LSO.Stage
             }
 
             _rewardStarted = true;
+            SubscribeRewardCompletion(box);
 
             // 여기 오기 전에 이미 시작돼 있으면 시작시키는 곳이 둘이라는 뜻이다.
             // 그쪽은 회전을 기다리지 않으므로 보상 카메라가 도는 판을 가리고 들어온다.
@@ -334,6 +362,44 @@ namespace _Scripts.LSO.Stage
             Log("보상 시작");
 
             box.Begin();
+        }
+
+        private void SubscribeRewardCompletion(LSO_RewardBox box)
+        {
+            if (_subscribedRewardBox == box) return;
+
+            UnsubscribeRewardCompletion();
+
+            _subscribedRewardBox = box;
+            _subscribedRewardBox.OnFinished -= HandleRewardFinished;
+            _subscribedRewardBox.OnFinished += HandleRewardFinished;
+        }
+
+        private void UnsubscribeRewardCompletion()
+        {
+            if (_subscribedRewardBox != null)
+                _subscribedRewardBox.OnFinished -= HandleRewardFinished;
+
+            _subscribedRewardBox = null;
+        }
+
+        private void HandleRewardFinished(LSO_RewardOption option)
+        {
+            UnsubscribeRewardCompletion();
+
+            if (introDirector == null)
+                introDirector = FindAnyObjectByType<LSO_StageIntroDirector>();
+
+            if (introDirector == null)
+            {
+                Debug.LogError(
+                    $"{name}: 보상은 끝났지만 LSO_StageIntroDirector가 없어 다음 스테이지로 갈 수 없습니다.",
+                    this);
+                return;
+            }
+
+            Log("보상 종료 — 다음 스테이지 준비");
+            introDirector.PlayNext();
         }
 
         /// <summary>

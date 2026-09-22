@@ -10,20 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
-  m_Name: Ch4_유언_07
+  m_Name: "Ch4_\uC720\uC5B8_07"
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 0
   shotId: 
   waitForCamera: 1
   lines:
-  - "배치한 기물을 클릭하고 노란색 칸을 우클릭하여 이동해 보세요."
+  - "\uBC30\uCE58\uD55C \uAE30\uBB3C\uC744 \uD074\uB9AD\uD558\uACE0 \uB178\uB780\uC0C9
+    \uCE78\uC744 \uC6B0\uD074\uB9AD\uD558\uC5EC \uC774\uB3D9\uD574 \uBCF4\uC138\uC694."
   lineHold: 4.5
-  guide: 2
+  guide: 3
   guideTiles:
   - {x: 4, y: 0, z: 3}
   restrictSelectionToWill: 1
   selectionWill: 1
   restrictSelectionToTile: 1
-  selectionTile: {x: 4, y: 0, z: 2}
+  selectionTile: {x: 3, y: 0, z: 2}
   allowed: 12
   gate: {fileID: 11400000, guid: 8f3d2416c6b6ceed6ae3c1e0694c6c71, type: 2}
   gateTimeout: 0

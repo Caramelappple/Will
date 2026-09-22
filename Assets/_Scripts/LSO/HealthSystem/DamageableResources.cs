@@ -90,13 +90,18 @@ namespace _Scripts.LSO.HealthSystem
 
             if (before > Value)
             {
-                var resultData = DamageResultData.Create(data.giver, before - Value, Value);
+                var resultData = DamageResultData.Create(
+                    data.giver,
+                    before - Value,
+                    Value,
+                    data.source);
                 OnDamage?.Invoke(resultData);
 
                 // 구독이 아니라 여기서 찍는다. Awake에서 람다로 붙이면 인스펙터에서 꺼도 반영되지 않는다.
                 if (logDamage)
                     Debug.Log(
-                        $"<color=red>{name}가 {data.giver}로부터 {before - Value}만큼 대미지를 받았습니다!</color>", this);
+                        $"<color=red>{name}가 {data.giver}로부터 {before - Value}만큼 대미지를 받았습니다! " +
+                        $"(출처: {data.source})</color>", this);
             }
         }
     

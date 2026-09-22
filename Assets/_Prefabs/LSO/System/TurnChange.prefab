@@ -895,6 +895,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_TurnClickGate
   blockWhen: 06000000
   allowedTurn: 0
+  tutorialAction: 32
   selection: {fileID: 0}
   cardPlacer: {fileID: 0}
   alsoDisableCollider: 0

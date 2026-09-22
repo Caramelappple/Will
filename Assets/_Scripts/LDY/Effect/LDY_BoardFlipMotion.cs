@@ -63,8 +63,24 @@ namespace _Scripts.LDY.Effect
                 .SetUpdate(true)
                 .SetLink(link);
 
+            // DOTween 상태가 외부 연출과 충돌해 완료 신호를 잃어도 다음 스테이지가
+            // 영원히 기다리지 않게 한다. 정상 재생 시간에 1초의 여유를 둔다.
+            float deadline = Time.unscaledTime + Mathf.Max(1f, duration + 1f);
+
             while (_tween != null && _tween.IsActive() && !_tween.IsComplete())
+            {
+                if (Time.unscaledTime >= deadline)
+                {
+                    Debug.LogWarning(
+                        $"[LDY_BoardFlipMotion] '{target.name}' 회전이 제한 시간을 넘겨 끝 자세로 복구합니다.",
+                        target);
+
+                    _tween.Kill();
+                    break;
+                }
+
                 yield return null;
+            }
 
             _tween = null;
 

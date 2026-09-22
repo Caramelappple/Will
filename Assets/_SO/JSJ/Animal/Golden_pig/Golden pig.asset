@@ -18,10 +18,10 @@ MonoBehaviour:
     \uCF54\uC2A4\uD2B8\uB97C 1\uC529 \uCD95\uC801\uD558\uBA70, \uC8FD\uC73C\uBA74
     \uC313\uC544 \uB454 \uCF54\uC2A4\uD2B8\uB97C \uB3CC\uB824\uC90D\uB2C8\uB2E4.
     \uCD5C\uB300 3\uAE4C\uC9C0 \uCD95\uC801\uD569\uB2C8\uB2E4."
-  maxHealth: 4
+  maxHealth: 5
   damage: 1
   cost: 2
-  playerHealthPoints: 4
+  playerHealthPoints: 6
   moveRange: 1
   range: 0
   abilities: 

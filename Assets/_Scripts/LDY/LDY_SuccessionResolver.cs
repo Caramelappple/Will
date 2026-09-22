@@ -31,6 +31,13 @@ namespace _Scripts.LDY
         {
             bool waiting = DLJ_SuccessionSystem.IsWaitingForSuccessionTarget;
 
+            // 선택 창이 열린 뒤 전투가 끝나거나 마지막 후보가 다른 연쇄 피해로 죽을 수도 있다.
+            // 그 상태에서 클릭만 기다리면 timeScale이 0인 채 영구 정지하므로 즉시 취소한다.
+            if (waiting &&
+                (DLJ_SuccessionSystem.TryCancelIfBattleOver() ||
+                 DLJ_SuccessionSystem.TryCancelIfNoSuccessionTarget()))
+                waiting = false;
+
             if (!waiting)
             {
                 // 계승이 끝났다. 기록이 다음 계승까지 넘어가 팀 판별을 흐리지 않도록 비운다.

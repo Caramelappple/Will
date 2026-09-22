@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Gate_CursePlaced
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Gate.LSO_GatePractice
   condition: 1
-  tile: {x: 4, y: 0, z: 2}
+  tile: {x: 3, y: 0, z: 2}
   requireTile: 1
   will: 1
   requireWill: 1

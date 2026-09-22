@@ -19,7 +19,7 @@ MonoBehaviour:
     \uACF5\uACA9\uB825\uC774 1\uB9CC\uD07C \uC99D\uAC00\uD569\uB2C8\uB2E4."
   maxHealth: 4
   damage: 2
-  cost: 3
+  cost: 2
   playerHealthPoints: 6
   moveRange: 1
   range: 0

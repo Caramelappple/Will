@@ -5,6 +5,7 @@ namespace _Scripts.LSO.Tutorial.Data
         None,
         Place,
         Move,
-        PlaceYellow
+        PlaceYellow,
+        PlaceRed
     }
 }

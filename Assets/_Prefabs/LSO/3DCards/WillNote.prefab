@@ -468,6 +468,8 @@ GameObject:
   - component: {fileID: 5649807231285758141}
   - component: {fileID: 5297091941680574243}
   - component: {fileID: 8838175120376521062}
+  - component: {fileID: 603378177504975458}
+  - component: {fileID: 3856768007953325599}
   m_Layer: 0
   m_Name: WillNote
   m_TagString: Untagged
@@ -622,3 +624,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 1.5, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &603378177504975458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8307477507922769290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
+  exitGraceSeconds: 0.08
+--- !u!114 &3856768007953325599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8307477507922769290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf3514004b4d5543b0ba6c1f4afe46c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverCursorEffect
+  interactableState: 2
+  blockedState: 1
+  followClickGate: 1
+  clickHandler: {fileID: 5649807231285758141}

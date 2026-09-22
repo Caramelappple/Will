@@ -19,9 +19,9 @@ MonoBehaviour:
   lineHold: 4.5
   guide: 0
   guideTiles: []
-  restrictSelectionToWill: 1
+  restrictSelectionToWill: 0
   selectionWill: 1
-  restrictSelectionToTile: 1
+  restrictSelectionToTile: 0
   selectionTile: {x: 4, y: 0, z: 3}
   allowed: 20
   gate: {fileID: 11400000, guid: b52177d91eaf0214a59a09a5cea4f500, type: 2}

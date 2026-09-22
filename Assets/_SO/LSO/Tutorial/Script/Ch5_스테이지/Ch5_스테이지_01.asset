@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
   m_Name: Ch5_스테이지_01
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
-  shotId: tut_health
+  shotId: Reward
   waitForCamera: 1
   lines:
   - "기물이 사망하면 양초가 줄어듭니다."

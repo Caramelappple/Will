@@ -18,8 +18,8 @@ MonoBehaviour:
     \uC4F0\uB7EC\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
   maxHealth: 999
   damage: 1
-  cost: 4
-  playerHealthPoints: 5
+  cost: 3
+  playerHealthPoints: 8
   moveRange: 1
   range: 0
   abilities: 0a000000

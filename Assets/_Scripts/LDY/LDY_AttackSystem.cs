@@ -387,6 +387,9 @@ namespace _Scripts.LDY
                 return;
             }
 
+            // 사망 서비스가 없는 레거시 경로도 같은 생명주기 표식을 남긴다.
+            if (!target.TryBeginDeath()) return;
+
             _Scripts.LSO.Sound.LSO_CombatAudio.Death(target);
             board.Remove(target);
             DLJ_CombatKillEvents.Raise(target, killer);

@@ -10,16 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
-  m_Name: Ch3_덱_04a
+  m_Name: "Ch3_\uB371_04a"
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 0
   shotId: 
   waitForCamera: 1
   lines:
-  - "붉게 표시된 칸을 좌클릭하여 소환해 보세요."
+  - "\uBD89\uAC8C \uD45C\uC2DC\uB41C \uCE78\uC744 \uC88C\uD074\uB9AD\uD558\uC5EC
+    \uC18C\uD658\uD574 \uBCF4\uC138\uC694."
   lineHold: 4.5
-  guide: 1
+  guide: 4
   guideTiles:
   - {x: 2, y: 0, z: 2}
+  restrictSelectionToWill: 0
+  selectionWill: 1
+  restrictSelectionToTile: 0
+  selectionTile: {x: 0, y: 0, z: 0}
   allowed: 3
   gate: {fileID: 11400000, guid: 724d25c618080811f26ba1ac073c018a, type: 2}
   gateTimeout: 0

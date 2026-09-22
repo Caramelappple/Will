@@ -19,5 +19,5 @@ MonoBehaviour:
   randomPitchModifier: 0
   volume: 0.65
   pitch: 1
-  startTime: 0.72
-  endTime: 0
+  startTime: 0.73
+  endTime: 1.21

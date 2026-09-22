@@ -15,7 +15,7 @@ namespace _Scripts.LSO.Stage
     /// 챕터·스테이지를 아는 곳은 여기 하나뿐이다.
     /// 예전에는 맵 매니저도 같은 값을 들고 있었지만 노드와 함께 걷어냈다.
     ///
-    /// 씬 배선: 씬 아무 곳에나 하나. 씬을 넘어가도 살아남는다.
+    /// 씬 배선: 전투 씬에 하나. 런 진행은 세이브 데이터로 복원하며 씬 오브젝트 자체는 남기지 않는다.
     /// </summary>
     [DisallowMultipleComponent]
     public class LSO_StageProgression : MonoSingleton<LSO_StageProgression>
@@ -74,8 +74,6 @@ namespace _Scripts.LSO.Stage
             base.Awake();
 
             if (Instance != this) return;
-
-            DontDestroyOnLoad(gameObject);
 
             _chapterIndex = startChapterIndex;
             _stageIndex = startStageIndex;

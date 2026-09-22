@@ -36,17 +36,41 @@ namespace _Scripts.LSO.HealthSystem.Data
         public readonly Health giver;
         public readonly int damage;
         public readonly int currentHealth;
+        public readonly LSO_DamageSource source;
 
         public DamageResultData(Health giver, int damage, int currentHealth)
+            : this(giver, damage, currentHealth, LSO_DamageSource.Unknown)
+        {
+        }
+
+        public DamageResultData(
+            Health giver,
+            int damage,
+            int currentHealth,
+            LSO_DamageSource source)
         {
             this.giver = giver;
             this.damage = damage;
             this.currentHealth = currentHealth;
+            this.source = source;
         }
 
         public static DamageResultData Create(Health giver, int damage, int currentHealth)
         {
-            return new DamageResultData(giver, damage, currentHealth);
+            return new DamageResultData(
+                giver,
+                damage,
+                currentHealth,
+                LSO_DamageSource.Unknown);
+        }
+
+        public static DamageResultData Create(
+            Health giver,
+            int damage,
+            int currentHealth,
+            LSO_DamageSource source)
+        {
+            return new DamageResultData(giver, damage, currentHealth, source);
         }
     }
 }

@@ -8,7 +8,7 @@ using _Scripts.LSO.Interfaces;
 public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
     LSO_IAbilityInitializable
 {
-    private const int TurnsToEvolve = 6;
+    private const int TurnsToEvolve = 5;
 
     private LSO_AbilityContext context;
     private int elapsedTurns;
@@ -33,7 +33,8 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
         if (!isEggInitialized || isEvolved || owner == null)
             return;
 
-        if (owner.team != team || owner.health == null || owner.health.IsDestroyed)
+        // 아군과 적군 어느 쪽 턴이든 시작될 때마다 생존 턴을 센다.
+        if (owner.health == null || owner.health.IsDestroyed)
             return;
 
         elapsedTurns++;

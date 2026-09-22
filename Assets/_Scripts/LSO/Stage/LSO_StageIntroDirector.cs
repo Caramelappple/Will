@@ -98,6 +98,20 @@ namespace _Scripts.LSO.Stage
         private LDY_BoardManager _board;
         private int _lastChapter = -1;
 
+        /// <summary>
+        /// 보상 완료를 상위 흐름(LSO_StageFlow)이 직접 전달할 때 자체 구독을 끈다.
+        /// 두 곳이 같은 완료 신호를 받으면 진행도가 한 번에 두 칸 넘어간다.
+        /// </summary>
+        public void UseExternalRewardFlow()
+        {
+            followReward = false;
+
+            if (_subscribedBox != null)
+                _subscribedBox.OnFinished -= HandleRewardFinished;
+
+            _subscribedBox = null;
+        }
+
         /// <summary>연출이 도는 중인지. 기다리는 쪽이 본다.</summary>
         public bool IsPlaying { get; private set; }
 

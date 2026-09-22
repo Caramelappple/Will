@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Animal.Data.LSO_AnimalSO
   animalName: "\uB3C4\uB9C8\uBC40"
   description: "\uB3C4\uB9C8 + \uBC40 = \uB3C4\uB9C8\uBC40"
-  maxHealth: 2
+  maxHealth: 3
   damage: 2
   cost: 2
-  playerHealthPoints: 4
+  playerHealthPoints: 6
   moveRange: 1
   range: 1
   abilities: 04000000

@@ -15,6 +15,9 @@ namespace _Scripts.LSO.Will
                  "다르게 저장해서 Git이 같은 파일을 두 벌로 본다.")]
         public string displayName;
 
+        [Tooltip("화면에 띄울 영문 이름. 비워두면 유언 enum 이름을 사용한다.")]
+        public string englishName;
+
         [Header("Tool Tip")]
         [TextArea(3, 10)]
         public string description;
@@ -45,6 +48,9 @@ namespace _Scripts.LSO.Will
         /// </summary>
         public string DisplayName =>
             string.IsNullOrWhiteSpace(displayName) ? WillType.ToString() : displayName;
+
+        public string EnglishName =>
+            string.IsNullOrWhiteSpace(englishName) ? WillType.ToString() : englishName;
 
         public virtual int DisplayDamage => 0;
         public virtual int DisplayRange => 0;

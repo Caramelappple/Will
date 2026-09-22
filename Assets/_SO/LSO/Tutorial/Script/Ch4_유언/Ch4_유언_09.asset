@@ -20,6 +20,6 @@ MonoBehaviour:
   lineHold: 2.5
   guide: 0
   guideTiles: []
-  allowed: 0
+  allowed: 60
   gate: {fileID: 11400000, guid: 489b18b474bc6c853eae997a15d590cc, type: 2}
   gateTimeout: 0

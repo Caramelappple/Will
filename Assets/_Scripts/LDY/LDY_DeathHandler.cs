@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using _Scripts.LSO.Ability;
 using _Scripts.LSO.DeathSystem;
 using _Scripts.LSO.Manager;
@@ -16,9 +15,6 @@ namespace _Scripts.LDY
     {
         [SerializeField] private LDY_BoardManager board;
 
-        // 반격으로 서로를 죽이는 상황에서 같은 기물이 두 번 처리되는 것을 막는다.
-        private readonly HashSet<LDY_Animal> _processed = new();
-
         private void Awake()
         {
             GameManager.Instance?.RegisterDeathService(this);
@@ -33,7 +29,7 @@ namespace _Scripts.LDY
         public void Kill(LDY_Animal victim, LDY_Animal killer)
         {
             if (victim == null) return;
-            if (!_processed.Add(victim)) return;
+            if (!victim.TryBeginDeath()) return;
 
             _Scripts.LSO.Sound.LSO_CombatAudio.Death(victim);
 

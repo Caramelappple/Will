@@ -182,6 +182,24 @@ public sealed class DLJ_SuccessionSystem : MonoBehaviour
         return DLJ_SuccessionWill.TrySelectSuccessionTarget(target);
     }
 
+    /// <summary>
+    /// 선택 대기 중 마지막 후보가 사라졌다면 계승을 취소하고 정지 상태를 푼다.
+    /// 후보 생존 여부를 감시하는 쪽은 LDY_SuccessionResolver이고,
+    /// 실제 계승 상태 정리는 이 시스템이 계속 소유한다.
+    /// </summary>
+    public static bool TryCancelIfNoSuccessionTarget()
+    {
+        return DLJ_SuccessionWill.TryCancelIfNoValidTarget();
+    }
+
+    /// <summary>
+    /// 전투 종료가 확정된 뒤에도 대상 선택을 기다리고 있다면 계승을 취소한다.
+    /// </summary>
+    public static bool TryCancelIfBattleOver()
+    {
+        return DLJ_SuccessionWill.TryCancelIfBattleOver();
+    }
+
     public static LSO_IWill Create(DLJ_WillContext context, DLJ_WillDataSO data)
     {
         if (data is not DLJ_SuccessionWillDataSO successionData)
@@ -251,6 +269,15 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     {
         hasInvoked = true;
 
+        // 마지막 적 사망 등으로 전투 종료가 먼저 확정됐다면 계승 선택을 열지 않는다.
+        if (SkipIfBattleOver())
+            return;
+
+        // 이미 받을 기물이 죽었다면 공격 연출이 끝날 때까지 사망을 유예할 이유가 없다.
+        // 여기서 먼저 끝내야 ShouldDeferDestruction이 false를 돌려 정상 사망 처리가 이어진다.
+        if (SkipIfNoValidTarget())
+            return;
+
         if (attackSystem != null && attackSystem.IsBusy)
         {
             isWaitingForAttackAnimation = true;
@@ -282,15 +309,15 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
             return false;
         }
 
+        // 공격 연출을 기다리는 동안 클리어가 확정될 수 있으므로 진입 직전 다시 검사한다.
+        if (SkipIfBattleOver())
+            return false;
+
         // 받을 같은 팀 생존 기물이 없으면 선택 대기와 시간 정지를 시작하지 않는다.
         // 공격 연출을 기다린 뒤 여기 도착한 경우에는 사망 유예 기록이 이미 남아 있으므로
         // 이 기물의 기록만 제거해 다음 계승의 팀 판정을 오염시키지 않게 한다.
-        if (!HasValidTarget())
-        {
-            LDY_DeferredDeaths.Remove(animal);
-            Debug.Log($"Succession skipped: {animal.name}의 계승을 받을 아군이 없습니다.", animal);
+        if (SkipIfNoValidTarget())
             return false;
-        }
 
         successionSource = this;
         successionTeam = animal.team;
@@ -340,11 +367,32 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         return false;
     }
 
+    private bool SkipIfNoValidTarget()
+    {
+        if (HasValidTarget()) return false;
+
+        // 공격 연출을 기다린 뒤 검사한 경우에는 이미 유예 목록에 들어가 있을 수 있다.
+        LDY_DeferredDeaths.Remove(animal);
+        Debug.Log($"Succession skipped: {animal.name}의 계승을 받을 아군이 없습니다.", animal);
+        return true;
+    }
+
+    private bool SkipIfBattleOver()
+    {
+        if (!KTH_GameEndManager.IsBattleOver) return false;
+
+        // 공격 연출을 기다린 뒤 검사한 경우에는 이미 유예 목록에 들어가 있을 수 있다.
+        LDY_DeferredDeaths.Remove(animal);
+        Debug.Log($"Succession skipped: 전투 종료가 확정되어 {animal.name}의 계승을 건너뜁니다.", animal);
+        return true;
+    }
+
     private bool IsValidTarget(LDY_Animal target)
     {
         return target != null &&
                target != animal &&
                target.team == animal.team &&
+               !target.IsDeathProcessing &&
                target.health != null &&
                !target.health.IsDestroyed;
     }
@@ -362,7 +410,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
         if (!IsWaitingForSuccessionTarget || successionSource == null)
             return false;
 
-        if (target == null || target.health == null || target.health.IsDestroyed)
+        if (target == null || target.IsDeathProcessing ||
+            target.health == null || target.health.IsDestroyed)
         {
             Debug.LogWarning("Invalid succession target.");
             return false;
@@ -378,6 +427,54 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
         isCompletingSuccession = true;
         successionSource.MoveEffectAndApply(target);
+        return true;
+    }
+
+    public static bool TryCancelIfNoValidTarget()
+    {
+        if (!IsWaitingForSuccessionTarget || successionSource == null)
+            return false;
+
+        if (successionSource.HasValidTarget())
+            return false;
+
+        return CancelWaitingSuccession("계승을 받을 생존 기물이 더 이상 없습니다.");
+    }
+
+    public static bool TryCancelIfBattleOver()
+    {
+        if (!IsWaitingForSuccessionTarget || successionSource == null)
+            return false;
+
+        if (!KTH_GameEndManager.IsBattleOver)
+            return false;
+
+        return CancelWaitingSuccession("전투 종료가 확정되어 계승을 건너뜁니다.");
+    }
+
+    private static bool CancelWaitingSuccession(string reason)
+    {
+        if (successionSource == null)
+            return false;
+
+        DLJ_SuccessionWill source = successionSource;
+        LDY_Animal sourceAnimal = source.animal;
+
+        DLJ_SuccessionNotify.HidePrompt();
+        LDY_DeferredDeaths.Remove(sourceAnimal);
+
+        Debug.Log(
+            $"Succession cancelled: {(sourceAnimal != null ? sourceAnimal.name : "destroyed animal")}의 " +
+            reason,
+            sourceAnimal);
+
+        FinishSuccession();
+
+        // 선택 대기까지 들어온 경우에는 호출부가 다시 사망 처리를 해주지 않는다.
+        // 여기서 직접 디졸브를 시작해 유예된 시체가 남지 않게 한다.
+        if (sourceAnimal != null)
+            LDY_DissolveEffect.PlayOn(sourceAnimal.gameObject);
+
         return true;
     }
 
@@ -413,7 +510,8 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
     {
         DLJ_SuccessionWill source = successionSource;
 
-        if (target != null && target.health != null && !target.health.IsDestroyed)
+        if (target != null && !target.IsDeathProcessing &&
+            target.health != null && !target.health.IsDestroyed)
         {
             DLJ_SuccessionBonus.Apply(
                 target,

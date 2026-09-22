@@ -1659,6 +1659,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 381058167921420306}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 675767149938845669}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: daef46bc09db17143b8053a196891e72, type: 3}
 --- !u!4 &1467006278604692247 stripped
 Transform:
@@ -1764,3 +1767,19 @@ MonoBehaviour:
   exitDuration: 0.12
   enterEase: 27
   exitEase: 6
+--- !u!114 &675767149938845669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf3514004b4d5543b0ba6c1f4afe46c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverCursorEffect
+  interactableState: 2
+  blockedState: 1
+  followClickGate: 1
+  clickHandler: {fileID: 8794413094688060880}

@@ -20,6 +20,8 @@ namespace _Scripts.LSO.Tutorial
     public sealed class LSO_TutorialGuide : MonoBehaviour
     {
         [SerializeField] private LDY_TileHighlighter highlighter;
+        [SerializeField] private Color yellowTileColor = new Color(1f, 0.85f, 0f, 1f);
+        [SerializeField] private Color redTileColor = new Color(1f, 0f, 0f, 1f);
 
         private void Awake()
         {
@@ -46,10 +48,18 @@ namespace _Scripts.LSO.Tutorial
                     highlighter.ShowAttackHighlights(this, tiles);
                     break;
 
-                // 노란색. 평소 이동 표시와 같은 색이라 플레이어가 이미 아는 뜻이다.
+                // 이동 안내는 평소 이동 표시를 그대로 쓴다.
                 case LSO_TutorialGuideKind.Move:
-                case LSO_TutorialGuideKind.PlaceYellow:
                     highlighter.ShowMoveHighlights(this, tiles);
+                    break;
+
+                // 배치용 색상 표시는 공격 타일 형태에 이 인스턴스만 색을 덮어쓴다.
+                case LSO_TutorialGuideKind.PlaceYellow:
+                    highlighter.ShowColoredAttackHighlights(this, tiles, yellowTileColor);
+                    break;
+
+                case LSO_TutorialGuideKind.PlaceRed:
+                    highlighter.ShowColoredAttackHighlights(this, tiles, redTileColor);
                     break;
             }
         }

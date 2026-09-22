@@ -16,4 +16,4 @@ MonoBehaviour:
   tile: {x: 0, y: 0, z: 0}
   requireTile: 0
   will: 1
-  requireWill: 1
+  requireWill: 0

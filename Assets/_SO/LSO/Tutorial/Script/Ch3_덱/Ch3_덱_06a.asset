@@ -10,16 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
-  m_Name: Ch3_덱_06a
+  m_Name: "Ch3_\uB371_06a"
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  returnToDefaultCamera: 0
   shotId: 
   waitForCamera: 1
   lines:
-  - "기물을 클릭한 후, 노란색 칸을 우클릭하여 적을 향해 이동해 보세요."
+  - "\uAE30\uBB3C\uC744 \uD074\uB9AD\uD55C \uD6C4, \uB178\uB780\uC0C9 \uCE78\uC744
+    \uC6B0\uD074\uB9AD\uD558\uC5EC \uC801\uC744 \uD5A5\uD574 \uC774\uB3D9\uD574 \uBCF4\uC138\uC694."
   lineHold: 4.5
-  guide: 2
+  guide: 3
   guideTiles:
   - {x: 3, y: 0, z: 3}
+  restrictSelectionToWill: 0
+  selectionWill: 1
+  restrictSelectionToTile: 0
+  selectionTile: {x: 0, y: 0, z: 0}
   allowed: 12
   gate: {fileID: 11400000, guid: a8a0d2f78880abfc7344752a544a7761, type: 2}
   gateTimeout: 0

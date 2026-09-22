@@ -87,6 +87,10 @@ namespace _Scripts.LSO.Tutorial
 
         private Coroutine _routine;
 
+        // 튜토리얼이 직접 선택한 샷만 종료할 때 되돌린다.
+        // 보상처럼 다른 흐름이 이후에 카메라를 바꿨다면 그 선택을 덮어쓰지 않는다.
+        private string _ownedCameraShotId;
+
         /// <summary>지금 기다리는 관문. 건너뛸 때 이것부터 풀어야 한다.</summary>
         private LSO_TutorialGateSO _armedGate;
         private bool _gatePassed;
@@ -187,6 +191,7 @@ namespace _Scripts.LSO.Tutorial
                 return;
             }
 
+            _ownedCameraShotId = string.Empty;
             IsPlaying = true;
             _routine = StartCoroutine(Co_Run());
         }
@@ -213,7 +218,7 @@ namespace _Scripts.LSO.Tutorial
             ClearRestriction();
 
             if (locks != null) locks.Release();
-            if (cameraDirector != null) cameraDirector.ReturnToDefault();
+            ReleaseOwnedCamera();
 
             if (!IsPlaying) return;
 
@@ -271,11 +276,19 @@ namespace _Scripts.LSO.Tutorial
                 if (step.returnToDefaultCamera)
                 {
                     cameraDirector.ReturnToDefault();
+                    _ownedCameraShotId = string.Empty;
                     movedCamera = true;
                 }
                 else if (!string.IsNullOrEmpty(step.shotId))
                 {
+                    bool wasAlreadyActive = cameraDirector.CurrentId == step.shotId;
                     cameraDirector.Play(step.shotId);
+
+                    // 이미 같은 샷이었다면 보상 등의 다른 흐름이 먼저 선택했을 수 있다.
+                    // 실제로 이 호출이 전환시킨 경우에만 튜토리얼 소유로 기록한다.
+                    if (!wasAlreadyActive && cameraDirector.CurrentId == step.shotId)
+                        _ownedCameraShotId = step.shotId;
+
                     movedCamera = true;
                 }
             }
@@ -322,6 +335,27 @@ namespace _Scripts.LSO.Tutorial
             if (guide != null) guide.Clear();
 
             ClearRestriction();
+        }
+
+        private void ReleaseOwnedCamera()
+        {
+            // 보상 흐름이 시작됐다면 카메라의 최종 소유자는 튜토리얼이 아니라 보상이다.
+            // 두 흐름이 같은 Reward 샷을 선택했더라도 종료 시 메인으로 덮어쓰지 않는다.
+            if (_Scripts.LSO.Reward.LSO_RewardBox.Instance != null &&
+                _Scripts.LSO.Reward.LSO_RewardBox.Instance.HasBegun)
+            {
+                _ownedCameraShotId = string.Empty;
+                return;
+            }
+
+            if (cameraDirector != null &&
+                !string.IsNullOrEmpty(_ownedCameraShotId) &&
+                cameraDirector.CurrentId == _ownedCameraShotId)
+            {
+                cameraDirector.ReturnToDefault();
+            }
+
+            _ownedCameraShotId = string.Empty;
         }
 
         private IEnumerator Co_Lines(LSO_TutorialStepSO step)
@@ -404,6 +438,7 @@ namespace _Scripts.LSO.Tutorial
             {
                 case LSO_TutorialGuideKind.Place:
                 case LSO_TutorialGuideKind.PlaceYellow:
+                case LSO_TutorialGuideKind.PlaceRed:
                     if (cardPlacer != null) cardPlacer.RestrictTo(step.guideTiles);
                     break;
 

@@ -247,14 +247,18 @@ namespace _Scripts.LDY.Effect
             if (selectionController == null)
                 selectionController = FindFirstObjectByType<LDY_SelectionController>();
 
+            // 씬이 처음 그려지기 전에 감춰 한 프레임이라도 보상 상자가 비치는 것을 막는다.
+            // 다른 컴포넌트의 Awake에서 자식이 추가될 수 있으므로 Start에서도 한 번 더 감춘다.
+            if (hideAnchorUntilFlip)
+                SetAnchorContentVisible(false);
+
             WarnIfAnchorRidesTheBoard();
         }
 
         /// <summary>
-        /// 앵커 감추기는 Awake가 아니라 Start에서 한다.
-        /// 앵커 밑에 놓인 것이 Awake에서 자식을 더 만들 수 있기 때문이다.
-        /// Awake에서 감추면 그 뒤에 생긴 자식이 켜진 채로 남는다.
-        /// 모든 Awake가 끝난 뒤인 Start 시점에는 자식이 다 모여 있다.
+        /// Awake에서 먼저 감춘 뒤 Start에서 다시 확인한다.
+        /// 앵커 밑에 놓인 것이 다른 컴포넌트의 Awake에서 자식을 더 만들어도
+        /// 모든 Awake가 끝난 이 시점에는 빠짐없이 감춰진다.
         /// </summary>
         private void Start()
         {

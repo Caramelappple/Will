@@ -19,6 +19,22 @@ namespace _Scripts.LDY
 
         public Health health;
 
+        /// <summary>
+        /// 체력과 별개인 실제 사망 처리 상태.
+        /// 가시·복수·허약처럼 체력을 0으로 만들지 않고 사망 서비스를 직접 호출하는 경로도 있으므로,
+        /// Health.IsDestroyed만으로는 이미 죽은 기물을 구별할 수 없다.
+        /// </summary>
+        public bool IsDeathProcessing { get; private set; }
+
+        /// <summary>사망 처리를 한 번만 시작한다. 여러 연쇄 효과가 같은 기물을 죽여도 최초 호출만 성공한다.</summary>
+        public bool TryBeginDeath()
+        {
+            if (IsDeathProcessing) return false;
+
+            IsDeathProcessing = true;
+            return true;
+        }
+
         [Header("Board State")]
         [Tooltip("x/z는 격자 좌표(0~7), y는 모델 표시용 높이값이며 이동/공격 거리 계산에는 쓰이지 않는다.")]
         public Vector3Int pos;
@@ -62,8 +78,24 @@ namespace _Scripts.LDY
                 return;
             }
 
-            WillType = willType;
+            WillType = NormalizeWillForTeam(willType);
             IsWillChosen = true;
+        }
+
+        /// <summary>
+        /// 적 기물에는 계승을 허용하지 않는다.
+        /// 카드 기본값·스테이지 오버라이드·씬 직접 배치가 모두 이 규칙을 공유한다.
+        /// </summary>
+        private LSO_WillType NormalizeWillForTeam(LSO_WillType willType)
+        {
+            return team == LDY_Team.Enemy && willType == LSO_WillType.Succession
+                ? LSO_WillType.None
+                : willType;
+        }
+
+        private void NormalizeCurrentWillForTeam()
+        {
+            WillType = NormalizeWillForTeam(WillType);
         }
         
         /// <summary>
@@ -138,9 +170,10 @@ namespace _Scripts.LDY
 
         private void Awake()
         {
-CacheComponents();
+            NormalizeCurrentWillForTeam();
+            CacheComponents();
             DLJ_PieceTeamMaterial.Install(this);
-Init();
+            Init();
         }
 
         private void OnEnable()
@@ -181,12 +214,12 @@ Init();
 
             data = card.Animal;
 
+            team = ownerTeam;
+
             // 태어날 때부터 유효한 유언을 갖게 한다.
             // 플레이어가 소환한 기물은 곧바로 선택 UI 결과가 이 값을 덮어쓴다.
             // 적 기물이나 스테이지 초기 배치는 이 값을 그대로 쓴다.
-            WillType = card.DefaultWill;
-
-            team = ownerTeam;
+            WillType = NormalizeWillForTeam(card.DefaultWill);
 
             CacheComponents();
             Init();

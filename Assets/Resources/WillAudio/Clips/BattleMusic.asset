@@ -20,4 +20,4 @@ MonoBehaviour:
   volume: 0.28
   pitch: 1
   startTime: 0
-  endTime: 0
+  endTime: 1000000

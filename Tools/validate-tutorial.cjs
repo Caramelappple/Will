@@ -9,6 +9,9 @@ assert.equal(new Set(ids).size,ids.length,'Scene file IDs must be unique');
 const director=blocks.find(b=>b.includes('LSO_TutorialDirector\n'));
 const chapterIds=[...director.match(/  chapters:\n([\s\S]*?)  banner:/)[1].matchAll(/guid: (\w+)/g)].map(m=>m[1]);
 assert.equal(chapterIds.length,5);
+const progression=blocks.find(b=>b.includes('LSO_StageProgression\n'));
+const stageChapterId=progression.match(/  chapters:\n  - \{fileID: 11400000, guid: (\w+)/)[1];
+assert.equal(stageChapterId,'d3fcf54f2a0661670271c82ba3a2fe78','Tutorial scene must start with TutorialBattleChapter');
 const shotBlock=blocks.find(b=>b.includes('LSO_CameraDirector\n'));
 const shots=new Map([...shotBlock.matchAll(/  - id: (\S+)\n    camera: \{fileID: (\d+)\}/g)].map(m=>[m[1],m[2]]));
 for(const id of shots.values())assert(ids.includes(id),'Camera must resolve: '+id);
@@ -23,7 +26,7 @@ for(const id of chapterIds){
   if(gate.includes('LSO_GatePractice')){
    practices++;assert(s.includes('gateTimeout: 0'),'Practice must not auto-pass');
    const condition=+gate.match(/  condition: (\d+)/)[1];
-   const masks={1:2,2:12,3:20,4:64,5:64,9:256,10:256,11:256};
+   const masks={1:2,2:12,3:20,4:512,5:64,7:32,9:256,10:256,11:256};
    if(masks[condition])assert.equal(allowed&masks[condition],masks[condition],'Required action locked: '+p);
    if([1,2].includes(condition)){
     const tile=gate.match(/  tile: (.+)/)[1];assert(s.includes('  - '+tile),'Gate and guide must use the same tile');
@@ -35,9 +38,9 @@ for(const id of chapterIds){
 }
 assert.equal(steps,51); console.log(`PASS: ${steps} steps, 5 chapters, ${practices} result gates; camera references, allowed actions, guide/gate tiles and scene IDs.`);
 const animal=read(root+'/TutorialPlayerAnimal.asset');
-assert(animal.includes('  cost: 1'));assert(animal.includes('  moveRange: 1'));assert(animal.includes('  range: 0'));
+assert(animal.includes('  cost: 1'));assert(animal.includes('  moveRange: 1'));assert(animal.includes('  range: 1'));
 assert.equal(1+1+1+1+1,5);
-for(const [from,to] of [[[2,2],[3,3]],[[4,2],[4,3]]])assert(Math.max(...from.map((x,i)=>Math.abs(x-to[i])))<=1);
+for(const [from,to] of [[[2,2],[3,3]],[[3,2],[4,3]]])assert(Math.max(...from.map((x,i)=>Math.abs(x-to[i])))<=1);
 for(const tile of [[3,3],[4,4],[5,4]])assert(Math.max(Math.abs(tile[0]-4),Math.abs(tile[1]-3))<=1);
-console.log('PASS: practice movement, melee attack, 5 AP budget and all remaining pieces within Rage range.');
+console.log('PASS: practice movement, attack reach, 5 AP budget and all remaining pieces within Rage range.');
 

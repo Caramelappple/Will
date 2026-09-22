@@ -19,6 +19,9 @@ namespace _Scripts.LSO.Ability.Catalog
                  "예: 옹골참, 피의 갈증")]
         public string displayName;
 
+        [Tooltip("화면에 띄울 영문 이름. 비우면 enum 이름이 그대로 나온다.")]
+        public string englishName;
+
         [Tooltip("무슨 일이 일어나는지 한두 문장으로.\n" +
                  "\n" +
                  "숫자를 적을 때는 코드의 실제 값과 맞출 것. 여기는 표시용이라\n" +
@@ -71,6 +74,9 @@ namespace _Scripts.LSO.Ability.Catalog
         /// <summary>이름이 비어 있으면 enum 이름으로 대신한다.</summary>
         public string ResolvedName =>
             string.IsNullOrWhiteSpace(displayName) ? type.ToString() : displayName;
+
+        public string ResolvedEnglishName =>
+            string.IsNullOrWhiteSpace(englishName) ? type.ToString() : englishName;
 
         /// <summary>표시할 만한 알맹이가 있는지. 자리만 잡아둔 빈 줄을 걸러낸다.</summary>
         public bool HasText =>

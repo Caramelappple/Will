@@ -283,10 +283,18 @@ namespace _Scripts.LDY
             finally
             {
                 _enemyRoutine = null;
-                _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnChange);
-                CurrentTurn = LDY_Team.Player;
-                actionPoints.ResetPoints();
-                OnTurnChanged?.Invoke(CurrentTurn);
+
+                // 마지막 아군의 유언으로 마지막 적까지 죽은 경우, 실제 클리어 연출은
+                // 사망 애니메이션을 기다리는 동안에도 이미 전투 종료가 확정돼 있다.
+                // 이때 플레이어 턴을 열면 코스트와 손패가 다시 채워진 직후 판이 뒤집힌다.
+                if (!KTH_GameEndManager.IsBattleEnding)
+                {
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnChange);
+                    CurrentTurn = LDY_Team.Player;
+                    actionPoints.ResetPoints();
+                    OnTurnChanged?.Invoke(CurrentTurn);
+                }
+
                 _isProcessingTurn = false;
             }
         }

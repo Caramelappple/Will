@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -99,7 +100,33 @@ namespace _Scripts.LSO.UI.Transition
 
             float coverStart = Time.unscaledTime;
 
-            AsyncOperation operation = loadOperation();
+            AsyncOperation operation = null;
+            Exception loadError = null;
+
+            try
+            {
+                operation = loadOperation();
+            }
+            catch (Exception exception)
+            {
+                loadError = exception;
+            }
+
+            if (loadError != null || operation == null)
+            {
+                if (loadError != null)
+                    Debug.LogException(loadError, this);
+                else
+                    Debug.LogError("LSO_SceneLoader: 씬 로드 작업을 시작하지 못했습니다.", this);
+
+                // 잘못된 씬 이름 등의 오류가 나도 검은 화면과 입력 잠금에 갇히지 않는다.
+                if (fader != null)
+                    yield return fader.Reveal();
+
+                IsLoading = false;
+                yield break;
+            }
+
             while (operation != null && !operation.isDone)
                 yield return null;
 

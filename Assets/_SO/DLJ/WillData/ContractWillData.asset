@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ContractWillData
   m_EditorClassIdentifier: Assembly-CSharp::DLJ_ContractWillDataSO
   displayName: "\uACC4\uC57D"
-  description: "\uC8FD\uC740 \uAE30\uBB3C\uC758 \uCF54\uC2A4\uD2B8\uB97C \uC808\uBC18\uC744
-    \uB3CC\uB824\uBC1B\uB294\uB2E4."
+  englishName: Contract
+  description: "대상 기물의 코스트를 절반을 돌려받습니다."
   icon: {fileID: 21300000, guid: 1cb1abf179b32e3418e7a303ab208167, type: 3}
   flameColor: {r: 2, g: 1.6033211, b: 0, a: 1}
   effectPrefab: {fileID: 0}

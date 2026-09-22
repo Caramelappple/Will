@@ -1,6 +1,8 @@
 using _Scripts.LDY;
 using _Scripts.LDY.Stage;
 using _Scripts.LSO.HealthSystem.Data;
+using _Scripts.LSO.Interfaces;
+using _Scripts.LSO.Manager;
 using _Scripts.LSO.Stage;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ using UnityEngine.Events;
 ///     **양초가 다 닳으면** 진다(DLJ_PlayerHealth). 기물을 다 잃어도
 ///     양초가 남아 있으면 계속한다.
 /// </summary>
-public class KTH_GameEndManager : MonoBehaviour
+public class KTH_GameEndManager : MonoBehaviour, LSO_IOnAnimalDead
 {
     private readonly List<LDY_Animal> _enemies = new();
     private readonly List<LDY_Animal> _allies = new();
@@ -37,6 +39,12 @@ public class KTH_GameEndManager : MonoBehaviour
     /// </summary>
     public static bool IsBattleOver { get; private set; }
 
+    /// <summary>
+    /// 마지막 적의 사망 또는 플레이어 패배가 확정되어 새 턴을 시작하면 안 되는 상태.
+    /// 실제 클리어 처리는 사망 연출을 기다리므로 IsBattleOver보다 먼저 켜질 수 있다.
+    /// </summary>
+    public static bool IsBattleEnding { get; private set; }
+
     private bool _isGameEnded
     {
         get => IsBattleOver;
@@ -45,6 +53,7 @@ public class KTH_GameEndManager : MonoBehaviour
 
     private Coroutine _enemyClearCheckCoroutine;
     private Coroutine _allyDefeatCheckCoroutine;
+    private GameEventDispatcher _eventDispatcher;
 
     [Header("턴 매니저 참조")]
     [SerializeField] private LDY_TurnManager turnManager;
@@ -81,8 +90,16 @@ public class KTH_GameEndManager : MonoBehaviour
         // (Enter Play Mode Options 로 도메인 재로드를 끄면 특히 그렇다)
         // 여기서 한 번 지워야 새 판이 끝난 판으로 시작하지 않는다.
         _isGameEnded = false;
+        IsBattleEnding = false;
 
         SubscribeStageDirector();
+
+        // 피해 없이 죽는 경로(개복치 돌연사 등)도 승리 판정이 알아야 한다.
+        // Health.OnDamage만 들으면 마지막 적이 직접 사망했을 때 재검사가 오지 않는다.
+        _eventDispatcher = GameManager.Instance != null
+            ? GameManager.Instance.EventDispatcher
+            : null;
+        _eventDispatcher?.Register(this);
 
         RegisterEnemies();
         RegisterAllies();
@@ -106,6 +123,9 @@ public class KTH_GameEndManager : MonoBehaviour
     private void OnDestroy()
     {
         StopPendingChecks();
+
+        _eventDispatcher?.Unregister(this);
+        _eventDispatcher = null;
 
         if (turnManager != null)
         {
@@ -185,6 +205,7 @@ public class KTH_GameEndManager : MonoBehaviour
         UnregisterAllies();
 
         _isGameEnded = false;
+        IsBattleEnding = false;
 
         RegisterEnemies();
         RegisterAllies();
@@ -371,6 +392,29 @@ public class KTH_GameEndManager : MonoBehaviour
         if (_isGameEnded)
             return;
 
+        RequestEnemyClearCheck();
+    }
+
+    /// <summary>
+    /// 체력 피해가 아닌 공통 사망 창구로 죽은 기물도 받는다.
+    /// 개복치 돌연사처럼 Health.OnDamage가 발생하지 않는 마지막 적을 놓치지 않는다.
+    /// </summary>
+    public void OnAnimalDead(LDY_Animal animal)
+    {
+        if (_isGameEnded || animal == null || animal.team != LDY_Team.Enemy)
+            return;
+
+        // 실제 클리어 연출은 아래 비동기 검사에서 사망 연출까지 기다린다.
+        // 다만 마지막 적의 죽음 자체는 이미 확정됐으므로, 적 턴 종료가 새 플레이어 턴을
+        // 열어 코스트·손패를 지급하지 않도록 즉시 표시한다.
+        if (AllDead(_enemies, out int checkedCount) && checkedCount > 0)
+            IsBattleEnding = true;
+
+        RequestEnemyClearCheck();
+    }
+
+    private void RequestEnemyClearCheck()
+    {
         if (_enemyClearCheckCoroutine != null)
         {
             StopCoroutine(_enemyClearCheckCoroutine);
@@ -386,8 +430,20 @@ public class KTH_GameEndManager : MonoBehaviour
     {
         yield return null;
 
+        float waitUntil = Time.unscaledTime + deathAnimationWaitTimeout;
+
         while (HasPlayingDeathAnimation(_enemies))
+        {
+            if (Time.unscaledTime >= waitUntil)
+            {
+                Debug.LogWarning(
+                    "[KTH_GameEndManager] 적 사망 연출이 끝나지 않아 승리 판정을 계속 진행합니다.",
+                    this);
+                break;
+            }
+
             yield return null;
+        }
 
         _enemyClearCheckCoroutine = null;
 
@@ -519,7 +575,9 @@ public class KTH_GameEndManager : MonoBehaviour
 
             checkedCount++;
 
-            if (!animal.health.IsDestroyed) return false;
+            // 돌연사는 Health 값을 깎지 않고 공통 사망 서비스로 들어온다.
+            // 이 경우 IsDestroyed는 false여도 보드에서는 이미 제거된 확정 사망이다.
+            if (!animal.IsDeathProcessing && !animal.health.IsDestroyed) return false;
         }
 
         return true;
@@ -584,6 +642,7 @@ public class KTH_GameEndManager : MonoBehaviour
     /// <summary>마지막 양초가 꺼졌다. 연출이 끝나면 패배로 넘긴다.</summary>
     private void HandlePlayerDeath()
     {
+        IsBattleEnding = true;
         CheckGameOver();
     }
 
@@ -630,6 +689,7 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
 
         _isGameEnded = true;
+        IsBattleEnding = true;
 
         if (_enemyClearCheckCoroutine != null)
         {
@@ -711,6 +771,7 @@ public class KTH_GameEndManager : MonoBehaviour
             return;
 
         _isGameEnded = true;
+        IsBattleEnding = true;
 
         Debug.Log(
             "[KTH_GameEndManager] ★ 모든 Ally가 사망했습니다. 스테이지 패배!"

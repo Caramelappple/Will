@@ -19,6 +19,10 @@ namespace _Scripts.LSO.Tutorial
         [SerializeField] private TMP_Text label;
         [SerializeField] private CanvasGroup group;
 
+        [Tooltip("안내문 뒤에 표시할 배경 오브젝트. Show 때 켜지고 페이드아웃이 끝나면 꺼집니다. " +
+                 "텍스트와 함께 페이드하려면 같은 CanvasGroup 아래의 별도 오브젝트를 연결하세요.")]
+        [SerializeField] private GameObject background;
+
         [Header("연출")]
         [SerializeField, Min(0f)] private float fadeDuration = 0.2f;
 
@@ -32,13 +36,35 @@ namespace _Scripts.LSO.Tutorial
             if (label == null)
                 Debug.LogError($"{name}: TMP_Text 가 없어 안내문을 띄울 수 없습니다.", this);
 
+            if (background == gameObject ||
+                (background != null && transform.IsChildOf(background.transform)))
+            {
+                Debug.LogError(
+                    $"{name}: Background에는 배너 자신이나 배너의 부모를 연결할 수 없습니다. " +
+                    "꺼도 이 컴포넌트가 남아 있을 별도 자식/형제 오브젝트를 연결하세요.", this);
+                background = null;
+            }
+
             SetAlpha(0f);
+            SetBackgroundVisible(false);
+        }
+
+        private void OnDisable()
+        {
+            if (_fade != null) StopCoroutine(_fade);
+            _fade = null;
+            _skipping = false;
+
+            SetAlpha(0f);
+            SetBackgroundVisible(false);
         }
 
         /// <summary>한 줄 띄운다. 이미 떠 있으면 글자만 바꾼다.</summary>
         public void Show(string line)
         {
             if (label == null) return;
+
+            SetBackgroundVisible(true);
 
             // 건너뛰려고 누르고 있는 중에 걸음이 넘어갈 수 있다.
             // 그때 글자를 덮으면 "건너뛰는 중..." 이 사라지고 흐려진 채로 대사가 뜬다.
@@ -118,9 +144,12 @@ namespace _Scripts.LSO.Tutorial
 
         private void Fade(float target)
         {
+            if (target > 0f) SetBackgroundVisible(true);
+
             if (group == null)
             {
                 SetAlpha(target);
+                if (target <= 0f) SetBackgroundVisible(false);
                 return;
             }
 
@@ -129,6 +158,7 @@ namespace _Scripts.LSO.Tutorial
             if (!isActiveAndEnabled || fadeDuration <= 0f)
             {
                 SetAlpha(target);
+                if (target <= 0f) SetBackgroundVisible(false);
                 return;
             }
 
@@ -153,12 +183,20 @@ namespace _Scripts.LSO.Tutorial
 
             SetAlpha(target);
 
+            if (target <= 0f) SetBackgroundVisible(false);
+
             _fade = null;
         }
 
         private void SetAlpha(float value)
         {
             if (group != null) group.alpha = value;
+        }
+
+        private void SetBackgroundVisible(bool visible)
+        {
+            if (background != null && background.activeSelf != visible)
+                background.SetActive(visible);
         }
     }
 }

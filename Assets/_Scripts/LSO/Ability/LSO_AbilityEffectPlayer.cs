@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using _Scripts.LDY.Stage;
 using _Scripts.LSO.Ability.Catalog;
+using _Scripts.LSO.Stage;
 using UnityEngine;
 
 namespace _Scripts.LSO.Ability
@@ -40,12 +42,21 @@ namespace _Scripts.LSO.Ability
         [Tooltip("프리팹에 파티클이 하나도 없을 때 얼마나 두고 치울지(초).")]
         [SerializeField, Min(0.1f)] private float fallbackLifetime = 2f;
 
+        [Tooltip("다음 스테이지의 판 복귀가 끝날 때까지 특성 이펙트를 보류할 연출 관리자.\n" +
+                 "비워두면 씬에서 자동으로 찾는다.")]
+        [SerializeField] private LSO_StageIntroDirector stageIntro;
+
         [Header("진단")]
         [Tooltip("켜면 어떤 특성이 발동했고 이펙트를 띄웠는지 찍는다.\n" +
                  "사전에 프리팹이 비어 있는 특성도 여기서 드러난다.")]
         [SerializeField] private bool logSteps;
 
         private LSO_AbilityCatalogSO _catalog;
+
+        // 다음 판 기물은 보드가 뒤집힌 동안 잠깐 앞면 좌표에 배치된다.
+        // 이때 월드 공간 이펙트를 바로 만들면 보드만 다시 돌아간 뒤 이펙트가 홀로 남아
+        // 판을 뚫고 나오는 것처럼 보인다. 판 복귀가 끝날 때 한꺼번에 재생한다.
+        private readonly List<LSO_AbilityFired> _pendingStageIntroEffects = new();
 
         /// <summary>지금 떠 있는 것들. 오래된 것이 앞이다.</summary>
         private readonly List<Live> _live = new();
@@ -65,6 +76,7 @@ namespace _Scripts.LSO.Ability
         private void Awake()
         {
             if (parent == null) parent = transform;
+            if (stageIntro == null) stageIntro = FindAnyObjectByType<LSO_StageIntroDirector>();
 
             _catalog = Resources.Load<LSO_AbilityCatalogSO>(LSO_AbilityCatalogSO.ResourcePath);
 
@@ -80,6 +92,13 @@ namespace _Scripts.LSO.Ability
         {
             LSO_AbilitySignal.Fired -= HandleFired;
             LSO_AbilitySignal.Fired += HandleFired;
+
+            if (stageIntro == null) stageIntro = FindAnyObjectByType<LSO_StageIntroDirector>();
+            if (stageIntro != null)
+            {
+                stageIntro.Ready -= HandleStageReady;
+                stageIntro.Ready += HandleStageReady;
+            }
         }
 
         private void OnDisable()
@@ -87,6 +106,10 @@ namespace _Scripts.LSO.Ability
             // 정적 이벤트라 반드시 끊는다. 안 끊으면 씬을 넘긴 뒤에도
             // 파괴된 이 컴포넌트가 불려 나온다.
             LSO_AbilitySignal.Fired -= HandleFired;
+
+            if (stageIntro != null) stageIntro.Ready -= HandleStageReady;
+
+            _pendingStageIntroEffects.Clear();
 
             ClearAll();
         }
@@ -112,6 +135,44 @@ namespace _Scripts.LSO.Ability
         }
 
         private void HandleFired(LSO_AbilityFired fired)
+        {
+            if (!fired.HasPosition) return;
+
+            if (stageIntro != null && stageIntro.IsPlaying)
+            {
+                _pendingStageIntroEffects.Add(fired);
+                return;
+            }
+
+            PlayFired(fired);
+        }
+
+        private void HandleStageReady(LDY_StageSO stage)
+        {
+            if (_pendingStageIntroEffects.Count == 0) return;
+
+            for (int i = 0; i < _pendingStageIntroEffects.Count; i++)
+            {
+                LSO_AbilityFired fired = _pendingStageIntroEffects[i];
+
+                // 배치 당시 저장한 월드 좌표가 아니라, 판이 완전히 돌아온 뒤의 실제 기물
+                // 좌표를 다시 담는다. 기물이 이미 사라졌다면 원래 저장한 좌표를 유지한다.
+                if (fired.At != null)
+                {
+                    fired = new LSO_AbilityFired(
+                        fired.Type,
+                        fired.Animal,
+                        fired.At,
+                        fired.EffectVariant);
+                }
+
+                PlayFired(fired);
+            }
+
+            _pendingStageIntroEffects.Clear();
+        }
+
+        private void PlayFired(LSO_AbilityFired fired)
         {
             if (!fired.HasPosition) return;
 

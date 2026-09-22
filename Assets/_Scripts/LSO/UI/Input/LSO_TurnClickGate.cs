@@ -40,6 +40,10 @@ namespace _Scripts.LSO.UI.Input
         [Tooltip("Not My Turn 이 어느 턴을 뜻하는지. 이 턴이 아니면 막는다.")]
         [SerializeField] private LDY_Team allowedTurn = LDY_Team.Player;
 
+        [Tooltip("튜토리얼 중 이 클릭 대상에 필요한 권한.\n" +
+                 "None이면 튜토리얼이 도는 동안 항상 막고, 값을 지정하면 현재 단계가 그 권한을 허용할 때만 연다.")]
+        [SerializeField] private LSO_TutorialAction tutorialAction = LSO_TutorialAction.None;
+
         [Header("기타")]
         [Tooltip("켜면 콜라이더까지 끈다. 그러면 뒤에 있는 것이 대신 눌린다.\n" +
                  "보통은 꺼둔다 — 눌러도 아무 일이 없는 편이 예측 가능하다.")]
@@ -183,7 +187,10 @@ namespace _Scripts.LSO.UI.Input
                     return DLJ_SuccessionSystem.IsWaitingForSuccessionTarget;
 
                 case LSO_ClickBlockCondition.TutorialPlaying:
-                    return LSO_TutorialDirector.IsRunning;
+                    if (!LSO_TutorialDirector.IsRunning) return false;
+                    if (tutorialAction == LSO_TutorialAction.None) return true;
+
+                    return !LSO_TutorialLock.Allows(tutorialAction);
 
                 default:
                     return false;

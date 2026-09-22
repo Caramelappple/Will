@@ -1782,6 +1782,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: -1223553366412812245}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7559319078413147029}
+    - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4820894512985323571}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: daef46bc09db17143b8053a196891e72, type: 3}
 --- !u!4 &1467006278604692247 stripped
 Transform:
@@ -1937,3 +1943,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.Candle.LSO_CardWill
   reveal: {fileID: 437059720607010697}
+--- !u!114 &7559319078413147029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea44f9e8d868f1a4091a28ab32a40086, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Input.LSO_ButtonHoverHandler
+  respectInteractable: 1
+  exitGraceSeconds: 0.08
+--- !u!114 &4820894512985323571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7166954046189101145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf3514004b4d5543b0ba6c1f4afe46c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.UI.Effect.LSO_HoverCursorEffect
+  interactableState: 2
+  blockedState: 1
+  followClickGate: 1
+  clickHandler: {fileID: 1034236074829877563}

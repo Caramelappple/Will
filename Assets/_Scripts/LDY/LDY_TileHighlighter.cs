@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Scripts.LDY
 {
@@ -13,50 +14,94 @@ namespace _Scripts.LDY
         [SerializeField] private GameObject moveHighlightPrefab;
         [SerializeField] private GameObject attackHighlightPrefab;
 
-        // 겹칠 때 이동 하이라이트가 위로 보이도록 공격보다 살짝 더 높게 띄운다. 둘 다 타일 표면(y=0)보다는 위.
-        [SerializeField] private float attackHeightOffset = 0.05f;
-        [SerializeField] private float moveHeightOffset = 0.08f;
+        // 종류나 생성 순서와 관계없이 모든 하이라이트를 같은 위치에 겹쳐 표시한다.
+        [FormerlySerializedAs("attackHeightOffset")]
+        [SerializeField] private float highlightHeightOffset = 0.05f;
 
-        private readonly Dictionary<object, List<GameObject>> _highlightsByOwner = new Dictionary<object, List<GameObject>>();
+        private sealed class Marks
+        {
+            public readonly List<GameObject> Objects = new List<GameObject>();
+        }
+
+        private readonly Dictionary<object, Marks> _highlightsByOwner = new Dictionary<object, Marks>();
 
         public void ShowMoveHighlights(object owner, IEnumerable<Vector3Int> tiles)
         {
-            Show(owner, tiles, moveHighlightPrefab, moveHeightOffset);
+            Show(owner, tiles, moveHighlightPrefab);
         }
 
         public void ShowAttackHighlights(object owner, IEnumerable<Vector3Int> tiles)
         {
-            Show(owner, tiles, attackHighlightPrefab, attackHeightOffset);
+            Show(owner, tiles, attackHighlightPrefab);
+        }
+
+        /// <summary>
+        /// 공격 표시의 형태는 유지하면서 이 호출로 만든 인스턴스에만 색을 덮어쓴다.
+        /// 공유 머티리얼은 바꾸지 않으므로 일반 공격 하이라이트 색에는 영향을 주지 않는다.
+        /// </summary>
+        public void ShowColoredAttackHighlights(
+            object owner, IEnumerable<Vector3Int> tiles, Color color)
+        {
+            Show(owner, tiles, attackHighlightPrefab, color);
         }
 
         // owner가 이전에 띄운 하이라이트만 지운다. 다른 owner가 같은 컴포넌트를 공유해도 침범하지 않는다.
         public void ClearHighlights(object owner)
         {
-            if (owner == null || !_highlightsByOwner.TryGetValue(owner, out var list)) return;
+            if (owner == null || !_highlightsByOwner.TryGetValue(owner, out var marks)) return;
 
-            foreach (var go in list)
+            foreach (var go in marks.Objects)
             {
                 if (go != null)
                     Destroy(go);
             }
-            list.Clear();
+
+            marks.Objects.Clear();
         }
 
-        private void Show(object owner, IEnumerable<Vector3Int> tiles, GameObject prefab, float heightOffset)
+        private void Show(
+            object owner, IEnumerable<Vector3Int> tiles, GameObject prefab, Color? colorOverride = null)
         {
             if (owner == null || prefab == null || board == null || tiles == null) return;
 
-            if (!_highlightsByOwner.TryGetValue(owner, out var list))
+            if (!_highlightsByOwner.TryGetValue(owner, out var marks))
             {
-                list = new List<GameObject>();
-                _highlightsByOwner[owner] = list;
+                marks = new Marks();
+                _highlightsByOwner[owner] = marks;
             }
 
             foreach (var tile in tiles)
             {
-                var worldPos = board.GridToWorld(tile) + Vector3.up * heightOffset;
+                var worldPos = board.GridToWorld(tile) + Vector3.up * highlightHeightOffset;
                 var go = Instantiate(prefab, worldPos, Quaternion.identity, transform);
-                list.Add(go);
+
+                if (colorOverride.HasValue)
+                    ApplyColor(go, colorOverride.Value);
+
+                marks.Objects.Add(go);
+            }
+        }
+
+        private static void ApplyColor(GameObject instance, Color color)
+        {
+            if (instance == null) return;
+
+            Color emission = color * 1.5f;
+            emission.a = color.a;
+
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                Material material = renderer.sharedMaterial;
+                if (material == null) continue;
+
+                var block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block);
+
+                if (material.HasProperty("_BaseColor")) block.SetColor("_BaseColor", color);
+                if (material.HasProperty("_Color")) block.SetColor("_Color", color);
+                if (material.HasProperty("_EmissionColor")) block.SetColor("_EmissionColor", emission);
+
+                renderer.SetPropertyBlock(block);
             }
         }
     }

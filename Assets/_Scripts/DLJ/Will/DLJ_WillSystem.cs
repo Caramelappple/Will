@@ -53,6 +53,9 @@ public static class DLJ_WillRuntime
         }
 
         GameManager gameManager = GameManager.Instance;
+        LDY_BoardManager resolvedBoard = legacyBoard != null
+            ? legacyBoard
+            : gameManager.Board;
         LDY_TurnManager turnManager = gameManager.TurnManager;
         LDY_AttackSystem attackSystem =
             Object.FindFirstObjectByType<LDY_AttackSystem>();
@@ -63,7 +66,9 @@ public static class DLJ_WillRuntime
         {
             owner = animal.gameObject,
             animal = animal,
-            board = gameManager.Board,
+            // 사망 처리에서 실제로 제거한 보드를 우선 사용한다.
+            // GameManager 등록이 늦거나 테스트 씬 배선이 달라도 죽은 기물을 장면 검색으로 되살리지 않는다.
+            board = resolvedBoard,
             turnManager = turnManager,
             attackSystem = attackSystem,
             actionPoints = actionPoints,
