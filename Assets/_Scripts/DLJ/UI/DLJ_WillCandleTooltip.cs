@@ -21,6 +21,17 @@ public sealed class DLJ_WillCandleTooltip : DLJ_WorldValueTooltip
         enabled = false;
     }
 
+    /// <summary>
+    /// 손을 올린 채로 유언을 바꿔도 잉크를 처음부터 다시 번지게 하지 않는다.
+    ///
+    /// 유언은 숫자키·휠로 연달아 바뀐다. 바뀔 때마다 0.65초짜리 번짐을 새로 시작하면
+    /// 끝까지 번지기 전에 다음 것이 들어와서, 글씨가 늘 번지다 만 상태로 보인다.
+    /// 이미 떠 있는 동안에는 글씨만 갈아 끼우는 편이 읽기 좋다.
+    ///
+    /// 처음 뜰 때의 번짐은 RevealInkOnShow 가 맡으므로 그대로 나온다.
+    /// </summary>
+    protected override bool ReplayInkOnValueChange => false;
+
     protected override bool TryGetText(out string text)
     {
         text = null;

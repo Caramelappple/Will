@@ -72,7 +72,15 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
                     displayedText = text;
                     displayingText = true;
                     label.text = text;
-                    inkProgress = 0f;
+
+                    // 아래 숫자 경로와 같은 규칙을 쓴다. 여기만 조건 없이 0으로
+                    // 되돌리고 있었는데, 그러면 떠 있는 동안 내용이 바뀔 때마다
+                    // 번짐이 처음부터 다시 시작된다. 연달아 바꾸면 매번 초기화돼서
+                    // 글씨가 번지다 만 상태로만 보인다.
+                    //
+                    // 처음 뜰 때의 번짐은 여기가 아니라 아래 entering 줄이 맡으므로,
+                    // 이걸 끈 툴팁도 등장 연출은 그대로 나온다.
+                    if (ReplayInkOnValueChange) inkProgress = 0f;
                 }
             }
             else if (displayingText || value != displayedValue || maximum != displayedMaximum)
