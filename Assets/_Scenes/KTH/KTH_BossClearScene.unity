@@ -486,6 +486,14 @@ PrefabInstance:
 
         Clear'
       objectReference: {fileID: 0}
+    - target: {fileID: 2332628258219102646, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4338229189987416507, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3379796219470819302, guid: f5dd52861e339714a96ded0af070b61c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

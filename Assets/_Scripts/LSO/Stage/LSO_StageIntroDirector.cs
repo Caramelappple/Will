@@ -224,7 +224,16 @@ namespace _Scripts.LSO.Stage
         /// </summary>
         public void PlayNext()
         {
-            HandleRewardFinished(null);
+            AdvanceAndPlay();
+        }
+
+        /// <summary>
+        /// 다음 판을 세우되, 마지막 판이었다면 false를 돌려준다.
+        /// 런 종료 뒤 씬 전환까지 책임지는 상위 흐름이 사용한다.
+        /// </summary>
+        public bool TryPlayNext()
+        {
+            return AdvanceAndPlay();
         }
 
         /// <summary>연출을 끊는다. 판은 돌던 자리에 남으므로 부르는 쪽이 정리할 것.</summary>
@@ -243,9 +252,18 @@ namespace _Scripts.LSO.Stage
         /// 상자가 다 닫혔다. 여기가 "클리어 조건을 만족했다"의 끝이다.
         ///
         /// 고르는 화면을 거치지 않고 곧바로 다음 칸으로 넘어간다.
-        /// 진행이 없으면 null이 넘어가고, Resolve가 지금 스테이지를 다시 세운다.
+        /// 마지막 진행이면 현재 스테이지를 다시 세우지 않고 런 종료 이벤트만 보낸다.
         /// </summary>
         private void HandleRewardFinished(LSO_RewardOption option)
+        {
+            AdvanceAndPlay();
+        }
+
+        /// <summary>
+        /// 진행을 한 칸 옮기고 다음 판을 세운다.
+        /// 반환값이 false면 마지막 스테이지까지 끝난 것이므로 호출한 쪽은 엔딩으로 간다.
+        /// </summary>
+        private bool AdvanceAndPlay()
         {
             LSO_StageProgression progression = LSO_StageProgression.HasInstance
                 ? LSO_StageProgression.Instance
@@ -254,7 +272,7 @@ namespace _Scripts.LSO.Stage
             if (progression == null)
             {
                 Play(null);
-                return;
+                return true;
             }
 
             LDY_StageSO next = progression.Advance();
@@ -266,9 +284,11 @@ namespace _Scripts.LSO.Stage
                 Log("런이 끝나 다음 스테이지가 없습니다.");
 
                 onRunFinished?.Invoke();
+                return false;
             }
 
             Play(next);
+            return true;
         }
 
         private IEnumerator Co_Play(LDY_StageSO stage)

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY;
+using _Scripts.LSO.Ability;
 using _Scripts.LSO.Will;
 using DG.Tweening;
 using Unity.Cinemachine;
@@ -321,9 +322,7 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
 
         successionSource = this;
         successionTeam = animal.team;
-        int sourceHealth = animal.health != null
-            ? animal.health.MaxValue
-            : animal.data.maxHealth;
+        int sourceHealth = ResolveSuccessionHealth(animal);
         int sourceAttack = animal.baseAtk;
         successionHealthBonus = CalculateInheritedStat(sourceHealth);
         successionAttackBonus = CalculateInheritedStat(sourceAttack);
@@ -395,6 +394,48 @@ internal sealed class DLJ_SuccessionWill : LSO_IWill, DLJ_IDeferredDestruction
                !target.IsDeathProcessing &&
                target.health != null &&
                !target.health.IsDestroyed;
+    }
+
+    /// <summary>
+    /// 계승 계산에 쓸 체력.
+    ///
+    /// 보통은 죽는 기물의 최대 체력이다. 다만 특성이 다른 값을 내놓으면 그쪽을 쓴다 —
+    /// 개복치처럼 <b>최대 체력이 단단함을 뜻하지 않는</b> 기물이 있기 때문이다.
+    /// (LSO_ISuccessionHealth 주석 참고)
+    ///
+    /// 어떤 특성이 그러는지는 여기서 알지 않는다. 특성 이름을 계승이 직접 알면
+    /// 그런 기물이 하나 늘 때마다 이 파일을 같이 고쳐야 한다.
+    ///
+    /// 여럿이 나서면 가장 낮은 값을 쓴다. 계승으로 새어 나가는 것을 막자는 쪽이
+    /// 이 장치의 취지라, 둘이 엇갈릴 때 큰 쪽을 고르면 취지와 반대가 된다.
+    /// </summary>
+    private static int ResolveSuccessionHealth(LDY_Animal animal)
+    {
+        int fallback = animal.health != null
+            ? animal.health.MaxValue
+            : animal.data.maxHealth;
+
+        IReadOnlyList<LSO_IAbility> abilities = animal.Abilities;
+
+        if (abilities == null) return fallback;
+
+        bool found = false;
+        int lowest = 0;
+
+        for (int i = 0; i < abilities.Count; i++)
+        {
+            if (abilities[i] is not LSO_ISuccessionHealth source) continue;
+
+            int value = Mathf.Max(0, source.SuccessionHealth);
+
+            if (!found || value < lowest)
+            {
+                lowest = value;
+                found = true;
+            }
+        }
+
+        return found ? lowest : fallback;
     }
 
     private int CalculateInheritedStat(int sourceStat)

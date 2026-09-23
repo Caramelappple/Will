@@ -1,7 +1,9 @@
 using System.Collections;
 using _Scripts.LDY;
+using _Scripts.LDY.Save;
 using _Scripts.LSO.Ability;
-using _Scripts.LSO.HealthSystem;
+using _Scripts.LSO.Animal.Data;
+using _Scripts.LSO.Deck.Data;
 using UnityEngine;
 using _Scripts.LSO.Interfaces;
 
@@ -9,6 +11,7 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
     LSO_IAbilityInitializable
 {
     private const int TurnsToEvolve = 5;
+    private const string EvolvedCardId = "DragonCard";
 
     private LSO_AbilityContext context;
     private int elapsedTurns;
@@ -64,10 +67,21 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
         if (owner.data == null || owner.health == null)
             return;
 
+        LSO_AnimalSO evolvedData = ResolveEvolvedData();
+        if (evolvedData == null || evolvedData.unitPrefab == null)
+        {
+            Debug.LogError(
+                $"{owner.name}: 카드 카탈로그에서 '{EvolvedCardId}'의 드래곤 데이터/프리팹을 찾지 못했습니다.",
+                owner);
+            return;
+        }
+
         isEvolved = true;
 
-        owner.health.Init(Mathf.Max(1, owner.data.maxHealth));
-        owner.StartCoroutine(ReplaceVisualWithUnitPrefab(owner));
+        owner.data = evolvedData;
+        owner.baseAtk = evolvedData.damage;
+        owner.health.Init(Mathf.Max(1, evolvedData.maxHealth));
+        owner.StartCoroutine(ReplaceVisualWithUnitPrefab(owner, evolvedData.unitPrefab));
 
         Debug.Log(
             $"<color=orange>{owner.name}: Evolve activated. " +
@@ -75,27 +89,38 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
             owner);
     }
 
-    private static IEnumerator ReplaceVisualWithUnitPrefab(LDY_Animal owner)
+    private static LSO_AnimalSO ResolveEvolvedData()
     {
-        GameObject unitPrefab = owner.data != null ? owner.data.unitPrefab : null;
-        if (unitPrefab == null)
-        {
-            Debug.LogWarning($"{owner.name}: AnimalSO unitPrefab is missing.", owner);
-            yield break;
-        }
+        LDY_CardCatalogSO catalog = Resources.Load<LDY_CardCatalogSO>(LDY_CardCatalogSO.ResourcePath);
+        LSO_CardSO card = catalog != null ? catalog.Find(EvolvedCardId) : null;
+        return card != null && card.IsValid ? card.Animal : null;
+    }
 
+    private static IEnumerator ReplaceVisualWithUnitPrefab(LDY_Animal owner, GameObject unitPrefab)
+    {
         Transform oldModel = owner.modelTransform;
         Renderer[] oldRenderers = owner.GetComponentsInChildren<Renderer>(true);
-        
-        GameObject evolvedVisual = Object.Instantiate(unitPrefab, owner.transform, false);
+
+        // 완성 기물 프리팹의 루트에는 LDY_Animal/Health/팀 머티리얼 같은 기능 컴포넌트가 있다.
+        // 그 루트를 통째로 복제한 뒤 컴포넌트를 제거하면 RequireComponent 의존성 때문에
+        // Unity가 제거를 거부한다. 교체에는 시각 계층만 필요하므로 직계 자식만 복제한다.
+        GameObject evolvedVisual = new GameObject();
         evolvedVisual.name = $"{unitPrefab.name}_EvolvedVisual";
+        evolvedVisual.transform.SetParent(owner.transform, false);
         evolvedVisual.SetActive(false);
 
-        foreach (LDY_Animal clonedAnimal in evolvedVisual.GetComponentsInChildren<LDY_Animal>(true))
-            Object.Destroy(clonedAnimal);
+        // 유닛 프리팹 루트에는 프리팹 편집 당시의 월드 좌표가 남아 있을 수 있다.
+        // 부모 지정 Instantiate는 그 값을 로컬 좌표로 보존하므로, 그대로 두면
+        // 논리 기물은 타일에 남고 드래곤 모델만 옆으로 순간 이동한다.
+        // 교체용 프리팹은 owner 아래의 시각 요소이므로 항상 기물 원점에 맞춘다.
+        Transform evolvedTransform = evolvedVisual.transform;
+        evolvedTransform.localPosition = Vector3.zero;
+        evolvedTransform.localRotation = Quaternion.identity;
+        evolvedTransform.localScale = Vector3.one;
 
-        foreach (Health clonedHealth in evolvedVisual.GetComponentsInChildren<Health>(true))
-            Object.Destroy(clonedHealth);
+        Transform prefabRoot = unitPrefab.transform;
+        for (int i = 0; i < prefabRoot.childCount; i++)
+            Object.Instantiate(prefabRoot.GetChild(i).gameObject, evolvedTransform, false);
 
         foreach (Collider clonedCollider in evolvedVisual.GetComponentsInChildren<Collider>(true))
             clonedCollider.enabled = false;
@@ -123,5 +148,8 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
 
         evolvedVisual.SetActive(true);
         owner.modelTransform = evolvedVisual.transform;
+
+        if (owner.TryGetComponent(out DLJ_PieceTeamMaterial teamMaterial))
+            teamMaterial.RebindModel();
     }
 }

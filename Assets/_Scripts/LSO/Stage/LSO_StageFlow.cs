@@ -53,6 +53,10 @@ namespace _Scripts.LSO.Stage
         [Tooltip("패배 시 이동할 씬. 기존 화면 전환 로더를 사용하므로 페이드와 입력 잠금이 함께 적용된다.")]
         [SerializeField] private string defeatSceneName = "KTH_Death Scene";
 
+        [Header("최종 클리어")]
+        [Tooltip("마지막 보상까지 받은 뒤 이동할 엔딩 크레딧 씬.")]
+        [SerializeField] private string clearSceneName = "KTH_BossClearScene";
+
         [Header("타이밍")]
         [Tooltip("보드 회전이 끝나기를 기다리는 상한(초). 멈춤 방지선이다.")]
         [SerializeField, Min(0f)] private float flipWaitTimeout = 6f;
@@ -298,8 +302,8 @@ namespace _Scripts.LSO.Stage
                 _rewardStarted = true;
 
                 // 상자가 없으면 OnFinished도 오지 않는다. 진행이 여기서 멈추지 않게 직접 넘긴다.
-                if (introDirector != null)
-                    introDirector.PlayNext();
+                if (introDirector != null && !introDirector.TryPlayNext())
+                    FinishRun();
 
                 return;
             }
@@ -399,7 +403,23 @@ namespace _Scripts.LSO.Stage
             }
 
             Log("보상 종료 — 다음 스테이지 준비");
-            introDirector.PlayNext();
+            if (!introDirector.TryPlayNext())
+                FinishRun();
+        }
+
+        /// <summary>마지막 보상까지 끝났다. 현재 판을 다시 세우지 않고 크레딧으로 이동한다.</summary>
+        private void FinishRun()
+        {
+            _clearing = false;
+            Log("런 종료 — 엔딩 크레딧으로 이동");
+
+            if (string.IsNullOrWhiteSpace(clearSceneName))
+            {
+                Debug.LogWarning($"{name}: 엔딩 크레딧 씬 이름이 비어 있어 씬을 이동하지 않습니다.", this);
+                return;
+            }
+
+            LSO_SceneLoader.Load(clearSceneName);
         }
 
         /// <summary>

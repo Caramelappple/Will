@@ -19,11 +19,29 @@ namespace _Scripts.LSO.Ability
     ///
     /// 직접 파괴하지 않고 사망 창구를 거치므로 유언과 사망 이벤트가 정상적으로 발동한다.
     /// </summary>
-    public sealed class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier
+    public sealed class LSO_Frail : LSO_IAbility, IOnTurnStart, LSO_IAbilityInitializable, LSO_IDamageModifier,
+        LSO_ISuccessionHealth
     {
         private const float DefaultDeathChance = 0.33f;
 
+        /// <summary>
+        /// 계승에는 체력 1로 친다.
+        ///
+        /// 허약을 단 기물의 큰 체력은 "단단하다"가 아니라 "맞아서는 안 죽는다"를
+        /// 적어둔 숫자다. 실제로 막는 것은 아래 ModifyIncomingDamage 이지 체력이 아니다.
+        ///
+        /// 그 숫자를 그대로 물려주면 받은 기물이 진짜로 그만큼 단단해진다 —
+        /// 개복치(체력 999)가 죽으면 계승 대상이 +333 을 받았다.
+        /// 표현용 숫자가 실제 능력으로 바뀌는 자리라 여기서 끊는다.
+        ///
+        /// 화면에 보이는 체력은 그대로다. 계승 계산에서만 이 값을 쓴다.
+        /// </summary>
+        private const int SuccessionHealthValue = 1;
+
         public float DeathChance { get; private set; } = DefaultDeathChance;
+
+        /// <inheritdoc/>
+        public int SuccessionHealth => SuccessionHealthValue;
 
         private LSO_AbilityContext _context;
 

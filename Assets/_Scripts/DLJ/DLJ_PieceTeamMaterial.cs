@@ -111,6 +111,22 @@ public sealed class DLJ_PieceTeamMaterial : MonoBehaviour
         _hasApplied = true;
     }
 
+    /// <summary>
+    /// 부화처럼 실행 중 modelTransform이 교체됐을 때 새 렌더러를 다시 연결한다.
+    /// 기존 모델에 적용했던 재질은 먼저 원복해 다른 연출의 소유권을 침범하지 않는다.
+    /// </summary>
+    public void RebindModel()
+    {
+        if (_animal == null)
+            _animal = GetComponent<LDY_Animal>();
+
+        Restore();
+        _bindings.Clear();
+        _hasApplied = false;
+        CacheRenderers();
+        Refresh();
+    }
+
     private bool IsBoss => _animal != null && _animal.GetComponent<LSO_BossPhase>() != null;
 
     private void Restore()
