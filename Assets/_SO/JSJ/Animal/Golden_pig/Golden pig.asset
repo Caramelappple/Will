@@ -24,6 +24,6 @@ MonoBehaviour:
   playerHealthPoints: 6
   moveRange: 1
   range: 0
-  abilities: 
+  abilities: 0f000000
   defaultWill: 0
   unitPrefab: {fileID: 6443649919270962688, guid: 2ec1552c249618442b87e440f6c60210, type: 3}
