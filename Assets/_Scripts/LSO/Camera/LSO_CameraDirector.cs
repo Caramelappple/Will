@@ -56,6 +56,17 @@ namespace _Scripts.LSO.Camera
         /// <summary>전환이 진행 중인지. 연출을 기다릴 때 본다.</summary>
         public bool IsBlending => brain != null && brain.IsBlending;
 
+        private bool _scriptedSequence;
+        public bool ScriptedSequence
+        {
+            get => _scriptedSequence;
+            set
+            {
+                _scriptedSequence = value;
+                if (value) StopHold();
+            }
+        }
+
         private void Awake()
         {
             if (brain == null)
@@ -117,6 +128,7 @@ namespace _Scripts.LSO.Camera
 
         private void Update()
         {
+            if (ScriptedSequence) return;
             if (returnTriggers.Count == 0) return;
 
             // 이미 기본 샷이면 돌아갈 곳이 없다.
@@ -209,7 +221,7 @@ namespace _Scripts.LSO.Camera
 
             ApplyPriorities();
 
-            if (!instant && shot.holdTime > 0f)
+            if (!instant && !ScriptedSequence && shot.holdTime > 0f)
                 _holdRoutine = StartCoroutine(Co_Hold(shot));
         }
 
@@ -283,6 +295,7 @@ namespace _Scripts.LSO.Camera
         /// </summary>
         private IEnumerator Co_Hold(LSO_CameraShot shot)
         {
+            yield return null;
             while (IsBlending)
                 yield return null;
 

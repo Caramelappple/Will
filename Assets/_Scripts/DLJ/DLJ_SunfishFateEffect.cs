@@ -31,6 +31,7 @@ public sealed class DLJ_SunfishFateEffect : MonoBehaviour
     [SerializeField] private int sortingOrder = 220;
 
     [Header("Playback")]
+    [Tooltip("실제 특성 판정이 전달된 재생 인스턴스만 시작 시 재생합니다.")]
     [SerializeField] private bool autoPlayOnStart = true;
     [SerializeField] private bool previewInEditMode = true;
     [SerializeField, Min(0.2f)] private float duration = 2.2f;
@@ -45,6 +46,7 @@ public sealed class DLJ_SunfishFateEffect : MonoBehaviour
     private float _animationScale = 1f;
     private Vector3 _animationOffset;
     private string _runtimeText;
+    private bool _playbackRequested;
 
     public string DisplayText
     {
@@ -118,7 +120,7 @@ public sealed class DLJ_SunfishFateEffect : MonoBehaviour
 
         // 기물에 붙은 컴포넌트는 설정/미리보기 원본이다. 판정 시 플레이어가
         // 독립 사본을 생성한다. 기물 위 원본까지 재생하면 두 연출이 겹친다.
-        if (GetComponent<LDY_Animal>() != null)
+        if (GetComponentInParent<LDY_Animal>() != null)
         {
             SetVisible(false);
             return;
@@ -128,7 +130,8 @@ public sealed class DLJ_SunfishFateEffect : MonoBehaviour
         SetRuntimeFlags();
         SetVisible(false);
 
-        if (autoPlayOnStart)
+        // 실제 판정이 전달된 독립 인스턴스만 재생한다. 덱/기물 미리보기는 제외한다.
+        if (autoPlayOnStart && _playbackRequested)
             Play();
     }
 
@@ -210,6 +213,7 @@ public sealed class DLJ_SunfishFateEffect : MonoBehaviour
     /// </summary>
     public void ApplyAbilityEffectVariant(int variant)
     {
+        _playbackRequested = true;
         _runtimeText = variant == 1 ? survivalText : deathText;
         ApplyText();
     }

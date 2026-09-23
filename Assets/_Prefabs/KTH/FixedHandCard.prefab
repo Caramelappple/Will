@@ -59,7 +59,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f6f63b1e5c252784fa25a95750015853, type: 2}
+  - {fileID: 2100000, guid: d730be8d1559f9740a7034c1cc96d9f0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -106,8 +106,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Will.Candle.LSO_WillRevealEffect
   target: {fileID: 0}
   sootSprite: {fileID: 0}
-  duration: 0.5
-  ease: 9
+  duration: 0.85
+  ease: 4
   noiseScale: 8
   edgeWidth: 0.06
   directionStrength: 1

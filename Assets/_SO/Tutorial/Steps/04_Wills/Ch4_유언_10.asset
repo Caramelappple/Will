@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Ch4_유언_10
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "기물이 죽은 자리에 저주가 남았습니다. 잠시 전투를 멈추고 효과를 살펴보겠습니다."
+  - "저주는 3×3 범위에 2턴 동안 남아, 범위 안의 적에게 매 턴 1의 피해를 줍니다."
+  lineHold: 5
+  guide: 0
+  guideTiles: []
+  allowed: 0
+  gate: {fileID: 11400000, guid: b636a56ef9dc46bda0ae88e826547c30, type: 2}
+  gateTimeout: 30

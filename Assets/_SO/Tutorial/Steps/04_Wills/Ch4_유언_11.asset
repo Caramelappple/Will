@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Ch4_유언_11
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "이제 배운 조작으로 남은 적을 처치하세요. 자신의 턴에는 카드 소환과 유언을 자유롭게 사용할 수 있습니다."
+  lineHold: 4.5
+  guide: 0
+  guideTiles: []
+  allowed: -1
+  gate: {fileID: 11400000, guid: 630e07238d92f7700c2cf9f88291e1e7, type: 2}
+  gateTimeout: 0
+  resumeBattle: 1
+  returnToDefaultCamera: 1

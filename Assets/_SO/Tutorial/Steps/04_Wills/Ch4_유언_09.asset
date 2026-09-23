@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Ch4_유언_09
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "코스트를 모두 사용했습니다. 이제 턴을 넘기겠습니다."
+  - "이제 적의 차례입니다. 카드 소환과 유언 새기기는 잠시 멈추고, 적의 행동을 지켜보세요."
+  lineHold: 3
+  guide: 0
+  guideTiles: []
+  allowed: 0
+  gate: {fileID: 11400000, guid: 489b18b474bc6c853eae997a15d590cc, type: 2}
+  gateTimeout: 0
+  beginEnemyTurnAfterText: 1

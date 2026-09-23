@@ -36,6 +36,7 @@ namespace _Scripts.LDY
 
         public LDY_Team CurrentTurn { get; private set; } = LDY_Team.Player;
         public LDY_ActionPointManager ActionPoints => actionPoints;
+        public bool EnemyActionsComplete { get; private set; } = true;
         public event System.Action<LDY_Team> OnTurnChanged;
 
         /// <summary>행동력이 떨어지면 저절로 턴이 넘어가는지. 튜토리얼처럼 잠깐 켜야 할 때 쓴다.</summary>
@@ -170,6 +171,7 @@ namespace _Scripts.LDY
 
             _isProcessingTurn = false;
             CurrentTurn = LDY_Team.Player;
+            EnemyActionsComplete = true;
 
             if (actionPoints != null) actionPoints.ResetPoints();
 
@@ -263,6 +265,7 @@ namespace _Scripts.LDY
             }
 
             _isProcessingTurn = true;
+            EnemyActionsComplete = false;
             _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.TurnChange);
             CurrentTurn = LDY_Team.Enemy;
             actionPoints.ResetPoints();
@@ -279,9 +282,16 @@ namespace _Scripts.LDY
                 yield return StartCoroutine(enemyAI.RunEnemyTurnCoroutine());
 
                 yield return WaitForAnimations();
+                EnemyActionsComplete = true;
+
+                // 유언 설명 중에는 새 손패와 코스트를 지급하지 않는다.
+                while (_Scripts.LSO.Tutorial.LSO_TutorialDirector.HoldPlayerTurn &&
+                       !KTH_GameEndManager.IsBattleEnding)
+                    yield return null;
             }
             finally
             {
+                EnemyActionsComplete = true;
                 _enemyRoutine = null;
 
                 // 마지막 아군의 유언으로 마지막 적까지 죽은 경우, 실제 클리어 연출은

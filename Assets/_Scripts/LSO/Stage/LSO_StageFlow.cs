@@ -259,6 +259,10 @@ namespace _Scripts.LSO.Stage
 
         private IEnumerator Co_Clear()
         {
+            // 승리는 확정하되, 튜토리얼의 유언/체력 설명을 마친 뒤 판을 뒤집는다.
+            while (_Scripts.LSO.Tutorial.LSO_TutorialDirector.HoldRewards)
+                yield return null;
+
             LDY_StageSO cleared = Progression != null ? Progression.Current : null;
 
             Log($"클리어 — {(cleared != null ? cleared.stageName : "알 수 없음")}");

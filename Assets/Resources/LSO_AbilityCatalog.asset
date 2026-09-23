@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   abilities:
   - type: 4
-    displayName: "추가 목숨"
+    displayName: "\uCD94\uAC00 \uBAA9\uC228"
     englishName: Extra Life
-    description: "첫 사망 시 체력 1로 생존합니다."
+    description: "\uCCAB \uC0AC\uB9DD \uC2DC \uCCB4\uB825 1\uB85C \uC0DD\uC874\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 0}
@@ -24,9 +24,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0, y: 0, z: 0}
   - type: 7
-    displayName: "무리 사냥"
+    displayName: "\uBB34\uB9AC \uC0AC\uB0E5"
     englishName: Pack Tactics
-    description: "주변 다른 아군 늑대마다 공격력이 1 증가합니다."
+    description: "\uC8FC\uBCC0 \uB2E4\uB978 \uC544\uAD70 \uB291\uB300\uB9C8\uB2E4
+      \uACF5\uACA9\uB825\uC774 1 \uC99D\uAC00\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 3325976704513999228, guid: 6707ea2de1d703d4caf98ade806a4d15, type: 3}
@@ -34,9 +35,10 @@ MonoBehaviour:
     effectRotation: {x: -90, y: 0, z: 0}
     effectScale: {x: 0.4, y: 0.4, z: 0.25}
   - type: 6
-    displayName: "시체 포식"
+    displayName: "\uC2DC\uCCB4 \uD3EC\uC2DD"
     englishName: Corpse Devouring
-    description: "적이 죽을 때마다 공격력이 1씩, 최대 3까지 증가합니다."
+    description: "\uC801\uC774 \uC8FD\uC744 \uB54C\uB9C8\uB2E4 \uACF5\uACA9\uB825\uC774
+      1\uC529, \uCD5C\uB300 3\uAE4C\uC9C0 \uC99D\uAC00\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 2317223708783992941, guid: d83b8a65ebcefbb44b89f5f7044b0656, type: 3}
@@ -44,9 +46,10 @@ MonoBehaviour:
     effectRotation: {x: -90, y: 0, z: 0}
     effectScale: {x: 0.4, y: 0.4, z: 0.4}
   - type: 8
-    displayName: "가시"
+    displayName: "\uAC00\uC2DC"
     englishName: Thorns
-    description: "근접 공격을 받으면 공격자에게 피해를 1 줍니다."
+    description: "\uADFC\uC811 \uACF5\uACA9\uC744 \uBC1B\uC73C\uBA74 \uACF5\uACA9\uC790\uC5D0\uAC8C
+      1\uC758 \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 3893198870986037753, guid: d43960c4ee30885418c0ab26d0729de7, type: 3}
@@ -54,9 +57,10 @@ MonoBehaviour:
     effectRotation: {x: -90, y: 0, z: 0}
     effectScale: {x: 0.3, y: 0.3, z: 0.3}
   - type: 10
-    displayName: "돌연사"
+    displayName: "\uB3CC\uC5F0\uC0AC"
     englishName: Sudden Death
-    description: "체력은 무한이지만 매 턴 33% 확률로 죽습니다."
+    description: "\uCCB4\uB825\uC740 \uBB34\uD55C\uC774\uC9C0\uB9CC \uB9E4 \uD134
+      33% \uD655\uB960\uB85C \uC8FD\uC2B5\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 5811829816082480728, guid: a0189309e32f4e3cab8769ec2e820f7c, type: 3}
@@ -64,9 +68,9 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 1, y: 1, z: 1}
   - type: 11
-    displayName: "비타민"
+    displayName: "\uBE44\uD0C0\uBBFC"
     englishName: Vitamin
-    description: "저주의 영향을 받지 않습니다."
+    description: "\uC800\uC8FC\uC758 \uC601\uD5A5\uC744 \uBC1B\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 35817892298996743, guid: a6bded3eb73d8f14fb245953ce9af478, type: 3}
@@ -74,19 +78,21 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 1, y: 1, z: 1}
   - type: 12
-    displayName: "진화"
+    displayName: "\uC9C4\uD654"
     englishName: Evolve
-    description: "5턴 동안 살아남으면 드래곤으로 부화합니다."
+    description: "5\uD134 \uB3D9\uC548 \uC0B4\uC544\uB0A8\uC73C\uBA74 \uB4DC\uB798\uACE4\uC73C\uB85C
+      \uBD80\uD654\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
-    effectPrefab: {fileID: 0}
-    effectOffset: {x: 0, y: 0, z: 0}
+    effectPrefab: {fileID: 1000, guid: 901179163261995aab7b1d89db3ea21e, type: 3}
+    effectOffset: {x: 0, y: 0.45, z: 0}
     effectRotation: {x: 0, y: 0, z: 0}
-    effectScale: {x: 0, y: 0, z: 0}
+    effectScale: {x: 5, y: 5, z: 5}
   - type: 13
-    displayName: "조개 깨기"
+    displayName: "\uC870\uAC1C \uAE68\uAE30"
     englishName: Shell Breaking
-    description: "공격 시 10% 확률로 조개를 얻어 즉시 모든 아군의 체력을 1 회복합니다."
+    description: "\uACF5\uACA9 \uC2DC 10% \uD655\uB960\uB85C \uC870\uAC1C\uB97C \uC5BB\uC5B4
+      \uC989\uC2DC \uBAA8\uB4E0 \uC544\uAD70\uC758 \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 0}
@@ -94,9 +100,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0, y: 0, z: 0}
   - type: 14
-    displayName: "피의 갈망"
+    displayName: "\uD53C\uC758 \uAC08\uB9DD"
     englishName: Bloodlust
-    description: "매 턴 피해를 1 받고, 적을 공격하면 체력을 1 회복합니다."
+    description: "\uB9E4 \uD134 1\uC758 \uD53C\uD574\uB97C \uBC1B\uACE0, \uC801\uC744
+      \uACF5\uACA9\uD558\uBA74 \uCCB4\uB825\uC744 1 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 6134397333264359803, guid: 4c77e589e2036904eb3e30b8bece15bb, type: 3}
@@ -104,9 +111,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0.25, y: 0.25, z: 0.25}
   - type: 15
-    displayName: "코스트 저축"
+    displayName: "\uCF54\uC2A4\uD2B8 \uC800\uCD95"
     englishName: Cost Saving
-    description: "매 턴 코스트를 1씩 최대 3까지 모아, 죽으면 돌려줍니다."
+    description: "\uB9E4 \uD134 \uCF54\uC2A4\uD2B8\uB97C 1\uC529 \uCD5C\uB300 3\uAE4C\uC9C0
+      \uBAA8\uC544, \uC8FD\uC73C\uBA74 \uB3CC\uB824\uC90D\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 0}
@@ -114,9 +122,9 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0, y: 0, z: 0}
   - type: 16
-    displayName: "유언 강화"
+    displayName: "\uC720\uC5B8 \uAC15\uD654"
     englishName: Will Enhancement
-    description: "새겨진 유언의 효과가 강화됩니다."
+    description: "\uC0C8\uACA8\uC9C4 \uC720\uC5B8\uC758 \uD6A8\uACFC\uAC00 \uAC15\uD654\uB429\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 0}
@@ -124,9 +132,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 0, y: 0, z: 0}
   - type: 17
-    displayName: "포식"
+    displayName: "\uD3EC\uC2DD"
     englishName: Predation
-    description: "지정한 사냥감을 직접 처치할수록 강력해집니다."
+    description: "\uC9C0\uC815\uD55C \uC0AC\uB0E5\uAC10\uC744 \uC9C1\uC811 \uCC98\uCE58\uD560\uC218\uB85D
+      \uAC15\uB825\uD574\uC9D1\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 100
     effectPrefab: {fileID: 0}
@@ -134,9 +143,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 1, y: 1, z: 1}
   - type: 20
-    displayName: "수탈"
+    displayName: "\uC218\uD0C8"
     englishName: Plunder
-    description: "플레이어의 자원을 수탈해 성장합니다."
+    description: "\uD50C\uB808\uC774\uC5B4\uC758 \uC790\uC6D0\uC744 \uC218\uD0C8\uD574
+      \uC131\uC7A5\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 100
     effectPrefab: {fileID: 0}
@@ -144,9 +154,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 1, y: 1, z: 1}
   - type: 26
-    displayName: "사냥터 개장"
+    displayName: "\uC0AC\uB0E5\uD130 \uAC1C\uC7A5"
     englishName: Hunting Ground
-    description: "사냥터를 지정해 범위 안의 기물을 우선 추적합니다."
+    description: "\uC0AC\uB0E5\uD130\uB97C \uC9C0\uC815\uD574 \uBC94\uC704 \uC548\uC758
+      \uAE30\uBB3C\uC744 \uC6B0\uC120 \uCD94\uC801\uD569\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 100
     effectPrefab: {fileID: 0}
@@ -154,9 +165,10 @@ MonoBehaviour:
     effectRotation: {x: 0, y: 0, z: 0}
     effectScale: {x: 1, y: 1, z: 1}
   - type: 28
-    displayName: "돌진"
+    displayName: "\uB3CC\uC9C4"
     englishName: Charge
-    description: "지정한 방향으로 돌진해 경로의 기물에게 피해를 줍니다."
+    description: "\uC9C0\uC815\uD55C \uBC29\uD5A5\uC73C\uB85C \uB3CC\uC9C4\uD574
+      \uACBD\uB85C\uC758 \uAE30\uBB3C\uC5D0\uAC8C \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 100
     effectPrefab: {fileID: 0}
@@ -165,9 +177,10 @@ MonoBehaviour:
     effectScale: {x: 1, y: 1, z: 1}
   - type: 30
     displayName: "\uC9C8\uC8FC"
-    description: "\uD55C \uBC88\uC5D0 \uC5EC\uB7EC \uCE78\uC744 \uB2EC\uB9B0\uB2E4.
-      \uBA87 \uCE78\uAE4C\uC9C0 \uAC00\uB294\uC9C0\uB294 \uAE30\uBB3C\uB9C8\uB2E4
-      \uB2E4\uB974\uB2E4."
+    englishName: 
+    description: "\uD55C \uBC88\uC5D0 \uC5EC\uB7EC \uCE78\uC744 \uC774\uB3D9\uD560
+      \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uC774\uB3D9\uD560 \uC218 \uC788\uB294 \uAC70\uB9AC\uB294
+      \uAE30\uBB3C\uB9C8\uB2E4 \uB2E4\uB985\uB2C8\uB2E4."
     icon: {fileID: 0}
     priority: 0
     effectPrefab: {fileID: 6567199731185231437, guid: 24e72223a3773834e8e8c69160392698, type: 3}

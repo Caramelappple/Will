@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92fbb8146f914132aaafd46ecdbcbe1b, type: 3}
+  m_Name: Ch5_스테이지_06a
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Tutorial.Data.LSO_TutorialStepSO
+  shotId: 
+  waitForCamera: 1
+  lines:
+  - "여정을 함께할 기물 카드를 선택하세요."
+  lineHold: 5
+  guide: 0
+  guideTiles: []
+  allowed: 256
+  gate: {fileID: 11400000, guid: a11297593a4d7a36b3d102eaeed833cb, type: 2}
+  gateTimeout: 0
+  guideRewardPhases: 1
+  rewardCardText: "여정을 함께할 기물 카드를 선택하세요."
+  rewardNoteReadyText: "새로운 유언을 발견했습니다. 유언은 특정 스테이지에서 얻을 수 있습니다.\n상자를 클릭하여 유언 메모장을 꺼내세요."
+  rewardNoteShownText: "메모장에 적힌 유언의 효과를 확인하세요.\n확인한 뒤 메모장을 클릭하여 유언을 받으세요."
+  rewardTransitionText: "선택한 보상을 받고 있습니다. 잠시 기다려 주세요."

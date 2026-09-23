@@ -67,6 +67,8 @@ namespace _Scripts.LSO.Will.Candle
         private MaterialPropertyBlock _block;
         private Tween _tween;
         private bool _canDissolve;
+        private Vector3 _restScale;
+        private Color _restColor;
 
         /// <summary>지금 드러나 있는 유언. 아무것도 안 드러났으면 None.</summary>
         public LSO_WillType Current { get; private set; } = LSO_WillType.None;
@@ -85,6 +87,8 @@ namespace _Scripts.LSO.Will.Candle
             }
 
             _block = new MaterialPropertyBlock();
+            _restScale = target.transform.localScale;
+            _restColor = target.color;
 
             // sharedMaterial 을 보는 이유는 material 을 읽는 순간 인스턴스가 하나 생기기 때문이다.
             // 값은 MaterialPropertyBlock 으로 넣으므로 인스턴스가 필요 없다.
@@ -174,6 +178,13 @@ namespace _Scripts.LSO.Will.Candle
         private void SetReveal(float shown)
         {
             if (target == null) return;
+            target.enabled = shown > 0f;
+            // 불빛이 번지며 도장이 자리 잡는다. 셰이더가 알파를 무시해도 크기 변화는 보인다.
+            float pulse = Mathf.Sin(shown * Mathf.PI);
+            target.transform.localScale = _restScale * (Mathf.Lerp(0.65f, 1f, shown) + pulse * 0.18f);
+            Color ink = Color.Lerp(_restColor, new Color(1f, 0.65f, 0.2f, 1f), pulse * 0.7f);
+            ink.a = shown * _restColor.a;
+            target.color = ink;
 
             if (_canDissolve)
             {
@@ -183,9 +194,6 @@ namespace _Scripts.LSO.Will.Candle
                 return;
             }
 
-            Color color = target.color;
-            color.a = shown;
-            target.color = color;
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ MonoBehaviour:
   damage: 4
   cost: 0
   playerHealthPoints: 9
-  moveRange: 1
+  moveRange: 2
   range: 1
   abilities: 0c000000
   defaultWill: 0

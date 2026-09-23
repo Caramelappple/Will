@@ -5,6 +5,7 @@ using _Scripts.LDY;
 using _Scripts.LSO.Camera;
 using _Scripts.LSO.Tutorial.Data;
 using _Scripts.LSO.Tutorial.Gate;
+using _Scripts.LSO.UI.Transition;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -30,12 +31,27 @@ namespace _Scripts.LSO.Tutorial
     {
         [Header("대본")]
         [SerializeField] private List<LSO_TutorialChapterSO> chapters = new();
+        private static LSO_TutorialDirector _active;
+
+        // 실습 카드(practiceCard / PracticeCard)는 걷어냈다.
+        // KTH_DeckManager 가 덱을 만들 때 이 정적 프로퍼티를 먼저 들여다보고
+        // 잡히면 그 카드로 덱을 통째로 갈아버렸는데, 인스펙터 어디에도 안 보이는
+        // 경로라 "덱 설정이 안 먹는다"로만 드러났다.
+        //
+        // 덱을 정하는 곳은 이제 보유 카드 목록 하나다. 튜토리얼에서 특정 카드만
+        // 쓰게 하려면 그 씬의 LSO_ItemLibraryManager → Unlocked Pieces 에
+        // 필요한 장수만큼 넣으면 된다.
 
         [Header("화면 (비우면 찾는다)")]
         [SerializeField] private LSO_TutorialBanner banner;
         [SerializeField] private LSO_TutorialGuide guide;
         [SerializeField] private LSO_TutorialLock locks;
         [SerializeField] private LSO_CameraDirector cameraDirector;
+
+        [Header("시작 페이드")]
+        [Tooltip("튜토리얼 씬을 덮는 검은 화면. 씬 전환이 끝나면 서서히 걷는다.")]
+        [SerializeField] private CanvasGroup introFade;
+        [SerializeField, Min(0f)] private float introFadeDuration = 1.2f;
 
         [Header("칸 좁히기 (비우면 찾는다)")]
         [Tooltip("대본이 표시한 칸에만 놓을 수 있게 한다.")]
@@ -74,6 +90,14 @@ namespace _Scripts.LSO.Tutorial
         /// 씬에 감독은 하나뿐이라 정적으로 두어도 주체가 갈리지 않는다.
         /// </summary>
         public static bool IsRunning { get; private set; }
+        private static bool _rewardsReleased;
+        private static bool _holdPlayerTurn;
+        public static bool HoldRewards => IsRunning && !_rewardsReleased;
+        public static bool HoldPlayerTurn => IsRunning && _holdPlayerTurn;
+
+        private LDY_TurnManager _turnManager;
+        private bool _savedAutoEndTurn;
+        private bool _savedScriptedCamera;
 
         /// <summary>돌고 있는지. 이 인스턴스로 묻는 길.</summary>
         public bool IsPlaying
@@ -97,12 +121,18 @@ namespace _Scripts.LSO.Tutorial
 
         private void Awake()
         {
+            if (playOnStart)
+            {
+                _active = this;
+                _rewardsReleased = false;
+            }
             if (banner == null) banner = FindAnyObjectByType<LSO_TutorialBanner>();
             if (guide == null) guide = FindAnyObjectByType<LSO_TutorialGuide>();
             if (locks == null) locks = FindAnyObjectByType<LSO_TutorialLock>();
             if (cameraDirector == null) cameraDirector = FindAnyObjectByType<LSO_CameraDirector>();
             if (cardPlacer == null) cardPlacer = FindAnyObjectByType<LDY_CardPlacer>();
             if (moveSystem == null) moveSystem = FindAnyObjectByType<LDY_MoveSystem>();
+            SetIntroAlpha(playOnStart ? 1f : 0f);
         }
 
         private void Start()
@@ -120,6 +150,8 @@ namespace _Scripts.LSO.Tutorial
             // 꺼질 때 정리하지 않으면 칸 제한과 조작 잠금이 남는다.
             // 그 상태는 화면에 아무 표시가 없어 원인을 짐작할 수 없다.
             if (IsPlaying) Stop();
+            if (_active == this) _active = null;
+            SetIntroAlpha(0f);
         }
 
         /// <summary>스페이스를 누르고 있은 시간. 떼면 0으로 돌아간다.</summary>
@@ -187,11 +219,27 @@ namespace _Scripts.LSO.Tutorial
 
             if (chapters.Count == 0)
             {
+                if (_active == this) _active = null;
+                SetIntroAlpha(0f);
                 Debug.LogWarning($"{name}: 챕터가 하나도 없어 재생할 것이 없습니다.", this);
                 return;
             }
 
             _ownedCameraShotId = string.Empty;
+            _active = this;
+            _rewardsReleased = false;
+            _holdPlayerTurn = true;
+            _turnManager = FindAnyObjectByType<LDY_TurnManager>();
+            if (_turnManager != null)
+            {
+                _savedAutoEndTurn = _turnManager.AutoEndTurn;
+                _turnManager.AutoEndTurn = false;
+            }
+            if (cameraDirector != null)
+            {
+                _savedScriptedCamera = cameraDirector.ScriptedSequence;
+                cameraDirector.ScriptedSequence = true;
+            }
             IsPlaying = true;
             _routine = StartCoroutine(Co_Run());
         }
@@ -214,6 +262,7 @@ namespace _Scripts.LSO.Tutorial
 
             if (guide != null) guide.Clear();
             if (banner != null) banner.Clear();
+            SetIntroAlpha(0f);
 
             ClearRestriction();
 
@@ -223,6 +272,12 @@ namespace _Scripts.LSO.Tutorial
             if (!IsPlaying) return;
 
             IsPlaying = false;
+            if (_active == this) _active = null;
+            _holdPlayerTurn = false;
+            _rewardsReleased = false;
+            if (_turnManager != null) _turnManager.AutoEndTurn = _savedAutoEndTurn;
+            if (cameraDirector != null) cameraDirector.ScriptedSequence = _savedScriptedCamera;
+            FindAnyObjectByType<DLJ_CostSystem>()?.CancelSpendReplay();
 
             Log("끝났습니다.");
 
@@ -235,6 +290,9 @@ namespace _Scripts.LSO.Tutorial
 
         private IEnumerator Co_Run()
         {
+            if (locks != null) locks.Apply(LSO_TutorialAction.None);
+            yield return Co_Intro();
+
             for (int c = 0; c < chapters.Count; c++)
             {
                 LSO_TutorialChapterSO chapter = chapters[c];
@@ -258,9 +316,51 @@ namespace _Scripts.LSO.Tutorial
             Stop();
         }
 
+        private IEnumerator Co_Intro()
+        {
+            SetIntroAlpha(1f);
+
+            // 메뉴의 씬 전환이 화면을 가리고 있는 동안에는 대본 시간을 소모하지 않는다.
+            while (LSO_SceneLoader.IsLoading ||
+                   (LSO_ScreenFader.Current != null && LSO_ScreenFader.Current.IsCovered))
+                yield return null;
+
+            if (introFade == null) yield break;
+
+            float elapsed = 0f;
+            while (elapsed < introFadeDuration)
+            {
+                yield return null;
+                elapsed += Time.unscaledDeltaTime;
+                SetIntroAlpha(1f - Mathf.SmoothStep(0f, 1f, elapsed / introFadeDuration));
+            }
+
+            SetIntroAlpha(0f);
+        }
+
+        private void SetIntroAlpha(float alpha)
+        {
+            if (introFade == null) return;
+            introFade.alpha = alpha;
+            introFade.interactable = false;
+            introFade.blocksRaycasts = alpha > 0f;
+        }
+
         private IEnumerator Co_Step(LSO_TutorialChapterSO chapter, int index, LSO_TutorialStepSO step)
         {
+            if (step.resumeBattle)
+            {
+                _holdPlayerTurn = false;
+                if (KTH_GameEndManager.IsBattleEnding) yield break;
+                while (_turnManager != null && _turnManager.CurrentTurn != LDY_Team.Player &&
+                       !KTH_GameEndManager.IsBattleEnding)
+                    yield return null;
+                if (KTH_GameEndManager.IsBattleEnding) yield break;
+                if (_turnManager != null) _turnManager.AutoEndTurn = _savedAutoEndTurn;
+            }
+
             Log($"[{chapter.title}] {index + 1}. {step.Preview}");
+            if (banner != null) banner.Clear();
 
             // 카메라가 이동하는 동안 직전 단계의 조작이 새 단계로 새지 않게 한다.
             if (locks != null) locks.Apply(LSO_TutorialAction.None);
@@ -325,6 +425,19 @@ namespace _Scripts.LSO.Tutorial
 
             // 4. 안내문
             yield return Co_Lines(step);
+
+            if (step.releaseRewards) _rewardsReleased = true;
+            if (step.replayLastCostSpend)
+            {
+                var costs = FindAnyObjectByType<DLJ_CostSystem>();
+                if (costs != null) yield return costs.ReplayLastSpend();
+            }
+            if (step.beginEnemyTurnAfterText && _turnManager != null)
+            {
+                // 안내문을 읽은 다음 실제 적 턴을 시작한다.
+                while (_turnManager.IsAnimating()) yield return null;
+                _turnManager.EndPlayerTurn();
+            }
 
             // 5. 관문
             yield return Co_Gate(step);
@@ -397,6 +510,18 @@ namespace _Scripts.LSO.Tutorial
 
             while (!_gatePassed)
             {
+                if (step.guideRewardPhases && banner != null)
+                {
+                    var reward = _Scripts.LSO.Reward.LSO_RewardBox.Instance;
+                    string text = reward != null && reward.IsNoteReady ? step.rewardNoteReadyText
+                        : reward != null && reward.IsNoteShown ? step.rewardNoteShownText
+                        : reward != null && reward.IsSelecting ? step.rewardCardText : step.rewardTransitionText;
+                    if (!string.IsNullOrEmpty(text) && text != _rewardText)
+                    {
+                        _rewardText = text;
+                        banner.Show(text);
+                    }
+                }
                 if (Time.unscaledTime >= deadline)
                 {
                     // 멈춰 서는 쪽이 한 걸음 건너뛰는 쪽보다 나쁘다.
@@ -460,11 +585,14 @@ namespace _Scripts.LSO.Tutorial
 
         private void DisarmGate()
         {
+            _rewardText = null;
             if (_armedGate == null) return;
 
             _armedGate.Disarm();
             _armedGate = null;
         }
+
+        private string _rewardText;
 
         private void Log(string message)
         {

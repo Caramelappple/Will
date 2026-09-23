@@ -35,6 +35,8 @@ namespace _Scripts.LSO.Will.Candle
 
         /// <summary>유언이 붙어 있는지. 빈 초(없음)를 붙였어도 참이다.</summary>
         public bool HasWill { get; private set; }
+        private bool _awaitingReveal;
+        public bool IsRevealing => _awaitingReveal || (reveal != null && reveal.IsPlaying);
 
         /// <summary>
         /// 이번 전투에 이미 붙였는지. 참이면 이 전투 동안 다시 못 붙인다.
@@ -78,6 +80,7 @@ namespace _Scripts.LSO.Will.Candle
             Will = will;
             HasWill = true;
             PaintedThisBattle = true;
+            _awaitingReveal = !revealNow;
 
             if (revealNow) Reveal(from);
 
@@ -98,6 +101,7 @@ namespace _Scripts.LSO.Will.Candle
         /// </summary>
         public void Reveal(Vector3? from = null)
         {
+            _awaitingReveal = false;
             if (reveal == null)
             {
                 // 값은 붙었는데 화면에만 안 나오는 경우다. 조용히 넘기면
@@ -119,6 +123,7 @@ namespace _Scripts.LSO.Will.Candle
         /// </summary>
         public void Clear()
         {
+            _awaitingReveal = false;
             PaintedThisBattle = false;
 
             if (!HasWill && Will == LSO_WillType.None) return;

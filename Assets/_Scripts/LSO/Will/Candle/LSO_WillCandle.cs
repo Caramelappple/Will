@@ -237,12 +237,15 @@ namespace _Scripts.LSO.Will.Candle
         {
             if (_wills.Count == 0) return;
             if (index < 0 || index >= _wills.Count) return;
+            SelectionConfirmed?.Invoke(_wills[index]);
             if (index == _index) return;
 
             _index = index;
 
             Apply();
         }
+
+        public event System.Action<LSO_WillType> SelectionConfirmed;
 
 
         /// <summary>다음 색으로 넘긴다. 끝에서는 처음으로 돌아온다.</summary>

@@ -159,6 +159,7 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
     protected virtual bool ShouldShowWithoutHover() => false;
     protected virtual bool ReplayInkOnValueChange => true;
     protected virtual bool RevealInkOnShow => true;
+    protected virtual float TextWrapWidth => 0f;
     protected virtual bool TryGetText(out string text)
     {
         text = null;
@@ -192,10 +193,10 @@ public abstract class DLJ_WorldValueTooltip : MonoBehaviour
         label.fontSharedMaterial = labelMaterial;
         label.fontSize = fontSize;
         label.alignment = TextAlignmentOptions.Center;
-        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.textWrappingMode = TextWrapWidth > 0f ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
         label.overflowMode = TextOverflowModes.Overflow;
         label.raycastTarget = false;
-        label.rectTransform.sizeDelta = new Vector2(5f, 1f);
+        label.rectTransform.sizeDelta = new Vector2(TextWrapWidth > 0f ? TextWrapWidth : 5f, 1f);
         label.renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         label.renderer.receiveShadows = false;
     }

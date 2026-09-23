@@ -50,7 +50,7 @@ namespace _Scripts.LSO.Tutorial
 
                 // 이동 안내는 평소 이동 표시를 그대로 쓴다.
                 case LSO_TutorialGuideKind.Move:
-                    highlighter.ShowMoveHighlights(this, tiles);
+                    highlighter.ShowGuidedMoveHighlights(this, tiles, yellowTileColor);
                     break;
 
                 // 배치용 색상 표시는 공격 타일 형태에 이 인스턴스만 색을 덮어쓴다.

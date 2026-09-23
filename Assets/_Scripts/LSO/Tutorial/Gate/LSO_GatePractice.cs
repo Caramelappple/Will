@@ -18,7 +18,7 @@ namespace _Scripts.LSO.Tutorial.Gate
         {
             InfoClosed, Placed, Moved, Attacked, WillSelected, WillPainted,
             EnemyTurn, WillDied, RewardReady, RewardOpened, RewardDealt,
-            RewardFinished, StageLoaded
+            RewardFinished, StageLoaded, BattleEnded
         }
 
         public Condition condition;
@@ -60,6 +60,7 @@ namespace _Scripts.LSO.Tutorial.Gate
             if (_placer != null) _placer.Placed += OnPlaced;
             if (_attack != null) _attack.AttackCompleted += OnAttacked;
             if (_turn != null) _turn.OnTurnChanged += OnTurnChanged;
+            if (_candle != null) _candle.SelectionConfirmed += OnWillSelected;
             if (_stage != null) _stage.OnStageLoaded += OnStageLoaded;
             _routine = Runner.StartCoroutine(Wait());
         }
@@ -69,6 +70,7 @@ namespace _Scripts.LSO.Tutorial.Gate
             if (_placer != null) _placer.Placed -= OnPlaced;
             if (_attack != null) _attack.AttackCompleted -= OnAttacked;
             if (_turn != null) _turn.OnTurnChanged -= OnTurnChanged;
+            if (_candle != null) _candle.SelectionConfirmed -= OnWillSelected;
             if (_reward != null) _reward.OnFinished -= OnRewardFinished;
             _reward = null;
             if (_stage != null) _stage.OnStageLoaded -= OnStageLoaded;
@@ -94,6 +96,11 @@ namespace _Scripts.LSO.Tutorial.Gate
         private void OnTurnChanged(LDY_Team team)
         {
             if (condition == Condition.EnemyTurn && team == LDY_Team.Enemy) _occurred = true;
+        }
+
+        private void OnWillSelected(LSO_WillType selected)
+        {
+            if (condition == Condition.WillSelected && selected == will) _occurred = true;
         }
 
         private void OnRewardFinished(LSO_RewardOption option)
@@ -204,11 +211,11 @@ namespace _Scripts.LSO.Tutorial.Gate
                         }
                     return false;
                 case Condition.WillSelected:
-                    return _candle != null && _candle.Current == will;
+                    return _occurred;
                 case Condition.WillPainted:
                     var card = KTH_HandCard.ConfirmedCard;
                     var mark = card != null ? card.GetComponentInChildren<LSO_CardWill>(true) : null;
-                    return mark != null && mark.HasWill && mark.Will == will;
+                    return mark != null && mark.HasWill && mark.Will == will && !mark.IsRevealing;
                 case Condition.EnemyTurn:
                     return _turn != null && _turn.CurrentTurn == LDY_Team.Enemy;
                 case Condition.WillDied:
@@ -217,11 +224,12 @@ namespace _Scripts.LSO.Tutorial.Gate
                     if (_willUnits.Count == 0) return true;
                     foreach (var unit in _willUnits)
                         if (unit == null || (unit.health != null && unit.health.IsDestroyed))
-                            return _turn == null || !_turn.IsAnimating();
+                            return _turn == null || (_turn.EnemyActionsComplete && !_turn.IsAnimating());
                     return false;
                 case Condition.RewardReady: return _reward != null && _reward.HasBegun && !_reward.IsBusy;
                 case Condition.RewardOpened: return _reward != null && _reward.IsOpened;
                 case Condition.RewardDealt: return _reward != null && _reward.IsSelecting;
+                case Condition.BattleEnded: return KTH_GameEndManager.IsBattleEnding;
                 default: return false;
             }
         }

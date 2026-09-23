@@ -61,6 +61,8 @@ namespace _Scripts.LSO.Ability
         {
             LDY_Animal owner = _context?.Owner;
             if (owner == null) return;
+            // 덱 선택/미리보기용 모델에는 턴 판정을 적용하지 않는다.
+            if (_context.Board == null || _context.Board.Get(owner.pos) != owner) return;
 
             // 팀을 가리지 않고 모든 턴 시작에 판정한다.
             if (owner.health != null && owner.health.IsDestroyed) return;

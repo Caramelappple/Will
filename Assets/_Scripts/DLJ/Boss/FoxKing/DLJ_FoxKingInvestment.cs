@@ -17,7 +17,7 @@ public sealed class DLJ_FoxKingInvestment : LSO_IAbility, LSO_IAbilityInitializa
     private const int PhaseOneHeal = 3;
     private const int PhaseOneAttack = 2;
     private const int PhaseTwoCost = 2;
-    private const int PhaseTwoHeal = 5;
+    private const int PhaseTwoHeal = 3;
     private const int PhaseTwoAttack = 3;
     private const int PlunderInterval = 3;
 

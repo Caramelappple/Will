@@ -38,6 +38,17 @@ namespace _Scripts.LSO.Tutorial.Data
         [Tooltip("한 줄이 머무는 시간(초). 마지막 줄에는 쓰이지 않는다.")]
         [Min(0f)] public float lineHold = 2.5f;
 
+        [Header("진행 연출")]
+        public bool beginEnemyTurnAfterText;
+        public bool resumeBattle;
+        public bool releaseRewards;
+        public bool replayLastCostSpend;
+        public bool guideRewardPhases;
+        [TextArea] public string rewardCardText;
+        [TextArea] public string rewardNoteReadyText;
+        [TextArea] public string rewardNoteShownText;
+        [TextArea] public string rewardTransitionText;
+
         [Header("가이드")]
         [Tooltip("칸을 물들일지. 여기 담긴 칸이 **놓거나 갈 수 있는 유일한 칸**이 된다.\n" +
                  "\n" +

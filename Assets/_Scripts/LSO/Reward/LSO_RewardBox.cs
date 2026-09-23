@@ -233,6 +233,8 @@ namespace _Scripts.LSO.Reward
         public bool HasBegun => _phase != Phase.Idle;
         public bool IsOpened => _phase == Phase.Opened;
         public bool IsSelecting => _phase == Phase.Selecting;
+        public bool IsNoteReady => _phase == Phase.NoteWaiting;
+        public bool IsNoteShown => _phase == Phase.NotePlaying && noteStep.AcceptsClick;
 
         /// <summary>클릭을 받지 않는 구간인지. 밖에서 커서 모양을 바꿀 때 본다.</summary>
         public bool IsBusy =>

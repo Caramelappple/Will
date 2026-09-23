@@ -20,14 +20,28 @@ namespace _Scripts.LDY
 
         private sealed class Marks
         {
-            public readonly List<GameObject> Objects = new List<GameObject>();
+            public readonly HashSet<(Vector3Int, GameObject, Color?)> Keys = new();
         }
+
+        private sealed class SharedMark
+        {
+            public GameObject Object;
+            public int Owners;
+            public bool IsGuide;
+        }
+
+        private readonly Dictionary<(Vector3Int, GameObject, Color?), SharedMark> _shared = new();
 
         private readonly Dictionary<object, Marks> _highlightsByOwner = new Dictionary<object, Marks>();
 
         public void ShowMoveHighlights(object owner, IEnumerable<Vector3Int> tiles)
         {
             Show(owner, tiles, moveHighlightPrefab);
+        }
+
+        public void ShowGuidedMoveHighlights(object owner, IEnumerable<Vector3Int> tiles, Color color)
+        {
+            Show(owner, tiles, moveHighlightPrefab, color, isGuide: true);
         }
 
         public void ShowAttackHighlights(object owner, IEnumerable<Vector3Int> tiles)
@@ -50,17 +64,24 @@ namespace _Scripts.LDY
         {
             if (owner == null || !_highlightsByOwner.TryGetValue(owner, out var marks)) return;
 
-            foreach (var go in marks.Objects)
+            foreach (var key in marks.Keys)
             {
-                if (go != null)
-                    Destroy(go);
+                if (!_shared.TryGetValue(key, out var mark) || --mark.Owners > 0) continue;
+                if (mark.Object != null)
+                {
+                    mark.Object.SetActive(false);
+                    Destroy(mark.Object);
+                }
+                _shared.Remove(key);
+                RefreshTile(key.Item1);
             }
 
-            marks.Objects.Clear();
+            _highlightsByOwner.Remove(owner);
         }
 
         private void Show(
-            object owner, IEnumerable<Vector3Int> tiles, GameObject prefab, Color? colorOverride = null)
+            object owner, IEnumerable<Vector3Int> tiles, GameObject prefab, Color? colorOverride = null,
+            bool isGuide = false)
         {
             if (owner == null || prefab == null || board == null || tiles == null) return;
 
@@ -72,14 +93,33 @@ namespace _Scripts.LDY
 
             foreach (var tile in tiles)
             {
+                // 같은 칸을 가리키는 튜토리얼/선택 표시는 공유해 겹침을 방지한다.
+                var key = (tile, prefab, colorOverride);
+                if (!marks.Keys.Add(key)) continue;
+                if (_shared.TryGetValue(key, out var existing))
+                {
+                    existing.Owners++;
+                    continue;
+                }
                 var worldPos = board.GridToWorld(tile) + Vector3.up * highlightHeightOffset;
                 var go = Instantiate(prefab, worldPos, Quaternion.identity, transform);
 
                 if (colorOverride.HasValue)
                     ApplyColor(go, colorOverride.Value);
 
-                marks.Objects.Add(go);
+                _shared.Add(key, new SharedMark { Object = go, Owners = 1, IsGuide = isGuide });
+                RefreshTile(tile);
             }
+        }
+
+        private void RefreshTile(Vector3Int tile)
+        {
+            bool guided = false;
+            foreach (var pair in _shared)
+                if (pair.Key.Item1 == tile && pair.Value.IsGuide) guided = true;
+            foreach (var pair in _shared)
+                if (pair.Key.Item1 == tile && pair.Value.Object != null)
+                    pair.Value.Object.SetActive(!guided || pair.Value.IsGuide);
         }
 
         private static void ApplyColor(GameObject instance, Color color)

@@ -826,6 +826,7 @@ GameObject:
   - component: {fileID: 8242104106488481417}
   - component: {fileID: 237688905715381555}
   - component: {fileID: 1448557948405940035}
+  - component: {fileID: 4162440384824324800}
   m_Layer: 0
   m_Name: AbilityTxt
   m_TagString: Untagged
@@ -996,6 +997,32 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 237688905715381555}
   m_maskType: 0
+--- !u!114 &4162440384824324800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4027116630666939651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ecad7944d24d004098cfeb41c549751, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Reward.LSO_AbilityTooltip
+  targetCamera: {fileID: 0}
+  tooltipAnchor: {fileID: 4077361161711938319}
+  font: {fileID: 11400000, guid: 7c13d0adae65965438cca33debf74075, type: 2}
+  inkMaterial: {fileID: 2100000, guid: 37d4fda3216263d4d946390e6d7871c6, type: 2}
+  fontSize: 2
+  textColor: {r: 1, g: 0.92, b: 0.75, a: 1}
+  heightOffset: 0.65
+  spreadDuration: 0.05
+  fadeOutDuration: 0.2
+  hoverCollider: {fileID: 4667765688008548312}
+  descriptionScale: 65
+  gapLines: 1
+  wrapWidth: 6
+  logSteps: 0
 --- !u!1 &4086416278884873493
 GameObject:
   m_ObjectHideFlags: 0
@@ -1540,6 +1567,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 7729613027360137595}
   m_maskType: 0
+--- !u!1 &8632532312939110149
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4077361161711938319}
+  m_Layer: 0
+  m_Name: Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4077361161711938319
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8632532312939110149}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.646, z: 0.111}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1467006278604692247}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6760159100840503637
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1582,23 +1640,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9365834
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.35044482
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 41.029
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -1643,6 +1701,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1937756269255969898}
+    - targetCorrespondingSourceObject: {fileID: 5299384992151433794, guid: daef46bc09db17143b8053a196891e72, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4077361161711938319}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -4708853875793295092, guid: daef46bc09db17143b8053a196891e72, type: 3}
       insertIndex: -1
@@ -1728,6 +1789,7 @@ MonoBehaviour:
   pointText: {fileID: 2665019392490909549}
   rangeText: {fileID: 2754355473872703163}
   abilityText: {fileID: 1448557948405940035}
+  abilityTooltip: {fileID: 4162440384824324800}
 --- !u!114 &-794011768380766205
 MonoBehaviour:
   m_ObjectHideFlags: 0

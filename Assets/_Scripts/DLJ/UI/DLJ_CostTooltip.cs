@@ -25,6 +25,17 @@ public sealed class DLJ_CostTooltip : DLJ_WorldValueTooltip
         return true;
     }
 
+    protected override bool ShouldShowWithoutHover() => costSystem != null && costSystem.IsReplayingSpend;
+
+    protected override bool TryGetText(out string text)
+    {
+        text = null;
+        if (costSystem == null || !costSystem.IsReplayingSpend) return false;
+        CollectCases();
+        text = $"{costSystem.LastSpendFrom} → {costSystem.LastSpendTo}  (-{costSystem.LastSpendFrom - costSystem.LastSpendTo})";
+        return true;
+    }
+
     protected override Transform FindHoveredTarget(Ray ray, Camera camera, out float distance)
     {
         distance = camera.farClipPlane;

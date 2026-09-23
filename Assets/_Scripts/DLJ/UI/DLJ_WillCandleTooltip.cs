@@ -31,20 +31,22 @@ public sealed class DLJ_WillCandleTooltip : DLJ_WorldValueTooltip
     /// 처음 뜰 때의 번짐은 RevealInkOnShow 가 맡으므로 그대로 나온다.
     /// </summary>
     protected override bool ReplayInkOnValueChange => false;
+    protected override float TextWrapWidth => 6f;
 
     protected override bool TryGetText(out string text)
     {
         text = null;
-        if (candle == null || !candle.isActiveAndEnabled) return false;
+        if (candle == null) return false;
         LSO_WillType will = candle.Current;
-        text = will == LSO_WillType.None ? "유언 없음" : LSO_WillText.NameOf(will);
+        text = will == LSO_WillType.None ? "유언 없음" :
+            $"{LSO_WillText.NameOf(will)}\n<size=65%>{LSO_WillText.DescriptionOf(will)}</size>";
         return true;
     }
 
     protected override Transform FindHoveredTarget(Ray ray, Camera camera, out float distance)
     {
         distance = camera.farClipPlane;
-        if (candle == null || !candle.isActiveAndEnabled || hoverCollider == null ||
+        if (candle == null || hoverCollider == null ||
             !hoverCollider.enabled || (camera.cullingMask & (1 << gameObject.layer)) == 0)
             return null;
 

@@ -81,12 +81,26 @@ public sealed class DLJ_Evolve : LSO_IAbility, IOnTurnStart, IStatModifier,
         owner.data = evolvedData;
         owner.baseAtk = evolvedData.damage;
         owner.health.Init(Mathf.Max(1, evolvedData.maxHealth));
-        owner.StartCoroutine(ReplaceVisualWithUnitPrefab(owner, evolvedData.unitPrefab));
 
-        Debug.Log(
-            $"<color=orange>{owner.name}: Evolve activated. " +
-            $"ATK {owner.GetAtk()}, HP {owner.health.Value}/{owner.health.MaxValue}</color>",
-            owner);
+        // ── 이펙트를 모델 교체보다 먼저 띄우는 이유 ────────────────
+        // ReplaceVisualWithUnitPrefab 은 코루틴이라 실제 교체는 다음 프레임에 일어난다.
+        // 여기서 띄우면 <b>알이 아직 보이는 상태</b>에서 연출이 시작되고,
+        // 그 위로 드래곤이 드러난다 — 껍질이 깨지는 순서로 읽힌다.
+        //
+        // 교체 뒤에 띄우면 이미 드래곤이 나와 있어서 "무엇이 깨졌는지"가 안 보인다.
+        // ─────────────────────────────────────────────────────────
+        //
+        // 콘솔 로그도 이 창구를 지난다. 여기서 Debug.Log 를 따로 부르면 같은 사건이
+        // 두 줄로 남는다 — LSO_AbilitySignal 주석에 적힌 그 이유다.
+        //
+        // 이펙트가 뜨는 자리는 owner.modelTransform, 즉 지금은 알의 자리다.
+        LSO_AbilitySignal.Raise(
+            LSO_AbilityType.Evolve,
+            owner,
+            $"<color=orange>{owner.name}: 진화 — 드래곤으로 부화했습니다. " +
+            $"ATK {owner.GetAtk()}, HP {owner.health.Value}/{owner.health.MaxValue}</color>");
+
+        owner.StartCoroutine(ReplaceVisualWithUnitPrefab(owner, evolvedData.unitPrefab));
     }
 
     private static LSO_AnimalSO ResolveEvolvedData()

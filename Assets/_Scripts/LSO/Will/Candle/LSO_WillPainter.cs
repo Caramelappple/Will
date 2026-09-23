@@ -331,7 +331,10 @@ namespace _Scripts.LSO.Will.Candle
             Transform self = transform;
 
             // 아이콘은 양초가 가장 가까이 닿은 순간에 드러난다.
-            motion.Reach(card.transform.position, () => target.Reveal(self.position));
+            motion.Reach(card.transform.position, () =>
+            {
+                if (target != null) target.Reveal(self.position);
+            });
         }
 
         /// <summary>

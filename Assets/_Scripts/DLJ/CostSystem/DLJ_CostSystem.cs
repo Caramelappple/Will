@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using UnityEngine;
@@ -43,6 +44,30 @@ public class DLJ_CostSystem : MonoBehaviour
     public bool HasActionPoints => _subscribedActionPoints != null;
     public int VisibleCost => IsPlayerTurn && HasActionPoints ? _subscribedActionPoints.Current : 0;
     public int MaxCost => HasActionPoints ? _subscribedActionPoints.Max : 0;
+    public int LastSpendFrom { get; private set; }
+    public int LastSpendTo { get; private set; }
+    public bool IsReplayingSpend { get; private set; }
+    private int _lastObservedCost = -1;
+
+    // 코스트 값은 바꾸지 않고, 마지막 차감의 전후 모습만 확대 화면에서 다시 보여준다.
+    public IEnumerator ReplayLastSpend()
+    {
+        if (!IsPlayerTurn || LastSpendFrom <= LastSpendTo) yield break;
+        IsReplayingSpend = true;
+        Refresh(LastSpendFrom, DLJ_CostVisualTransition.Immediate);
+        yield return new WaitForSecondsRealtime(0.8f);
+        if (!IsReplayingSpend) yield break;
+        Refresh(LastSpendTo, DLJ_CostVisualTransition.Spend);
+        yield return new WaitForSecondsRealtime(1f);
+        CancelSpendReplay();
+    }
+
+    public void CancelSpendReplay()
+    {
+        if (!IsReplayingSpend) return;
+        IsReplayingSpend = false;
+        Refresh(VisibleCost, DLJ_CostVisualTransition.Immediate);
+    }
 
     private sealed class CaseInstance
     {
@@ -85,6 +110,7 @@ public class DLJ_CostSystem : MonoBehaviour
 
     private void OnDisable()
     {
+        CancelSpendReplay();
         UnbindActionPoints();
         UnbindTurnManager();
     }
@@ -162,6 +188,7 @@ public class DLJ_CostSystem : MonoBehaviour
         if (actionPoints == null) return;
 
         _subscribedActionPoints = actionPoints;
+        _lastObservedCost = actionPoints.Current;
         _subscribedActionPoints.OnActionPointsChanged += HandleActionPointsChanged;
     }
 
@@ -175,6 +202,13 @@ public class DLJ_CostSystem : MonoBehaviour
 
     private void HandleActionPointsChanged(int current, int max)
     {
+        CancelSpendReplay();
+        if (IsPlayerTurn && _lastObservedCost > current)
+        {
+            LastSpendFrom = _lastObservedCost;
+            LastSpendTo = current;
+        }
+        _lastObservedCost = current;
         // 적 턴용 행동력도 같은 풀을 사용하지만, 플레이어 코스트 UI에는 보여주지 않는다.
         Refresh(
             IsPlayerTurn ? current : 0,

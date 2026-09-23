@@ -33,6 +33,10 @@ namespace _Scripts.LSO.Reward
         [Tooltip("이 기물이 가진 특성 이름들. 쉼표로 이어 적는다.")]
         [SerializeField] private TMP_Text abilityText;
 
+        [Tooltip("특성 칸에 손을 올렸을 때 설명을 띄우는 툴팁. 없어도 된다 —\n" +
+                 "그때는 이름만 보이고 설명이 안 뜬다.")]
+        [SerializeField] private LSO_AbilityTooltip abilityTooltip;
+
         protected override void Draw(LSO_RewardOption option)
         {
             if (option.type != LSO_RewardType.Piece)
@@ -55,6 +59,10 @@ namespace _Scripts.LSO.Reward
                 SetText(pointText, "-");
                 SetText(rangeText, "-");
                 SetText(abilityText, "-");
+
+                // 무엇인지 모르는 기물이니 설명할 특성도 없다.
+                if (abilityTooltip != null) abilityTooltip.Clear();
+
                 return;
             }
 
@@ -77,6 +85,10 @@ namespace _Scripts.LSO.Reward
             // 이어 붙이는 것도 창구가 한다. 손패 카드와 같은 함수를 쓰므로
             // 쉼표 간격이나 None 처리가 두 화면에서 갈리지 않는다.
             SetText(abilityText, LSO_DisplayNames.Of(card.AbilityTypes));
+
+            // 칸에는 이름만 적고, 설명은 손을 올렸을 때 띄운다.
+            // 카드에 설명까지 적으면 글이 칸을 넘치고, 특성이 둘이면 더 그렇다.
+            if (abilityTooltip != null) abilityTooltip.Show(card.AbilityTypes);
         }
 
         /// <summary>
@@ -96,6 +108,10 @@ namespace _Scripts.LSO.Reward
             SetText(pointText, string.Empty);
             SetText(rangeText, string.Empty);
             SetText(abilityText, string.Empty);
+
+            // 툴팁도 비운다. 안 비우면 이 카드로 다시 나온 기물에
+            // 지난 기물의 특성 설명이 뜬다.
+            if (abilityTooltip != null) abilityTooltip.Clear();
         }
     }
 }
