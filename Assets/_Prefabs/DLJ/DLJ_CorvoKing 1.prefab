@@ -128,8 +128,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Boss.CrowKing.LSO_PreyMarkView
   markPrefab: {fileID: 4226619876032977035, guid: 1681959ce347c06418e889296d5656e4, type: 3}
-  localOffset: {x: 0, y: 0.6, z: 0}
-  localScale: {x: 1, y: 1, z: 1}
+  localOffset: {x: 0, y: 1, z: 0}
+  localScale: {x: 0.2, y: 0.2, z: 0.2}
 --- !u!114 &2982517983955513522
 MonoBehaviour:
   m_ObjectHideFlags: 0

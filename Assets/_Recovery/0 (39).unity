@@ -11040,19 +11040,8 @@ MonoBehaviour:
   bossRevealDuration: 0.8
   bossBurnDuration: 1.1
   useBossRoarRipple: 1
-  bossRippleDuration: 3
-  bossRippleStrength: 0.03
-  useBossScreenShake: 1
-  bossScreenShakeDuration: 3
-  bossScreenShakeStrength: 0.02
-  bossScreenShakeFrequency: 24
-  useBossFocusDimming: 1
-  bossBlackHold: 0.2
-  bossSilhouetteDuration: 0.35
-  bossRoarDelay: 0.3
-  bossBrightenDuration: 0.3
-  bossDimmingStrength: 0.95
-  bossFocusRadius: 0.5
+  bossRippleDuration: 1.6
+  bossRippleStrength: 0.009
 --- !u!114 &2109000008
 MonoBehaviour:
   m_ObjectHideFlags: 0
