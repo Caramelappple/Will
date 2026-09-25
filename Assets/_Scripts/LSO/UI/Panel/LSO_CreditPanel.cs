@@ -3,6 +3,7 @@ using _Scripts.LSO.UI.Transition;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace _Scripts.LSO.UI.Panel
@@ -38,6 +39,9 @@ namespace _Scripts.LSO.UI.Panel
       [Tooltip("초당 몇 픽셀 움직일지.\n" +
                "시간이 아니라 속도로 두면 크레딧이 길어져도 흐르는 빠르기가 그대로다.")]
       [SerializeField, Min(1f)] private float scrollSpeed = 60f;
+
+      [Tooltip("마우스 좌클릭을 누르고 있는 동안 적용할 크레딧 재생 속도 배율.")]
+      [SerializeField, Min(1f)] private float fastForwardMultiplier = 4f;
 
       [Tooltip("한 줄이 차지하는 높이. 줄 간격까지 포함한 값이다.\n" +
                "목록이 한 줄 늘어날 때마다 이만큼 더 흐른다.\n" +
@@ -98,6 +102,15 @@ namespace _Scripts.LSO.UI.Panel
       {
          if (playOnEnable)
             Play();
+      }
+
+      private void Update()
+      {
+         if (_tween == null || !_tween.IsActive()) return;
+
+         bool fastForward = Application.isFocused &&
+                            Mouse.current != null && Mouse.current.leftButton.isPressed;
+         _tween.timeScale = fastForward ? fastForwardMultiplier : 1f;
       }
 
       private void OnDisable()

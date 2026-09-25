@@ -118,6 +118,7 @@ namespace _Scripts.LSO.Tutorial
         /// <summary>지금 기다리는 관문. 건너뛸 때 이것부터 풀어야 한다.</summary>
         private LSO_TutorialGateSO _armedGate;
         private bool _gatePassed;
+        private int _lastAdvanceClickFrame = -1;
 
         private void Awake()
         {
@@ -485,7 +486,10 @@ namespace _Scripts.LSO.Tutorial
 
                 if (isLast) yield break;
 
-                yield return new WaitForSecondsRealtime(step.lineHold);
+                float deadline = Time.unscaledTime + step.lineHold;
+                yield return null;
+                while (Time.unscaledTime < deadline && !TakeAdvanceClick())
+                    yield return null;
             }
         }
 
@@ -494,7 +498,10 @@ namespace _Scripts.LSO.Tutorial
             if (step.gate == null)
             {
                 // 관문이 없으면 마지막 줄을 읽을 시간만 준다.
-                yield return new WaitForSecondsRealtime(step.lineHold);
+                float lineDeadline = Time.unscaledTime + step.lineHold;
+                yield return null;
+                while (Time.unscaledTime < lineDeadline && !TakeAdvanceClick())
+                    yield return null;
                 yield break;
             }
 
@@ -508,8 +515,14 @@ namespace _Scripts.LSO.Tutorial
                 ? Time.unscaledTime + step.gateTimeout
                 : float.PositiveInfinity;
 
+            // 안내문을 띄운 클릭이 같은 프레임에 다음 걸음까지 넘기지 않게 한다.
+            yield return null;
+
             while (!_gatePassed)
             {
+                // 설명용 시간 관문만 클릭으로 넘긴다. 실습 관문은 실제 조작을 기다린다.
+                if (step.gate is LSO_GateDelay && TakeAdvanceClick()) break;
+
                 if (step.guideRewardPhases && banner != null)
                 {
                     var reward = _Scripts.LSO.Reward.LSO_RewardBox.Instance;
@@ -536,6 +549,16 @@ namespace _Scripts.LSO.Tutorial
 
                 yield return null;
             }
+        }
+
+        private bool TakeAdvanceClick()
+        {
+            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame ||
+                _lastAdvanceClickFrame == Time.frameCount)
+                return false;
+
+            _lastAdvanceClickFrame = Time.frameCount;
+            return true;
         }
 
         // =========================================================

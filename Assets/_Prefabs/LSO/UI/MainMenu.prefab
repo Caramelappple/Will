@@ -3713,6 +3713,7 @@ MonoBehaviour:
   - 
   viewport: {fileID: 0}
   scrollSpeed: 100
+  fastForwardMultiplier: 4
   scrollDown: 0
   startDelay: 0.5
   loop: 0
