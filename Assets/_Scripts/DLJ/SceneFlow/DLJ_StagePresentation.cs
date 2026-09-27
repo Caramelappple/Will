@@ -3,10 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using _Scripts.LDY;
 using _Scripts.LDY.Stage;
-using _Scripts.LSO.Camera;
 using _Scripts.LSO.Stage;
+using _Scripts.LSO.Boss;
 using TMPro;
-using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,16 +58,24 @@ namespace _Scripts.DLJ.SceneFlow
         [SerializeField, Min(0.1f)] private float fadeDuration = 0.45f;
 
         [Header("보스 등장")]
-        [Tooltip("끄면 이명과 보스 이름을 바로 표시하고 타자, 타격, 흔들림 효과를 생략한다.")]
+        [Tooltip("이름 전체가 부드럽게 나타난 뒤 불타듯 사라지는 효과를 사용한다.")]
         [SerializeField, InspectorName("보스 텍스트 효과 사용")] private bool useBossTextEffect = true;
-        [SerializeField, Min(0.01f)] private float bossTypeInterval = 0.045f;
-        [Tooltip("이명 타자가 끝난 뒤 보스 이름 첫 타격까지 기다리는 시간.")]
-        [SerializeField, Min(0f), InspectorName("이명-이름 대기 시간")] private float bossTitleDelay = 0.12f;
-        [SerializeField, Min(0f)] private float bossBeatInterval = 0.16f;
-        [SerializeField, Min(0.05f)] private float bossPunchDuration = 0.18f;
-        [SerializeField, Min(0f)] private float bossShakeDuration = 0.2f;
-        [SerializeField, Min(0f)] private float bossShakeStrength = 0.14f;
-        [SerializeField, Min(0f)] private float bossUiShake = 10f;
+        [SerializeField, Min(0.1f), InspectorName("보스 이름 등장 시간")] private float bossRevealDuration = 0.8f;
+        [SerializeField, Min(0.1f), InspectorName("보스 이름 연소 시간")] private float bossBurnDuration = 1.1f;
+        [SerializeField, InspectorName("보스 화면 울림 사용")] private bool useBossRoarRipple = true;
+        [SerializeField, Min(0.1f), InspectorName("보스 화면 울림 시간")] private float bossRippleDuration = 1.6f;
+        [SerializeField, Range(0f, 0.03f), InspectorName("보스 화면 울림 강도")] private float bossRippleStrength = 0.009f;
+        [SerializeField, InspectorName("보스 화면 떨림 사용")] private bool useBossScreenShake = true;
+        [SerializeField, Min(0.1f), InspectorName("보스 화면 떨림 시간")] private float bossScreenShakeDuration = 1.2f;
+        [SerializeField, Range(0f, 0.02f), InspectorName("보스 화면 떨림 강도")] private float bossScreenShakeStrength = 0.006f;
+        [SerializeField, Range(1f, 40f), InspectorName("보스 화면 떨림 속도")] private float bossScreenShakeFrequency = 24f;
+        [SerializeField, InspectorName("보스 중심 암전 사용")] private bool useBossFocusDimming = true;
+        [SerializeField, Min(0.01f), InspectorName("보스 완전 암전 유지 시간")] private float bossBlackHold = 0.2f;
+        [SerializeField, Min(0.01f), InspectorName("보스 실루엣 등장 시간")] private float bossSilhouetteDuration = 0.35f;
+        [SerializeField, Min(0f), InspectorName("보스 포효 전 대기 시간")] private float bossRoarDelay = 0.3f;
+        [SerializeField, Min(0.1f), InspectorName("보스 빠르게 밝아지는 시간")] private float bossBrightenDuration = 0.3f;
+        [SerializeField, Range(0f, 0.95f), InspectorName("보스 중심 암전 강도")] private float bossDimmingStrength = 0.7f;
+        [SerializeField, Range(0.05f, 0.5f), InspectorName("보스 중심 밝은 영역")] private float bossFocusRadius = 0.22f;
 
         private Canvas canvas;
         private Image veil;
@@ -80,7 +87,8 @@ namespace _Scripts.DLJ.SceneFlow
         private RectTransform titleRoot;
         private readonly List<Image> noise = new List<Image>();
         private readonly List<Behaviour> disabledInputs = new List<Behaviour>();
-        private readonly List<CinemachineImpulseListener> ownedImpulseListeners = new List<CinemachineImpulseListener>();
+        private DLJ_BossTitleEffect bossTitleEffect;
+        private readonly DLJ_BossRoarRipple bossRoarRipple = new DLJ_BossRoarRipple();
         private readonly Dictionary<GameObject, GameObject> decorationInstances = new Dictionary<GameObject, GameObject>();
         private Transform decorationRoot;
         private Coroutine routine;
@@ -98,7 +106,6 @@ namespace _Scripts.DLJ.SceneFlow
                 font = runtimeFont;
             }
             BuildUI();
-            EnsureImpulseListeners();
             ApplyStageDecorations(null);
         }
 
@@ -129,6 +136,8 @@ namespace _Scripts.DLJ.SceneFlow
 
         private void OnDestroy()
         {
+            bossRoarRipple.Dispose();
+            bossTitleEffect?.Dispose();
             if (decorationRoot != null) Destroy(decorationRoot.gameObject);
             decorationInstances.Clear();
             // 이 테스트 씬이 만든 진행 객체가 다른 씬의 실행을 가로막지 않게 정리한다.
@@ -141,8 +150,6 @@ namespace _Scripts.DLJ.SceneFlow
                 Destroy(runtimeFont.material);
                 Destroy(runtimeFont);
             }
-            foreach (CinemachineImpulseListener listener in ownedImpulseListeners)
-                if (listener != null) Destroy(listener);
         }
 
         private void OnLoaded(LDY_StageSO stage)
@@ -184,16 +191,36 @@ namespace _Scripts.DLJ.SceneFlow
 
                 if (progression.IsBoss)
                 {
-                    yield return FadeVeil(Color.white, 0f, 1f);
+                    if (useBossFocusDimming) veil.color = Color.black;
                     ApplyLook(look);
                     ApplyStageDecorations(stage);
-                    _Scripts.LSO.Sound.LSO_GameAudio.Play(_Scripts.LSO.Sound.LSO_SoundCue.StageIntro);
+                    Transform bossFocus = ResolveBossFocus();
+                    if (useBossFocusDimming)
+                    {
+                        bossRoarRipple.Prepare(bossFocus, bossDimmingStrength, bossFocusRadius);
+                        yield return new WaitForSecondsRealtime(bossBlackHold);
+                        yield return FadeVeil(Color.black, 1f, 0f, bossSilhouetteDuration);
+                        yield return new WaitForSecondsRealtime(bossRoarDelay);
+                    }
+
+                    // 실루엣 대기가 끝난 같은 프레임에 밝아짐·포효·이름을 시작한다.
+                    var cue = bossFocus != null && bossFocus.GetComponent<_Scripts.LDY.Boss.BullKing.LDY_BullKingBoss>() != null
+                        ? _Scripts.LSO.Sound.LSO_SoundCue.BullCry
+                        : _Scripts.LSO.Sound.LSO_SoundCue.StageIntro;
+                    _Scripts.LSO.Sound.LSO_GameAudio.Play(cue);
+                    if (useBossRoarRipple || useBossScreenShake || useBossFocusDimming)
+                        bossRoarRipple.Play(bossRippleDuration, useBossRoarRipple ? bossRippleStrength : 0f,
+                            bossScreenShakeDuration, useBossScreenShake ? bossScreenShakeStrength : 0f,
+                            bossScreenShakeFrequency, bossFocus, bossBrightenDuration,
+                            useBossFocusDimming ? bossDimmingStrength : 0f, bossFocusRadius);
                     yield return PlayBossTitle(
                         ResolveBossName(chapter, look),
                         look != null ? look.bossEpithet : string.Empty);
                     yield return new WaitForSecondsRealtime(titleHold);
-                    yield return FadeGroup(titleGroup, 1f, 0f);
-                    yield return FadeVeil(Color.white, 1f, 0f);
+                    if (useBossTextEffect)
+                        yield return bossTitleEffect.Burn(bossBurnDuration);
+                    else
+                        yield return FadeGroup(titleGroup, 1f, 0f);
                 }
                 else if (chapterChanged)
                 {
@@ -342,11 +369,12 @@ namespace _Scripts.DLJ.SceneFlow
             veil.color = Color.black;
         }
 
-        private IEnumerator FadeVeil(Color color, float from, float to)
+        private IEnumerator FadeVeil(Color color, float from, float to, float seconds = -1f)
         {
-            for (float elapsed = 0f; elapsed < fadeDuration; elapsed += Time.unscaledDeltaTime)
+            float duration = seconds < 0f ? fadeDuration : Mathf.Max(0.01f, seconds);
+            for (float elapsed = 0f; elapsed < duration; elapsed += Time.unscaledDeltaTime)
             {
-                color.a = Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, elapsed / fadeDuration));
+                color.a = Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, elapsed / duration));
                 veil.color = color;
                 yield return null;
             }
@@ -403,67 +431,33 @@ namespace _Scripts.DLJ.SceneFlow
             return look.bossName;
         }
 
-        private IEnumerator PlayBossTitle(string boss, string epithet)
+        private Transform ResolveBossFocus()
         {
-            SetTitle(boss, epithet, Color.black);
-            titleGroup.alpha = 1f;
-            if (!useBossTextEffect) yield break;
-
-            title.maxVisibleCharacters = 0;
-            subtitle.maxVisibleCharacters = 0;
-
-            subtitle.ForceMeshUpdate();
-            int subtitleCharacters = subtitle.textInfo.characterCount;
-            for (int i = 1; i <= subtitleCharacters; i++)
+            LDY_BoardManager currentBoard = board != null ? board : FindAnyObjectByType<LDY_BoardManager>();
+            if (currentBoard != null)
             {
-                subtitle.maxVisibleCharacters = i;
-                yield return new WaitForSecondsRealtime(bossTypeInterval);
+                foreach (LDY_Animal enemy in currentBoard.GetAllByTeam(LDY_Team.Enemy))
+                    if (enemy != null && enemy.gameObject.activeInHierarchy && !enemy.IsDeathProcessing &&
+                        enemy.TryGetComponent<LSO_BossPhase>(out _))
+                        return enemy.transform;
             }
-
-            if (bossTitleDelay > 0f)
-                yield return new WaitForSecondsRealtime(bossTitleDelay);
-
-            title.ForceMeshUpdate();
-            int nameCharacters = Mathf.Max(1, title.textInfo.characterCount);
-            int beats = Mathf.Min(3, nameCharacters);
-            for (int beat = 1; beat <= beats; beat++)
-            {
-                title.maxVisibleCharacters = Mathf.CeilToInt(nameCharacters * beat / (float)beats);
-                float weight = Mathf.Lerp(0.72f, 1f, beat / (float)beats);
-                LSO_CameraImpulse.Shake(bossShakeDuration, bossShakeStrength * weight);
-                yield return PunchBossTitle(weight);
-                if (beat < beats && bossBeatInterval > 0f)
-                    yield return new WaitForSecondsRealtime(bossBeatInterval);
-            }
-
-            title.maxVisibleCharacters = int.MaxValue;
-            subtitle.maxVisibleCharacters = int.MaxValue;
-            titleRoot.anchoredPosition = Vector2.zero;
-            title.rectTransform.localScale = Vector3.one;
+            Debug.LogWarning($"{name}: 현재 보드의 보스를 찾지 못해 화면 중앙에서 등장 효과를 재생합니다.", this);
+            return null;
         }
 
-        private IEnumerator PunchBossTitle(float weight)
+        private IEnumerator PlayBossTitle(string boss, string epithet)
         {
-            float duration = Mathf.Max(0.05f, bossPunchDuration);
-            for (float elapsed = 0f; elapsed < duration; elapsed += Time.unscaledDeltaTime)
-            {
-                float progress = Mathf.Clamp01(elapsed / duration);
-                float envelope = 1f - progress;
-                float punch = Mathf.Sin(progress * Mathf.PI) * 0.3f * weight;
-                title.rectTransform.localScale = Vector3.one * (1f + punch);
-
-                float wave = Mathf.Sin(progress * Mathf.PI * 8f);
-                float vertical = Mathf.Cos(progress * Mathf.PI * 6f);
-                titleRoot.anchoredPosition = new Vector2(wave, vertical) * (bossUiShake * envelope * weight);
-                yield return null;
-            }
-
-            titleRoot.anchoredPosition = Vector2.zero;
-            title.rectTransform.localScale = Vector3.one;
+            SetTitle(boss, epithet, stageLabel.color);
+            SetTitleLayout(true);
+            if (useBossTextEffect)
+                yield return bossTitleEffect.Reveal(bossRevealDuration);
+            else
+                titleGroup.alpha = 1f;
         }
 
         private void SetTitle(string main, string secondary, Color color)
         {
+            SetTitleLayout(false);
             title.text = main;
             title.color = color;
             title.maxVisibleCharacters = int.MaxValue;
@@ -474,17 +468,30 @@ namespace _Scripts.DLJ.SceneFlow
             if (title != null) title.rectTransform.localScale = Vector3.one;
         }
 
-        private void EnsureImpulseListeners()
+        private void SetTitleLayout(bool isBoss)
         {
-            foreach (CinemachineCamera camera in FindObjectsByType<CinemachineCamera>(FindObjectsSortMode.None))
+            if (isBoss)
             {
-                CinemachineImpulseListener listener = camera.GetComponent<CinemachineImpulseListener>();
-                if (listener != null) continue;
-                listener = camera.gameObject.AddComponent<CinemachineImpulseListener>();
-                listener.ChannelMask = 1;
-                listener.Gain = 1f;
-                ownedImpulseListeners.Add(listener);
+                // 스테이지 번호와 같은 영역을 사용해 해상도가 바뀌어도 위치를 맞춘다.
+                var badgeRect = (RectTransform)badge.transform;
+                Stretch(titleRoot, badgeRect.anchorMin, badgeRect.anchorMax);
+                Stretch(subtitle.rectTransform, new Vector2(0f, 0.65f), new Vector2(1f, 1.1f));
+                Stretch(title.rectTransform, new Vector2(0f, -0.1f), new Vector2(1f, 0.7f));
             }
+            else
+            {
+                Stretch(titleRoot, Vector2.zero, Vector2.one);
+                Stretch(subtitle.rectTransform, new Vector2(0.12f, 0.54f), new Vector2(0.88f, 0.62f));
+                Stretch(title.rectTransform, new Vector2(0.1f, 0.37f), new Vector2(0.9f, 0.54f));
+            }
+
+            float mainSize = isBoss ? 36f : 90f;
+            float secondarySize = isBoss ? 18f : 32f;
+            title.fontSize = title.fontSizeMax = mainSize;
+            title.fontSizeMin = mainSize * 0.45f;
+            subtitle.fontSize = subtitle.fontSizeMax = secondarySize;
+            subtitle.fontSizeMin = secondarySize * 0.45f;
+            title.characterSpacing = isBoss ? 4f : 12f;
         }
 
         private void HoldInput()
@@ -513,6 +520,8 @@ namespace _Scripts.DLJ.SceneFlow
 
         private void ResetUI()
         {
+            bossRoarRipple.Stop();
+            bossTitleEffect?.Reset();
             if (veil == null) return;
             veil.color = Color.clear;
             badge.alpha = 0f;
@@ -551,6 +560,7 @@ namespace _Scripts.DLJ.SceneFlow
             subtitle = MakeText("Epithet", center.transform, new Vector2(0.12f, 0.54f), new Vector2(0.88f, 0.62f), 32f);
             title = MakeText("Name", center.transform, new Vector2(0.1f, 0.37f), new Vector2(0.9f, 0.54f), 90f);
             title.characterSpacing = 12f;
+            bossTitleEffect = new DLJ_BossTitleEffect(titleRoot, titleGroup, title, subtitle);
             ResetUI();
         }
 

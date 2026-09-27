@@ -2924,8 +2924,7 @@ MonoBehaviour:
   board: {fileID: 579526130}
   moveHighlightPrefab: {fileID: 2202577059168248849, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
   attackHighlightPrefab: {fileID: 5323414942771181339, guid: 8347fe02b9cad85429294651be512654, type: 3}
-  attackHeightOffset: 0.05
-  moveHeightOffset: 0.08
+  highlightHeightOffset: 0.05
 --- !u!114 &579526128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3060,6 +3059,7 @@ MonoBehaviour:
   parent: {fileID: 0}
   maxActive: 12
   fallbackLifetime: 2
+  stageIntro: {fileID: 0}
   logSteps: 1
 --- !u!1 &598217199
 GameObject:

@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3102cc7d511b7f84fad6a24225e364be, type: 3}
   m_Name: DLJ_Stage_2_3
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LDY.Stage.LDY_StageSO
-  stageName: "여우왕"
-  description: "DLJ 스테이지 전환 테스트"
+  stageName: "\uC5EC\uC6B0\uC655"
+  description: "DLJ \uC2A4\uD14C\uC774\uC9C0 \uC804\uD658 \uD14C\uC2A4\uD2B8"
   enemies:
   - card: {fileID: 11400000, guid: 049a984091544b55ae25b061830bb792, type: 2}
-    pos: {x: 3, y: 0, z: 6}
+    pos: {x: 5, y: 0, z: 6}
+    overrideWill: 0
+    will: 0

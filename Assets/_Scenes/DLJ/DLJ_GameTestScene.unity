@@ -5138,8 +5138,7 @@ MonoBehaviour:
   board: {fileID: 1007328538}
   moveHighlightPrefab: {fileID: 2202577059168248849, guid: ad372448bf7e03b438d846e7edb009e8, type: 3}
   attackHighlightPrefab: {fileID: 5323414942771181339, guid: 8347fe02b9cad85429294651be512654, type: 3}
-  attackHeightOffset: 0.05
-  moveHeightOffset: 0.08
+  highlightHeightOffset: 0.05
 --- !u!114 &1007328536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11038,13 +11037,22 @@ MonoBehaviour:
   titleHold: 1.8
   fadeDuration: 0.45
   useBossTextEffect: 1
-  bossTypeInterval: 0.2
-  bossTitleDelay: 0.5
-  bossBeatInterval: 0.6
-  bossPunchDuration: 0.18
-  bossShakeDuration: 0.2
-  bossShakeStrength: 0.14
-  bossUiShake: 10
+  bossRevealDuration: 0.8
+  bossBurnDuration: 1.1
+  useBossRoarRipple: 1
+  bossRippleDuration: 3
+  bossRippleStrength: 0.03
+  useBossScreenShake: 1
+  bossScreenShakeDuration: 3
+  bossScreenShakeStrength: 0.02
+  bossScreenShakeFrequency: 24
+  useBossFocusDimming: 1
+  bossBlackHold: 0.2
+  bossSilhouetteDuration: 0.35
+  bossRoarDelay: 0.3
+  bossBrightenDuration: 0.3
+  bossDimmingStrength: 0.95
+  bossFocusRadius: 0.5
 --- !u!114 &2109000008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11164,6 +11172,8 @@ MonoBehaviour:
   introDirector: {fileID: 2109000006}
   startOnPlay: 0
   restartOnDefeat: 1
+  defeatSceneName: KTH_Death Scene
+  clearSceneName: KTH_BossClearScene
   flipWaitTimeout: 6
   beforeRewardDelay: 0.6
   onStageCleared:
