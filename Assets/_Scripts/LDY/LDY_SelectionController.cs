@@ -10,7 +10,9 @@ namespace _Scripts.LDY
     // boardLayerMask에는 타일(바닥) 콜라이더가 속한 레이어를 지정할 것.
     // targetCamera를 비워두면 Camera.main을 사용한다.
     // 프로젝트의 Active Input Handling이 New Input System 전용이므로 UnityEngine.InputSystem을 사용한다.
-    // 조작: 좌클릭 = 내 기물 선택/공격, 우클릭 = 갈 수 있는 칸이면 이동 · 그 밖이면 선택 해제.
+    // 조작: 좌클릭 하나로 선택 · 이동 · 공격을 다 한다. 우클릭은 선택 해제(무르기)뿐이다.
+    //       갈 수 있는 칸은 빈 칸이고 때릴 수 있는 칸은 기물이 선 칸이라 둘이 겹치지 않는다.
+    //       그래서 누른 칸에 무엇이 있는지만 보면 이동인지 공격인지가 정해진다.
     //       이동하거나 공격하면 선택이 풀린다. 이어서 또 시키려면 다시 고른다.
     //       카드로 소환한 기물은 놓자마자 골라진다(HandlePlaced).
     public class LDY_SelectionController : MonoBehaviour
@@ -179,7 +181,7 @@ namespace _Scripts.LDY
 
             LDY_Animal clickedAnimal = board.Get(gridPos);
             OnAnimalClicked?.Invoke(clickedAnimal);
-            HandleSelectOrAttackClick(clickedAnimal);
+            HandleSelectOrAttackClick(clickedAnimal, gridPos);
         }
 
         // 유효한 대상인지는 DLJ_SuccessionSystem이 판단한다. 여기서는 어느 칸을 클릭했는지만 넘긴다.
@@ -192,39 +194,55 @@ namespace _Scripts.LDY
         }
 
         /// <summary>
-        /// 우클릭 하나가 두 가지를 한다.
+        /// 우클릭은 무르기 하나만 한다.
         ///
-        ///     갈 수 있는 칸을 눌렀다   → 그리로 간다
-        ///     그 밖의 아무 데나 눌렀다 → 선택을 푼다
+        /// 예전에는 "갈 수 있는 칸이면 이동, 그 밖이면 해제"로 두 가지를 겸했다.
+        /// 이동을 좌클릭으로 옮기면서 그쪽은 뺐다 — 같은 일을 두 버튼이 하면
+        /// 어느 쪽이 맞는 조작인지 플레이어가 외워야 할 것이 늘어난다.
         ///
-        /// 판 밖도 "그 밖"이다. 무르는 동작을 따로 외우지 않아도 되도록,
-        /// 이동이 아닌 우클릭은 전부 무르기로 읽는다.
+        /// 판 밖에서도 받는다. 레이캐스트에 막으면 판을 벗어나 누른 것이 아무 일도
+        /// 안 하게 되는데, 무르는 데는 그곳이 가장 자연스러운 자리다.
         ///
-        /// 연출 중에는 둘 다 하지 않는다. 논리 좌표가 이미 목적지로 바뀌어 있어서
+        /// 연출 중에는 하지 않는다. 논리 좌표가 이미 목적지로 바뀌어 있어서
         /// 지금 자리를 기준으로 판단하면 엉뚱한 칸을 고르게 된다.
         /// </summary>
         private void HandleRightClick()
         {
-            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(_Scripts.LSO.Tutorial.LSO_TutorialAction.Move)) return;
             if (Selected == null) return;
             if (IsActing(Selected)) return;
-
-            if (TryRaycastToGrid(out Vector3Int gridPos) &&
-                moveSystem.GetMovableTiles(Selected).Contains(gridPos))
-            {
-                LDY_Animal movingAnimal = Selected;
-
-                // 한 번 움직이면 선택이 풀린다. 이어서 또 시키려면 다시 고른다.
-                Deselect();
-
-                moveSystem.MoveTo(movingAnimal, gridPos);
-                return;
-            }
 
             Deselect();
         }
 
-        private void HandleSelectOrAttackClick(LDY_Animal occupant)
+        /// <summary>
+        /// 고른 기물을 그 칸으로 보낸다. 보냈으면 참.
+        ///
+        /// 갈 수 없는 칸이거나 고른 기물이 없으면 아무 일도 하지 않고 거짓을 돌려준다.
+        /// 부르는 쪽은 거짓일 때 원래 하던 일(선택 해제)을 이어서 하면 된다.
+        /// </summary>
+        private bool TryMoveSelectedTo(Vector3Int gridPos)
+        {
+            if (Selected == null) return false;
+
+            // 연출 중인 기물은 논리 좌표가 이미 목적지로 바뀌어 있다.
+            if (IsActing(Selected)) return false;
+
+            if (!_Scripts.LSO.Tutorial.LSO_TutorialLock.Allows(
+                    _Scripts.LSO.Tutorial.LSO_TutorialAction.Move)) return false;
+
+            if (!moveSystem.GetMovableTiles(Selected).Contains(gridPos)) return false;
+
+            LDY_Animal movingAnimal = Selected;
+
+            // 한 번 움직이면 선택이 풀린다. 이어서 또 시키려면 다시 고른다.
+            Deselect();
+
+            moveSystem.MoveTo(movingAnimal, gridPos);
+
+            return true;
+        }
+
+        private void HandleSelectOrAttackClick(LDY_Animal occupant, Vector3Int gridPos)
         {
             // 튜토리얼 단계가 바뀌기 직전에 선택된 기물이 남아 있는 경우에도
             // 제한 밖 기물을 공격 주체로 쓰지 못하게 실행 직전에 다시 확인한다.
@@ -235,6 +253,12 @@ namespace _Scripts.LDY
 
             if (occupant == null)
             {
+                // 빈 칸이다. 고른 기물이 갈 수 있는 칸이면 이동이고, 아니면 무르기다.
+                //
+                // 공격과 겹칠 일이 없어서 이렇게 갈라도 된다 — 때릴 수 있는 칸에는
+                // 반드시 기물이 서 있으므로 여기(occupant == null)로 오지 않는다.
+                if (TryMoveSelectedTo(gridPos)) return;
+
                 Deselect();
                 InspectEnemy(null);
                 return;
