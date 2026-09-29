@@ -30,7 +30,8 @@ namespace _Scripts.LSO.Ability
         [Tooltip("띄운 이펙트를 담아둘 곳. 비워두면 이 오브젝트 밑에 붙는다.\n" +
                  "\n" +
                  "기물의 자식으로 붙이지 않는 것이 중요하다. 특성은 기물이 죽는 순간에도\n" +
-                 "발동하는데, 기물에 붙여두면 기물이 파괴될 때 연출이 같이 사라진다.")]
+                 "발동하는데, 기물에 붙여두면 기물이 파괴될 때 연출이 같이 사라진다.\n" +
+                 "단, 키위 면역 방어막은 살아 있는 키위를 따라가야 하므로 예외로 키위 모델에 붙인다.")]
         [SerializeField] private Transform parent;
 
         [Tooltip("한 번에 떠 있을 수 있는 이펙트 수의 상한.\n" +
@@ -216,14 +217,40 @@ namespace _Scripts.LSO.Ability
                     "사전에서 1, 1, 1 로 바꿔주세요.");
             }
 
-            Spawn(info, fired.Position, fired.EffectVariant);
+            Spawn(
+                info,
+                fired.Position,
+                fired.EffectVariant,
+                ResolveEffectParent(fired));
         }
 
-        private void Spawn(LSO_AbilityInfo info, Vector3 at, int effectVariant)
+        /// <summary>
+        /// 키위의 면역 방어막은 전역 이펙트 부모가 아니라 키위 모델에 붙인다.
+        ///
+        /// 방어막은 피격 순간의 위치만 복사하면 이동·공격 연출 중 모델이 움직일 때
+        /// 피격마다 다른 곳에 생긴다. 키위가 살아 있는 동안 모델을 부모로 쓰면
+        /// 생성 위치와 이후 추적 기준이 항상 키위 하나로 맞는다.
+        /// 기물이 이미 사라졌거나 모델이 없으면 기존 전역 부모로 되돌린다.
+        /// </summary>
+        private Transform ResolveEffectParent(LSO_AbilityFired fired)
+        {
+            if (fired.Type == LSO_AbilityType.CurseImmunity &&
+                fired.At != null &&
+                fired.At.modelTransform != null)
+                return fired.At.modelTransform;
+
+            return parent;
+        }
+
+        private void Spawn(
+            LSO_AbilityInfo info,
+            Vector3 at,
+            int effectVariant,
+            Transform effectParent)
         {
             TrimToLimit();
 
-            GameObject instance = Instantiate(info.effectPrefab, parent);
+            GameObject instance = Instantiate(info.effectPrefab, effectParent);
 
             // 같은 특성 안에서도 판정 결과가 갈릴 수 있다. 개복치의 생존/돌연사처럼
             // 프리팹이 결과별 표현을 지원하면 번호를 넘기고, 아니면 조용히 무시한다.

@@ -10,8 +10,22 @@ const director=blocks.find(b=>b.includes('LSO_TutorialDirector\n'));
 const chapterIds=[...director.match(/  chapters:\n([\s\S]*?)  banner:/)[1].matchAll(/guid: (\w+)/g)].map(m=>m[1]);
 assert.equal(chapterIds.length,5);
 const progression=blocks.find(b=>b.includes('LSO_StageProgression\n'));
-const stageChapterId=progression.match(/  chapters:\n  - \{fileID: 11400000, guid: (\w+)/)[1];
-assert.equal(stageChapterId,'d3fcf54f2a0661670271c82ba3a2fe78','Tutorial scene must start with TutorialBattleChapter');
+const stageChapterIds=[...progression.match(/  chapters:\n([\s\S]*?)  startChapterIndex:/)[1].matchAll(/guid: (\w+)/g)].map(m=>m[1]);
+assert.deepEqual(stageChapterIds.slice(0,5),[
+  'd3fcf54f2a0661670271c82ba3a2fe78',
+  '63d3b7e9ff8f4e2daf0245e789c84c6a',
+  '4c042e2b519a4723b340b683c3c930dc',
+  '24ba5d3066724f869e5134a74b25223d',
+  '237f12cbc5ef45569dacb8c50e554f40'
+],'Tutorial scene stage progression must include TutorialBattleChapter then Chapter1-4');
+const tutorialBattle=read('Assets/_SO/Tutorial/Battle/TutorialBattleChapter.asset');
+assert(tutorialBattle.includes('  isTutorial: 1'),'Tutorial battle chapter must be marked as tutorial');
+assert(tutorialBattle.includes('variantGroups:\n  - stageIndex: 0'),'Tutorial battle chapter must expose one visible stage group');
+assert(tutorialBattle.includes('guid: b55c77e74d4f3ea07261adce2bdc3773'),'Tutorial battle chapter must use TutorialBattle');
+assert(!tutorialBattle.match(/  - \{fileID: 11400000, guid: (?!b55c77e74d4f3ea07261adce2bdc3773)/),'Tutorial battle chapter must not contain copied Chapter1 stages');
+const chapter1=read('Assets/_SO/Stage/Chapter1/LSO_Chapter1.asset');
+assert(chapter1.includes('stageIndex: 0\n    alternatives:\n    - {fileID: 11400000, guid: af1ca64aa1434e018d8c6bdeb62bdf17, type: 2}'),'Chapter1 stage 1 must keep its original candidates');
+assert(!chapter1.match(/stageIndex: 0[\s\S]*?b55c77e74d4f3ea07261adce2bdc3773/),'Chapter1 stage 1 must not use the tutorial battlefield');
 const shotBlock=blocks.find(b=>b.includes('LSO_CameraDirector\n'));
 const shots=new Map([...shotBlock.matchAll(/  - id: (\S+)\n    camera: \{fileID: (\d+)\}/g)].map(m=>[m[1],m[2]]));
 for(const id of shots.values())assert(ids.includes(id),'Camera must resolve: '+id);
@@ -51,7 +65,7 @@ for(const [from,to] of [[[2,2],[3,3]],[[3,2],[4,3]]])assert(Math.max(...from.map
 for(const tile of [[3,3],[4,4],[5,4]])assert(Math.max(Math.abs(tile[0]-4),Math.abs(tile[1]-3))<=1);
 console.log('PASS: practice movement, attack reach, 5 AP budget and enemy placement within Curse range.');
 
-assert(director.includes('practiceCard: {fileID: 11400000, guid: 5583fa32fbda6fdfa96dcea7a41332f0'), 'Practice hand must be deterministic');
+assert(!director.includes('practiceCard:'), 'Removed practiceCard field must not be serialized');
 assert(director.includes('introFadeDuration: 1.2'));
 const fadeId=director.match(/introFade: \{fileID: (\d+)/)[1];
 assert(blocks.some(b=>b.startsWith('--- !u!225 &'+fadeId+'\n')), 'Intro must reference a CanvasGroup');

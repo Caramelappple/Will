@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_ChapterSO
   chapter: 1
   regionName: "\uD669\uC18C\uC655\uC758 \uB4E4\uD310"
-  stages:
-  - {fileID: 11400000, guid: b55c77e74d4f3ea07261adce2bdc3773, type: 2}
-  - {fileID: 11400000, guid: 75b9b0b93991464091c980d5f4bb07eb, type: 2}
-  - {fileID: 11400000, guid: 7f58ef5bfeb446798637f655e0f039c3, type: 2}
-  - {fileID: 11400000, guid: cc7a77ae6c644f11adc1867a9dfcf017, type: 2}
-  - {fileID: 11400000, guid: 701b4e0ca5f249e299ffc0324ea623a9, type: 2}
-  - {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
-  variantGroups: []
+  isTutorial: 1
+  stages: []
+  variantGroups:
+  - stageIndex: 0
+    alternatives:
+    - {fileID: 11400000, guid: b55c77e74d4f3ea07261adce2bdc3773, type: 2}

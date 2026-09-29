@@ -44,6 +44,9 @@ namespace _Scripts.LSO.Stage
         [Tooltip("챕터가 바뀔 때 화면 가운데 뜨는 이름. 예: 까마귀왕의 둥지")]
         public string regionName;
 
+        [Tooltip("튜토리얼 챕터면 켭니다. 튜토리얼의 마지막 스테이지를 보스로 취급하지 않습니다.")]
+        public bool isTutorial;
+
         // 기존 챕터 에셋과의 직렬화 호환을 위한 단일 스테이지 목록이다.
         // Variant Groups가 있는 순번에서는 사용하지 않으며 Inspector에서도 숨긴다.
         [SerializeField, HideInInspector]
@@ -139,10 +142,10 @@ namespace _Scripts.LSO.Stage
             }
         }
 
-        /// <summary>이 자리가 보스인지. 목록의 마지막 칸을 보스로 본다.</summary>
+        /// <summary>이 자리가 보스인지. 일반 챕터는 마지막 칸을 보스로 본다.</summary>
         public bool IsBossAt(int index)
         {
-            return Count > 0 && index == Count - 1;
+            return !isTutorial && Count > 0 && index == Count - 1;
         }
 
 #if UNITY_EDITOR

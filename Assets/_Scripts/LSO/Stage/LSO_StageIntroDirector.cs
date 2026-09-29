@@ -96,7 +96,7 @@ namespace _Scripts.LSO.Stage
 
         /// <summary>무엇이 놓였는지 세어볼 때만 쓴다. 자리를 정하지는 않는다.</summary>
         private LDY_BoardManager _board;
-        private int _lastChapter = -1;
+        private LSO_ChapterSO _lastChapter;
 
         /// <summary>
         /// 보상 완료를 상위 흐름(LSO_StageFlow)이 직접 전달할 때 자체 구독을 끈다.
@@ -394,19 +394,20 @@ namespace _Scripts.LSO.Stage
         /// </summary>
         private void RaiseBranch(LDY_StageSO stage)
         {
-            if (IsBossStage())
+            LSO_ChapterSO chapter = FindChapter(stage);
+
+            if (IsBossStage(stage))
             {
-                // 챕터 기억은 갱신해둔다. HasChapterChanged 는 물어볼 때마다 기억을 고치는데,
-                // 보스일 때 안 물어보면 기억이 낡은 채로 남는다.
-                // 그러면 보스로 챕터를 넘어간 다음 판이 "챕터 전환"으로 잡히지 않는다.
-                HasChapterChanged();
+                // 보스는 챕터 전환보다 우선하지만, 다음 챕터를 비교할 기준은
+                // 지금 전달받은 스테이지의 챕터로 갱신해 둔다.
+                HasChapterChanged(chapter);
 
                 Log("갈래: 보스");
                 onBossStage?.Invoke();
                 return;
             }
 
-            if (HasChapterChanged())
+            if (HasChapterChanged(chapter))
             {
                 Log("갈래: 챕터 전환");
                 onChapterChanged?.Invoke();
@@ -426,9 +427,10 @@ namespace _Scripts.LSO.Stage
         /// 진행이 없으면 보스가 아닌 것으로 본다 — 없다는 이유로 보스 연출을 틀면
         /// 일반 스테이지가 하얗게 덮인다.
         /// </summary>
-        private bool IsBossStage()
+        private bool IsBossStage(LDY_StageSO stage)
         {
-            return LSO_StageProgression.HasInstance && LSO_StageProgression.Instance.IsBoss;
+            return LSO_StageProgression.HasInstance &&
+                   LSO_StageProgression.Instance.IsBossStage(stage);
         }
 
         /// <summary>
@@ -437,17 +439,21 @@ namespace _Scripts.LSO.Stage
         /// 처음 한 번은 "바뀌었다"로 치지 않는다. 게임을 켜고 첫 스테이지에
         /// 들어갈 때마다 지역 소개가 뜨면 지겨워진다.
         /// </summary>
-        private bool HasChapterChanged()
+        private bool HasChapterChanged(LSO_ChapterSO chapter)
         {
-            if (!LSO_StageProgression.HasInstance) return false;
+            if (chapter == null) return false;
 
-            int chapter = LSO_StageProgression.Instance.ChapterNumber;
-
-            bool changed = _lastChapter >= 0 && chapter != _lastChapter;
+            bool changed = _lastChapter != null && chapter != _lastChapter;
 
             _lastChapter = chapter;
 
             return changed;
+        }
+
+        private LSO_ChapterSO FindChapter(LDY_StageSO stage)
+        {
+            if (!LSO_StageProgression.HasInstance) return null;
+            return LSO_StageProgression.Instance.FindChapter(stage);
         }
 
         /// <summary>

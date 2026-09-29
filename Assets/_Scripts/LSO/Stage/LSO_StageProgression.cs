@@ -60,6 +60,73 @@ namespace _Scripts.LSO.Stage
         /// <summary>지금 자리. 세이브가 이 값을 담는다. 0부터.</summary>
         public int StageIndex => _stageIndex;
 
+        /// <summary>
+        /// 전달받은 스테이지가 속한 챕터를 찾는다.
+        ///
+        /// 다음 스테이지를 세우는 연출은 진행도를 한 칸 넘긴 뒤에 시작된다.
+        /// 그 순간에도 화면 연출은 이벤트로 전달받은 스테이지를 기준으로 해야
+        /// 하므로, 현재 커서에 기대지 않고 목록에서 소속을 직접 찾는다.
+        /// </summary>
+        public LSO_ChapterSO FindChapter(LDY_StageSO stage)
+        {
+            return TryFindStageContext(stage, out LSO_ChapterSO chapter, out _) ? chapter : null;
+        }
+
+        /// <summary>전달받은 스테이지가 그 챕터의 마지막 칸인지 반환한다.</summary>
+        public bool IsBossStage(LDY_StageSO stage)
+        {
+            return TryFindStageContext(stage, out LSO_ChapterSO chapter, out int stageIndex) &&
+                   chapter.IsBossAt(stageIndex);
+        }
+
+        /// <summary>전달받은 스테이지의 화면용 챕터 번호를 반환한다.</summary>
+        public int GetChapterNumber(LDY_StageSO stage)
+        {
+            LSO_ChapterSO chapter = FindChapter(stage);
+            return chapter != null ? chapter.chapter : 0;
+        }
+
+        /// <summary>전달받은 스테이지의 화면용 순번을 반환한다.</summary>
+        public int GetStageNumber(LDY_StageSO stage)
+        {
+            return TryFindStageContext(stage, out _, out int stageIndex) ? stageIndex + 1 : 0;
+        }
+
+        private bool TryFindStageContext(
+            LDY_StageSO stage, out LSO_ChapterSO chapter, out int stageIndex)
+        {
+            chapter = null;
+            stageIndex = -1;
+            if (stage == null) return false;
+
+            // 챕터 사이에서 같은 StageSO를 후보로 재사용할 수 있다.
+            // 진행 중인 칸은 목록을 처음부터 훑지 않고 현재 커서를 우선해야
+            // 튜토리얼의 후보가 정식 Chapter1의 지역명으로 잘못 해석되지 않는다.
+            if (Chapter != null && Current == stage)
+            {
+                chapter = Chapter;
+                stageIndex = _stageIndex;
+                return true;
+            }
+
+            for (int chapterIndex = 0; chapterIndex < chapters.Count; chapterIndex++)
+            {
+                LSO_ChapterSO candidate = chapters[chapterIndex];
+                if (candidate == null) continue;
+
+                for (int candidateStageIndex = 0; candidateStageIndex < candidate.Count; candidateStageIndex++)
+                {
+                    if (candidate.At(candidateStageIndex) != stage) continue;
+
+                    chapter = candidate;
+                    stageIndex = candidateStageIndex;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>런을 다 돌았는지. 마지막 챕터의 마지막을 깬 뒤다.</summary>
         public bool IsRunFinished => Chapter == null;
 

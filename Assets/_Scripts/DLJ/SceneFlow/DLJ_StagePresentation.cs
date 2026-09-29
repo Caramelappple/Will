@@ -171,11 +171,24 @@ namespace _Scripts.DLJ.SceneFlow
         {
             IsPlaying = true;
             HoldInput();
-            bool finished = progression == null || progression.IsRunFinished;
-            LSO_ChapterSO chapter = finished ? null : progression.Chapter;
-            bool chapterChanged = lastChapter != null && lastChapter != chapter;
+            bool finished = progression == null || (stage == null && progression.IsRunFinished);
+            if (!finished && stage == null)
+                stage = progression.Current;
+            LSO_ChapterSO chapter = finished ? null : progression.FindChapter(stage);
+            if (!finished && chapter == null)
+            {
+                Debug.LogWarning(
+                    $"{name}: 전달받은 스테이지 '{stage.name}'가 진행 목록에 없어 현재 진행도 기준으로 연출합니다.",
+                    this);
+                chapter = progression.Chapter;
+            }
+
+            bool isBoss = !finished && progression.IsBossStage(stage);
+            bool chapterChanged = IsChapterIntro(chapter);
             ChapterLook look = FindLook(chapter);
-            stageLabel.text = finished ? "여정의 끝" : $"{progression.ChapterNumber}-{progression.StageNumber}";
+            int chapterNumber = finished ? 0 : progression.GetChapterNumber(stage);
+            int stageNumber = finished ? 0 : progression.GetStageNumber(stage);
+            stageLabel.text = finished ? "여정의 끝" : $"{chapterNumber}-{stageNumber}";
 
             try
             {
@@ -189,7 +202,7 @@ namespace _Scripts.DLJ.SceneFlow
                     yield break;
                 }
 
-                if (progression.IsBoss)
+                if (isBoss)
                 {
                     if (useBossFocusDimming) veil.color = Color.black;
                     ApplyLook(look);
@@ -257,6 +270,22 @@ namespace _Scripts.DLJ.SceneFlow
                     ReleaseInput();
                 }
             }
+        }
+
+        /// <summary>
+        /// 지역 소개를 보여줄 챕터인지 반환한다.
+        ///
+        /// 튜토리얼 전투에서는 처음부터 지역명을 띄우지 않는다.
+        /// 튜토리얼 챕터를 끝내고 첫 정식 챕터로 넘어가면
+        /// lastChapter가 비어 있어도 지역 소개가 필요하다.
+        /// </summary>
+        private bool IsChapterIntro(LSO_ChapterSO chapter)
+        {
+            if (chapter == null || progression == null) return false;
+
+            if (lastChapter != null) return lastChapter != chapter;
+
+            return progression.ChapterIndex > 0;
         }
 
         private ChapterLook FindLook(LSO_ChapterSO chapter)

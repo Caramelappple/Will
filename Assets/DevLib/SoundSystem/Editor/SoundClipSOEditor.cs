@@ -149,6 +149,17 @@ namespace DevLib.SoundSystem.Editor
         {
             if (so == null || so.clip == null) return;
 
+            // Streaming·CompressedInMemory 클립은 GetData 로 원본 샘플을
+            // 읽을 수 없다. 재생용 임포트 설정을 바꾸지 않고 인스펙터만
+            // 안내 상태로 둔다.
+            if (so.clip.loadType != AudioClipLoadType.DecompressOnLoad)
+            {
+                GUILayout.Label(
+                    "스트리밍/압축 클립은 파형 미리보기를 지원하지 않습니다.",
+                    EditorStyles.centeredGreyMiniLabel);
+                return;
+            }
+
             Rect wRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none,
                 GUILayout.Height(WaveformHeight), GUILayout.ExpandWidth(true));
 
