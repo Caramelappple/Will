@@ -13135,7 +13135,7 @@ MonoBehaviour:
   onDefeat:
     m_PersistentCalls:
       m_Calls: []
-  logSteps: 1
+  logSteps: 0
 --- !u!114 &1339222919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13156,7 +13156,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 237f12cbc5ef45569dacb8c50e554f40, type: 2}
   startChapterIndex: 0
   startStageIndex: 0
-  logSteps: 1
+  logSteps: 0
 --- !u!114 &1339222920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13193,8 +13193,8 @@ MonoBehaviour:
   parent: {fileID: 0}
   maxActive: 12
   fallbackLifetime: 2
-  stageIntro: {fileID: 0}
-  logSteps: 1
+  stageIntro: {fileID: 1339222916}
+  logSteps: 0
 --- !u!114 &1339222922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14667,7 +14667,7 @@ MonoBehaviour:
   playOnStart: 1
   skipWithSpace: 1
   skipHoldSeconds: 1
-  logSteps: 1
+  logSteps: 0
 --- !u!4 &1582878401
 Transform:
   m_ObjectHideFlags: 0
@@ -14700,8 +14700,8 @@ MonoBehaviour:
   <MaxValue>k__BackingField: 0
   <MinValue>k__BackingField: 0
   _value: 0
-  logDamage: 1
-  logRecover: 1
+  logDamage: 0
+  logRecover: 0
 --- !u!1 &1589246477
 GameObject:
   m_ObjectHideFlags: 0
@@ -17408,31 +17408,23 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 24ba5d3066724f869e5134a74b25223d, type: 2}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[4].chapter
-      value:
+      value: 
       objectReference: {fileID: 11400000, guid: 237f12cbc5ef45569dacb8c50e554f40, type: 2}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[1].bossName
-      value: "황소왕"
+      value: "\uD669\uC18C\uC655"
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[1].bossEpithet
-      value: "들판의 폭군"
+      propertyPath: chapterLooks.Array.data[2].bossName
+      value: "\uC5EC\uC6B0\uC655"
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[1].lightTile.a
-      value: 1
+      propertyPath: chapterLooks.Array.data[3].bossName
+      value: "\uC0C1\uC5B4\uC655"
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[1].lightTile.b
-      value: 0.35
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[1].lightTile.g
-      value: 0.52
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[1].lightTile.r
-      value: 0.64
+      propertyPath: chapterLooks.Array.data[4].bossName
+      value: "\uAE4C\uB9C8\uADC0\uC655"
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[1].darkTile.a
@@ -17449,38 +17441,6 @@ PrefabInstance:
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[1].darkTile.r
       value: 0.19
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[3].bossName
-      value: "\uC0C1\uC5B4\uC655"
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[4].bossName
-      value: "\uAE4C\uB9C8\uADC0\uC655"
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].bossName
-      value: "\uC5EC\uC6B0\uC655"
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].bossEpithet
-      value: "\uD0D0\uC695\uC758 \uC9C0\uBC30\uC790"
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].lightTile.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].lightTile.b
-      value: 0.66
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].lightTile.g
-      value: 0.57
-      objectReference: {fileID: 0}
-    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
-      propertyPath: chapterLooks.Array.data[2].lightTile.r
-      value: 0.48
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[2].darkTile.a
@@ -17531,9 +17491,49 @@ PrefabInstance:
       value: 0.08
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].bossEpithet
+      value: "\uB4E4\uD310\uC758 \uD3ED\uAD70"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].lightTile.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].lightTile.b
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].lightTile.g
+      value: 0.52
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[1].lightTile.r
+      value: 0.64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[2].bossEpithet
+      value: "\uD0D0\uC695\uC758 \uC9C0\uBC30\uC790"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[2].environment
       value: 
       objectReference: {fileID: 1787500739}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[2].lightTile.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[2].lightTile.b
+      value: 0.66
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[2].lightTile.g
+      value: 0.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[2].lightTile.r
+      value: 0.48
+      objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[3].bossEpithet
       value: "\uBC14\uB2E4\uB97C \uC0BC\uD0A8 \uC774"
