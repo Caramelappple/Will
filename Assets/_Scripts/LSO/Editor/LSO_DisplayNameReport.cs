@@ -21,11 +21,23 @@ namespace _Scripts.LSO.Editor
     /// 그 "모아 보기"가 이 도구다. 여기서 새 문구를 만들지 않고 있는 것만 읽는다.
     ///
     /// 쓰는 법: 메뉴 LSO &gt; 대응표 뽑기
-    /// 결과는 Assets 옆(프로젝트 루트)의 대응표.md 로 떨어진다.
+    /// 결과는 Assets/_Manual/대응표.md 로 떨어진다.
     /// 기획서와 코드가 어긋났는지 볼 때, 팀에 표기를 공유할 때 쓴다.
     /// </summary>
     public static class LSO_DisplayNameReport
     {
+        /// <summary>
+        /// Assets 안에 두는 이유는 문서를 한자리에 모아두기 위해서다.
+        ///
+        /// 예전에는 프로젝트 루트에 떨어뜨렸다. 그런데 루트에는 CLAUDE.md 처럼
+        /// 도구가 읽는 설정 파일이 같이 있어서, 사람이 읽는 문서와 섞이면
+        /// 어느 것이 설정이고 어느 것이 메모인지 구분이 안 됐다.
+        ///
+        /// 경로를 옮길 때는 <b>이미 뽑아둔 파일도 같이 옮겨야 한다.</b>
+        /// 안 그러면 옛 자리의 것이 남아서 두 벌이 된다.
+        /// </summary>
+        private const string OutputFolder = "_Manual";
+
         private const string OutputFileName = "대응표.md";
 
         [MenuItem("LSO/대응표 뽑기")]
@@ -33,11 +45,18 @@ namespace _Scripts.LSO.Editor
         {
             string markdown = Build();
 
-            // Application.dataPath는 Assets 폴더다. 그 한 칸 위가 프로젝트 루트다.
-            string root = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
-            string path = Path.Combine(root, OutputFileName);
+            // Application.dataPath는 Assets 폴더다.
+            string folder = Path.Combine(Application.dataPath, OutputFolder);
+
+            Directory.CreateDirectory(folder);
+
+            string path = Path.Combine(folder, OutputFileName);
 
             File.WriteAllText(path, markdown, new UTF8Encoding(true));
+
+            // 새로 만든 파일을 유니티가 바로 알아보게 한다. 안 하면 프로젝트 창에
+            // 안 보이다가 다음 새로고침에야 나타난다.
+            AssetDatabase.Refresh();
 
             Debug.Log($"대응표를 뽑았습니다: {path}");
 
