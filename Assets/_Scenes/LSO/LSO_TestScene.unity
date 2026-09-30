@@ -17411,6 +17411,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 237f12cbc5ef45569dacb8c50e554f40, type: 2}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[0].bossName
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[1].bossName
       value: "\uD669\uC18C\uC655"
       objectReference: {fileID: 0}
@@ -17489,6 +17493,10 @@ PrefabInstance:
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[4].darkTile.r
       value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
+      propertyPath: chapterLooks.Array.data[0].bossEpithet
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8425840884966786062, guid: f884a9060c92b3241be0060a8f36529e, type: 3}
       propertyPath: chapterLooks.Array.data[1].bossEpithet
@@ -18915,10 +18923,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f06132f703c394894a93be29cab070, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageDevKey
-  nextStage: {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
-  jumpKey: 100
-  requireShift: 1
-  logSteps: 1
 --- !u!1 &2118406385
 GameObject:
   m_ObjectHideFlags: 0
