@@ -215,6 +215,94 @@ namespace _Scripts.LSO.Stage
             Log($"자리 지정 → {ChapterNumber}-{StageNumber}");
         }
 
+        /// <summary>
+        /// **다음에 갈 칸**을 그 스테이지로 맞춘다. 지금 칸은 그대로 둔다.
+        ///
+        /// 개발자 키가 쓴다. 지금 판을 깨면 그 스테이지가 나온다.
+        ///
+        /// ── 왜 여기 있나 ─────────────────────────────────────────
+        /// 챕터 목록을 아는 곳은 이 클래스 하나다. 찾는 일을 밖에 두면
+        /// chapters 를 밖으로 열어야 하고, 그러면 "몇 챕터 몇 번째인가"를
+        /// 아는 곳이 둘이 된다.
+        /// ─────────────────────────────────────────────────────────
+        ///
+        /// 바로 그 칸으로 보내는 것이 아니라 <b>한 칸 앞에 세운다.</b>
+        /// Advance 를 거치지 않고 자리만 바꾸면 클리어 처리와 연출이 건너뛰어져,
+        /// 실제 플레이와 다른 경로로 그 스테이지에 도착한다.
+        /// </summary>
+        /// <returns>맞췄으면 참. 목록에 없거나 앞에 설 자리가 없으면 거짓.</returns>
+        public bool TrySetNext(LDY_StageSO stage)
+        {
+            if (stage == null)
+            {
+                Debug.LogWarning($"{name}: 다음으로 잡을 스테이지가 비어 있습니다.", this);
+                return false;
+            }
+
+            if (!TryFind(stage, out int chapterIndex, out int stageIndex))
+            {
+                Debug.LogWarning(
+                    $"{name}: '{stage.name}' 을 챕터 목록에서 찾지 못했습니다. " +
+                    "Chapters 에 그 스테이지가 들어 있는지 확인하세요.", this);
+                return false;
+            }
+
+            // 그 칸의 바로 앞에 선다. 깨서 Advance 하면 그 칸이 나온다.
+            if (stageIndex > 0)
+            {
+                SetPosition(chapterIndex, stageIndex - 1);
+                return true;
+            }
+
+            // 챕터의 첫 칸이면 앞 챕터의 마지막에 선다.
+            // Advance 가 챕터를 넘기면서 그 칸으로 간다.
+            for (int prev = chapterIndex - 1; prev >= 0; prev--)
+            {
+                if (chapters[prev] == null || chapters[prev].Count == 0) continue;
+
+                SetPosition(prev, chapters[prev].Count - 1);
+                return true;
+            }
+
+            Debug.LogWarning(
+                $"{name}: '{stage.name}' 이 맨 첫 칸이라 그 앞에 설 자리가 없습니다.", this);
+
+            return false;
+        }
+
+        /// <summary>
+        /// 그 스테이지가 몇 챕터 몇 번째인지 찾는다.
+        ///
+        /// 적어둔 칸(stages)과 실제로 고른 칸(At) 둘 다 본다.
+        /// 갈래가 걸린 자리는 둘이 다를 수 있어서, 한쪽만 보면 못 찾는다.
+        /// </summary>
+        private bool TryFind(LDY_StageSO stage, out int chapterIndex, out int stageIndex)
+        {
+            for (int c = 0; c < chapters.Count; c++)
+            {
+                LSO_ChapterSO chapter = chapters[c];
+
+                if (chapter == null) continue;
+
+                for (int s = 0; s < chapter.Count; s++)
+                {
+                    bool authored = chapter.stages != null &&
+                                    s < chapter.stages.Count &&
+                                    chapter.stages[s] == stage;
+
+                    if (!authored && chapter.At(s) != stage) continue;
+
+                    chapterIndex = c;
+                    stageIndex = s;
+                    return true;
+                }
+            }
+
+            chapterIndex = -1;
+            stageIndex = -1;
+            return false;
+        }
+
         private void WarnIfEmpty()
         {
             if (chapters.Count == 0)

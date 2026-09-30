@@ -18748,6 +18748,7 @@ GameObject:
   - component: {fileID: 2109000103}
   - component: {fileID: 2109000102}
   - component: {fileID: 2109000101}
+  - component: {fileID: 2109000109}
   m_Layer: 5
   m_Name: TutorialIntroFade
   m_TagString: Untagged
@@ -18902,6 +18903,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2109000105}
   m_CullTransparentMesh: 1
+--- !u!114 &2109000109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109000100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f06132f703c394894a93be29cab070, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Scripts.LSO.Stage.LSO_StageDevKey
+  nextStage: {fileID: 11400000, guid: 4ea88a149d8445809e0e5f27454f132e, type: 2}
+  jumpKey: 100
+  requireShift: 1
+  logSteps: 1
 --- !u!1 &2118406385
 GameObject:
   m_ObjectHideFlags: 0
